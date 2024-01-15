@@ -3959,22 +3959,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigMode);
                     sensor.addItem(DataTypeString, RConfigFanMode);
                 }
-                else if (sensor.modelId() == QLatin1String("TRV001") ||   // Hive TRV
-                         sensor.modelId() == QLatin1String("eT093WRO"))   // POPP smart thermostat
-                {
-                    sensor.addItem(DataTypeUInt8, RStateValve);
-                    sensor.addItem(DataTypeString, RStateWindowOpen);
-                    sensor.addItem(DataTypeBool, RStateMountingModeActive)->setValue(false);
-                    sensor.addItem(DataTypeString, RStateErrorCode);
-                    sensor.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
-                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
-                    sensor.addItem(DataTypeBool, RConfigMountingMode)->setValue(false);
-                    // Supported with Danfoss firmware version 1.08
-                    sensor.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
-                    sensor.addItem(DataTypeString, RConfigSchedule);
-                    sensor.addItem(DataTypeInt16, RConfigExternalTemperatureSensor)->setValue(0);
-                    sensor.addItem(DataTypeBool, RConfigExternalWindowOpen)->setValue(false);
-                }
                 else if (sensor.modelId() == QLatin1String("iTRV")) // Drayton Wiser Radiator Thermostat
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);

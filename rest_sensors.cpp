@@ -1102,16 +1102,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
-                    else if (sensor->modelId() == QLatin1String("TRV001") || sensor->modelId() == QLatin1String("eT093WRO"))
-                    {
-                        if (data.integer < -25) { data.integer = -25; }
-                        if (data.integer > 25)  { data.integer = 25; }
-
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, THERM_ATTRID_REGULATION_SETPOINT_OFFSET, deCONZ::Zcl8BitInt, data.integer))
-                        {
-                            updated = true;
-                        }
-                    }
                     else if (sensor->type() == "ZHAThermostat")
                     {
                         if (!devManaged)
@@ -1183,14 +1173,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             hostFlags &= ~0x04; // clear `boost` flag
                             hostFlags |=  0x10; // set `disable off` flag
 
-                            updated = true;
-                        }
-                    }
-                    else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") ||
-                             sensor->modelId() == QLatin1String("eT093WRO") || sensor->modelId() == QLatin1String("eTRV0103"))
-                    {
-                        if (addTaskThermostatCmd(task, VENDOR_DANFOSS, 0x40, data.integer, 0))
-                        {
                             updated = true;
                         }
                     }
@@ -1429,15 +1411,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                     updated = true;
                                 }
                             }
-                        }
-                    }
-                    else if (sensor->modelId().startsWith(QLatin1String("S1")) ||
-                             sensor->modelId().startsWith(QLatin1String("S2")) ||
-                             sensor->modelId().startsWith(QLatin1String("J1")))
-                    {
-                        if (addTaskUbisysConfigureSwitch(task))
-                        {
-                            updated = true;
                         }
                     }
                     else if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
@@ -1713,17 +1686,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigDisplayFlipped) // Boolean
                 {
-                    if (sensor->modelId() == QLatin1String("TRV001") ||
-                        sensor->modelId() == QLatin1String("eT093WRO"))
-                    {
-                        data.uinteger = data.boolean; // Use integer representation
-
-                        if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, THERM_UI_ATTRID_VIEWING_DIRECTION, deCONZ::Zcl8BitEnum, data.uinteger, VENDOR_DANFOSS))
-                        {
-                            updated = true;
-                        }
-                    }
-                    else if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
+                    if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                     {
                         if (data.boolean) { hostFlags |= 0x000002; } // set flipped
                         else              { hostFlags &= 0xffffed; } // clear flipped, clear disable off
@@ -1743,16 +1706,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigMountingMode) // Boolean
                 {
-                    if (!devManaged)
-                    {
-                        data.uinteger = data.boolean; // Use integer representation
-
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, THERM_ATTRID_MOUNTING_MODE_CONTROL, deCONZ::Zcl16BitInt, data.uinteger))
-                        {
-                            updated = true;
-                        }
-                    }
-                    else if (devManaged && rsub)
+                    if (devManaged && rsub)
                     {
                         change.addTargetValue(rid.suffix, data.boolean);
                         rsub->addStateChange(change);
@@ -1761,14 +1715,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigExternalTemperatureSensor) // Signed integer
                 {
-                    if (!devManaged)
-                    {
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, THERM_ATTRID_EXTERNAL_MEASUREMENT, deCONZ::Zcl16BitInt, data.integer))
-                        {
-                            updated = true;
-                        }
-                    }
-                    else if (devManaged && rsub)
+                    if (devManaged && rsub)
                     {
                         change.addTargetValue(rid.suffix, data.integer);
                         rsub->addStateChange(change);
@@ -1777,14 +1724,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigExternalWindowOpen) // Boolean
                 {
-                    if (!devManaged)
-                    {
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, THERM_ATTRID_EXTERNAL_OPEN_WINDOW_DETECTED, deCONZ::ZclBoolean, data.boolean))
-                        {
-                            updated = true;
-                        }
-                    }
-                    else if (devManaged && rsub)
+                    if (devManaged && rsub)
                     {
                         change.addTargetValue(rid.suffix, data.boolean);
                         rsub->addStateChange(change);

@@ -2590,7 +2590,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
             <value name="3" value="0x03"></value>
             <value name="4" value="0x04"></value>
           </attribute>
-          <attribute id="0x4040" name="Unknown" type="s16" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x4040" name="External Measured Room Sensor" type="s16" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4041" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
             <value name="0" value="0x00"></value>
             <value name="1" value="0x01"></value>
