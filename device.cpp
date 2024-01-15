@@ -794,6 +794,8 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
             d->managed = true;
             d->flags.hasDdf = 1;
             d->setState(DEV_IdleStateHandler);
+            // TODO(mpi): temporary forward this info here, gets replaced by device actor later
+            DEV_ForwardNodeChange(device, QLatin1String("hasddf"), QLatin1String("1"));
         }
         else
         {

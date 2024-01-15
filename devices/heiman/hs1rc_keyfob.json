@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": [" _TZ3000_itb0omhv", "_TZ3000_4upl1fcj","_TZ3000_wqcbzbae", "_TZ3000_fa9mlvja", "_TZ3000_tk3s5tyg", "_TZ3000_mrpevh8p", "TZ3000_qgwcxxws"],
-  "modelid": ["TS0041", "TS0041", "TS0041", "TS0041", "TS0041", "TS0041", "TS0041"],
-  "product": "Tuya 1 gangs switch battery",
-  "sleeper": false,
+  "manufacturername": ["HEIMAN", "Heiman", "HEIMAN"],
+  "modelid": ["RC-EF-3.0", "RC_V14", "RC-EM"],
+  "vendor": "Heiman",
+  "product": "Keyfob HS1RC/HS1RC-M//HS1RC-E",
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
@@ -12,8 +13,20 @@
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0006"
+        "0x0500"
       ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0401",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0500"
+        ],
+        "out": [
+          "0x0501"
+        ]
+      },
       "items": [
         {
           "name": "attr/id"
@@ -35,8 +48,20 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "refresh.interval": 86400,
+          "parse": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "at": "0x0006",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "attr/type"
@@ -46,32 +71,42 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
+          "refresh.interval": 43265,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl:attr"
+          },
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
             "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          },
-          "default": 0
-        },        
+          }
+        },
+        {
+          "name": "config/enrolled"
+        },
         {
           "name": "config/on"
+        },
+        {
+          "name": "config/pending"
         },
         {
           "name": "config/reachable"
         },
         {
-          "name": "state/buttonevent"
+          "name": "state/buttonevent",
+          "awake": true
         },
         {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery"
         }
       ]
     }
@@ -85,17 +120,21 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
-          "change": "0x00000001"
+          "min": 3600,
+          "max": 43200,
+          "change": "0x00000002"
         }
       ]
     },
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0006"
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0501"
     }
   ]
 }

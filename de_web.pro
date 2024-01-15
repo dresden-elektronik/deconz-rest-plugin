@@ -92,7 +92,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.24.01\\\"
+DEFINES += GW_SW_VERSION=\\\"2.25.01\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -208,9 +208,7 @@ SOURCES  = air_quality.cpp \
            device_js/device_js_duktape.cpp \
            device_js/device_js_wrappers.cpp \
            device_js/duktape.c \
-           device_setup.cpp \
            device_tick.cpp \
-           diagnostics.cpp \
            discovery.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \
