@@ -60,6 +60,12 @@
           "read": {"fn": "tuya"}
         },
         {
+          "name": "config/offset",
+          "parse": {"fn": "tuya", "dpid": 47, "eval": "Item.val = Attr.val * 100;"},
+          "write": {"fn": "tuya", "dpid": 47, "dt": "0x2b", "eval": "Item.val / 100;"},
+          "read": {"fn": "none"}
+        },
+        {
           "name": "config/locked",
           "parse": {"fn": "tuya", "dpid": 7, "eval": "Item.val = Attr.val;"},
           "write": {"fn": "tuya", "dpid": 7, "dt": "0x10", "eval": "Item.val;"},
