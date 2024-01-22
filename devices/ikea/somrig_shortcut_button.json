@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": [" _TZ3000_itb0omhv", "_TZ3000_4upl1fcj","_TZ3000_wqcbzbae", "_TZ3000_fa9mlvja", "_TZ3000_tk3s5tyg", "_TZ3000_mrpevh8p", "TZ3000_qgwcxxws"],
-  "modelid": ["TS0041", "TS0041", "TS0041", "TS0041", "TS0041", "TS0041", "TS0041"],
-  "product": "Tuya 1 gangs switch battery",
-  "sleeper": false,
+  "manufacturername": "IKEA of Sweden",
+  "modelid": "SOMRIG shortcut button",
+  "product": "SOMRIG Shortcut Button",
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
@@ -12,7 +12,7 @@
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0006"
+        "0xFC80"
       ],
       "items": [
         {
@@ -34,9 +34,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -46,21 +44,16 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "awake": true,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          },
-          "default": 0
-        },        
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl:attr"
+          }
+        },
         {
           "name": "config/on"
         },
@@ -80,22 +73,28 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0xFC80"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "dst.ep": 1,
+      "cl": "0xFC80"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
       "cl": "0x0001",
       "report": [
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
+          "min": 3200,
           "max": 3600,
-          "change": "0x00000001"
+          "change": "0x00000002"
         }
       ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0006"
     }
   ]
 }

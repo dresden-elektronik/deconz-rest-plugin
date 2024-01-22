@@ -48,10 +48,13 @@
           "name": "attr/name"
         },
         {
+<<<<<<< HEAD
           "name": "attr/productname",
           "static": "Vallhorn presence sensor"
         },
         {
+=======
+>>>>>>> upstream/master
           "name": "attr/productid",
           "parse": {
             "fn": "zcl:attr",
