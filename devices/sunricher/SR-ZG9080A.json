@@ -53,7 +53,7 @@
             "cl": "0x0102",
             "ep": 0,
             "eval": "Item.val = Attr.val < 100",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {

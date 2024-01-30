@@ -239,6 +239,9 @@ bool DeRestPluginPrivate::startUpdateFirmware()
  */
 void DeRestPluginPrivate::firmwareUpdateTimerFired()
 {
+    // TODO(mpi): whole firmware module needs to be rewritten for upcoming GCFFlasher4 based connectiongs
+    return; // disabled for now, causes SEGV on some setups since v2.23.x
+
     if (otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
     {
         fwUpdateState = FW_Idle;

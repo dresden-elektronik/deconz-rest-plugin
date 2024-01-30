@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/airqualityppb_bis",
+  "datatype": "UInt16",
+  "access": "R",
+  "public": false,
+  "description": "Measured tVOC level in ppb."
+}

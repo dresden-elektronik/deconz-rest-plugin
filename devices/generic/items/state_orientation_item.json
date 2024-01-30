@@ -1,9 +1,0 @@
-{
-	"schema": "resourceitem1.schema.json",
-	"id": "state/orientation",
-	"datatype": "Array[3]",
-	"virtual": true,
-	"access": "R",
-	"public": true,
-	"description": "The orientation in degrees [X, Y, Z]. <br/> Where X, Y, Z can be in range -90&ndash;90."
-}

@@ -1,10 +1,10 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "attr/type",
-	"datatype": "String",
-	"access": "R",
-	"public": true,
-	"implicit" : true,
-	"managed": true,
-	"description": "Type of the resource."
+  "schema": "resourceitem1.schema.json",
+  "id": "attr/type",
+  "datatype": "String",
+  "access": "R",
+  "public": true,
+  "implicit": true,
+  "managed": true,
+  "description": "Type of the resource."
 }

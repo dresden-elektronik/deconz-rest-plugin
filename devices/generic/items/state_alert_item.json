@@ -1,15 +1,24 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/alert",
-	"datatype": "String",
-	"access": "RW",
-	"public": true,
-	"managed": true,
-	"description": "The currently active alert effect.",
-	"default": "none",
-	"values": [
-		["\"none\"", "light is not performing an alert"],
-		["\"select\"", "light is blinking a short time"],
-		["\"lselect\"", "light is blinking a longer time"]
-	]
+  "schema": "resourceitem1.schema.json",
+  "id": "state/alert",
+  "datatype": "String",
+  "access": "RW",
+  "public": true,
+  "managed": true,
+  "description": "The currently active alert effect.",
+  "default": "none",
+  "values": [
+    [
+      "\"none\"",
+      "light is not performing an alert"
+    ],
+    [
+      "\"select\"",
+      "light is blinking a short time"
+    ],
+    [
+      "\"lselect\"",
+      "light is blinking a longer time"
+    ]
+  ]
 }

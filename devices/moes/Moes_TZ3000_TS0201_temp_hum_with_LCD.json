@@ -46,19 +46,19 @@
         {
           "name": "config/battery",
           "awake": true,
-          "refresh.interval": 3600,
+          "refresh.interval": 3665,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
             "eval": "Item.val = Attr.val / 2",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         },
@@ -121,19 +121,19 @@
         {
           "name": "config/battery",
           "awake": true,
-          "refresh.interval": 3600,
+          "refresh.interval": 3665,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
             "eval": "Item.val = Attr.val / 2",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         },
@@ -155,7 +155,7 @@
             "cl": "0x0405",
             "ep": 0,
             "eval": "Item.val = Attr.val * 10 + R.item('config/offset').val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         },

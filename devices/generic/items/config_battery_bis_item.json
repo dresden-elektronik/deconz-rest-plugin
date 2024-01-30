@@ -1,0 +1,12 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/battery_bis",
+  "datatype": "UInt8",
+  "access": "R",
+  "public": false,
+  "range": [
+    0,
+    100
+  ],
+  "description": "The current device battery level in 0&ndash;100&thinsp;%."
+}

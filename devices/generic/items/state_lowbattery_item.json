@@ -1,10 +1,12 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/lowbattery",
-	"datatype": "Bool",
-	"access": "R",
-	"public": true,
-	"managed": true,
-	"description": "True when the device battery runs low.",
-	"parse": {"fn": "ias:zonestatus"}
+  "schema": "resourceitem1.schema.json",
+  "id": "state/lowbattery",
+  "datatype": "Bool",
+  "access": "R",
+  "public": true,
+  "managed": true,
+  "description": "True when the device battery runs low.",
+  "parse": {
+    "fn": "ias:zonestatus"
+  }
 }

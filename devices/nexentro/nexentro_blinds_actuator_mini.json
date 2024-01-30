@@ -49,7 +49,7 @@
             "cl": "0x0102",
             "ep": 6,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -62,18 +62,18 @@
             "cl": "0x0102",
             "ep": 6,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
           "name": "state/lift",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "parse": {
             "at": "0x0008",
             "cl": "0x0102",
             "ep": 6,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         },
@@ -90,19 +90,19 @@
         },
         {
           "name": "state/tilt",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0009",
             "cl": "0x0102",
             "ep": 6,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0009",
             "cl": "0x0102",
             "ep": 6,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         }

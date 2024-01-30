@@ -1,0 +1,9 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/measured_value",
+  "datatype": "Double",
+  "access": "R",
+  "public": true,
+  "default": 0,
+  "description": "Represents the concentration as a fraction of 1."
+}

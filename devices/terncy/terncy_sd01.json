@@ -66,7 +66,7 @@
             "cl": "0x0001",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "read": {
             "fn": "none"
@@ -91,7 +91,7 @@
             "cl": "0xFCCC",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -106,7 +106,7 @@
             "cl": "0xFCCC",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {

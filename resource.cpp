@@ -64,6 +64,7 @@ const char *RAttrLastAnnounced = "attr/lastannounced";
 const char *RAttrLastSeen = "attr/lastseen";
 const char *RAttrLevelMin = "attr/levelmin";
 const char *RAttrManufacturerName = "attr/manufacturername";
+const char *RAttrMode = "attr/mode";
 const char *RAttrModelId = "attr/modelid";
 const char *RAttrName = "attr/name";
 const char *RAttrNwkAddress = "attr/nwkaddress";
@@ -74,15 +75,17 @@ const char *RAttrProductId = "attr/productid";
 const char *RAttrProductName = "attr/productname";
 const char *RAttrSwconfigid = "attr/swconfigid";
 const char *RAttrSwVersion = "attr/swversion";
+const char *RAttrSwVersionBis = "attr/swversion_bis";
 const char *RAttrType = "attr/type";
 const char *RAttrUniqueId = "attr/uniqueid";
-const char *RAttrXiaomi = "attr/xiaomi";
 
 const char *RActionScene = "action/scene";
 
 const char *RStateAction = "state/action";
 const char *RStateAirQuality = "state/airquality";
+const char *RStateAirQualityBis = "state/airquality_bis";
 const char *RStateAirQualityPpb = "state/airqualityppb";
+const char *RStateAirQualityPpbBis = "state/airqualityppb_bis";
 const char *RStateAlarm = "state/alarm";
 const char *RStateAlert = "state/alert";
 const char *RStateAllOn = "state/all_on";
@@ -121,6 +124,7 @@ const char *RStateGradient = "state/gradient";
 const char *RStateHeating = "state/heating";
 const char *RStateHue = "state/hue";
 const char *RStateHumidity = "state/humidity";
+const char *RStateHumidityBis = "state/humidity_bis";
 const char *RStateLastCheckin = "state/lastcheckin";
 const char *RStateLastSet = "state/lastset";
 const char *RStateLastUpdated = "state/lastupdated";
@@ -130,10 +134,13 @@ const char *RStateLocaltime = "state/localtime";
 const char *RStateLockState = "state/lockstate";
 const char *RStateLowBattery = "state/lowbattery";
 const char *RStateLux = "state/lux";
+const char *RStateMeasuredValue = "state/measured_value";
 const char *RStateMoisture = "state/moisture";
 const char *RStateMountingModeActive = "state/mountingmodeactive";
+const char *RStateMusicSync = "state/music_sync";
 const char *RStateOn = "state/on";
 const char *RStateOpen = "state/open";
+const char *RStateOpenBis = "state/open_bis";
 const char *RStateOrientationX = "state/orientation_x";
 const char *RStateOrientationY = "state/orientation_y";
 const char *RStateOrientationZ = "state/orientation_z";
@@ -143,6 +150,7 @@ const char *RStatePower = "state/power";
 const char *RStatePresence = "state/presence";
 const char *RStatePresenceEvent = "state/presenceevent";
 const char *RStatePressure = "state/pressure";
+const char *RStatePressureBis = "state/pressure_bis";
 const char *RStateProduction = "state/production";
 const char *RStateReachable = "state/reachable";
 const char *RStateReplaceFilter = "state/replacefilter";
@@ -158,6 +166,7 @@ const char *RStateSunrise = "state/sunrise";
 const char *RStateSunset = "state/sunset";
 const char *RStateTampered = "state/tampered";
 const char *RStateTemperature = "state/temperature";
+const char *RStateTemperatureBis = "state/temperature_bis";
 const char *RStateTest = "state/test";
 const char *RStateTilt = "state/tilt";
 const char *RStateTiltAngle = "state/tiltangle";
@@ -167,6 +176,7 @@ const char *RStateVibration = "state/vibration";
 const char *RStateVibrationStrength = "state/vibrationstrength";
 const char *RStateVoltage = "state/voltage";
 const char *RStateWater = "state/water";
+const char *RStateWaterBis = "state/water_bis";
 const char *RStateWindowOpen = "state/windowopen";
 const char *RStateX = "state/x";
 const char *RStateY = "state/y";
@@ -205,7 +215,13 @@ const char *RCapColorXyGreenX = "cap/color/xy/green_x";
 const char *RCapColorXyGreenY = "cap/color/xy/green_y";
 const char *RCapColorXyRedX = "cap/color/xy/red_x";
 const char *RCapColorXyRedY = "cap/color/xy/red_y";
+const char *RCapGroup = "cap/group";
 const char *RCapGroupsNotSupported = "cap/groups/not_supported";
+const char *RCapMeasuredValueMax = "cap/measured_value/max";
+const char *RCapMeasuredValueMin = "cap/measured_value/min";
+const char *RCapMeasuredValueQuantity = "cap/measured_value/quantity";
+const char *RCapMeasuredValueSubstance = "cap/measured_value/substance";
+const char *RCapMeasuredValueUnit = "cap/measured_value/unit";
 const char *RCapOnOffWithEffect = "cap/on/off_with_effect";
 const char *RCapSleeper = "cap/sleeper";
 const char *RCapTransitionBlock = "cap/transition_block";
@@ -224,17 +240,21 @@ const char *RConfigArmedStayEntryDelay = "config/armed_stay_entry_delay";
 const char *RConfigArmedStayExitDelay = "config/armed_stay_exit_delay";
 const char *RConfigArmedStayTriggerDuration = "config/armed_stay_trigger_duration";
 const char *RConfigBattery = "config/battery";
+const char *RConfigBatteryBis = "config/battery_bis";
+const char *RConfigBriCoupleCt = "config/bri/couple_ct";
 const char *RConfigBriExecuteIfOff = "config/bri/execute_if_off";
 const char *RConfigBriMax = "config/bri/max";
 const char *RConfigBriMin = "config/bri/min";
 const char *RConfigBriOnLevel = "config/bri/on_level";
 const char *RConfigBriOnOffTransitiontime = "config/bri/onoff_transitiontime";
+const char *RConfigBriOptions = "config/bri/options";
 const char *RConfigBriStartup = "config/bri/startup";
 const char *RConfigCheckin = "config/checkin";
 const char *RConfigClickMode = "config/clickmode";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
 const char *RConfigColorCtStartup = "config/color/ct/startup";
 const char *RConfigColorExecuteIfOff = "config/color/execute_if_off";
+const char *RConfigColorGradientPixelCount = "config/color/gradient/pixel_count";
 const char *RConfigColorGradientReversed = "config/color/gradient/reversed";
 const char *RConfigColorXyStartupX = "config/color/xy/startup_x";
 const char *RConfigColorXyStartupY = "config/color/xy/startup_y";
@@ -246,6 +266,7 @@ const char *RConfigCtMax = "config/ctmax";
 const char *RConfigCtMin = "config/ctmin";
 const char *RConfigDelay = "config/delay";
 const char *RConfigDeviceMode = "config/devicemode";
+const char *RConfigDeviceModeBis = "config/devicemode_bis";
 const char *RConfigDisarmedEntryDelay = "config/disarmed_entry_delay";
 const char *RConfigDisarmedExitDelay = "config/disarmed_exit_delay";
 const char *RConfigDisplayFlipped = "config/displayflipped";
@@ -268,6 +289,7 @@ const char *RConfigLastChangeSource = "config/lastchange_source";
 const char *RConfigLastChangeTime = "config/lastchange_time";
 const char *RConfigLat = "config/lat";
 const char *RConfigLedIndication = "config/ledindication";
+const char *RConfigLoadBalancing = "config/loadbalancing";
 const char *RConfigLocalTime = "config/localtime";
 const char *RConfigLock = "config/lock";
 const char *RConfigLocked = "config/locked";
@@ -281,13 +303,16 @@ const char *RConfigOnStartup = "config/on/startup";
 const char *RConfigPending = "config/pending";
 const char *RConfigPreset = "config/preset";
 const char *RConfigPulseConfiguration = "config/pulseconfiguration";
+const char *RConfigRadiatorCovered = "config/radiatorcovered";
 const char *RConfigReachable = "config/reachable";
+const char *RConfigReportGrid = "config/reportgrid";
 const char *RConfigResetPresence = "config/resetpresence";
 const char *RConfigReversed = "config/reversed";
 const char *RConfigSchedule = "config/schedule";
 const char *RConfigScheduleOn = "config/schedule_on";
 const char *RConfigSelfTest = "config/selftest";
 const char *RConfigSensitivity = "config/sensitivity";
+const char *RConfigSensitivityBis = "config/sensitivity_bis";
 const char *RConfigSensitivityMax = "config/sensitivitymax";
 const char *RConfigSetValve = "config/setvalve";
 const char *RConfigSpeed = "config/speed";
@@ -302,6 +327,7 @@ const char *RConfigTholdDark = "config/tholddark";
 const char *RConfigTholdOffset = "config/tholdoffset";
 const char *RConfigUnoccupiedHeatSetpoint = "config/unoccupiedheatsetpoint";
 const char *RConfigTriggerDistance = "config/triggerdistance";
+const char *RConfigTriggerDistanceBis = "config/triggerdistance_bis";
 const char *RConfigUbisysJ1AdditionalSteps = "config/ubisys_j1_additionalsteps";
 const char *RConfigUbisysJ1ConfigurationAndStatus = "config/ubisys_j1_configurationandstatus";
 const char *RConfigUbisysJ1InactivePowerThreshold = "config/ubisys_j1_inactivepowerthreshold";
@@ -322,6 +348,7 @@ const char *RConfigUsertest = "config/usertest";
 const char *RConfigVolume = "config/volume";
 const char *RConfigWindowCoveringType = "config/windowcoveringtype";
 const char *RConfigWindowOpen = "config/windowopen_set";
+const char *RConfigWindowOpenDetectionEnabled = "config/windowopendetectionenabled";
 
 const QStringList RConfigDeviceModeValues({
     "singlerocker", "singlepushbutton", "dualrocker", "dualpushbutton"
@@ -353,6 +380,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RAttrLastSeen));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RAttrLevelMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrManufacturerName));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrModelId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrName));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RAttrNwkAddress));
@@ -363,15 +391,17 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrProductName));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrSwconfigid));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrSwVersion));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrSwVersionBis));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrUniqueId));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RAttrXiaomi));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RActionScene));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateAction));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateAirQuality));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateAirQualityBis));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateAirQualityPpb));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateAirQualityPpbBis));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateAlarm));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateAllOn));
@@ -397,7 +427,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateDeviceRunTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateErrorCode));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateEventDuration));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateEventDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateExpectedEventDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateExpectedRotation));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateFilterRunTime));
@@ -411,19 +441,23 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateHeating));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateHue));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateHumidity, 0, 10000));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateHumidityBis, 0, 10000));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateLastCheckin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateLastSet));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateLastUpdated));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateLift, 0, 100));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateLift));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateLightLevel, 0, 0xfffe));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateLocaltime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateLockState));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateLowBattery));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RStateLux));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeReal, QVariant::Double, RStateMeasuredValue));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateMoisture));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateMountingModeActive));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateMusicSync));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateOpen));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateOpenBis));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateOrientationX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateOrientationY));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateOrientationZ));
@@ -433,6 +467,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStatePresence));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStatePresenceEvent));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePressure, 0, 32767));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePressureBis, 0, 32767));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RStateProduction));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateReplaceFilter));
@@ -449,8 +484,9 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateSunset));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateTampered));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateTemperature, -27315, 32767));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateTemperatureBis, -27315, 32767));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateTest));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateTilt, 0, 100));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateTilt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateTiltAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateUtc));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateValve));
@@ -458,6 +494,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateVibrationStrength));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateVoltage));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateWater));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateWaterBis));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateWindowOpen));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateY));
@@ -481,7 +518,13 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyGreenY));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyRedX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RCapColorXyRedY));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RCapGroup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapGroupsNotSupported));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeReal, QVariant::Double, RCapMeasuredValueMax));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeReal, QVariant::Double, RCapMeasuredValueMin));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RCapMeasuredValueQuantity));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RCapMeasuredValueSubstance));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RCapMeasuredValueUnit));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapOnOffWithEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapSleeper));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RCapTransitionBlock));
@@ -500,17 +543,21 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedStayExitDelay, 0, 255));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedStayTriggerDuration, 0, 255));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBattery, 0, 100));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBatteryBis, 0, 100));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool,  QVariant::Bool, RConfigBriCoupleCt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool,  QVariant::Bool, RConfigBriExecuteIfOff));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBriMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBriMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBriOnLevel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigBriOnOffTransitiontime));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBriOptions));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBriStartup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RConfigCheckin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigClickMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorCapabilities));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorCtStartup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool,  QVariant::Bool, RConfigColorExecuteIfOff));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigColorGradientPixelCount, 5, 50));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool,  QVariant::Bool, RConfigColorGradientReversed));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorXyStartupX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigColorXyStartupY));
@@ -522,6 +569,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigCtMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigDelay));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigDeviceMode));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigDeviceModeBis));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigDisarmedEntryDelay, 0, 255));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigDisarmedExitDelay, 0, 255));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigDisplayFlipped));
@@ -545,6 +593,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RConfigLastChangeTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigLat));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigLedIndication));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigLoadBalancing));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RConfigLocalTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigLock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigLocked));
@@ -558,13 +607,16 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigPending));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigPreset));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigPulseConfiguration));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigRadiatorCovered));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigReachable));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigReportGrid));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigResetPresence));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigReversed));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigSchedule));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigScheduleOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigSelfTest));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigSensitivity));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigSensitivityBis));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigSensitivityMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt8, QVariant::Double, RConfigSpeed));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigSetValve));
@@ -578,6 +630,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigTholdDark, 0, 0xfffe));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigTholdOffset, 1, 0xfffe));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigTriggerDistance));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigTriggerDistanceBis));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigUbisysJ1AdditionalSteps));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigUbisysJ1ConfigurationAndStatus));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigUbisysJ1InactivePowerThreshold));
@@ -598,6 +651,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigVolume));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigWindowCoveringType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigWindowOpen));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigWindowOpenDetectionEnabled));
 }
 
 const char *getResourcePrefix(const QString &str)
@@ -608,8 +662,8 @@ const char *getResourcePrefix(const QString &str)
 
 bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr)
 {
-    std::vector<ResourceItemDescriptor>::const_iterator i = rItemDescriptors.begin();
-    std::vector<ResourceItemDescriptor>::const_iterator end = rItemDescriptors.end();
+    auto i = rItemDescriptors.begin();
+    const auto end = rItemDescriptors.end();
 
     for (; i != end; ++i)
     {
@@ -618,6 +672,32 @@ bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr
             descr = *i;
             return true;
         }
+    }
+
+    return false;
+}
+
+bool R_AddResourceItemDescriptor(const ResourceItemDescriptor &rid)
+{
+    if (rid.isValid())
+    {
+        QLatin1String str1(rid.suffix);
+
+        auto i = rItemDescriptors.begin();
+        const auto end = rItemDescriptors.end();
+
+        for (; i != end; ++i)
+        {
+            QLatin1String str2(i->suffix);
+
+            if (str1 == str2)
+            {
+                return false; //already known
+            }
+        }
+
+        rItemDescriptors.push_back(rid);
+        return true;
     }
 
     return false;
@@ -1122,13 +1202,28 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
             return true;
         }
     }
+    else if (m_rid->type == DataTypeReal)
+    {
+        bool ok = false;
+        double d = val.toDouble(&ok);
+
+        if (ok)
+        {
+            m_lastSet = now;
+            m_doublePrev = m_double;
+            m_flags |= FlagNeedPushSet;
+
+            if (m_double != d)
+            {
+                m_double = d;
+                m_lastChanged = m_lastSet;
+                m_flags |= FlagNeedPushChange;
+            }
+            return true;
+        }
+    }
     else
     {
-        if (m_rid->type == DataTypeReal)
-        {
-            DBG_Printf(DBG_ERROR, "todo handle DataTypeReal in %s", __FUNCTION__);
-        }
-
         bool ok = false;
         const int n = val.toInt(&ok);
 
@@ -1206,6 +1301,10 @@ QVariant ResourceItem::toVariant() const
     else if (m_rid->type == DataTypeTime)
     {
         return toString();
+    }
+    else if (m_rid->type == DataTypeReal)
+    {
+        return (double)m_double;
     }
     else
     {

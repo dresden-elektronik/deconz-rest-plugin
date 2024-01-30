@@ -36,14 +36,14 @@
           "name": "attr/swversion",
           "refresh.interval": 86400,
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
             "at": "0x0001",
             "script": "tuya_swversion.js"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
             "at": "0x0001"
@@ -97,14 +97,14 @@
           "name": "attr/swversion",
           "refresh.interval": 86400,
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
             "at": "0x0001",
             "script": "tuya_swversion.js"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
             "at": "0x0001"
@@ -155,14 +155,14 @@
           "name": "attr/swversion",
           "refresh.interval": 86400,
           "parse": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
             "at": "0x0001",
             "script": "tuya_swversion.js"
           },
           "read": {
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
             "at": "0x0001"

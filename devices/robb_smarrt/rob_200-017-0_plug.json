@@ -97,7 +97,7 @@
             "at": "0x0000",
             "cl": "0x0702",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0000",
@@ -165,7 +165,7 @@
             "at": "0x050b",
             "cl": "0x0b04",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x050b",

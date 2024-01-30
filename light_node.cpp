@@ -401,7 +401,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                             item(RStateColorMode)->setValue(QVariant("ct")); // note due addItem() calls, pointer is different here
                         }
                     }
-                    [[clang::fallthrough]];
+                    // fall through
 
                     default:
                         break;
@@ -423,6 +423,11 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                             if (manufacturer() == QLatin1String("LIDL Livarno Lux"))
                             {
                                 removeItem(RCapColorCapabilities);
+                            }
+                            // else if (modelId() == QLatin1String("lumi.light.acn132"))
+                            else if (deviceId == DEV_ID_HA_COLOR_DIMMABLE_LIGHT && manufacturerCode() == 0 &&
+                                     manufacturer().isEmpty() && modelId().isEmpty())
+                            {
                             }
                             else
                             {

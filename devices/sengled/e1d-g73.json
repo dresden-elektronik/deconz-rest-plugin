@@ -5,7 +5,7 @@
   "vendor": "Sengled",
   "product": "Smart Window and Door Sensor",
   "sleeper": true,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_OPEN_CLOSE_SENSOR",

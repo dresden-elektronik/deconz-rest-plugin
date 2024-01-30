@@ -1,8 +1,31 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "attr/mode",
-	"datatype": "UInt32",
-	"access": "RW",
-	"public": true,
-	"description": "Operational mode."
+  "schema": "resourceitem1.schema.json",
+  "id": "attr/mode",
+  "datatype": "UInt32",
+  "access": "RW",
+  "public": true,
+  "description": "Operational mode.",
+  "default": 1,
+  "values": [
+    [
+      0,
+      "none"
+    ],
+    [
+      1,
+      "scenes"
+    ],
+    [
+      2,
+      "two_groups"
+    ],
+    [
+      3,
+      "color_temperature"
+    ],
+    [
+      4,
+      "dimmer"
+    ]
+  ]
 }

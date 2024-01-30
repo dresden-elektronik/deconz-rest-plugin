@@ -71,7 +71,9 @@ void DeRestPluginPrivate::checkResetState()
 
                 deCONZ::ApsDataRequest req;
 
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
                 req.setTxOptions(0);
+#endif
                 req.setDstEndpoint(ZDO_ENDPOINT);
                 req.setDstAddressMode(deCONZ::ApsExtAddress);
                 req.dstAddress().setExt(i->address().ext());
@@ -135,7 +137,9 @@ void DeRestPluginPrivate::checkResetState()
 
                 deCONZ::ApsDataRequest req;
 
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
                 req.setTxOptions(0);
+#endif
                 req.setDstEndpoint(ZDO_ENDPOINT);
                 req.setDstAddressMode(deCONZ::ApsExtAddress);
                 req.dstAddress().setExt(si->address().ext());
@@ -222,7 +226,7 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
         stream >> seqNo;    // use SeqNo ?
         stream >> status;
 
-        DBG_Printf(DBG_INFO, "MgmtLeave_rsp %s seq: %u, status 0x%02X \n", qPrintable(ind.srcAddress().toStringExt()), seqNo, status);
+        DBG_Printf(DBG_INFO, "MgmtLeave_rsp " FMT_MAC " seq: %u, status 0x%02X \n", (unsigned long long)ind.srcAddress().ext(), seqNo, status);
 
         if (status == deCONZ::ZdpSuccess || status == deCONZ::ZdpNotSupported)
         {

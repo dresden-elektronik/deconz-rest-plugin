@@ -57,7 +57,7 @@ struct RestData
     int integer;
     uint uinteger;
     QString string;
-    float real;
+    double real;
     bool valid = false;
 };
 
@@ -86,7 +86,7 @@ constexpr KeyValMapAirQuality invalidValue(KeyValMapAirQuality) { return KeyValM
 template <typename K, typename Cont, typename V = typename Cont::value_type>
 decltype(auto) matchKeyValue(const K &key, const Cont &cont)
 {
-    V ret = invalidValue(ret);
+    V ret = invalidValue(V{});
     const auto res = std::find_if(cont.cbegin(), cont.cend(), [&key](const auto &i){ return i.key == key; });
     if (res != cont.cend())
     {
@@ -99,7 +99,7 @@ decltype(auto) matchKeyValue(const K &key, const Cont &cont)
 template <typename K, typename Cont, typename V = typename Cont::value_type>
 decltype(auto) lessThenKeyValue(const K &key, const Cont &cont)
 {
-    V ret = invalidValue(ret);
+    V ret = invalidValue(V{});
     const auto res = std::find_if(cont.cbegin(), cont.cend(), [&key](const auto &i){ return key <= i.key; });
     if (res != cont.cend())
     {
@@ -115,8 +115,5 @@ unsigned endpointFromUniqueId(const QString &uniqueId);
 
 bool copyString(char *dst, size_t dstSize, const char *src, ssize_t srcSize = -1);
 inline bool isEmptyString(const char *str) { return str && str[0] == '\0'; }
-
-void aesMmoHash(uint &length, std::vector<unsigned char> &result, std::vector<unsigned char> &data);
-QByteArray getMmoHashFromInstallCode(std::string hexString);
 
 #endif // UTILS_H

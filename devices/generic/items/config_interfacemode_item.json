@@ -1,10 +1,10 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/interfacemode",
-	"datatype": "UInt8",
-	"access": "RW",
-	"public": true,
-	"description": "Sets the protocol used for processing metering data.",
+  "schema": "resourceitem1.schema.json",
+  "id": "config/interfacemode",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "description": "Sets the protocol used for processing metering data.",
   "default": 0,
   "refresh.interval": 86400
 }

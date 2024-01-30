@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2023 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -9,12 +9,12 @@
  */
 
 #include <QString>
+#include <QTextStream>
 #include <QTcpSocket>
 #include <QTimer>
 #include <QFile>
 #include <QUdpSocket>
 #include <QVariantMap>
-#include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "gateway_scanner.h"
 
@@ -62,21 +62,24 @@ void DeRestPluginPrivate::initDescriptionXml()
 
         if (f.open(QFile::ReadOnly))
         {
-            QByteArray line;
-            do {
-               line = f.readLine(320);
-               if (!line.isEmpty())
-               {
-                   line.replace(QString("{{IPADDRESS}}"), qPrintable(gwIPAddress));
-                   line.replace(QString("{{PORT}}"), qPrintable(QString::number(gwPort)));
-                   line.replace(QString("{{GWNAME}}"), qPrintable(gwName));
-                   line.replace(QString("{{SERIAL}}"), qPrintable(gwBridgeId.left(6) + gwBridgeId.right(6)));
-                   line.replace(QString("{{UUID}}"), qPrintable(gwUuid));
-                   descriptionXml.append(line);
+            const QString gwPortStr = QString::number(gwPort);
+            const QString gwSerial = gwBridgeId.left(6) + gwBridgeId.right(6);
 
-                   DBG_Printf(DBG_INFO_L2, "%s", line.constData());
-               }
-             } while (!line.isEmpty());
+            QTextStream stream(&f);
+            while (!stream.atEnd())
+            {
+                QString line = stream.readLine(320);
+
+                if (!line.isEmpty())
+                {
+                    line.replace(QLatin1String("{{IPADDRESS}}"), gwIPAddress);
+                    line.replace(QLatin1String("{{PORT}}"), gwPortStr);
+                    line.replace(QLatin1String("{{GWNAME}}"), gwName);
+                    line.replace(QLatin1String("{{SERIAL}}"), gwSerial);
+                    line.replace(QLatin1String("{{UUID}}"), gwUuid);
+                    descriptionXml.append(line.toUtf8());
+                }
+            }
         }
     }
 }

@@ -1,16 +1,31 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/windowopen",
-	"datatype": "String",
-	"access": "R",
-	"public": true,
-	"description": "The current window state detected by the thermostat.",
-	"default": "Quarantine",
-	"values": [
-		["\"Quarantine\"", "Default"],
-		["\"Closed\"", "Window is closed"],
-		["\"Hold\"", "Window is maybe about to open"],
-		["\"Open\"", "Window is open"],
-		["\"Open (external), closed (internal)\"", "In window open state from external, but detected closed locally"]
-	]
+  "schema": "resourceitem1.schema.json",
+  "id": "state/windowopen",
+  "datatype": "String",
+  "access": "R",
+  "public": true,
+  "description": "The current window state detected by the thermostat.",
+  "default": "Quarantine",
+  "values": [
+    [
+      "\"Quarantine\"",
+      "Default"
+    ],
+    [
+      "\"Closed\"",
+      "Window is closed"
+    ],
+    [
+      "\"Hold\"",
+      "Window is maybe about to open"
+    ],
+    [
+      "\"Open\"",
+      "Window is open"
+    ],
+    [
+      "\"Open (external), closed (internal)\"",
+      "In window open state from external, but detected closed locally"
+    ]
+  ]
 }

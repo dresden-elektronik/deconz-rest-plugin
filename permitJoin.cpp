@@ -132,7 +132,9 @@ void DeRestPluginPrivate::permitJoinTimerFired()
         apsReq.setClusterId(ZDP_MGMT_PERMIT_JOINING_REQ_CLID);
         apsReq.setDstEndpoint(ZDO_ENDPOINT);
         apsReq.setSrcEndpoint(ZDO_ENDPOINT);
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
         apsReq.setTxOptions(0);
+#endif
         apsReq.setRadius(0);
 
         QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);

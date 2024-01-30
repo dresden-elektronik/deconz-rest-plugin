@@ -51,7 +51,7 @@
                   "eval":"Item.val = Attr.val"
                },
                "read":{
-                  "fn":"zcl",
+                  "fn":"zcl:attr",
                   "ep":1,
                   "cl":"0x0001",
                   "at":"0x0021"

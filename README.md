@@ -5,7 +5,7 @@ The deCONZ REST plugin provides a REST-API to access Zigbee 3.0 (Z30), Zigbee Ho
 
 A list of supported Zigbee devices can be found on the [Supported Devices](https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/Supported-Devices) page.
 
-To communicate with Zigbee devices the [RaspBee](https://phoscon.de/raspbee?ref=gh) / [RaspBee&nbsp;II](https://phoscon.de/raspbee2?ref=gh) Zigbee shield for Raspberry Pi, or a [ConBee](https://phoscon.de/conbee?ref=gh) / [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB dongle is required.
+To communicate with Zigbee devices the [RaspBee](https://phoscon.de/raspbee?ref=gh) / [RaspBee&nbsp;II](https://phoscon.de/raspbee2?ref=gh) Zigbee shield for Raspberry Pi, or a [ConBee](https://phoscon.de/conbee?ref=gh) / [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) / [ConBee&nbsp;III](https://phoscon.de/conbee3?ref=gh) USB dongle is required.
 
 ### API Documentation
 
@@ -23,11 +23,11 @@ The Phoscon App is a browser based web application and supports lights, sensors 
 
 deCONZ beta releases are scheduled roughly once per week. After 2–3 betas a stable version is released and a new beta cycle begins. The stable release is usually published between 1st — 15th of the month.
 
-Current Beta: **v2.22.0-beta**  
-Current Stable: **v2.21.2**
+Current Beta: **v2.25.1-beta**  
+Current Stable: **v2.24.2**
 
-Next Beta: **v2.22.1-beta** Expected in May.
-Next Stable: **v2.22.x** Expected in May.
+Next Beta: **v2.25.2-beta** Expected in January.
+Next Stable: **v2.25.x** Expected in January.
 
 Installation
 ============
@@ -44,37 +44,15 @@ You find the instructions for your platform and device on the Phoscon website:
 * [RaspBee&nbsp;II](https://phoscon.de/raspbee2/install?ref=gh)
 * [ConBee](https://phoscon.de/conbee/install?ref=gh)
 * [ConBee&nbsp;II](https://phoscon.de/conbee2/install?ref=gh)
+* [ConBee&nbsp;III](https://phoscon.de/conbee3/install?ref=gh)
 
 **Important:** If you're updating from a previous version **always make sure to create an backup** in the Phoscon App and read the changelog first.
 
 https://github.com/dresden-elektronik/deconz-rest-plugin/releases
 
-### Install deCONZ development package (optional, Linux only)
+### Compiling the plugin
 
-**Important:** The deCONZ package already contains the REST-API plugin, the development package is **only** needed if you wan't to modify the plugin or try the latest commits from master branch.
-
-    sudo apt install deconz-dev
-
-#### Get and compile the plugin
-
-1. Checkout the repository
-
-        git clone https://github.com/dresden-elektronik/deconz-rest-plugin.git
-
-2. Checkout the latest version
-
-        cd deconz-rest-plugin
-        git checkout -b mybranch HEAD
-
-3. Compile the plugin
-
-        qmake && make -j2
-
-**Note** On Raspberry Pi 1 use `qmake && make`
-
-4. Replace original plugin
-
-        sudo cp ../libde_rest_plugin.so /usr/share/deCONZ/plugins
+The build instructions are described in [BUILDING.md](BUILDING.md).
 
 Precompiled deCONZ packages for manual installation
 ===================================================
@@ -84,6 +62,7 @@ The deCONZ application packages are available for the following platforms and co
 * Windows  http://deconz.dresden-elektronik.de/win/
 * Raspbian http://deconz.dresden-elektronik.de/raspbian/beta/
 * Ubuntu and Debian 64-bit http://deconz.dresden-elektronik.de/ubuntu/beta/
+* ARM64 systems http://deconz.dresden-elektronik.de/debian/beta/
 
 To manually install a Linux .deb package enter these commands:
 
@@ -119,6 +98,7 @@ Hardware requirements
 * [RaspBee&nbsp;II](https://phoscon.de/raspbee2?ref=gh) Zigbee shield for Raspberry Pi
 * [ConBee](https://phoscon.de/conbee?ref=gh) USB dongle for Raspberry Pi and PC
 * [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB dongle for Raspberry Pi and PC
+* [ConBee&nbsp;III](https://phoscon.de/conbee3?ref=gh) USB dongle for Raspberry Pi and PC
 
 3rd party libraries
 -------------------
@@ -132,5 +112,4 @@ The following libraries are used by the plugin:
 License
 =======
 The plugin is available as open source and licensed under the BSD (3-Clause) license.
-
 

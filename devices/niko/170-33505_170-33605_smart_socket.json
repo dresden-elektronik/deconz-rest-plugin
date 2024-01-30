@@ -120,7 +120,7 @@
             "cl": "0x0B04",
             "ep": 1,
             "eval": "Item.val = Math.round((Attr.val * 1123) / 10000);",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -131,7 +131,7 @@
             "cl": "0x0B04",
             "ep": 1,
             "eval": "Item.val = Math.round(Attr.val / 10);",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         }
       ]
@@ -195,7 +195,7 @@
             "cl": "0x0702",
             "ep": 1,
             "eval": "Item.val = Math.round(Attr.val / 10);",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {

@@ -27,6 +27,8 @@
 #include <time.h>
 #include <QProcess>
 #include "backup.h"
+#include "crypto/password.h"
+#include "crypto/random.h"
 #include "gateway.h"
 #include "utils/utils.h"
 #ifdef Q_OS_LINUX
@@ -913,10 +915,11 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
         if (!found)
         {
             // create a random key (used only if not provided)
+            unsigned char rnd[5];
+            CRYPTO_RandomBytes(&rnd[0], sizeof(rnd));
             for (int i = 0; i < 5; i++)
             {
-                quint8 rnd = qrand() & 0xFF;
-                QString frac = QString("%1").arg(rnd, 2, 16, QLatin1Char('0')).toUpper();
+                QString frac = QString("%1").arg(rnd[i], 2, 16, QLatin1Char('0')).toUpper();
                 auth.apikey.append(frac);
             }
         }
@@ -1613,13 +1616,8 @@ int DeRestPluginPrivate::getChallenge(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    qsrand(static_cast<uint>(time(nullptr)));
-    QByteArray challange;
-
-    for (int i = 0; i < 64; i++)
-    {
-        challange.append(QString::number(qrand()));
-    }
+    QByteArray challange(64, '\0');
+    CRYPTO_RandomBytes((unsigned char*)challange.data(), challange.size());
 
     gwLastChallenge = now;
     gwChallenge = QCryptographicHash::hash(challange, QCryptographicHash::Sha256).toHex();
@@ -2313,6 +2311,8 @@ int DeRestPluginPrivate::deleteUser(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(rspItem);
             rsp.httpStatus = HttpStatusOk;
 
+            updateEtag(gwConfigEtag);
+
             return REQ_READY_SEND;
         }
     }
@@ -2683,22 +2683,25 @@ int DeRestPluginPrivate::changePassword(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
-        QString enc = encryptString(oldhash);
+        std::string enc = CRYPTO_EncryptGatewayPassword(oldhash.toStdString());
 
         if (enc != gwAdminPasswordHash)
         {
-            rsp.httpStatus = HttpStatusUnauthorized;
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/password", QString("invalid value, %1 for parameter, oldhash").arg(oldhash)));
-            return REQ_READY_SEND;
+            if (oldhash.toStdString() != gwAdminPasswordHash) // on Windows plain hash was stored
+            {
+                rsp.httpStatus = HttpStatusUnauthorized;
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/password", QString("invalid value, %1 for parameter, oldhash").arg(oldhash)));
+                return REQ_READY_SEND;
+            }
         }
 
         // username and old hash are okay
         // take the new hash and salt it
-        enc = encryptString(newhash);
+        enc = CRYPTO_EncryptGatewayPassword(newhash.toStdString());
         gwAdminPasswordHash = enc;
         queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
 
-        DBG_Printf(DBG_INFO, "Updated password hash: %s\n", qPrintable(enc));
+        DBG_Printf(DBG_INFO, "Updated password hash\n");
 
         QVariantMap rspItem;
         QVariantMap rspItemState;

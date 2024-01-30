@@ -29,8 +29,8 @@
                 },
                 {
                     "name": "attr/swversion",
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "eval": "Item.val = Attr.val"},
-                    "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"},
+                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "eval": "Item.val = Attr.val"},
+                    "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"},
                     "refresh.interval": 84000
                 },
                 {
@@ -42,9 +42,9 @@
                 {
                     "name": "config/battery",
                     "awake": true,
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
-                    "read": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021"},
-                    "refresh.interval": 3600
+                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
+                    "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021"},
+                    "refresh.interval": 3660
                 },
                 {
                     "name": "config/on"
@@ -87,7 +87,7 @@
                 },
                 {
                     "name": "attr/swversion",
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "eval": "Item.val = Attr.val"},
+                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "eval": "Item.val = Attr.val"},
                     "read": {"fn": "none"}
                 },
                 {
@@ -98,9 +98,9 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
-                    "read": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021"},
-                    "refresh.interval": 3600
+                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
+                    "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021"},
+                    "refresh.interval": 3660
                 },
                 {
                     "name": "config/offset"
@@ -139,7 +139,7 @@
                 },
                 {
                     "name": "attr/swversion",
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "eval": "Item.val = Attr.val"},
+                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "eval": "Item.val = Attr.val"},
                     "read": {"fn": "none"}
                 },
                 {
@@ -150,9 +150,9 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
-                    "read": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021"},
-                    "refresh.interval": 3600
+                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
+                    "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021"},
+                    "refresh.interval": 3660
                 },
                 {
                     "name": "config/on"
@@ -161,30 +161,26 @@
                     "name": "config/reachable"
                 },
                 {
-                    "name": "state/orientation",
-                    "description": "<p>The orientation as [X, Y, Z].</p> <p><b>Note:</b> These are the raw device values, it's not known what they represent, they are in range -1400&ndash;1400.</p>"
-                },
-                {
                     "name": "state/orientation_x",
                     "public": true,
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0xfc02", "at": "0x0012", "mf": "0x1241", "eval": "Item.val = Attr.val"}
+                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0xfc02", "at": "0x0012", "mf": "0x1241", "eval": "Item.val = Attr.val"}
                 },
                 {
                     "name": "state/orientation_y",
                     "public": true,
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0xfc02", "at": "0x0013", "mf": "0x1241", "eval": "Item.val = Attr.val"}
+                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0xfc02", "at": "0x0013", "mf": "0x1241", "eval": "Item.val = Attr.val"}
                 },
                 {
                     "name": "state/orientation_z",
                     "public": true,
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0xfc02", "at": "0x0014", "mf": "0x1241", "eval": "Item.val = Attr.val"}
+                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0xfc02", "at": "0x0014", "mf": "0x1241", "eval": "Item.val = Attr.val"}
                 },
                 {
                     "name": "state/lastupdated"
                 },
                 {
                     "name": "state/vibration",
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0xfc02", "at": "0x0010", "mf": "0x1241", "eval": "Item.val = Attr.val === 1"}
+                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0xfc02", "at": "0x0010", "mf": "0x1241", "eval": "Item.val = Attr.val === 1"}
                 }
             ]
         }

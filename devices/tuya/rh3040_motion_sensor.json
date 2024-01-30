@@ -29,8 +29,8 @@
                 },
                 {
                   "name": "attr/swversion",
-                  "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-                  "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+                  "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+                  "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
                 },
                 {
                     "name": "attr/type"
@@ -43,7 +43,7 @@
                 },
                 {
                     "name": "config/battery",
-                    "parse": {"fn": "zcl", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val"},
+                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val"},
                     "awake": true
                 },
                 {

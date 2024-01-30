@@ -15,7 +15,6 @@ static int _ruleHandle = 1;
 
 /*! Constructor. */
 Rule::Rule() :
-    lastBindingVerify(0),
     m_state(StateNormal),
     //m_id(QLatin1String("none")),
     m_handle(-1),
@@ -334,15 +333,15 @@ const QString &RuleAction::address() const
 
 /*! Sets the action method.
     The HTTP method used to send the body to the given address.
-    Either "POST", "PUT", "BIND", "DELETE" for local addresses.
+    Either "POST", "PUT", "DELETE" for local addresses.
     \param method the action method
  */
 void RuleAction::setMethod(const QString &method)
 {
-    DBG_Assert(method == "POST" || method == "PUT" || method == "DELETE" || method == "BIND" || method == "GET");
-    if (!(method == "POST" || method == "PUT" || method == "DELETE" || method == "BIND" || method == "GET"))
+    DBG_Assert(method == "POST" || method == "PUT" || method == "DELETE" || method == "GET");
+    if (!(method == "POST" || method == "PUT" || method == "DELETE" || method == "GET"))
     {
-        DBG_Printf(DBG_INFO, "actions method must be either GET, POST, PUT, BIND or DELETE\n");
+        DBG_Printf(DBG_INFO, "actions method must be either GET, POST, PUT or DELETE\n");
         return;
     }
     m_method = method;

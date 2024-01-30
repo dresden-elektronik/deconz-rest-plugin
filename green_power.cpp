@@ -156,7 +156,9 @@ bool GP_SendProxyCommissioningMode(deCONZ::ApsController *apsCtrl, quint8 zclSeq
     req.setClusterId(GREEN_POWER_CLUSTER_ID);
     req.setDstEndpoint(GREEN_POWER_ENDPOINT);
     req.setSrcEndpoint(GREEN_POWER_ENDPOINT);
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
     req.setTxOptions(nullptr);
+#endif
     req.setRadius(0);
 
     QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
@@ -210,7 +212,9 @@ bool GP_SendPairing(quint32 gpdSrcId, quint16 sinkGroupId, quint8 deviceId, quin
     req.setClusterId(GREEN_POWER_CLUSTER_ID);
     req.setDstEndpoint(GREEN_POWER_ENDPOINT);
     req.setSrcEndpoint(GREEN_POWER_ENDPOINT);
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
     req.setTxOptions(nullptr);
+#endif
     req.setRadius(0);
 
     QDataStream stream(&req.asdu(), QIODevice::WriteOnly);

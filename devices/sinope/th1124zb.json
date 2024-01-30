@@ -4,7 +4,7 @@
   "modelid": "TH1124ZB",
   "product": "TH1124ZB",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_THERMOSTAT",
@@ -67,20 +67,20 @@
             "ep": 1,
             "mf": "0x119c",
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
             },
           "read": {
             "at": "0x0400",
             "cl": "0x0201",
             "ep": 1,
             "mf": "0x119c",
-            "fn": "zcl"
+            "fn": "zcl:attr"
             },
           "write": {
             "at": "0x0400",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "dt": "0x30",
             "mf": "0x119c",
             "eval": "Item.val"
@@ -91,8 +91,7 @@
           "name": "config/mode"
         },
         {
-          "name": "config/offset",
-          "default": 0
+          "name": "config/offset"
         },
         {
           "name": "config/on"
@@ -104,8 +103,7 @@
           "name": "config/schedule"
         },
         {
-          "name": "config/schedule_on",
-          "default": false
+          "name": "config/schedule_on"
         },
         {
           "name": "config/unoccupiedheatsetpoint",
@@ -114,7 +112,7 @@
             "at": "0x0014",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x119c"
           },
           "parse": {
@@ -122,7 +120,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x119c"
           },
             "write": {
@@ -131,7 +129,7 @@
             "dt": "0x29",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x119c"
           },
           "default": 1800
@@ -144,7 +142,7 @@
             "at": "0x0010",
             "cl": "0xff01",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x119c"
           },
           "parse": {
@@ -152,14 +150,14 @@
             "cl": "0xff01",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x119c"
           },
           "write": {
             "at": "0x0010",
             "cl": "0xff01",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "dt": "0x29",
             "mf": "0x119c",
             "eval": "Item.val"
@@ -174,7 +172,7 @@
             "at": "0x0402",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x119c"
           },
           "write": {
@@ -183,7 +181,7 @@
             "dt": "0x30",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x119c"
           },
           "parse": {
@@ -191,7 +189,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x119c"
           },
           "default": true
@@ -203,7 +201,7 @@
             "at": "0x0014",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "write": {
             "at": "0x0014",
@@ -211,7 +209,7 @@
             "dt": "0x29",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x119c"
           },
           "parse": {
@@ -219,7 +217,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 17
         },
@@ -242,14 +240,14 @@
             "at": "0x0008",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0008",
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         }
@@ -406,7 +404,7 @@
             "cl": "0x0B04",
             "ep": 1,
             "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val; }",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         }
       ]

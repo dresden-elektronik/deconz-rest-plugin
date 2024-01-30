@@ -151,7 +151,6 @@ bool SensorFingerprint::hasOutCluster(quint16 clusterId) const
 Sensor::Sensor() :
     Resource(RSensors),
     m_deletedstate(Sensor::StateNormal),
-    m_mode(ModeScenes),
     m_resetRetryCount(0)
 {
     durationDue = QDateTime();
@@ -159,6 +158,7 @@ Sensor::Sensor() :
     // common sensor items
     addItem(DataTypeString, RAttrName);
     addItem(DataTypeString, RAttrManufacturerName);
+    addItem(DataTypeUInt32, RAttrMode)->setValue(ModeScenes);
     addItem(DataTypeString, RAttrModelId);
     addItem(DataTypeString, RAttrType);
     addItem(DataTypeString, RAttrSwVersion);
@@ -173,7 +173,7 @@ Sensor::Sensor() :
     previousDirection = 0xFF;
     previousCt = 0xFFFF;
     previousSequenceNumber = 0xFF;
-    previousCommandId = 0xFF;
+    previousCommandId = 0xFF;    
 }
 
 /*! Returns the sensor deleted state.
@@ -222,18 +222,15 @@ void Sensor::setName(const QString &name)
  */
 Sensor::SensorMode Sensor::mode() const
 {
-   return m_mode;
+   return static_cast<Sensor::SensorMode>(item(RAttrMode)->toNumber());
 }
 
-/*! Sets the sensor mode (Lighting Switch).
- * 1 = Secenes
- * 2 = Groups
- * 3 = Color Temperature
+/*! Sets the sensor mode
     \param mode the sensor mode
  */
 void Sensor::setMode(SensorMode mode)
 {
-    m_mode = mode;
+    item(RAttrMode)->setValue(static_cast<qint64>(mode));
 }
 
 /*! Returns the sensor type.
@@ -540,6 +537,11 @@ void Sensor::jsonToConfig(const QString &json)
         QDateTime lct = QDateTime::fromString(lastchange_time, format);
         lct.setTimeSpec(Qt::UTC);
         map["lastchange_time"] = lct;
+    }
+
+    if (map.contains("battery") && type().startsWith(QLatin1String("CLIP")))
+    {
+        addItem(DataTypeUInt8, RConfigBattery);
     }
 
     QDateTime dt = QDateTime::currentDateTime().addSecs(-120);

@@ -258,6 +258,7 @@ public:
     const DeviceDescription::Item &getGenericItem(const char *suffix) const;
     const std::vector<DDF_FunctionDescriptor> &getParseFunctions() const;
     const std::vector<DDF_FunctionDescriptor> &getReadFunctions() const;
+    const std::vector<DDF_FunctionDescriptor> &getWriteFunctions() const;
     const std::vector<DDF_SubDeviceDescriptor> &getSubDevices() const;
 
     static DeviceDescriptions *instance();

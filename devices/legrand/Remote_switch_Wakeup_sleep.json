@@ -1,0 +1,77 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "Legrand",
+  "modelid": "Remote switch Wake up / Sleep",
+  "product": "Remote switch Sleep / Wake - 064884",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0005"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x0020",
+            "cl": "0x0001",
+            "eval": "const vmin = 20; const vmax = 30; var bat = Attr.val; if (bat > vmax) { bat = vmax; } else if (bat < vmin) { bat = vmin; } bat = ((bat - vmin) / (vmax - vmin)) * 100; if (bat > 100) { bat = 100; } else if (bat <= 0)  { bat = 1; } Item.val = bat;"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent",
+          "awake": true,
+          "parse": {
+            "cl": "0x0005",
+            "cmd": "0x05",
+            "ep": 1,
+            "eval": "const t={'-11':1002,'-12':2002,'244':1002,'245':2002};if(ZclFrame.at(0) in t){Item.val=t[ZclFrame.at(0)]}"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ]
+}

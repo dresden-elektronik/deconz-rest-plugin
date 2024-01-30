@@ -1,10 +1,13 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/lightlevel",
-	"datatype": "UInt16",
-	"access": "R",
-	"public": true,
-	"range": [0, 65534],
-	"description": "The current Light level in 10000 log10 (lux) + 1.",
-	"default": 0
+  "schema": "resourceitem1.schema.json",
+  "id": "state/lightlevel",
+  "datatype": "UInt16",
+  "access": "R",
+  "public": true,
+  "range": [
+    0,
+    65534
+  ],
+  "description": "The current Light level in 10000 log10 (lux) + 1.",
+  "default": 0
 }

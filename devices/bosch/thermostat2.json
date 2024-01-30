@@ -3,7 +3,7 @@
   "manufacturername": "BOSCH",
   "modelid": "RBSH-TRV0-ZB-EU",
   "vendor": "Bosch",
-  "product": "Thermostat II",
+  "product": "Thermostat II BTH-RA",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -60,6 +60,23 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/battery",
+          "refresh.interval": 43265,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
+          }
+        },
+        {
           "name": "config/checkin",
           "public": false,
           "refresh.interval": 3600
@@ -71,7 +88,7 @@
             "at": "0x400B",
             "cl": "0x0204",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "parse": {
@@ -79,19 +96,48 @@
             "cl": "0x0204",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "write": {
             "at": "0x400B",
             "cl": "0x0204",
-            "dt": "0x30",
+            "dt": "0x20",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "default": false
+        },
+        {
+          "name": "config/externalsensortemp",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x4040",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "parse": {
+            "at": "0x4040",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "write": {
+            "at": "0x4040",
+            "cl": "0x0201",
+            "dt": "0x29",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "default": 0
         },
         {
           "name": "config/externalwindowopen",
@@ -100,7 +146,7 @@
             "at": "0x4042",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "parse": {
@@ -108,7 +154,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "write": {
@@ -117,7 +163,7 @@
             "dt": "0x30",
             "ep": 1,
             "eval": "Item.val ? 1 : 0;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "default": false
@@ -137,7 +183,7 @@
             "at": "0x4007",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "parse": {
@@ -145,7 +191,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "if (Attr.val == 0) { Item.val = 'auto' } else if (Attr.val == 1) { Item.val = 'heat' } else if (Attr.val == 5) { Item.val = 'off' };",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "write": {
@@ -154,7 +200,7 @@
             "dt": "0x30",
             "ep": 1,
             "eval": "if (Item.val == 'auto') { 0 } else if (Item.val == 'heat') { 1 } else if (Item.val == 'off') { 5 };",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "default": "heat"
@@ -166,14 +212,14 @@
             "at": "0x0010",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0010",
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val * 10;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "write": {
             "at": "0x0010",
@@ -181,7 +227,7 @@
             "dt": "0x28",
             "ep": 1,
             "eval": "Item.val / 10;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         },
@@ -192,7 +238,15 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/schedule"
+          "name": "config/schedule",
+          "refresh.interval": 3660,
+          "read": {
+            "fn": "zcl:cmd",
+            "ep": "0x01",
+            "cl": "0x0201",
+            "cmd": "0x02",
+            "eval": "'7F01'"
+          }
         },
         {
           "name": "config/schedule_on",
@@ -202,14 +256,14 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val ? false : true;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "read": {
             "at": "0x4007",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "write": {
@@ -218,7 +272,7 @@
             "dt": "0x30",
             "ep": 1,
             "eval": "Item.val ? 0 : 1;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           }
         },
@@ -230,14 +284,14 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "read": {
             "at": "0x5000",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           }
         },
@@ -251,7 +305,7 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val > 3;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "read": {
@@ -266,13 +320,13 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "read": {
             "at": "0x0000",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -283,14 +337,14 @@
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "read": {
             "at": "0x4020",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl",
+            "fn": "zcl:attr",
             "mf": "0x1209"
           }
         }

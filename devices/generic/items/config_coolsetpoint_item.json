@@ -1,10 +1,13 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/coolsetpoint",
-	"datatype": "Int16",
-	"access": "RW",
-	"public": true,
-    "default": 0,
-	"description": "Target cooling temperature of a thermostat.",
-	"range": [500, 3200]
+  "schema": "resourceitem1.schema.json",
+  "id": "config/coolsetpoint",
+  "datatype": "Int16",
+  "access": "RW",
+  "public": true,
+  "default": 0,
+  "description": "Target cooling temperature of a thermostat.",
+  "range": [
+    500,
+    3200
+  ]
 }

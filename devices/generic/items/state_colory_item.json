@@ -1,9 +1,0 @@
-{
-	"schema": "resourceitem1.schema.json",
-	"id": "state/y",
-	"datatype": "UInt16",
-	"access": "RW",
-	"public": true,
-	"description": "The current color y coordinate.",
-	"parse": {"fn": "zcl", "ep": 255, "cl": "0x0300", "at": "0x0004", "eval": "Item.val = Attr.val"}
-}

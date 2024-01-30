@@ -49,7 +49,7 @@
             "cl": "0x0102",
             "ep": 1,
             "eval": "Item.val = (254 * Attr.val) / 100;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "read": {
             "fn": "none"
@@ -65,7 +65,7 @@
             "cl": "0x0102",
             "ep": 1,
             "eval": "if (Attr.val == 100) { Item.val = true; } else { Item.val = false; }",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "read": {
             "fn": "none"
@@ -77,8 +77,8 @@
             "at": "0x0008",
             "cl": "0x0102",
             "ep": 1,
-            "eval": "if (Attr.val == 100) { Item.val = false; } else { Item.val = true; }",
-            "fn": "zcl"
+            "eval": "Item.val = Attr.val < 100",
+            "fn": "zcl:attr"
           },
           "read": {
             "fn": "none"
@@ -111,6 +111,11 @@
           "0x0005",
           "0x0102"
         ]
+      },
+      "meta": {
+        "values": {
+          "config/mode": {"momentary": 0, "rocker": 1, "custom": 2}
+        }
       },
       "items": [
         {
@@ -146,11 +151,33 @@
         },
         {
           "name": "config/mode",
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x0001",
+            "cl": "0xFC00",
+            "ep": "0xE8",
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "cl": "0xFC00",
+            "cmd": "0x01",
+            "ep": "0xE8",
+            "eval": "let m = ''; for (var i = 4; i < ZclFrame.payloadSize; i++) { m += ('00' + ZclFrame.at(i).toString(16)).slice(-2); } m = m.toUpperCase(); if ( m == '41040006000D020201000600070202010206010D0202010106010702020102') { Item.val = 'momentary'; } else if ( m == '41040006000D020201000600030202010206010D0202010106010302020102') { Item.val = 'rocker'; } else { Item.val = 'custom_' + m; }",
+            "fn": "zcl:cmd"
+          },
+          "write": {
+            "fn": "zcl:cmd",
+            "ep": "0xE8",
+            "cl": "0xFC00",
+            "cmd": "0x02",
+            "eval": "if (Item.val == 'momentary') { '01004841040006000D020201000600070202010206010D0202010106010702020102' } else if (Item.val == 'rocker') { '01004841040006000D020201000600030202010206010D0202010106010302020102' } else if (Item.val.slice(0,7) == 'custom_') { '010048' + Item.val.slice(7, Item.val.length) }",
+            "fc": "0x10"
+          },
           "default" : "momentary",
           "values": [
-            ["\"momentary\"", "Momentary mode"],
-            ["\"rocker\"", "Rocker mode"],
-            ["\"custom\"", "Custom mode"]
+            ["\"momentary\"", "All inputs in momentary mode"],
+            ["\"rocker\"", "All inputs in rocker mode"],
+            ["\"custom_010048....\"", "Custom mode"]
           ]
         },
         {
@@ -300,14 +327,14 @@
             "at": "0x0400",
             "cl": "0x0702",
             "ep": 3,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0400",
             "cl": "0x0702",
             "ep": 3,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         }
       ]

@@ -125,6 +125,11 @@
           "0x0008"
         ]
       },
+      "meta": {
+        "values": {
+          "config/mode": {"momentary": 0, "rocker": 1, "custom": 2}
+        }
+      },
       "items": [
         {
           "name": "attr/id"
@@ -158,7 +163,35 @@
           "default": "auto,auto"
         },
         {
-          "name": "config/mode"
+          "name": "config/mode",
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x0001",
+            "cl": "0xFC00",
+            "ep": "0xE8",
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "cl": "0xFC00",
+            "cmd": "0x01",
+            "ep": "0xE8",
+            "eval": "let m = ''; for (var i = 4; i < ZclFrame.payloadSize; i++) { m += ('00' + ZclFrame.at(i).toString(16)).slice(-2); } m = m.toUpperCase(); if ( m == '41020006000D0306000206010D04060002') { Item.val = 'momentary'; } else if ( m == '41040006000D0306000206010D040600020600030306000206010304060002') { Item.val = 'rocker'; } else { Item.val = 'custom_' + m; }",
+            "fn": "zcl:cmd"
+          },
+          "write": {
+            "fn": "zcl:cmd",
+            "ep": "0xE8",
+            "cl": "0xFC00",
+            "cmd": "0x02",
+            "eval": "if (Item.val == 'momentary') { '01004841020006000D0306000206010D04060002' } else if (Item.val == 'rocker') { '01004841040006000D0306000206010D040600020600030306000206010304060002' } else if (Item.val.slice(0,7) == 'custom_') { '010048' + Item.val.slice(7, Item.val.length) }",
+            "fc": "0x10"
+          },
+          "default" : "momentary",
+          "values": [
+            ["\"momentary\"", "All inputs in momentary mode"],
+            ["\"rocker\"", "All inputs in rocker mode"],
+            ["\"custom_010048....\"", "Custom mode"]
+          ]
         },
         {
           "name": "config/on"
@@ -232,7 +265,7 @@
             "at": "0x0508",
             "cl": "0x0b04",
             "ep": 5,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0508",
@@ -251,7 +284,7 @@
             "at": "0x050b",
             "cl": "0x0b04",
             "ep": 5,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -261,7 +294,7 @@
             "at": "0x0505",
             "cl": "0x0b04",
             "ep": 5,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         }
       ]
@@ -324,7 +357,7 @@
             "at": "0x0000",
             "cl": "0x0702",
             "ep": 5,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0000",
@@ -338,12 +371,12 @@
         },
         {
           "name": "state/power",
-          "refresh.interval": 305,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0400",
             "cl": "0x0702",
             "ep": 5,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0400",

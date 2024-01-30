@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["eWeLink","SONOFF"],
-  "modelid": ["TH01","SNZB-02D"],
+  "manufacturername": ["eWeLink","SONOFF","SONOFF"],
+  "modelid": ["TH01","SNZB-02D","SNZB-02P"],
   "vendor": "SONOFF",
   "product": "SNZB-02 multisensor",
   "sleeper": true,
@@ -51,14 +51,14 @@
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -70,12 +70,12 @@
         {
           "name": "config/battery",
           "awake": true,
-          "refresh.interval": 3600,
+          "refresh.interval": 7265,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0021",
@@ -149,14 +149,14 @@
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0006",
             "cl": "0x0000",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {
@@ -168,12 +168,12 @@
         {
           "name": "config/battery",
           "awake": true,
-          "refresh.interval": 3600,
+          "refresh.interval": 7265,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0021",

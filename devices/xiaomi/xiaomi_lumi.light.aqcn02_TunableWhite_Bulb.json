@@ -42,12 +42,14 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/ctmax",
-          "refresh.interval": 84000
+          "name": "cap/color/capabilities",
+          "static": 16
         },
         {
-          "name": "config/ctmin",
-          "refresh.interval": 84000
+          "name": "cap/color/ct/max"
+        },
+        {
+          "name": "cap/color/ct/min"
         },
         {
           "name": "state/alert",

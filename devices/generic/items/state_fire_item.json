@@ -1,9 +1,12 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "state/fire",
-	"datatype": "Bool",
-	"access": "R",
-	"public": true,
-	"description": "True when fire is detected.",
-	"parse": {"fn": "ias:zonestatus", "mask": "alarm1,alarm2"}
+  "schema": "resourceitem1.schema.json",
+  "id": "state/fire",
+  "datatype": "Bool",
+  "access": "R",
+  "public": true,
+  "description": "True when fire is detected.",
+  "parse": {
+    "fn": "ias:zonestatus",
+    "mask": "alarm1,alarm2"
+  }
 }

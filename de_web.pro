@@ -4,7 +4,7 @@ TARGET   = de_rest_plugin
 
 TARGET = $$qtLibraryTarget($$TARGET)
 
-DEFINES += DECONZ_DLLSPEC=Q_DECL_IMPORT
+DEFINES += USE_ULIB_SHARED=1
 
 # select Javascript engine
 #DEFINES += USE_QT_JS_ENGINE
@@ -64,7 +64,7 @@ macx {
 unix:LIBS +=  -L../.. -ldeCONZ
 
 unix:!macx {
-    LIBS += -lcrypt -lssl -lcrypto
+    LIBS += -lcrypt
 }
 
 TEMPLATE        = lib
@@ -76,8 +76,7 @@ CONFIG         += plugin \
 QT             += network
 #QT             += qml
 
-INCLUDEPATH    += ../.. \
-                  ../../common
+INCLUDEPATH    += ../../lib
 
 # TAG is specified by auto build system
 # this is needed since non head versions which are checkedout and build
@@ -93,7 +92,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.22.00\\\"
+DEFINES += GW_SW_VERSION=\\\"2.25.01\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -119,8 +118,9 @@ HEADERS  = bindings.h \
            aps_controller_wrapper.h \
            backup.h \
            button_maps.h \
-           connectivity.h \
            colorspace.h \
+           crypto/mmohash.h \
+           crypto/password.h \
            crypto/random.h \
            crypto/scrypt.h \
            database.h \
@@ -192,8 +192,9 @@ SOURCES  = air_quality.cpp \
            bindings.cpp \
            button_maps.cpp \
            change_channel.cpp \
-           connectivity.cpp \
            colorspace.cpp \
+           crypto/mmohash.cpp \
+           crypto/password.cpp \
            crypto/random.cpp \
            crypto/scrypt.cpp \
            database.cpp \
@@ -207,9 +208,7 @@ SOURCES  = air_quality.cpp \
            device_js/device_js_duktape.cpp \
            device_js/device_js_wrappers.cpp \
            device_js/duktape.c \
-           device_setup.cpp \
            device_tick.cpp \
-           diagnostics.cpp \
            discovery.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \
@@ -291,7 +290,7 @@ SOURCES  = air_quality.cpp \
 
 win32 {
 
-    OPENSSL_PATH = E:/Qt/Tools/OpenSSL/Win_x86
+    OPENSSL_PATH = C:/Qt/Tools/OpenSSL/Win_x86
 
     exists($$OPENSSL_PATH) {
         message(OpenSLL detected $$OPENSSL_PATH)

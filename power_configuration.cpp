@@ -167,11 +167,18 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
 
                 if (sensor.type().endsWith(QLatin1String("Battery")))
                 {
-                    if (sensor.setValue(RStateBattery, bat) || updateType == NodeValue::UpdateByZclReport)
-                    {
-                        sensor.updateStateTimestamp();
-                    }
                     item = sensor.item(RStateBattery);
+
+                    if (item)
+                    {
+                        item->setValue(bat);
+                        sensor.updateStateTimestamp();
+                        sensor.setNeedSaveDatabase(true);
+                        queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
+                        enqueueEvent(Event(RSensors, RStateBattery, sensor.id(), item));
+                        enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+                        updateSensorEtag(&sensor);
+                    }
                 }
                 else
                 {
@@ -182,7 +189,14 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                         item = sensor.addItem(DataTypeUInt8, RConfigBattery);
                     }
 
-                    sensor.setValue(RConfigBattery, bat);
+                    if (item)
+                    {
+                        item->setValue(bat);
+                        enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
+                        updateSensorEtag(&sensor);
+                        sensor.setNeedSaveDatabase(true);
+                        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+                    }
                 }
 
                 if (item)
@@ -220,7 +234,6 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                     sensor.modelId() == QLatin1String("Shutters central remote switch") || // Legrand switch module
                     sensor.modelId() == QLatin1String("Remote toggle switch") || // Legrand shutter switch
                     sensor.modelId() == QLatin1String("Remote motion sensor") || // Legrand motion sensor
-                    sensor.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                     sensor.modelId() == QLatin1String("lumi.flood.agl02") ||         // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
                     sensor.modelId() == QLatin1String("lumi.motion.agl04") ||        // Xiaomi Aqara RTCGQ13LM high precision motion sensor
                     sensor.modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
@@ -287,8 +300,16 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                 }
 
                 battery = calculateBatteryPercentageRemaining(&sensor, item, battery, vmin, vmax);
-
-                sensor.setValue(RConfigBattery, battery);
+                
+                if (item)
+                {
+                    item->setValue(battery);
+                    enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
+                    updateSensorEtag(&sensor);
+                    sensor.setNeedSaveDatabase(true);
+                    queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+                }
+                
                 sensor.setZclValue(updateType, ind.srcEndpoint(), POWER_CONFIGURATION_CLUSTER_ID, POWER_CONFIG_ATTRID_BATTERY_VOLTAGE, attr.numericValue());
             }
                 break;
@@ -304,11 +325,16 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
 
                 bool lowBat = (attr.numericValue().u8 & 0x01);
 
-                sensor.setValue(RConfigBattery, lowBat);
                 sensor.setZclValue(updateType, ind.srcEndpoint(), POWER_CONFIGURATION_CLUSTER_ID, POWER_CONFIG_ATTRID_BATTERY_ALARM_MASK, attr.numericValue());
 
                 if (item)
                 {
+                    item->setValue(lowBat);
+                    enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
+                    updateSensorEtag(&sensor);
+                    sensor.setNeedSaveDatabase(true);
+                    queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+
                     DDF_AnnoteZclParse(&sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "Item.val = (Attr.val & 1) != 0");
                 }
             }

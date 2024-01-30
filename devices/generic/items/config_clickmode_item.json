@@ -1,8 +1,8 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/clickmode",
-	"datatype": "String",
-	"access": "RW",
-	"public": true,
-	"description": "Allows configuration of the individual Button(s), primarily for Xiaomi devices. Current usable values (device dependent) are 'coupled', 'decoupled', 'multiclick' and 'highspeed'."
+  "schema": "resourceitem1.schema.json",
+  "id": "config/clickmode",
+  "datatype": "String",
+  "access": "RW",
+  "public": true,
+  "description": "Allows configuration of the individual Button(s), primarily for Xiaomi devices. Current usable values (device dependent) are 'coupled', 'decoupled', 'multiclick' and 'highspeed'."
 }

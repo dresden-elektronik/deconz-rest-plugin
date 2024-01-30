@@ -1,10 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["Technicolor","Universal Electronics Inc"],
-  "modelid": ["TKA105","URC4450BC0-X-R"],
-  "product": "XHK1 keypad",
+  "manufacturername": ["Technicolor","Universal Electronics Inc","Universal Electronics Inc"],
+  "modelid": ["TKA105","URC4450BC0-X-R","H34450BA00-00007"],
+  "product": "Xfinity security keypad",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_TEMPERATURE_SENSOR",
@@ -83,7 +83,7 @@
       ]
     },
     {
-      "type": "ZHAAncillaryControl",
+      "type": "$TYPE_ANCILLARY_CONTROL",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",

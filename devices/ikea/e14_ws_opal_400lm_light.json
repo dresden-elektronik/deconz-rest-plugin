@@ -15,13 +15,13 @@
       ],
       "items": [
         {
-          "name": "config/colorcapabilities"
+          "name": "cap/color/capabilities"
         },
         {
-          "name": "config/ctmax"
+          "name": "cap/color/ct/max"
         },
         {
-          "name": "config/ctmin"
+          "name": "cap/color/ct/min"
         },
         {
           "name": "state/alert",
@@ -38,6 +38,9 @@
         },
         {
           "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
         }
       ]
     }

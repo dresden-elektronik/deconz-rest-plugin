@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2023 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -12,9 +12,8 @@
 #include <QString>
 #include <QTcpSocket>
 #include <QVariantMap>
-#include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
-#include "json.h"
+#include "deconz/u_rand32.h"
 
 // duration to wait for scan responses
 #define TL_SCAN_WAIT_TIME 250
@@ -124,7 +123,7 @@ int DeRestPluginPrivate::touchlinkScan(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    uint32_t transactionId = qrand();
+    uint32_t transactionId = U_rand32();
 
     if (transactionId == 0)
     {
@@ -175,7 +174,7 @@ int DeRestPluginPrivate::getTouchlinkScanResults(const ApiRequest &req, ApiRespo
     for (; i != end; ++i)
     {
         QVariantMap item;
-        item["address"] = i->address.toStringExt();
+        item["address"] = QString("0x%1").arg(i->address.ext(), int(16), int(16), QChar('0'));
         item["factorynew"] = i->factoryNew;
         item["rssi"] = (double)i->rssi;
         item["channel"] = (double)i->channel;
@@ -234,7 +233,7 @@ int DeRestPluginPrivate::identifyLight(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    uint32_t transactionId = qrand();
+    uint32_t transactionId = U_rand32();
 
     if (transactionId == 0)
     {
@@ -298,7 +297,7 @@ int DeRestPluginPrivate::resetLight(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    uint32_t transactionId = qrand();
+    uint32_t transactionId = U_rand32();
 
     if (transactionId == 0)
     {
@@ -794,8 +793,8 @@ void DeRestPluginPrivate::interpanDataIndication(const QByteArray &data)
             scanResponse.transactionId = touchlinkReq.transactionId();
             scanResponse.rssi = rssi;
 
-            DBG_Printf(DBG_TLINK, "scan response %s, fn=%u, channel=%u rssi=%d TrId=0x%08X in state=%d action=%d\n",
-                       qPrintable(scanResponse.address.toStringExt()),
+            DBG_Printf(DBG_TLINK, "scan response " FMT_MAC ", fn=%u, channel=%u rssi=%d TrId=0x%08X in state=%d action=%d\n",
+                       (unsigned long long)scanResponse.address.ext(),
                        scanResponse.factoryNew, touchlinkChannel, rssi, scanResponse.transactionId,
                        touchlinkState, touchlinkAction);
 

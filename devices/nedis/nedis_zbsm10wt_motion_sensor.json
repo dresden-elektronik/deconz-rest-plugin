@@ -61,13 +61,13 @@
                   "cl":"0x0001",
                   "ep":1,
                   "eval":"Item.val = Attr.val / 2",
-                  "fn":"zcl"
+                  "fn":"zcl:attr"
                },
                "read":{
                   "ep":1,
                   "cl":"0x0001",
                   "at":"0x0021",
-                  "fn":"zcl"
+                  "fn":"zcl:attr"
                },
                "refresh.interval": 86400,
                "default":0

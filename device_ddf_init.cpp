@@ -260,7 +260,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                     writeFunction = writeParam.value(QLatin1String("fn")).toString();
                 }
 
-                if (writeFunction.isEmpty() || writeFunction == QLatin1String("zcl"))
+                if (writeFunction.isEmpty() || writeFunction.startsWith(QLatin1String("zcl")))
                 {
                     bool ok;
 

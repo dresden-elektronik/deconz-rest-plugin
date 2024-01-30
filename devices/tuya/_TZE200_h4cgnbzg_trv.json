@@ -1,0 +1,105 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": ["_TZE200_h4cgnbzg", "_TZE200_exfrnlow", "_TZE200_9m4kmbfu", "_TZE200_3yp57tby", "_TZE200_9gvruqf5", "_TZE200_zr9c0day", "_TZE200_0dvm9mva"],
+  "modelid": ["TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601"],
+  "vendor": "Tuya",
+  "product": "Saswell TRVs",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_THERMOSTAT",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xef00"
+      ],
+      "meta": {
+        "values": {
+          "config/mode": {"off": 0, "heat": 1}
+        }
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/lowbattery",
+          "parse": {"fn": "tuya", "dpid": 105, "eval": "Item.val = Attr.val;"},
+          "read": {"fn": "none"}
+        },
+        {
+          "name": "config/heatsetpoint",
+          "parse": {"fn": "tuya", "dpid": 103, "eval": "Item.val = Attr.val * 10;"},
+          "write": {"fn": "tuya", "dpid": 103, "dt": "0x2b", "eval": "Item.val / 10;"},
+          "read": {"fn": "tuya"}
+        },
+        {
+          "name": "config/locked",
+          "parse": {"fn": "tuya", "dpid": 40, "eval": "Item.val = Attr.val;"},
+          "write": {"fn": "tuya", "dpid": 40, "dt": "0x10", "eval": "Item.val;"},
+          "read": {"fn": "none"}
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/windowopen_set",
+          "parse": {"fn": "tuya", "dpid": 8, "eval": "Item.val = Attr.val;"},
+          "write": {"fn": "tuya", "dpid": 8, "dt": "0x10", "eval": "Item.val;"},
+          "read": {"fn": "none"}
+        },
+        {
+          "name": "config/mode",
+          "values": [
+              ["off", 0], ["heat", 1]
+          ],
+          "parse": {"fn": "tuya", "dpid": 101, "eval": "if (Attr.val == 0) { Item.val = 'off' } else { Item.val = 'heat' }"},
+          "write": {"fn": "tuya", "dpid": 101, "dt": "0x10", "eval": "if (Item.val == 'off') { false } else { true }"},
+          "read": {"fn": "none"}
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature",
+          "parse": {"fn": "tuya", "dpid": 102, "eval": "Item.val = Attr.val * 10;"},
+          "read": {"fn": "none"}
+        },
+        {
+          "name": "state/valve",
+          "parse": {"fn": "tuya", "dpid": 104, "eval": "Item.val = Attr.val > 5;"},
+          "read": {"fn": "none"}
+        }
+      ]
+    }
+  ]
+}

@@ -1,11 +1,11 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/on",
-	"datatype": "Bool",
-	"access": "RW",
-	"public": true,
-	"default": true,
-	"implicit" : true,
-	"managed": true,
-	"description": "When true the sensor is enabled in rules."
+  "schema": "resourceitem1.schema.json",
+  "id": "config/on",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "default": true,
+  "implicit": true,
+  "managed": true,
+  "description": "When true the sensor is enabled in rules."
 }

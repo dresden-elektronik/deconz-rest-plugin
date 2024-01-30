@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/devicemode_bis",
+  "datatype": "String",
+  "access": "R",
+  "public": false,
+  "description": "Mode of the Hue wall switch module with possible values 'singlerocker', 'singlepushbutton', 'dualrocker', 'dualpushbutton'. Xiaomi devices have possible values of 'compatibility' and 'zigbee', but DO NOT CHANGE UNLESS YOU KNOW EXACTLY, WHAT YOU'RE DOING"
+}

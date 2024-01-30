@@ -45,7 +45,7 @@
                "name":"config/interfacemode",
                "refresh.interval":86400,
                "read":{
-                  "fn":"zcl",
+                  "fn":"zcl:attr",
                   "ep":1,
                   "cl":"0x0000",
                   "at":[
@@ -58,7 +58,7 @@
                   ]
                },
                "parse":{
-                  "fn":"zcl",
+                  "fn":"zcl:attr",
                   "ep":1,
                   "cl":"0x0000",
                   "at":"0xfffe",

@@ -1,8 +1,0 @@
-{
-	"schema": "resourceitem1.schema.json",
-	"id": "attr/xiaomi",
-	"datatype": "Bool",
-	"access": "R",
-	"public": false,
-	"description": "Hidden item for Xiaomi special attribute."
-}

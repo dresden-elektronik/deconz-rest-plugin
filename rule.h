@@ -87,11 +87,6 @@ public:
         StateDeleted
     };
 
-    enum Constants
-    {
-        MaxVerifyDelay = 300
-    };
-
     State state() const;
     void setState(State state);
     const QString &id() const;
@@ -125,7 +120,6 @@ public:
     QString etag;
     QDateTime lastVerify;
     QDateTime m_lastTriggered;
-    int lastBindingVerify; // copy of idleTotalCounter at last binding verification
 
 private:
     State m_state;

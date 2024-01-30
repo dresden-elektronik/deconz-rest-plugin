@@ -51,12 +51,12 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0100",
             "cl": "0x0702",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0100",
@@ -67,12 +67,12 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0508",
             "cl": "0x0b04",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0508",
@@ -86,12 +86,12 @@
         },
         {
           "name": "state/power",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x050f",
             "cl": "0x0b04",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x050f",
@@ -102,7 +102,7 @@
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 300
+          "refresh.interval": 365
         }
       ]
     },
@@ -150,12 +150,12 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0102",
             "cl": "0x0702",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0102",
@@ -170,7 +170,7 @@
       ]
     },
     {
-      "type": "ZHAAlarm",
+      "type": "$TYPE_ALARM_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -213,19 +213,19 @@
         },
         {
           "name": "state/alarm",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0005",
             "cl": "0xff66",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0005",
             "cl": "0xff66",
             "ep": 1,
             "eval": "Item.val = Attr.val > 0 ? true : false",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": false
         },
@@ -278,12 +278,12 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300,
+          "refresh.interval": 365,
           "read": {
             "at": "0x0100",
             "cl": "0x0702",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0100",

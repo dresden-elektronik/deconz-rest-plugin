@@ -19,6 +19,8 @@ class DeRestWidget;
 class DeRestPluginPrivate;
 class DeviceWidget;
 
+class QTimer;
+
 #if DECONZ_LIB_VERSION < 0x010800
   #error "The REST plugin requires at least deCONZ library version 1.8.0."
 #endif

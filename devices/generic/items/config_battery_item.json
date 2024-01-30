@@ -1,10 +1,13 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/battery",
-	"datatype": "UInt8",
-	"access": "R",
-	"public": true,
-	"range": [0, 100],
-	"description": "The current device battery level in 0&ndash;100&thinsp;%.",
-	"default": 0
+  "schema": "resourceitem1.schema.json",
+  "id": "config/battery",
+  "datatype": "UInt8",
+  "access": "R",
+  "public": true,
+  "range": [
+    0,
+    100
+  ],
+  "description": "The current device battery level in 0&ndash;100&thinsp;%.",
+  "default": 0
 }

@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "ddfvalidate": false,
   "manufacturername": "Legrand",
   "modelid": "Cable outlet",
   "product": "Cable outlet",
@@ -128,7 +129,7 @@
       ]
     },
     {
-      "type": "Level control switch",
+      "type": "$TYPE_LEVEL_CONTROL_SWITCH",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",

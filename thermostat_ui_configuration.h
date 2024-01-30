@@ -2,6 +2,5 @@
 #define THERMOSTAT_UI_CONFIGURATION_H
 
 #define THERM_UI_ATTRID_KEYPAD_LOCKOUT                          0x0001
-#define THERM_UI_ATTRID_VIEWING_DIRECTION                       0x4000 // Danfoss specific
 
 #endif // THERMOSTAT_UI_CONFIGURATION_H

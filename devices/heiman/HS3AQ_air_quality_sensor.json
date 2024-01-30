@@ -51,7 +51,7 @@
             "cl": "0x0001",
             "ep": 1,
             "eval": "Item.val = Attr.val / 2;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         },
@@ -120,7 +120,7 @@
             "cl": "0x0001",
             "ep": 1,
             "eval": "Item.val = Attr.val / 2;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         },
@@ -189,7 +189,7 @@
             "cl": "0x0001",
             "ep": 1,
             "eval": "Item.val = Attr.val / 2;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         },
@@ -211,13 +211,13 @@
             "cl": "0x040D",
             "ep": 1,
             "eval": "Item.val = Attr.val * 1000000;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "read": {
             "at": "0x0000",
             "cl": "0x040D",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": 0
         },

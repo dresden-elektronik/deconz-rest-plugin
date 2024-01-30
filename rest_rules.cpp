@@ -530,7 +530,6 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
 
             DBG_Printf(DBG_INFO, "create rule %s: %s\n", qPrintable(rule.id()), qPrintable(rule.name()));
             rules.push_back(rule);
-            queueCheckRuleBindings(rule);
             indexRulesTriggers();
             queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
 
@@ -694,7 +693,6 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
     if (map.contains("actions") || map.contains("conditions"))
     {
         rule->setStatus("disabled");
-        queueCheckRuleBindings(*rule);
     }
 
     //setName optional
@@ -808,8 +806,6 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
     {
         rule->setStatus("enabled");
     }
-    DBG_Printf(DBG_INFO_L2, "force verify of rule %s: %s\n", qPrintable(rule->id()), qPrintable(rule->name()));
-    rule->lastBindingVerify = 0;
 
     if (changed)
     {
@@ -876,7 +872,7 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
         }
 
         //check methods
-        if(!(method == QLatin1String("PUT") || method == QLatin1String("POST") || method == QLatin1String("DELETE") || method == QLatin1String("BIND") || method == QLatin1String("GET")))
+        if(!(method == QLatin1String("PUT") || method == QLatin1String("POST") || method == QLatin1String("DELETE") || method == QLatin1String("GET")))
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE , QLatin1String("rules/method"), QString("invalid value, %1, for parameter, method").arg(method)));
             return false;
@@ -939,7 +935,6 @@ int DeRestPluginPrivate::deleteRule(const ApiRequest &req, ApiResponse &rsp)
 
     rule->setState(Rule::StateDeleted);
     rule->setStatus("disabled");
-    queueCheckRuleBindings(*rule);
 
     DBG_Printf(DBG_INFO, "delete rule %s: %s\n", qPrintable(id), qPrintable(rule->name()));
 
@@ -958,235 +953,6 @@ int DeRestPluginPrivate::deleteRule(const ApiRequest &req, ApiResponse &rsp)
     rsp.httpStatus = HttpStatusOk;
 
     return REQ_READY_SEND;
-}
-
-/*! Starts verification that the ZigBee bindings of a rule are present
-    on the source device.
-    \param rule the rule to verify
- */
-void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
-{
-    quint64 srcAddress = 0;
-    quint8 srcEndpoint = 0;
-    BindingTask bindingTask;
-    bindingTask.state = BindingTask::StateCheck;
-    Sensor *sensorNode = nullptr;
-
-    Q_Q(DeRestPlugin);
-    if (!q->pluginActive())
-    {
-        return;
-    }
-
-    if (rule.state() == Rule::StateNormal && rule.status() == QLatin1String("enabled"))
-    {
-        bindingTask.action = BindingTask::ActionBind;
-    }
-    else if (rule.state() == Rule::StateDeleted || rule.status() == QLatin1String("disabled"))
-    {
-        bindingTask.action = BindingTask::ActionUnbind;
-    }
-    else
-    {
-        DBG_Printf(DBG_INFO, "ignored checking of rule %s\n", qPrintable(rule.name()));
-        return;
-    }
-
-    {   // search in conditions for binding srcAddress and srcEndpoint
-
-        auto i = rule.conditions().cbegin();
-        const auto end = rule.conditions().cend();
-
-        for (; i != end; ++i)
-        {
-            // operator equal used to refer to srcEndpoint
-            if (i->op() != RuleCondition::OpEqual)
-            {
-                continue;
-            }
-
-            if (i->resource() != RSensors)
-            {
-                continue;
-            }
-
-            if ((i->suffix() == RStateButtonEvent) ||
-                (i->suffix() == RStateLightLevel) || // TODO check webapp2 change illuminance --> lightlevel
-                (i->suffix() == RStatePresence))
-            {
-                sensorNode = getSensorNodeForId(i->id());
-
-                if (sensorNode && sensorNode->isAvailable() && sensorNode->node())
-                {
-
-                    if (!sensorNode->modelId().startsWith(QLatin1String("FLS-NB")))
-                    {
-                        // whitelist binding support
-                        return;
-                    }
-
-                    bool ok = false;
-                    uint ep = i->value().toUInt(&ok);
-
-                    if (ok && ep <= 255)
-                    {
-                        const std::vector<quint8> &activeEndpoints = sensorNode->node()->endpoints();
-
-                        for (uint i = 0; i < activeEndpoints.size(); i++)
-                        {
-                            // check valid endpoint in 'value'
-                            if (ep == activeEndpoints[i])
-                            {
-                                srcAddress = sensorNode->address().ext();
-                                srcEndpoint = static_cast<quint8>(ep);
-                                if (!sensorNode->mustRead(READ_BINDING_TABLE))
-                                {
-                                    sensorNode->enableRead(READ_BINDING_TABLE);
-                                    sensorNode->setNextReadTime(READ_BINDING_TABLE, QTime::currentTime());
-                                }
-                                q->startZclAttributeTimer(1000);
-                                break;
-                            }
-                        }
-
-                        // found source addressing?
-                        if ((srcAddress == 0) || (srcEndpoint == 0))
-                        {
-                            DBG_Printf(DBG_INFO, "no src addressing found for rule %s\n", qPrintable(rule.name()));
-                        }
-                    }
-                }
-                else
-                {
-                    void *n = nullptr;
-                    uint avail = false;
-
-                    if (sensorNode)
-                    {
-                        avail = sensorNode->isAvailable();
-                        n = sensorNode->node();
-                    }
-
-                    DBG_Printf(DBG_INFO_L2, "skip verify rule %s for sensor %s (available = %u, node = %p, sensorNode = %p)\n",
-                               qPrintable(rule.name()), qPrintable(i->id()), avail, n, sensorNode);
-                }
-            }
-        }
-    }
-
-    if (!sensorNode)
-    {
-        return;
-    }
-
-    // found source addressing?
-    if ((srcAddress == 0) || (srcEndpoint == 0))
-    {
-        return;
-    }
-
-    bindingTask.restNode = sensorNode;
-
-    DBG_Printf(DBG_INFO, "verify Rule %s: %s\n", qPrintable(rule.id()), qPrintable(rule.name()));
-
-    { // search in actions for binding dstAddress, dstEndpoint and clusterId
-        auto i = rule.actions().begin();
-        const auto end = rule.actions().end();
-
-        for (; i != end; ++i)
-        {
-            if (i->method() != QLatin1String("BIND"))
-            {
-                continue;
-            }
-
-            Binding &bnd = bindingTask.binding;
-            bnd.srcAddress = srcAddress;
-            bnd.srcEndpoint = srcEndpoint;
-            bool ok = false;
-
-            if (!sensorNode->toBool(RConfigOn))
-            {
-                if (bindingTask.action == BindingTask::ActionBind)
-                {
-                    DBG_Printf(DBG_INFO, "Sensor %s is 'off', prevent Rule %s: %s activation\n", qPrintable(sensorNode->id()), qPrintable(rule.id()), qPrintable(rule.name()));
-                    bindingTask.action = BindingTask::ActionUnbind;
-                }
-            }
-
-            QStringList dstAddressLs = i->address().split('/', SKIP_EMPTY_PARTS);
-
-            // /groups/0/action
-            // /lights/2/state
-            if (dstAddressLs.size() == 3)
-            {
-                if (dstAddressLs[0] == QLatin1String("groups"))
-                {
-                    bnd.dstAddress.group = dstAddressLs[1].toUShort(&ok);
-                    bnd.dstAddrMode = deCONZ::ApsGroupAddress;
-                }
-                else if (dstAddressLs[0] == QLatin1String("lights"))
-                {
-                    LightNode *lightNode = getLightNodeForId(dstAddressLs[1]);
-                    if (lightNode)
-                    {
-                        bnd.dstAddress.ext = lightNode->address().ext();
-                        bnd.dstEndpoint = lightNode->haEndpoint().endpoint();
-                        bnd.dstAddrMode = deCONZ::ApsExtAddress;
-                        ok = true;
-                    }
-                }
-                else
-                {
-                    // unsupported addressing
-                    continue;
-                }
-
-                if (!ok)
-                {
-                    continue;
-                }
-
-                // action.body might contain multiple 'bindings'
-                // TODO check if clusterId is available (finger print?)
-
-                if (i->body().contains(QLatin1String("on")))
-                {
-                    bnd.clusterId = ONOFF_CLUSTER_ID;
-                    queueBindingTask(bindingTask);
-                }
-
-                if (i->body().contains(QLatin1String("bri")))
-                {
-                    bnd.clusterId = LEVEL_CLUSTER_ID;
-                    queueBindingTask(bindingTask);
-                }
-
-                if (i->body().contains(QLatin1String("scene")))
-                {
-                    bnd.clusterId = SCENE_CLUSTER_ID;
-                    queueBindingTask(bindingTask);
-                }
-
-                if (i->body().contains(QLatin1String("illum")))
-                {
-                    bnd.clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID;
-                    queueBindingTask(bindingTask);
-                }
-
-                if (i->body().contains(QLatin1String("occ")))
-                {
-                    bnd.clusterId = OCCUPANCY_SENSING_CLUSTER_ID;
-                    queueBindingTask(bindingTask);
-                }
-            }
-        }
-    }
-
-    if (!bindingTimer->isActive())
-    {
-        bindingTimer->start();
-    }
 }
 
 /*! Evaluates rule.
@@ -1734,48 +1500,6 @@ void DeRestPluginPrivate::webhookFinishedRequest(QNetworkReply *reply)
     }
 
     reply->deleteLater();
-}
-
-/*! Verifies that rule bindings are valid. */
-void DeRestPluginPrivate::verifyRuleBindingsTimerFired()
-{
-    if (!apsCtrl || (apsCtrl->networkState() != deCONZ::InNetwork) || rules.empty())
-    {
-        return;
-    }
-
-    Q_Q(DeRestPlugin);
-    if (!q->pluginActive())
-    {
-        return;
-    }
-
-    if (verifyRuleIter >= rules.size())
-    {
-        verifyRuleIter = 0;
-    }
-
-    Rule &rule = rules[verifyRuleIter];
-
-    //triggerRuleIfNeeded(rule);
-
-    if (bindingQueue.size() < 16)
-    {
-        if (rule.state() == Rule::StateNormal)
-        {
-            if ((rule.lastBindingVerify + Rule::MaxVerifyDelay) < idleTotalCounter)
-            {
-                rule.lastBindingVerify = idleTotalCounter;
-                queueCheckRuleBindings(rule);
-            }
-        }
-    }
-
-    verifyRuleIter++;
-    if (verifyRulesTimer->interval() != NORMAL_RULE_CHECK_INTERVAL_MS)
-    {
-        verifyRulesTimer->setInterval(NORMAL_RULE_CHECK_INTERVAL_MS);
-    }
 }
 
 /*! Trigger fast checking of rules related to the resource. */

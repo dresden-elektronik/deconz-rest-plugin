@@ -1,14 +1,18 @@
 {
-    "schema": "subdevice1.schema.json",
-    "type": "$TYPE_BATTERY_SENSOR",
-    "name": "ZHABattery",
-    "restapi": "/sensors",
-    "order": 30,
-    "uuid": ["$address.ext", "0x01", "0x0001"],
-    "items": [
-        "config/on",
-        "config/reachable",
-        "state/battery",
-        "state/lastupdated"
-    ]
+  "schema": "subdevice1.schema.json",
+  "type": "$TYPE_BATTERY_SENSOR",
+  "name": "ZHABattery",
+  "restapi": "/sensors",
+  "order": 30,
+  "uuid": [
+    "$address.ext",
+    "0x01",
+    "0x0001"
+  ],
+  "items": [
+    "config/on",
+    "config/reachable",
+    "state/battery",
+    "state/lastupdated"
+  ]
 }

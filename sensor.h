@@ -110,7 +110,7 @@ public:
 
     DeletedState deletedState() const;
     void setDeletedState(DeletedState deletedstate);
-    bool isAvailable() const;
+    bool isAvailable() const override;
     const QString &name() const;
     void setName(const QString &name);
     const QString &type() const;
@@ -155,7 +155,6 @@ public:
 private:
     DeletedState m_deletedstate;
     SensorFingerprint m_fingerPrint;
-    SensorMode m_mode;
     uint8_t m_resetRetryCount;
     uint8_t m_zdpResetSeq;
     ButtonMapRef m_buttonMapRef{};

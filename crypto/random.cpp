@@ -16,7 +16,7 @@
 typedef int (*RAND_bytes_t)(unsigned char *buf, int num);
 static RAND_bytes_t RAND_bytes = nullptr;
 
-#ifdef __unix
+#ifdef __linux__
 #include <dlfcn.h>
 
 /*! RAII helper to open/close OpenSSL.
@@ -45,6 +45,12 @@ public:
 
 private:
     void *handle = nullptr;
+};
+#endif
+
+#ifdef __APPLE__
+class RNGLib
+{
 };
 #endif
 

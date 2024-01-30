@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2023 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -9,17 +9,21 @@
  */
 
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QProcess>
+#include <QTextStream>
 #include <array>
 #include <stack>
-#include <deconz.h>
+#include "deconz/aps_controller.h"
+#include "deconz/dbg_trace.h"
+#include "deconz/util.h"
 #include "backup.h"
 #include "json.h"
 #include "crypto/random.h"
 
-#define EXT_PROCESS_TIMEOUT 10000
+#define EXT_PROCESS_TIMEOUT 30000
 
 using TmpFiles = std::array<const char*, 3>;
 
@@ -110,7 +114,6 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
         map["endpoint2"] = endpoint2;
         map["deconzVersion"] = QString(GW_SW_VERSION).replace(QChar('.'), "");
 
-#if DECONZ_LIB_VERSION >= 0x011002
         {
             quint32 frameCounter = apsCtrl->getParameter(deCONZ::ParamFrameCounter);
             if (frameCounter > 0)
@@ -118,7 +121,6 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
                 map["frameCounter"] = frameCounter;
             }
         }
-#endif
 
         bool ok = true;
         QString saveString = Json::serialize(map, ok);
@@ -134,7 +136,7 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
         if (configFile.open(QIODevice::ReadWrite))
         {
             QTextStream stream(&configFile);
-            stream << saveString << endl;
+            stream << saveString << "\n";
             configFile.close();
         }
     }
@@ -234,8 +236,24 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
         {
             logfilesDirectories += QLatin1String("homebridge-install-logfiles");
         }
-
-        archProcess.start("tar -cf " + path + "/deCONZ.tar -C " + path + " deCONZ.conf zll.db session.default " + FirstFileName + " " + SecondFileName + " " + logfilesDirectories);
+#endif
+#ifdef Q_OS_UNIX
+        {
+            QStringList args;
+            args.append("-cf");
+            args.append(path + "/deCONZ.tar");
+            args.append("-C");
+            args.append(path);
+            args.append("deCONZ.conf");
+            args.append("zll.db");
+            args.append("session.default");
+#ifdef Q_OS_LINUX
+            args.append(FirstFileName);
+            args.append(SecondFileName);
+            args.append(logfilesDirectories);
+#endif
+            archProcess.start("tar", args);
+        }
 #endif
         archProcess.waitForFinished(EXT_PROCESS_TIMEOUT);
         DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess.readAllStandardOutput()));
@@ -243,8 +261,8 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
         //create .tar.gz
         {
             QProcess zipProcess;
-#ifdef Q_OS_WIN
             QStringList args;
+#ifdef Q_OS_WIN
             QString cmd = appPath + "/7za.exe";
 
             args.append("a");
@@ -252,8 +270,11 @@ bool BAK_ExportConfiguration(deCONZ::ApsController *apsCtrl)
             args.append(path + "/deCONZ.tar");
             zipProcess.start(cmd, args);
 #endif
-#ifdef Q_OS_LINUX
-            zipProcess.start("gzip -k -f " + path + "/deCONZ.tar");
+#ifdef Q_OS_UNIX
+            args.append("-k");
+            args.append("-f");
+            args.append(path + "/deCONZ.tar");
+            zipProcess.start("gzip", args);
 #endif
             zipProcess.waitForFinished(EXT_PROCESS_TIMEOUT);
             DBG_Printf(DBG_INFO, "%s\n", qPrintable(zipProcess.readAllStandardOutput()));
@@ -316,19 +337,21 @@ bool BAK_ImportConfiguration(deCONZ::ApsController *apsCtrl)
     {
         // decompress .tar.gz
         QProcess archProcess;
+        QStringList args;
 
 #ifdef Q_OS_WIN
         const QString appPath = qApp->applicationDirPath();
         const QString cmd = appPath + "/7za.exe";
-        QStringList args;
         args.append("e");
         args.append("-y");
         args.append(path + "/deCONZ.tar.gz");
         args.append("-o" + path);
         archProcess.start(cmd, args);
 #endif
-#ifdef Q_OS_LINUX
-        archProcess.start("gzip -df " + path + "/deCONZ.tar.gz");
+#ifdef Q_OS_UNIX
+        args.append("-df");
+        args.append(path + "/deCONZ.tar.gz");
+        archProcess.start("gzip", args);
 #endif
         archProcess.waitForFinished(EXT_PROCESS_TIMEOUT);
         DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess.readAllStandardOutput()));
@@ -338,18 +361,22 @@ bool BAK_ImportConfiguration(deCONZ::ApsController *apsCtrl)
     {
         // unpack .tar
         QProcess zipProcess;
+        QStringList args;
 #ifdef Q_OS_WIN
         const  QString appPath = qApp->applicationDirPath();
         const QString cmd = appPath + "/7za.exe";
-        QStringList args;
         args.append("e");
         args.append("-y");
         args.append(path + "/deCONZ.tar");
         args.append("-o" + path);
         zipProcess.start(cmd, args);
 #endif
-#ifdef Q_OS_LINUX
-        zipProcess.start("tar -xf " + path + "/deCONZ.tar -C " + path);
+#ifdef Q_OS_UNIX
+        args.append("-xf");
+        args.append(path + "/deCONZ.tar");
+        args.append("-C");
+        args.append(path);
+        zipProcess.start("tar", args);
 #endif
         zipProcess.waitForFinished(EXT_PROCESS_TIMEOUT);
         DBG_Printf(DBG_INFO, "%s\n", qPrintable(zipProcess.readAllStandardOutput()));
@@ -477,7 +504,6 @@ bool BAK_ImportConfiguration(deCONZ::ApsController *apsCtrl)
             apsCtrl->setParameter(deCONZ::ParamNetworkUpdateId, nwkUpdateId);
         }
 
-#if DECONZ_LIB_VERSION >= 0x011002
         {
             quint32 frameCounter = map["frameCounter"].toUInt(&ok);
             if (ok && frameCounter > 0)
@@ -485,7 +511,6 @@ bool BAK_ImportConfiguration(deCONZ::ApsController *apsCtrl)
                 apsCtrl->setParameter(deCONZ::ParamFrameCounter, frameCounter);
             }
         }
-#endif
 
         // HA endpoint
         QVariantMap endpoint1;

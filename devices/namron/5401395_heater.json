@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "NAMRON AS",
-  "modelid": "5401395",
+  "manufacturername": ["NAMRON AS", "NAMRON AS"],
+  "modelid": ["5401395", "5401399"],
   "vendor": "Namron",
-  "product": "Panel Heater 1000W White",
+  "product": "Panel Heater 1000W White/Black",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -75,7 +75,7 @@
             "cl": "0x0204",
             "ep": 1,
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           }
         },
         {

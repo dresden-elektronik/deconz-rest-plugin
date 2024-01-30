@@ -18,22 +18,29 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      noSkip:
+        description: Validate files with option ddfvalidate=false
+        required: true
+        default: false
+        type: boolean
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
+  # This workflow contains a single job called "validate"
+  validate:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      # Install jsonlint
-      - name: Install jsonlint
-        run: sudo apt install jsonlint
-
-      - name: Validate genric JSON files
-        run: for j in `find devices -name '*.json'`; do jsonlint-php $j || exit 1; done
+      # Validate DDF files
+      - uses: deconz-community/ddf-validator-action@v1
+        with:
+          directory: devices
+          generic: devices/generic
+          search: '**/*.json'
+          no-skip: ${{ inputs.noSkip == true }}

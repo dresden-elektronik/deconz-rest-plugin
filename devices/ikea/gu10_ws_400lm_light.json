@@ -1,133 +1,150 @@
 {
-    "schema": "devcap1.schema.json",
-    "doc:path": "ikea/gu10_ws_400lm_light.md",
-    "doc:hdr": "TRÅDFRI bulb GU10 WS 400lm",
-    "manufacturername": "$MF_IKEA",
-    "modelid": "TRADFRI bulb GU10 WS 400lm",
-    "product": "TRÅDFRI bulb GU10 WS 400lm",
-    "status": "Bronze",
-    "md:known_issues": [ "ikea_known_issues_radio_silence.md" ],
-    "supportsMgmtBind": true,
-    "subdevices": [
+  "schema": "devcap1.schema.json",
+  "manufacturername": "$MF_IKEA",
+  "modelid": "TRADFRI bulb GU10 WS 400lm",
+  "product": "TRÅDFRI bulb GU10 WS 400lm",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
         {
-            "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
-            "restapi": "/lights",
-            "uuid": ["$address.ext", "0x01"],
-            "items": [
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/colorcapabilities",
-                    "static": 16
-                },
-                {
-                    "name": "config/ctmin",
-                    "static": 250
-                },
-                {
-                    "name": "config/ctmax",
-                    "static": 454
-                },
-                {
-                    "name": "state/on",
-                    "refresh.interval": 1805
-                },
-                {
-                    "name": "state/bri",
-                    "refresh.interval": 1805
-                },
-                {
-                    "name": "state/ct",
-                    "refresh.interval": 1805
-                },
-                {
-                    "name": "state/reachable"
-                },
-                {
-                    "name": "state/colormode",
-                    "static": "ct",
-                    "values": [
-                        ["\"ct\"", "color temperature"]
-                    ]
-                },
-                {
-                    "name": "state/alert",
-                    "default": "none"
-                }
-            ],
-            "example":    {
-                "colorcapabilities": 16,
-                "ctmin": 250,
-                "ctmax": 454,
-                "hascolor": true,
-                "lastannounced": "2020-12-07T22:29:41Z",
-                "lastseen": "2020-12-30T16:29Z",
-                "manufacturername": "IKEA of Sweden",
-                "modelid": "TRADFRI bulb GU10 WS 400lm",
-                "name": "Desk lamp",
-                "state": {
-                    "alert": "none",
-                    "bri": 254,
-                    "colormode": "ct",
-                    "ct": 454,
-                    "on": true,
-                    "reachable": true
-                },
-                "swversion": "2.3.050",
-                "type": "Color temperature light",
-                "uniqueid": "00:0b:57:ff:fe:26:56:80-01"
-            }
-        }
-    ],
-    "bindings":  [
-        {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0006",
-            "report": [
-                {"at": "0x0000", "dt": "0x10", "min": 5, "max": 1800 }
-            ]
+          "name": "attr/lastannounced"
         },
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0008",
-            "report": [
-                {"at": "0x0000", "dt": "0x20", "min": 5, "max": 1800, "change": "0x01" }
-            ]
+          "name": "attr/lastseen"
         },
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0300",
-            "report": [
-                {"at": "0x0008", "dt": "0x30", "min": 1, "max": 1800 },
-                {"at": "0x0003", "dt": "0x21", "min": 5, "max": 1795, "change": "0x0a" },
-                {"at": "0x0004", "dt": "0x21", "min": 5, "max": 1795, "change": "0x0a" },
-                {"at": "0x0007", "dt": "0x21", "min": 5, "max": 1800, "change": "0x01" }
-            ]
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/bri/move_with_onoff",
+          "static": true
+        },
+        {
+          "name": "cap/color/capabilities",
+          "static": 16
+        },
+        {
+          "name": "cap/color/ct/max",
+          "static": 454
+        },
+        {
+          "name": "cap/color/ct/min",
+          "static": 250
+        },
+        {
+          "name": "cap/on/off_with_effect",
+          "static": true
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/bri",
+          "refresh.interval": 1805
+        },
+        {
+          "name": "state/colormode",
+          "static": "ct"
+        },
+        {
+          "name": "state/ct",
+          "refresh.interval": 1805
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 1805
+        },
+        {
+          "name": "state/reachable"
         }
-    ]
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 5,
+          "max": 1800
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0008",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 5,
+          "max": 1800,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0300",
+      "report": [
+        {
+          "at": "0x0008",
+          "dt": "0x30",
+          "min": 1,
+          "max": 1800
+        },
+        {
+          "at": "0x0003",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1795,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0004",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1795,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0007",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1800,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
 }

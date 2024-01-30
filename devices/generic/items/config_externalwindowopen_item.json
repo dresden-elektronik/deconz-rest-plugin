@@ -1,8 +1,8 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/externalwindowopen",
-	"datatype": "Bool",
-	"access": "RW",
-	"public": true,
-	"description": "The window state detected by an external sensor."
+  "schema": "resourceitem1.schema.json",
+  "id": "config/externalwindowopen",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "description": "The window state detected by an external sensor."
 }

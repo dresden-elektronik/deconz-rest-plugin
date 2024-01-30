@@ -1,12 +1,15 @@
-let mode = Item.val;
+/* global Item */
 
-if (mode === 'off') mode = 0;
-else if (mode === 'auto') mode = 1;
-else if (mode === 'speed_1') mode = 10;
-else if (mode === 'speed_2') mode = 20;
-else if (mode === 'speed_3') mode = 30;
-else if (mode === 'speed_4') mode = 40;
-else if (mode === 'speed_5') mode = 50;
-else mode = 0;
+let mode = Item.val
 
-mode;
+if (mode === 'off') mode = 0
+else if (mode === 'auto') mode = 1
+else if (mode === 'speed_1') mode = 10
+else if (mode === 'speed_2') mode = 20
+else if (mode === 'speed_3') mode = 30
+else if (mode === 'speed_4') mode = 40
+else if (mode === 'speed_5') mode = 50
+else mode = 0
+
+/* eslint-disable no-unused-expressions */
+mode
