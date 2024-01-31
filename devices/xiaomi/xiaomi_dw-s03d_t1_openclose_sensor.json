@@ -3,7 +3,7 @@
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.magnet.agl02",
   "vendor": "Xiaomi",
-  "product": "Aqara T1 open/close sensor MCCGQ12LM",
+  "product": "Aqara T1 open/close sensor DW-S03D",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -81,14 +81,7 @@
           }
         },
         {
-          "name": "config/enrolled",
-          "default": 1
-        },
-        {
           "name": "config/on"
-        },
-        {
-          "name": "config/pending"
         },
         {
           "name": "config/reachable"
@@ -97,7 +90,14 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/open"
+          "name": "state/open",
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0006",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
         }
       ]
     }
