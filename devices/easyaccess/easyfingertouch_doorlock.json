@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "Onesti Products AS",
-  "modelid": "EasyFingerTouch",
-  "vendor": "EasyAccess",
-  "product": "EasyFingerTouch",
+  "manufacturername": ["Onesti Products AS", "Onesti Products AS", "Onesti Products AS", "Onesti Products AS", "Onesti Products AS", "Onesti Products AS"],
+  "modelid": ["EasyFingerTouch", "EasyCodeTouch", "NimlyPRO", "NimlyCode", "NimlyTouch", "NimlyIn"],
+  "vendor": "Onesti Products AS",
+  "product": "Keypad Doorlock",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
