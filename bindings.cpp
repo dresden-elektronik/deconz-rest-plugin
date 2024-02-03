@@ -151,6 +151,11 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     if (node->mgmtBindSupported())
     {
     }
+    else if (!node->mgmtBindSupported())
+    {
+        node->clearRead(READ_BINDING_TABLE);
+        return false;
+    }
     else if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DDEL))
     {
     }
