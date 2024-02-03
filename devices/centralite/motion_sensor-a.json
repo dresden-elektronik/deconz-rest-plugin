@@ -65,8 +65,7 @@
             "eval": "const vmin = 20; const vmax = 30; var bat = Attr.val; if (bat > vmax) { bat = vmax; } else if (bat < vmin) { bat = vmin; } bat = ((bat - vmin) / (vmax - vmin)) * 100; if (bat > 100) { bat = 100; } else if (bat <= 0)  { bat = 1; } Item.val = bat;"
           },
           "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0020"},
-          "refresh.interval": 3700,
-          "default": 0
+          "refresh.interval": 3700
         },
         {
           "name": "config/checkin",
@@ -75,10 +74,12 @@
           "refresh.interval": 3600
         },
         {
-          "name": "config/duration"
+          "name": "config/duration",
+          "default": 40
         },
         {
-          "name": "config/enrolled"
+          "name": "config/enrolled",
+          "default": 1
         },
         {
           "name": "config/on"
@@ -153,12 +154,10 @@
             "cl": "0x0001",
             "ep": 255,
             "eval": "const vmin = 20; const vmax = 30; var bat = Attr.val; if (bat > vmax) { bat = vmax; } else if (bat < vmin) { bat = vmin; } bat = ((bat - vmin) / (vmax - vmin)) * 100; if (bat > 100) { bat = 100; } else if (bat <= 0)  { bat = 1; } Item.val = bat;"
-          },
-          "default": 0
+          }
         },
         {
-          "name": "config/offset",
-          "default": 0
+          "name": "config/offset"
         },
         {
           "name": "config/on"
@@ -170,8 +169,7 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/temperature",
-          "default": 0
+          "name": "state/temperature"
         }
       ]
     }
@@ -201,6 +199,19 @@
           "min": 60,
           "max": 300,
           "change": "0x0016"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500",
+      "report": [
+        {
+          "at": "0x0002",
+          "dt": "0x19",
+          "min": 1,
+          "max": 360
         }
       ]
     }

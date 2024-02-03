@@ -2091,7 +2091,6 @@ public:
     int idleLimit;
     int idleUpdateZigBeeConf; //
     int idleLastActivity; // delta in seconds
-    bool supportColorModeXyForGroups;
     size_t lightIter;
     size_t sensorIter;
     size_t lightAttrIter;

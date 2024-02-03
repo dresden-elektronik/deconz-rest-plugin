@@ -690,7 +690,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     udpSock = 0;
     haEndpoint = 0;
     gwGroupSendDelay = deCONZ::appArgumentNumeric("--group-delay", GROUP_SEND_DELAY);
-    supportColorModeXyForGroups = true;
     gwLinkButton = false;
     gwWebSocketNotifyAll = true;
     gwdisablePermitJoinAutoOff = false;
@@ -3259,6 +3258,8 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
 
 /*! Force polling if the node has updated simple descriptors in setup phase.
     \param node - the base for the LightNode
+
+    TODO(mpi): This function can likely be removed entirely, after testing.
  */
 void DeRestPluginPrivate::updatedLightNodeEndpoint(const deCONZ::NodeEvent &event)
 {
@@ -3272,14 +3273,14 @@ void DeRestPluginPrivate::updatedLightNodeEndpoint(const deCONZ::NodeEvent &even
         return;
     }
 
+    if (event.clusterId() != ZDP_SIMPLE_DESCRIPTOR_RSP_CLID)
+    {
+        return;
+    }
+
     for (LightNode &lightNode : nodes)
     {
         if (lightNode.address().ext() != event.node()->address().ext())
-        {
-            continue;
-        }
-
-        if (event.clusterId() != ZDP_SIMPLE_DESCRIPTOR_RSP_CLID)
         {
             continue;
         }
@@ -9901,35 +9902,30 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
 
     QTime tNow = QTime::currentTime();
 
-    if (lightNode->mustRead(READ_BINDING_TABLE) && tNow > lightNode->nextReadTime(READ_BINDING_TABLE))
-    {
-        if (readBindingTable(lightNode, 0))
-        {
-            // only read binding table once per node even if multiple devices/sensors are implemented
-            std::vector<LightNode>::iterator i = nodes.begin();
-            std::vector<LightNode>::iterator end = nodes.end();
+    const Device *device = static_cast<Device*>(lightNode->parentResource());
+    const bool devManaged = device && device->managed();
 
-            for (; i != end; ++i)
+    if (!devManaged)
+    {
+        if (lightNode->mustRead(READ_BINDING_TABLE) && tNow > lightNode->nextReadTime(READ_BINDING_TABLE))
+        {
+            if (readBindingTable(lightNode, 0))
             {
-                if (i->address().ext() == lightNode->address().ext())
-                {
-                    i->clearRead(READ_BINDING_TABLE);
-                }
+                lightNode->clearRead(READ_BINDING_TABLE);
+                processed++;
             }
-            processed++;
         }
-    }
 
-    if (lightNode->mustRead(READ_VENDOR_NAME) && tNow > lightNode->nextReadTime(READ_VENDOR_NAME))
-    {
-        if (!lightNode->manufacturer().isEmpty())
+        if (lightNode->mustRead(READ_VENDOR_NAME) && tNow > lightNode->nextReadTime(READ_VENDOR_NAME))
         {
-            lightNode->clearRead(READ_VENDOR_NAME);
-            processed++;
-        }
-        else
-        {
-            std::vector<uint16_t> attributes;
+            if (!lightNode->manufacturer().isEmpty())
+            {
+                lightNode->clearRead(READ_VENDOR_NAME);
+                processed++;
+            }
+            else
+            {
+                std::vector<uint16_t> attributes;
             attributes.push_back(0x0004); // Manufacturer name
 
             if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
@@ -9947,15 +9943,16 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
             lightNode->clearRead(READ_MODEL_ID);
             processed++;
         }
-        else
-        {
-            std::vector<uint16_t> attributes;
-            attributes.push_back(0x0005); // Model identifier
-
-            if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
+            else
             {
-                lightNode->clearRead(READ_MODEL_ID);
-                processed++;
+                std::vector<uint16_t> attributes;
+                attributes.push_back(0x0005); // Model identifier
+
+                if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
+                {
+                    lightNode->clearRead(READ_MODEL_ID);
+                    processed++;
+                }
             }
         }
     }
@@ -9999,6 +9996,11 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
 
     if (!sensorNode->node())
     {
+        if (sensorNode->type().startsWith(QLatin1String("ZGP"))) // ZGP nothing to be done here
+        {
+            return false;
+        }
+
         deCONZ::Node *node = getNodeForAddress(sensorNode->address().ext());
         if (node)
         {
@@ -10038,17 +10040,20 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
 
     QTime tNow = QTime::currentTime();
 
-    // FIXME: Need check that end device is awake.
+    const Device *device = static_cast<Device*>(sensorNode->parentResource());
+    const bool devManaged = device && device->managed();
 
-    if (sensorNode->mustRead(READ_BINDING_TABLE) && tNow > sensorNode->nextReadTime(READ_BINDING_TABLE))
+    if (!devManaged)
     {
-        bool ok = false;
-        // only read binding table of chosen sensors
-        // whitelist by Model ID
-        if (sensorNode->manufacturer().startsWith(QLatin1String("BEGA")))
+        if (sensorNode->mustRead(READ_BINDING_TABLE) && tNow > sensorNode->nextReadTime(READ_BINDING_TABLE))
         {
-            ok = true;
-        }
+            bool ok = false;
+            // only read binding table of chosen sensors
+            // whitelist by Model ID
+            if (sensorNode->manufacturer().startsWith(QLatin1String("BEGA")))
+            {
+                ok = true;
+            }
 
         if (!ok)
         {
@@ -10097,30 +10102,29 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
     }
 
     if (sensorNode->mustRead(READ_SWBUILD_ID) && tNow > sensorNode->nextReadTime(READ_SWBUILD_ID))
-    {
-        std::vector<uint16_t> attributes;
-        attributes.push_back(0x4000); // Software build identifier
-
-        if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes))
-        {
-            sensorNode->clearRead(READ_SWBUILD_ID);
-            processed++;
-        }
-    }
-
-
-    if (sensorNode->mustRead(READ_OCCUPANCY_CONFIG) && tNow > sensorNode->nextReadTime(READ_OCCUPANCY_CONFIG))
-    {
-        if (sensorNode->modelId().startsWith(QLatin1String("lumi.sensor_motion")))
-        {
-            sensorNode->clearRead(READ_OCCUPANCY_CONFIG);
-        }
-        else
         {
             std::vector<uint16_t> attributes;
-            attributes.push_back(0x0010); // occupied to unoccupied delay
+            attributes.push_back(0x4000); // Software build identifier
 
-            if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes))
+            if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes))
+            {
+                sensorNode->clearRead(READ_SWBUILD_ID);
+                processed++;
+            }
+        }
+
+        if (sensorNode->mustRead(READ_OCCUPANCY_CONFIG) && tNow > sensorNode->nextReadTime(READ_OCCUPANCY_CONFIG))
+        {
+            if (sensorNode->modelId().startsWith(QLatin1String("lumi.sensor_motion")))
+            {
+                sensorNode->clearRead(READ_OCCUPANCY_CONFIG);
+            }
+            else
+            {
+                std::vector<uint16_t> attributes;
+                attributes.push_back(0x0010); // occupied to unoccupied delay
+
+                if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes))
             {
                 sensorNode->clearRead(READ_OCCUPANCY_CONFIG);
                 processed++;
@@ -10210,15 +10214,19 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
                 if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI))
                 {
                     sensorNode->setNextReadTime(WRITE_SENSITIVITY, tNow.addSecs(3300)); // Default special reporting intervall
-                    processed++;
+                        processed++;
+                    }
                 }
             }
-        }
-        else
-        {
-            sensorNode->clearRead(WRITE_SENSITIVITY);
+            else
+            {
+                sensorNode->clearRead(WRITE_SENSITIVITY);
+            }
         }
     }
+
+    // TODO(mpi): is following code already handled by DDF, so we can skip if devManaged?
+
 
     if (sensorNode->mustRead(READ_THERMOSTAT_STATE) && tNow > sensorNode->nextReadTime(READ_THERMOSTAT_STATE))
     {
@@ -10269,7 +10277,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         }
     }
 
-    if (sensorNode->mustRead(READ_BATTERY) && tNow > sensorNode->nextReadTime(READ_BATTERY))
+    if (!devManaged && sensorNode->mustRead(READ_BATTERY) && tNow > sensorNode->nextReadTime(READ_BATTERY))
     {
         std::vector<uint16_t> attributes;
         attributes.push_back(0x0020); // battery level
@@ -10279,9 +10287,6 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
             processed++;
         }
     }
-
-    auto *device = DEV_GetDevice(m_devices, sensorNode->address().ext());
-    const bool devManaged = device && device->managed();
 
     if (!DEV_TestStrict() && !devManaged)
     {
@@ -15637,38 +15642,6 @@ void DeRestPlugin::idleTimerFired()
             }
         }
 
-        if (!DEV_TestManaged())
-        {
-            std::vector<LightNode>::iterator i = d->nodes.begin();
-            std::vector<LightNode>::iterator end = d->nodes.end();
-
-            int countNoColorXySupport = 0;
-
-            for (; i != end; ++i)
-            {
-                // older FLS which do not have correct support for color mode xy has atmel vendor id
-                if (i->isAvailable() && i->manufacturerCode() == VENDOR_ATMEL && i->modelId().startsWith("FLS")) // old FLS devices
-                {
-                    countNoColorXySupport++;
-                }
-            }
-
-            if ((countNoColorXySupport > 0) && d->supportColorModeXyForGroups)
-            {
-                DBG_Printf(DBG_INFO_L2, "disable support for CIE 1931 XY color mode for groups\n");
-                d->supportColorModeXyForGroups = false;
-            }
-            else if ((countNoColorXySupport == 0) && !d->supportColorModeXyForGroups)
-            {
-                DBG_Printf(DBG_INFO_L2, "enable support for CIE 1931 XY color mode for groups\n");
-                d->supportColorModeXyForGroups = true;
-            }
-            else
-            {
-    //            DBG_Printf(DBG_INFO_L2, "support for CIE 1931 XY color mode for groups %u\n", d->supportColorModeXyForGroups);
-            }
-        }
-
         startZclAttributeTimer(checkZclAttributesDelay);
 
         if (d->otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
@@ -15743,6 +15716,8 @@ void DeRestPlugin::checkZclAttributeTimerFired()
         return;
     }
 
+    int count = 0;
+
     if (d->lightAttrIter >= d->nodes.size())
     {
         d->lightAttrIter = 0;
@@ -15752,10 +15727,12 @@ void DeRestPlugin::checkZclAttributeTimerFired()
     {
         LightNode *lightNode = &d->nodes[d->lightAttrIter];
         d->lightAttrIter++;
+        count++;
 
         if (d->getUptime() < WARMUP_TIME)
         {
             // warmup phase
+            break;
         }
         else if (d->processZclAttributes(lightNode))
         {
@@ -15764,6 +15741,9 @@ void DeRestPlugin::checkZclAttributeTimerFired()
             d->processTasks();
             break;
         }
+
+        if (count > 5)
+            break;
     }
 
     if (d->sensorAttrIter >= d->sensors.size())
@@ -15771,6 +15751,7 @@ void DeRestPlugin::checkZclAttributeTimerFired()
         d->sensorAttrIter = 0;
     }
 
+    count = 0;
     while (d->sensorAttrIter < d->sensors.size())
     {
         Sensor *sensorNode = &d->sensors[d->sensorAttrIter];
@@ -15783,6 +15764,9 @@ void DeRestPlugin::checkZclAttributeTimerFired()
             d->processTasks();
             break;
         }
+
+        if (count > 5)
+            break;
     }
 
     startZclAttributeTimer(checkZclAttributesDelay);

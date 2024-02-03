@@ -1,11 +1,11 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3000_ja5osu5g",
-  "modelid": "TS004F",
+  "manufacturername": ["_TZ3000_ja5osu5g", "_TZ3000_fa9mlvja"],
+  "modelid": ["TS004F", "TS0041"],
   "vendor": "Tuya",
   "product": "Wireless Smart Button",
   "sleeper": true,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_SWITCH",
@@ -46,15 +46,22 @@
           "name": "attr/uniqueid"
         },
         {
-            "name": "config/battery",
-            "parse": {
-                "ep": 1, "cl": "0x0001", "at": "0x0021",
-                "eval": "Item.val = Attr.val / 2"
-            },
-            "read": {
-                "ep": 1, "cl": "0x0001", "at": "0x0021"
-            },
-            "refresh.interval": 7300
+          "name": "config/battery",
+          "awake": true,
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
+          },
+          "refresh.interval": 86400
         },
         {
           "name": "config/on"
