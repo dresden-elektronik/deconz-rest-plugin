@@ -160,9 +160,6 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     else if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DEVELCO))
     {
     }
-    else if (r && r->item(RAttrModelId)->toString().startsWith(QLatin1String("FLS-")))
-    {
-    }
     else
     {
         node->clearRead(READ_BINDING_TABLE);
@@ -2146,16 +2143,6 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
     if (!apsCtrl || !lightNode || !lightNode->address().hasExt())
     {
         return;
-    }
-
-    // prevent binding action if otau was busy recently
-    if (otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
-    {
-        if (lightNode->modelId().startsWith(QLatin1String("FLS-")))
-        {
-            DBG_Printf(DBG_INFO, "don't check binding for attribute reporting of %s (otau busy)\n", qPrintable(lightNode->name()));
-            return;
-        }
     }
 
     Device *device = DEV_GetDevice(m_devices, lightNode->address().ext());
