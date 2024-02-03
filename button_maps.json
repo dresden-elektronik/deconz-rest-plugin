@@ -338,6 +338,27 @@
                 [1, "0x03", "FC80", "COMMAND_6", "0", "S_BUTTON_7", "S_BUTTON_ACTION_DOUBLE_PRESS", "0x06"]
             ]
         },
+	"ikeaSomrigMap": {
+            "vendor": "IKEA of Sweden",
+            "doc": "IKEA SOMRIG Shortcut Button",
+            "modelids": ["SOMRIG shortcut button"],
+            "buttons": [
+                {"S_BUTTON_1": "One Dot"},
+                {"S_BUTTON_2": "Two Dots"}
+            ],
+            "map": [
+                [1, "0x01", "FC80", "COMMAND_1", "0", "S_BUTTON_1", "S_BUTTON_ACTION_INITIAL_PRESS", "0x01"],
+                [1, "0x01", "FC80", "COMMAND_2", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "0x02"],
+                [1, "0x01", "FC80", "COMMAND_3", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "0x03"],
+                [1, "0x01", "FC80", "COMMAND_4", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "0x04"],
+                [1, "0x01", "FC80", "COMMAND_6", "0", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "0x06"],
+                [1, "0x02", "FC80", "COMMAND_1", "0", "S_BUTTON_2", "S_BUTTON_ACTION_INITIAL_PRESS", "0x01"],
+                [1, "0x02", "FC80", "COMMAND_2", "0", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "0x02"],
+                [1, "0x02", "FC80", "COMMAND_3", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "0x03"],
+                [1, "0x02", "FC80", "COMMAND_4", "0", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "0x04"],
+                [1, "0x02", "FC80", "COMMAND_6", "0", "S_BUTTON_2", "S_BUTTON_ACTION_DOUBLE_PRESS", "0x06"]
+            ]
+        },
         "osramMiniRemoteMap": {
             "vendor": "OSRAM",
             "doc": "Lightify Switch Mini",
