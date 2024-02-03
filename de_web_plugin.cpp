@@ -3258,6 +3258,8 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
 
 /*! Force polling if the node has updated simple descriptors in setup phase.
     \param node - the base for the LightNode
+
+    TODO(mpi): This function can likely be removed entirely, after testing.
  */
 void DeRestPluginPrivate::updatedLightNodeEndpoint(const deCONZ::NodeEvent &event)
 {
@@ -3271,14 +3273,14 @@ void DeRestPluginPrivate::updatedLightNodeEndpoint(const deCONZ::NodeEvent &even
         return;
     }
 
+    if (event.clusterId() != ZDP_SIMPLE_DESCRIPTOR_RSP_CLID)
+    {
+        return;
+    }
+
     for (LightNode &lightNode : nodes)
     {
         if (lightNode.address().ext() != event.node()->address().ext())
-        {
-            continue;
-        }
-
-        if (event.clusterId() != ZDP_SIMPLE_DESCRIPTOR_RSP_CLID)
         {
             continue;
         }
