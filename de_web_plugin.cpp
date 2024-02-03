@@ -690,7 +690,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     udpSock = 0;
     haEndpoint = 0;
     gwGroupSendDelay = deCONZ::appArgumentNumeric("--group-delay", GROUP_SEND_DELAY);
-    supportColorModeXyForGroups = true;
     gwLinkButton = false;
     gwWebSocketNotifyAll = true;
     gwdisablePermitJoinAutoOff = false;
@@ -15634,38 +15633,6 @@ void DeRestPlugin::idleTimerFired()
                     DBG_Printf(DBG_INFO_L2, "Force binding of attribute reporting for node %s\n", qPrintable(sensorNode->name()));
                     processSensors = true;
                 }
-            }
-        }
-
-        if (!DEV_TestManaged())
-        {
-            std::vector<LightNode>::iterator i = d->nodes.begin();
-            std::vector<LightNode>::iterator end = d->nodes.end();
-
-            int countNoColorXySupport = 0;
-
-            for (; i != end; ++i)
-            {
-                // older FLS which do not have correct support for color mode xy has atmel vendor id
-                if (i->isAvailable() && i->manufacturerCode() == VENDOR_ATMEL && i->modelId().startsWith("FLS")) // old FLS devices
-                {
-                    countNoColorXySupport++;
-                }
-            }
-
-            if ((countNoColorXySupport > 0) && d->supportColorModeXyForGroups)
-            {
-                DBG_Printf(DBG_INFO_L2, "disable support for CIE 1931 XY color mode for groups\n");
-                d->supportColorModeXyForGroups = false;
-            }
-            else if ((countNoColorXySupport == 0) && !d->supportColorModeXyForGroups)
-            {
-                DBG_Printf(DBG_INFO_L2, "enable support for CIE 1931 XY color mode for groups\n");
-                d->supportColorModeXyForGroups = true;
-            }
-            else
-            {
-    //            DBG_Printf(DBG_INFO_L2, "support for CIE 1931 XY color mode for groups %u\n", d->supportColorModeXyForGroups);
             }
         }
 
