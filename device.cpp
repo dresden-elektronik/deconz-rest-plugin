@@ -2005,7 +2005,21 @@ void DEV_DeadStateHandler(Device *device, const Event &event)
         {
             d->setState(DEV_InitStateHandler);
         }
-        return;
+        else
+        {
+
+            if (event.what() == REventPoll || event.what() == REventAwake)
+            {
+                extern void DEV_PollLegacy(Device *device); // defined in de_web_plugin.cpp
+
+                if (d->node && d->node->isCoordinator())
+                {
+                    return;
+                }
+
+                DEV_PollLegacy(device);
+            }
+        }
     }
 }
 

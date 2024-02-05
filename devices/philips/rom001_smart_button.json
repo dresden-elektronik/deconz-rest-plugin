@@ -2,11 +2,15 @@
   "schema": "devcap1.schema.json",
   "manufacturername": [
     "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_PHILIPS",
     "$MF_PHILIPS"
   ],
   "modelid": [
     "ROM001",
-    "ROM001"
+    "RDM003",
+    "ROM001",
+    "RDM003"
   ],
   "product": "Hue smart button",
   "status": "Gold",

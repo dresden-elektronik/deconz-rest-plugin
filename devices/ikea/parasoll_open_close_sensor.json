@@ -114,12 +114,28 @@
         },
         {
           "name": "state/open",
-          "awake": true
+          "parse": {
+            "fn": "ias:zonestatus",
+            "mask": "alarm1,alarm2"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0500",
+            "at": "0x0000"
+          },
+          "awake": true,
+          "refresh.interval": 84600
         }
       ]
     }
   ],
   "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0500"
+    },
     {
       "bind": "unicast",
       "src.ep": 1,
@@ -133,11 +149,6 @@
           "change": "0x00000002"
         }
       ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 2,
-      "cl": "0x0500"
     }
   ]
 }
