@@ -120,5 +120,4 @@ if (attrid === 0x0002) {
     }
   }
 }
-/* eslint-disable no-unused-expressions */
 on
