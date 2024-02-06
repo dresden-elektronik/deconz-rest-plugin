@@ -225,13 +225,13 @@ void PollManager::pollTimerFired()
     const LightNode *lightNode = nullptr;
     if (r && r->prefix() == RLights)
     {
-        restNode = plugin->getLightNodeForId(pitem.id);
+        restNode = dynamic_cast<RestNodeBase*>(r);
         lightNode = dynamic_cast<LightNode*>(restNode);
         item = r->item(RStateReachable);
     }
     else if (r && r->prefix() == RSensors)
     {
-        restNode = plugin->getSensorNodeForId(pitem.id);
+        restNode = dynamic_cast<RestNodeBase*>(r);
         item = r->item(RConfigReachable);
     }
 
