@@ -316,14 +316,6 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                     }
                 }
             }
-
-            if (item->descriptor().suffix == RAttrId)
-            {
-                if (item->needStore())
-                {
-                    DBG_Printf(DBG_INFO, "needs store %s\n", item->descriptor().suffix);
-                }
-            }
         }
     }
 

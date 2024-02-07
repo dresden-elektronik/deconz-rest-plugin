@@ -6468,6 +6468,16 @@ bool DB_StoreSubDeviceItem(const Resource *sub, ResourceItem *item)
         return true;
     }
 
+    const char *suffix = item->descriptor().suffix;
+
+    if ((suffix == RAttrMode && item->toNumber() == Sensor::ModeScenes) || suffix == RStatePresence)
+    {
+        // don't waste time on these
+        // TODO(mpi): this needs to be controlled via DDF
+        item->clearNeedStore();
+        return true;
+    }
+
     const ResourceItem *uniqueId = sub->item(RAttrUniqueId);
     if (!uniqueId)
     {
@@ -6531,8 +6541,6 @@ bool DB_StoreSubDeviceItem(const Resource *sub, ResourceItem *item)
             {
                 dt = timestamp - dbResult.timestamp;
             }
-
-            const char *suffix = item->descriptor().suffix;
 
 #ifdef ARCH_ARM
             uint64_t storeDelay = 1800;

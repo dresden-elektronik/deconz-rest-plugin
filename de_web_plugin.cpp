@@ -2365,11 +2365,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, node->address().ext());
     Q_ASSERT(device);
 
-    if (device && device->managed())
-    {
-        return;
-    }
-
     if (permitJoinFlag)
     {
         // during pairing only proceed when device code has finished query Basic Cluster
@@ -15777,8 +15772,6 @@ void DeRestPlugin::appAboutToQuit()
             }
         }
 #endif
-
-        DBG_Flush();
 
         d->ttlDataBaseConnection = 0;
         d->closeDb();
