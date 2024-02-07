@@ -1159,7 +1159,9 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 enqueueEvent(Event(r->prefix(), i->descriptor().suffix, idItem->toString(), i, device->key()));
                 if (push && i->lastChanged() == i->lastSet())
                 {
+                    DBG_MEASURE_START(DB_StoreSubDeviceItem);
                     DB_StoreSubDeviceItem(r, i);
+                    DBG_MEASURE_END(DB_StoreSubDeviceItem);
                 }
 
                 if (!eventLastUpdatedEmitted && i->descriptor().suffix[0] == 's') // state/*
