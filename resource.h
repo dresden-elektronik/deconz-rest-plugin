@@ -442,6 +442,7 @@ public:
         FlagAwakeOnSet      = 0x10, // REventAwake will be generated when item is set after parse
         FlagImplicit        = 0x20, // the item is always present for a specific resource type
         FlagDynamicDescriptor = 0x40, // ResourceItemDescriptor is dynamic (not specified in code)
+        FlagNeedStore      = 0x80   // set when item needs to be stored to database
     };
 
     enum ValueSource
@@ -460,6 +461,9 @@ public:
     bool needPushSet() const;
     bool needPushChange() const;
     void clearNeedPush();
+    bool needStore() const;
+    void setNeedStore();
+    void clearNeedStore();
     bool pushOnSet() const;
     void setPushOnSet(bool enable);
     bool pushOnChange() const;

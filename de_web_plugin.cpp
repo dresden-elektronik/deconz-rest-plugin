@@ -1149,6 +1149,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         {
             for (ResourceItem *i : DeviceJs::instance()->itemsSet())
             {
+                i->setNeedStore();
                 if (i->awake())
                 {
                     awake++;
@@ -1159,9 +1160,16 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 enqueueEvent(Event(r->prefix(), i->descriptor().suffix, idItem->toString(), i, device->key()));
                 if (push && i->lastChanged() == i->lastSet())
                 {
-                    DBG_MEASURE_START(DB_StoreSubDeviceItem);
-                    DB_StoreSubDeviceItem(r, i);
-                    DBG_MEASURE_END(DB_StoreSubDeviceItem);
+                    if (i->descriptor().suffix[0] == 's') // state/*
+                    {
+                        // don't store state items within APS indication handler as this can block for >1 sec on slow systems
+                    }
+                    else
+                    {
+                        DBG_MEASURE_START(DB_StoreSubDeviceItem);
+                        DB_StoreSubDeviceItem(r, i);
+                        DBG_MEASURE_END(DB_StoreSubDeviceItem);
+                    }
                 }
 
                 if (!eventLastUpdatedEmitted && i->descriptor().suffix[0] == 's') // state/*
@@ -2356,6 +2364,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
     auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, node->address().ext());
     Q_ASSERT(device);
+
+    if (device && device->managed())
+    {
+        return;
+    }
 
     if (permitJoinFlag)
     {
@@ -15752,20 +15765,20 @@ void DeRestPlugin::appAboutToQuit()
         d->openDb();
         d->saveDb();
 
-        // TODO(mpi): Following is really heavy and already done previously
-        //            storing items needs to get more explicit with dirty flags
-#if 0
-        for (const auto &dev : d->m_devices)
+#if 1
+        for (auto &dev : d->m_devices)
         {
             if (dev->managed())
             {
-                for (const auto *sub : dev->subDevices())
+                for (Resource *sub : dev->subDevices())
                 {
                     DB_StoreSubDeviceItems(sub);
                 }
             }
         }
 #endif
+
+        DBG_Flush();
 
         d->ttlDataBaseConnection = 0;
         d->closeDb();

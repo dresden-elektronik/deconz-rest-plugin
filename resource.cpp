@@ -817,6 +817,25 @@ void ResourceItem::clearNeedPush()
     m_flags &= ~static_cast<quint16>(FlagNeedPushSet | FlagNeedPushChange);
 }
 
+/*! Returns true when a value needs to be stored to database.
+ */
+bool ResourceItem::needStore() const
+{
+    return (m_flags & FlagNeedStore) > 0;
+}
+
+/*! Sets need store flag. */
+void ResourceItem::setNeedStore()
+{
+    m_flags |= static_cast<quint16>(FlagNeedStore);
+}
+
+/*! Clears need store flag. */
+void ResourceItem::clearNeedStore()
+{
+    m_flags &= ~static_cast<quint16>(FlagNeedStore);
+}
+
 bool ResourceItem::pushOnSet() const
 {
     return (m_flags & FlagPushOnSet) > 0;
@@ -1104,6 +1123,7 @@ bool ResourceItem::setValue(qint64 val, ValueSource source)
     m_numPrev = m_num;
     m_valueSource = source;
     m_flags |= FlagNeedPushSet;
+    m_flags |= FlagNeedStore;
 
     if (m_num != val)
     {
@@ -1144,6 +1164,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
                 *m_str = str;
                 m_lastChanged = m_lastSet;
                 m_flags |= FlagNeedPushChange;
+                m_flags |= FlagNeedStore;
             }
             return true;
         }
@@ -1153,6 +1174,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
         m_lastSet = now;
         m_numPrev = m_num;
         m_flags |= FlagNeedPushSet;
+        m_flags |= FlagNeedStore;
 
         if (m_num != val.toBool())
         {
@@ -1183,6 +1205,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
                     m_num = dt.toMSecsSinceEpoch();
                     m_lastChanged = m_lastSet;
                     m_flags |= FlagNeedPushChange;
+                    m_flags |= FlagNeedStore;
                 }
                 return true;
             }
@@ -1198,6 +1221,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
                 m_num = val.toDateTime().toMSecsSinceEpoch();
                 m_lastChanged = m_lastSet;
                 m_flags |= FlagNeedPushChange;
+                m_flags |= FlagNeedStore;
             }
             return true;
         }
@@ -1218,6 +1242,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
                 m_double = d;
                 m_lastChanged = m_lastSet;
                 m_flags |= FlagNeedPushChange;
+                m_flags |= FlagNeedStore;
             }
             return true;
         }
@@ -1241,6 +1266,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
             m_lastSet = now;
             m_numPrev = m_num;
             m_flags |= FlagNeedPushSet;
+            m_flags |= FlagNeedStore;
 
             if (m_num != n)
             {
