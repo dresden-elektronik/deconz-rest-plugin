@@ -5,7 +5,7 @@
 	"vendor": "GIEXperience",
 	"product": "Smart water valve",
 	"sleeper": false,
-	"status": "Silver",
+	"status": "Gold",
 	"subdevices": [{
 			"type": "$TYPE_ON_OFF_OUTPUT",
 			"restapi": "/lights",
