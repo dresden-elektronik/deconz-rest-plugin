@@ -135,6 +135,9 @@
 					"default": 0
 				},
 				{
+					"name": "config/on"
+				},
+				{
 					"name": "config/reachable"
 				},
 				{
