@@ -81,7 +81,7 @@
             "cl": "0xE001",
             "at": "0xD030",
             "dt": "0x30",
-            "eval": "{ toggle: 0, state: 1, momentary: 2 }[Item.val]"
+            "eval": "Item.val === 'toggle' ?  0 : Item.val === 'state' ? 1 : 2"
           }
         },
         {
