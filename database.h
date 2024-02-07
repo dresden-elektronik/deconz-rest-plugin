@@ -84,8 +84,8 @@ struct DB_LegacyItem
 
 int DB_GetSubDeviceItemCount(QLatin1String uniqueId);
 bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId);
-bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item);
-bool DB_StoreSubDeviceItems(const Resource *sub);
+bool DB_StoreSubDeviceItem(const Resource *sub, ResourceItem *item);
+bool DB_StoreSubDeviceItems(Resource *sub);
 std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(QLatin1String deviceUniqueId);
 std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(QLatin1String uniqueId);
 bool DB_LoadLegacySensorValue(DB_LegacyItem *litem);
