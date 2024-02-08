@@ -1,6 +1,5 @@
 /* global R, ZclFrame */
 
-let on = R.item('state/on').val
 const attrid = ZclFrame.at(1) << 8 | ZclFrame.at(0)
 if (attrid === 0x0002) {
   const status = ZclFrame.at(2)
@@ -14,7 +13,7 @@ if (attrid === 0x0002) {
       i += 2
       len -= 2
       if ([0x0007, 0x000B, 0x000F, 0x00AB, 0x014B].indexOf(mode) >= 0 && len >= 2) {
-        on = ZclFrame.at(i) !== 0
+        R.item('state/on').val = ZclFrame.at(i) !== 0
         R.item('state/bri').val = ZclFrame.at(i + 1)
         i += 2
         len -= 2
@@ -120,4 +119,3 @@ if (attrid === 0x0002) {
     }
   }
 }
-on
