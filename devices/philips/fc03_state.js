@@ -12,13 +12,13 @@ if (attrid === 0x0002) {
       const mode = ZclFrame.at(i + 1) << 8 | ZclFrame.at(i)
       i += 2
       len -= 2
-      if ([0x0007, 0x000B, 0x000F, 0x00AB, 0x014B].indexOf(mode) >= 0 && len >= 2) {
+      if ([0x0007, 0x000B, 0x000F, 0x00A7, 0x00AB, 0x014B].indexOf(mode) >= 0 && len >= 2) {
         R.item('state/on').val = ZclFrame.at(i) !== 0
         R.item('state/bri').val = ZclFrame.at(i + 1)
         i += 2
         len -= 2
       }
-      if ([0x0007, 0x000F].indexOf(mode) >= 0 && len >= 2) {
+      if ([0x0007, 0x000F, 0x00A7].indexOf(mode) >= 0 && len >= 2) {
         R.item('state/ct').val = ZclFrame.at(i + 1) << 8 | ZclFrame.at(i)
         R.item('state/colormode').val = 'ct'
         i += 2
@@ -33,7 +33,7 @@ if (attrid === 0x0002) {
           R.item('state/colormode').val = 'xy'
         }
       }
-      if (mode === 0x00AB && len >= 2) {
+      if ([0x00A7, 0x00AB].indexOf(mode) >= 0 && len >= 2) {
         const effect = ZclFrame.at(i + 1) << 8 | ZclFrame.at(i)
         i += 2
         len -= 2
