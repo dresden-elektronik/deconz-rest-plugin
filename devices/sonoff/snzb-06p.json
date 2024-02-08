@@ -5,7 +5,7 @@
   "vendor": "Sonoff",
   "product": "SNZB-06P",
   "sleeper": false,
-  "status": "Bronze",
+  "status": "Gold",
   "path": "/devices/snzb-06p.json",
   "subdevices": [
     {
