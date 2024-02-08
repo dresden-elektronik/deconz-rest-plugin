@@ -135,6 +135,7 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
             item->setValue(dbItem->value);
             item->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem->timestampMs));
         }
+        item->clearNeedStore(); // already in DB
     }
     else if (!ddfItem.isStatic && dbItem == dbItems.cend() && !item->lastSet().isValid())
     {
@@ -165,6 +166,7 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
         if (ddfItem.isStatic || !item->lastSet().isValid())
         {
             item->setValue(ddfItem.defaultValue);
+            item->clearNeedStore(); // already in DB
         }
     }
 
@@ -248,6 +250,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
             {
                 DBG_Printf(DBG_DDF, "sub-device: %s, presence state is true, reverting to false\n", qPrintable(uniqueId));
                 item->setValue(false);
+                item->clearNeedStore();
             }
 
             if (!ddfItem.defaultValue.isNull() && !ddfItem.writeParameters.isNull())
