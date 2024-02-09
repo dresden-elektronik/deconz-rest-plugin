@@ -5,7 +5,6 @@
   "product": "VALLHORN Wireless Motion Sensor",
   "sleeper": true,
   "status": "Gold",
-  "path": "/devices/vallhorn_wireless_motion_sensor.json",
   "subdevices": [
     {
       "type": "$TYPE_PRESENCE_SENSOR",
@@ -243,8 +242,7 @@
             "cl": "0x0400",
             "at": "0x0000",
             "script": "0400_lightlevel.js"
-          },
-          "refresh.interval": 86400
+          }
         },
         {
           "name": "state/lux"
