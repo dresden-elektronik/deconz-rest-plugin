@@ -75,7 +75,7 @@
           "parse": { 
             "at": "0xFF02",
             "ep": 1,
-           "fn": "xiaomi:special",
+            "fn": "xiaomi:special",
             "idx": "0x01",
             "script": "xiaomi_battery.js"
           }
