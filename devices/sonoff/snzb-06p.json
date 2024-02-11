@@ -75,7 +75,7 @@
           "name": "state/presence",
           "refresh.interval": 4,
           "read": {
-            "fn": "None"
+            "fn": "none"
           },
           "parse": {
             "at": "0x0000",
