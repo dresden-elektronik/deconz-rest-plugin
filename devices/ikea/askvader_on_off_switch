@@ -65,7 +65,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -74,12 +74,6 @@
     }
   ],
   "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0000"
-    },
     {
       "bind": "unicast",
       "src.ep": 1,
