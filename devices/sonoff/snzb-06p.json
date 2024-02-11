@@ -57,14 +57,14 @@
             "at": "0x2001",
             "cl": "0xfc11",
             "ep": 1,
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x2001",
             "cl": "0xfc11",
             "ep": 1,
             "eval": "if (Attr.val === 0) { Item.val = true } else { Item.val = false }",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": false
         },
@@ -82,7 +82,7 @@
             "cl": "0x0406",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl"
+            "fn": "zcl:attr"
           },
           "default": false        }
       ]
