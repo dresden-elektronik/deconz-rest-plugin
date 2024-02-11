@@ -52,7 +52,7 @@
         },
         {
           "name": "state/dark",
-          "refresh.interval": 30,
+          "refresh.interval": 300,
           "read": {
             "at": "0x2001",
             "cl": "0xfc11",
@@ -73,7 +73,6 @@
         },
         {
           "name": "state/presence",
-          "refresh.interval": 4,
           "read": {
             "fn": "none"
           },
@@ -84,29 +83,44 @@
             "eval": "Item.val = Attr.val",
             "fn": "zcl:attr"
           },
-          "default": false        }
+          "default": false
+        }
       ]
     }
   ],
-     "bindings": [
-      {
-         "bind":"unicast",
-         "src.ep":1,
-         "cl":"0x0500"
-      },
-	  {
-		"bind": "unicast",
-		"src.ep": 1,
-		"cl": "0x0406",
-                "report": [
-			{
-			"at": "0x0000",
-			"dt": "0x18",
-			"min": 1,
-			"max": 300,
-			"change": "0x00000001"
-			}
-				]
-	  }
-	  ]
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0406",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x18",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0xfc11",
+      "report": [
+        {
+          "at": "0x2001",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
 }
