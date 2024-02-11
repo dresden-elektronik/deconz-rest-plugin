@@ -182,6 +182,18 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
         item->setRefreshInterval(deCONZ::TimeSeconds{ddfItem.refreshInterval});
     }
 
+    if (item->refreshInterval().val == 0 && !ddfItem.readParameters.isNull())
+    {
+        // If a DDF doesn't specify a refresh.interval and also not the generic item
+        // default to 30 seconds to relax polling a bit.
+        // Note: ideally this should be specified in a DDF/generic item.
+        const auto m = ddfItem.readParameters.toMap();
+        if (m.value(QLatin1String("fn")) != QLatin1String("none"))
+        {
+            item->setRefreshInterval(deCONZ::TimeSeconds{30});
+        }
+    }
+
     item->setParseFunction(nullptr);
 
     return item;
