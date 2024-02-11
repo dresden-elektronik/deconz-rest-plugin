@@ -55,7 +55,8 @@
           "name": "config/heatsetpoint",
           "parse": {"fn": "tuya", "dpid": 16, "eval": "Item.val = Attr.val * 100;"},
           "write": {"fn": "tuya", "dpid": 16, "dt": "0x2b", "eval": "Item.val / 100;"},
-          "read": {"fn": "tuya"}
+          "read": {"fn": "tuya"},
+          "refresh.interval": 84000
         },
         {
           "name": "config/locked",
