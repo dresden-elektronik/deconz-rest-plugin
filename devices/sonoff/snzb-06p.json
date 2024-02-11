@@ -3,10 +3,9 @@
   "manufacturername": "SONOFF",
   "modelid": "SNZB-06P",
   "vendor": "Sonoff",
-  "product": "SNZB-06P",
+  "product": "Human Presence Sensor",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/snzb-06p.json",
   "subdevices": [
     {
       "type": "$TYPE_PRESENCE_SENSOR",
@@ -45,6 +44,31 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/delay",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0406",
+            "at": "0x0020",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0406",
+            "at": "0x0020"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0406",
+            "at": "0x0020",
+            "dt": "0x21",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
           "name": "config/on"
         },
         {
@@ -52,7 +76,7 @@
         },
         {
           "name": "state/dark",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "read": {
             "at": "0x2001",
             "cl": "0xfc11",
@@ -92,19 +116,13 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0x0500"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
       "cl": "0x0406",
       "report": [
         {
           "at": "0x0000",
           "dt": "0x18",
           "min": 1,
-          "max": 300,
-          "change": "0x00000001"
+          "max": 300
         }
       ]
     },
