@@ -3,7 +3,7 @@
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI control outlet",
   "vendor": "IKEA",
-  "product": "TRADFRI control outlet - E1603",
+  "product": "TRADFRI control outlet",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
