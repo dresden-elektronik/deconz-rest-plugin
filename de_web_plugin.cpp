@@ -1830,7 +1830,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     sensor->setNeedSaveDatabase(true);
     sensor->updateStateTimestamp();
     item->setValue(btn);
-    DBG_Printf(DBG_ZGP, "ZGP button %u %s\n", item->toNumber(), qPrintable(sensor->modelId()));
+    DBG_Printf(DBG_ZGP, "ZGP 0x%08X button %u %s\n", ind.gpdSrcId(), item->toNumber(), qPrintable(sensor->modelId()));
     Event e(RSensors, RStateButtonEvent, sensor->id(), item);
     enqueueEvent(e);
     enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
@@ -1969,6 +1969,8 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
         quint32 gpdOutgoingCounter = 0;
         deCONZ::GPCommissioningOptions options;
         deCONZ::GpExtCommissioningOptions extOptions;
+        uint8_t applicationInformationField = 0;
+        uint8_t numberOfGPDCommands = 0;
         options.byte = 0;
         extOptions.byte = 0;
 
@@ -2023,6 +2025,18 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             stream >> gpdOutgoingCounter;
         }
 
+        if (options.bits.reserved & 1) // applications ID present (TODO flag not yet in deCONZ lib)
+        {
+            if (stream.atEnd()) { return; }
+            stream >> applicationInformationField;
+
+            if (applicationInformationField & 0x04)
+            {
+                if (stream.atEnd()) { return; }
+                stream >> numberOfGPDCommands;
+            }
+        }
+
         SensorFingerprint fp;
         fp.endpoint = GREEN_POWER_ENDPOINT;
         fp.deviceId = gpdDeviceId;
@@ -2069,8 +2083,16 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 sensorNode.setManufacturer("Philips");
                 sensorNode.setSwVersion("1.0");
             }
+            else if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0xc5 && extOptions.byte == 0xF2 && numberOfGPDCommands == 17)
+            {
+                // FoH Outdoor switch
+                sensorNode.setModelId("FOHSWITCH");
+                sensorNode.setManufacturer("PhilipsFoH");
+                sensorNode.setSwVersion("1.0");
+            }
             else if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0xc5 && ind.payload().size() == 46)
             {
+                // Note following can likely be removed in favor of the previous else if ()
                 sensorNode.setModelId("FOHSWITCH");
                 sensorNode.setManufacturer("PhilipsFoH");
                 sensorNode.setSwVersion("1.0");
@@ -2097,7 +2119,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             }
             else
             {
-                DBG_Printf(DBG_INFO, "unsupported green power device 0x%02X\n", gpdDeviceId);
+                DBG_Printf(DBG_INFO, "ZGP srcId: 0x%08X unsupported green power device gpdDeviceId 0x%02X, options.byte: 0x%02X, extOptions.byte: 0x%02X, numGPDCommands: %u, ind.payload: 0x%s\n", ind.gpdSrcId(), gpdDeviceId, options.byte, extOptions.byte, numberOfGPDCommands, qPrintable(ind.payload().toHex()));
                 return;
             }
 
