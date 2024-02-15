@@ -2120,6 +2120,18 @@ void Device::setManaged(bool managed)
     d->managed = managed;
 }
 
+void Device::setSupportsMgmtBind(bool supported)
+{
+    if (supported)
+    {
+        d->binding.mgmtBindSupported = MGMT_BIND_SUPPORTED;
+    }
+    else
+    {
+        d->binding.mgmtBindSupported = MGMT_BIND_NOT_SUPPORTED;
+    }
+}
+
 void Device::handleEvent(const Event &event, DEV_StateLevel level)
 {
     if (event.what() == REventStateEnter || event.what() == REventStateLeave)

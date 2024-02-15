@@ -104,6 +104,7 @@ public:
     const deCONZ::Node *node() const;
     bool managed() const;
     void setManaged(bool managed);
+    void setSupportsMgmtBind(bool supported);
     void handleEvent(const Event &event, DEV_StateLevel level = StateLevel0);
     void timerEvent(QTimerEvent *event) override;
     qint64 lastAwakeMs() const;
