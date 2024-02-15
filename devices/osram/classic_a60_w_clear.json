@@ -4,6 +4,7 @@
   "modelid": "Classic A60 W clear - LIGHTIFY",
   "product": "Classic A60 W clear - LIGHTIFY",
   "sleeper": false,
+  "supportsMgmtBind": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -55,45 +56,14 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 365
+          "refresh.interval": 20
         },
         {
           "name": "state/on",
-          "refresh.interval": 365
+          "refresh.interval": 20
         },
         {
           "name": "state/reachable"
-        }
-      ]
-    }
-  ],
-  "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 3,
-      "dst.ep": 1,
-      "cl": "0x0006",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x10",
-          "min": 1,
-          "max": 300
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 3,
-      "dst.ep": 1,
-      "cl": "0x0008",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x20",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
         }
       ]
     }
