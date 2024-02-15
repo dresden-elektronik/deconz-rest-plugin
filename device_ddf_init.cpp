@@ -336,6 +336,11 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
         device->item(RCapSleeper)->setValue(ddf.sleeper == 1);
     }
 
+    if (ddf.supportsMgmtBind >= 0)
+    {
+        device->setSupportsMgmtBind(ddf.supportsMgmtBind == 1);
+    }
+
     device->clearBindings();
     for (const auto &bnd : ddf.bindings)
     {
