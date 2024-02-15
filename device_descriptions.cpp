@@ -2133,6 +2133,11 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QSt
         result.sleeper = obj.value(QLatin1String("sleeper")).toBool() ? 1 : 0;
     }
 
+    if (obj.contains(QLatin1String("supportsMgmtBind")))
+    {
+        result.supportsMgmtBind = obj.value(QLatin1String("supportsMgmtBind")).toBool() ? 1 : 0;
+    }
+
     if (obj.contains(QLatin1String("matchexpr")))
     {
         result.matchExpr = obj.value(QLatin1String("matchexpr")).toString();

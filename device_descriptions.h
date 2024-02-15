@@ -103,6 +103,7 @@ public:
 
     int handle = -1; // index in container
     int sleeper = -1;
+    int supportsMgmtBind = -1;
 
     class Item
     {
