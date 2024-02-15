@@ -260,8 +260,19 @@ void DEV_InitStateHandler(Device *device, const Event &event)
 
         if (device->node())
         {
-            device->item(RAttrExtAddress)->setValue(device->node()->address().ext());
-            device->item(RAttrNwkAddress)->setValue(device->node()->address().nwk());
+            {
+                const deCONZ::Address a = device->node()->address();
+                ResourceItem *ext = device->item(RAttrExtAddress);
+                if (!ext->lastSet().isValid() || ext->toNumber() != a.ext())
+                {
+                    ext->setValue(a.ext());
+                }
+                ResourceItem *nwk = device->item(RAttrNwkAddress);
+                if (!nwk->lastSet().isValid() || nwk->toNumber() != a.nwk())
+                {
+                    nwk->setValue(a.nwk());
+                }
+            }
 
             // got a node, jump to verification
             if (!device->node()->nodeDescriptor().isNull() || device->reachable())
@@ -337,7 +348,13 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
             DBG_Printf(DBG_DEV, "ZDP node descriptor verified: 0x%016llX\n", device->key());
             d->maxResponseTime = d->hasRxOnWhenIdle() ? RxOnWhenIdleResponseTime
                                                       : RxOffWhenIdleResponseTime;
-            device->item(RCapSleeper)->setValue(!d->hasRxOnWhenIdle()); // can be overwritten by DDF
+
+            bool isSleeper = !d->hasRxOnWhenIdle();
+            ResourceItem *capSleeper = device->item(RCapSleeper);
+            if (!capSleeper->lastSet().isValid() || capSleeper->toBool() != isSleeper)
+            {
+                capSleeper->setValue(isSleeper); // can be overwritten by DDF
+            }
             d->setState(DEV_ActiveEndpointsStateHandler);
         }
         else if (!device->reachable()) // can't be queried, go back to #1 init
@@ -462,6 +479,7 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
         for (const auto ep : device->node()->endpoints())
         {
             deCONZ::SimpleDescriptor sd;
+            // TODO(mpi) copy is heavy, just need to search
             if (device->node()->copySimpleDescriptor(ep, &sd) != 0 || sd.deviceId() == 0xffff)
             {
                 needFetchEp = ep;
@@ -809,6 +827,7 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
 void DEV_CheckReachable(Device *device)
 {
     DevicePrivate *d = device->d;
+    bool devReachable = device->reachable();
 
     for (Resource *r : d->subResources)
     {
@@ -818,9 +837,9 @@ void DEV_CheckReachable(Device *device)
             item = r->item(RStateReachable);
         }
 
-        if (item && item->toBool() != device->reachable())
+        if (item && ((item->toBool() != devReachable) || !item->lastSet().isValid()))
         {
-            r->setValue(item->descriptor().suffix, device->reachable());
+            r->setValue(item->descriptor().suffix, devReachable);
         }
     }
 }
