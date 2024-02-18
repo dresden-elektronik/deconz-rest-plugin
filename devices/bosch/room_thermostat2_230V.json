@@ -20,7 +20,6 @@
         "device": "0x0301",
         "endpoint": "0x01",
         "in": [
-          "0x0001",
           "0x0201",
           "0x0204",
           "0x0B05"
@@ -76,12 +75,6 @@
         },
         {
           "name": "attr/uniqueid"
-        },
-        {
-          "name": "config/checkin",
-          "public": false,
-          "refresh.interval": 3600,
-          "default": 14400
         },
         {
           "name": "config/externalwindowopen",
@@ -292,7 +285,6 @@
         "device": "0x0301",
         "endpoint": "0x01",
         "in": [
-          "0x0001",
           "0x0405"
         ]
       },
