@@ -1780,6 +1780,11 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
         {
             const auto *item = r->itemForIndex(size_t(i));
 
+            if (item->zclUnsupportedAttribute())
+            {
+                continue;
+            }
+
             DEV_UpdateReportTracker(device, item);
 
             const auto &ddfItem = DDF_GetItem(item);
@@ -1989,10 +1994,27 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
         { }
         else if (d->readResult.sequenceNumber == EventZclSequenceNumber(event) || d->readResult.ignoreResponseSequenceNumber)
         {
-            DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX ZCL response seq: %u, status: 0x%02X, cluster: 0x%04X\n",
-                   event.resource(), event.deviceKey(), d->readResult.sequenceNumber, EventZclStatus(event), d->readResult.clusterId);
+            uint8_t status = EventZclStatus(event);
+            DBG_Printf(DBG_DEV, "DEV Poll Busy %s/" FMT_MAC " ZCL response seq: %u, status: 0x%02X, cluster: 0x%04X\n",
+                   event.resource(), FMT_MAC_CAST(event.deviceKey()), d->readResult.sequenceNumber, status, d->readResult.clusterId);
 
-            d->pollItems.pop_back();
+            DBG_Assert(!d->pollItems.empty());
+            if (!d->pollItems.empty())
+            {
+                if (status == deCONZ::ZclUnsupportedAttributeStatus)
+                {
+                    const auto &pi = d->pollItems.back();
+                    Resource *r = DEV_GetResource(pi.resource->handle());
+                    ResourceItem *item = r ? r->item(pi.item->descriptor().suffix) : nullptr;
+
+                    if (item)
+                    {
+                        item->setZclUnsupportedAttribute();
+                    }
+                }
+
+                d->pollItems.pop_back();
+            }
             d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
         }
     }
@@ -2387,8 +2409,10 @@ Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, E
     if (d == devices.end())
     {
         devices.emplace_back(new Device(key, apsCtrl, parent));
-        QObject::connect(devices.back().get(), SIGNAL(eventNotify(Event)), eventEmitter, SLOT(enqueueEvent(Event)));
-        return devices.back().get();
+        Device *device = devices.back().get();
+        QObject::connect(device, SIGNAL(eventNotify(Event)), eventEmitter, SLOT(enqueueEvent(Event)));
+        device->setHandle(R_CreateResourceHandle(device, devices.size() - 1));
+        return device;
     }
 
     Q_ASSERT(d != devices.end());

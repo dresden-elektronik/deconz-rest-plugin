@@ -904,6 +904,15 @@ void ResourceItem::setImplicit(bool implicit)
     }
 }
 
+void ResourceItem::setZclUnsupportedAttribute()
+{
+    m_flags |= static_cast<uint16_t>(FlagZclUnsupportedAttr);
+}
+
+bool ResourceItem::zclUnsupportedAttribute() const
+{
+    return (m_flags & FlagZclUnsupportedAttr) > 0;
+}
 
 /*! Copy assignment. */
 ResourceItem &ResourceItem::operator=(const ResourceItem &other)
