@@ -1160,11 +1160,12 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 enqueueEvent(Event(r->prefix(), i->descriptor().suffix, idItem->toString(), i, device->key()));
                 if (push && i->lastChanged() == i->lastSet())
                 {
-                    if (i->descriptor().suffix[0] == 's') // state/*
+                    const char *itemSuffix = i->descriptor().suffix;
+                    if (itemSuffix[0] == 's') // state/*
                     {
                         // don't store state items within APS indication handler as this can block for >1 sec on slow systems
                     }
-                    else
+                    else if (r->prefix() != RDevices)
                     {
                         DBG_MEASURE_START(DB_StoreSubDeviceItem);
                         DB_StoreSubDeviceItem(r, i);
