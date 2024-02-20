@@ -2,9 +2,11 @@
   "schema": "devcap1.schema.json",
   "manufacturername": [
     "_TZ3000_zmy4lslw",
-    "_TZ3000_lmlsduws"
+    "_TZ3000_lmlsduws",
+    "_TZ3000_nuenzetq"
   ],
   "modelid": [
+   "TS0002",
    "TS0002",
    "TS0002"
   ],
