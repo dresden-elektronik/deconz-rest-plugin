@@ -279,8 +279,14 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                 {
                     bool ok;
 
+                    QVariant value = item->toVariant();
+                    if (!value.isValid())
+                    {
+                        value = ddfItem.defaultValue;
+                    }
+
                     StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
-                    stateChange.addTargetValue(item->descriptor().suffix, item->toVariant());
+                    stateChange.addTargetValue(item->descriptor().suffix, value);
                     stateChange.setChangeTimeoutMs(1000 * 60 * 60);
 
                     if (writeParam.contains(QLatin1String("state.timeout")))
