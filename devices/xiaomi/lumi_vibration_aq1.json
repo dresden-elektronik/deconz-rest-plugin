@@ -92,7 +92,7 @@
             "cl": "0x0000",
             "mf": "0x115F",
             "at": "0xFF0D",
-            "eval": "Item.val = 3 - Attr.val"
+            "eval": "Item.val = Attr.val < 3 ? 3 - Attr.val : 2"
           },
           "read": {
             "fn": "zcl:attr",

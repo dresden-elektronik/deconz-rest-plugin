@@ -442,6 +442,8 @@ public:
         FlagAwakeOnSet      = 0x10, // REventAwake will be generated when item is set after parse
         FlagImplicit        = 0x20, // the item is always present for a specific resource type
         FlagDynamicDescriptor = 0x40, // ResourceItemDescriptor is dynamic (not specified in code)
+        FlagNeedStore      = 0x80,   // set when item needs to be stored to database
+        FlagZclUnsupportedAttr = 0x100  // set when the "read" function failed with ZCL unsupported attribute status
     };
 
     enum ValueSource
@@ -460,6 +462,9 @@ public:
     bool needPushSet() const;
     bool needPushChange() const;
     void clearNeedPush();
+    bool needStore() const;
+    void setNeedStore();
+    void clearNeedStore();
     bool pushOnSet() const;
     void setPushOnSet(bool enable);
     bool pushOnChange() const;
@@ -468,6 +473,8 @@ public:
     void setAwake(bool awake);
     bool implicit() const;
     void setImplicit(bool implicit);
+    void setZclUnsupportedAttribute();
+    bool zclUnsupportedAttribute() const;
     const QString &toString() const;
     QLatin1String toLatin1String() const;
     const char *toCString() const;
@@ -518,7 +525,7 @@ private:
 
     ValueSource m_valueSource = SourceUnknown;
     bool m_isPublic = true;
-    quint16 m_flags = 0; // bitmap of ResourceItem::ItemFlags
+    uint16_t m_flags = 0; // bitmap of ResourceItem::ItemFlags
     union
     {
         struct {

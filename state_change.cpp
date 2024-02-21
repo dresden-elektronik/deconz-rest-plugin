@@ -188,7 +188,14 @@ void StateChange::verifyItemChange(const ResourceItem *item)
 /*! Adds a target value. */
 void StateChange::addTargetValue(const char *suffix, const QVariant &value)
 {
-    m_items.push_back({suffix, value});
+    if (value.isValid())
+    {
+        m_items.push_back({suffix, value});
+    }
+    else
+    {
+        DBG_Printf(DBG_ERROR, "SC add invalid traget value for: %s\n", suffix);
+    }
 }
 
 /*! Adds a parameter. If the parameter already exsits it will be replaced. */

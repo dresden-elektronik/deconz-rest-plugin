@@ -135,6 +135,7 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
             item->setValue(dbItem->value);
             item->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem->timestampMs));
         }
+        item->clearNeedStore(); // already in DB
     }
     else if (!ddfItem.isStatic && dbItem == dbItems.cend() && !item->lastSet().isValid())
     {
@@ -165,6 +166,7 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
         if (ddfItem.isStatic || !item->lastSet().isValid())
         {
             item->setValue(ddfItem.defaultValue);
+            item->clearNeedStore(); // already in DB
         }
     }
 
@@ -178,6 +180,18 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
     if (ddfItem.refreshInterval != DeviceDescription::Item::NoRefreshInterval)
     {
         item->setRefreshInterval(deCONZ::TimeSeconds{ddfItem.refreshInterval});
+    }
+
+    if (item->refreshInterval().val == 0 && !ddfItem.readParameters.isNull())
+    {
+        // If a DDF doesn't specify a refresh.interval and also not the generic item
+        // default to 30 seconds to relax polling a bit.
+        // Note: ideally this should be specified in a DDF/generic item.
+        const auto m = ddfItem.readParameters.toMap();
+        if (m.value(QLatin1String("fn")) != QLatin1String("none"))
+        {
+            item->setRefreshInterval(deCONZ::TimeSeconds{30});
+        }
     }
 
     item->setParseFunction(nullptr);
@@ -248,6 +262,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
             {
                 DBG_Printf(DBG_DDF, "sub-device: %s, presence state is true, reverting to false\n", qPrintable(uniqueId));
                 item->setValue(false);
+                item->clearNeedStore();
             }
 
             if (!ddfItem.defaultValue.isNull() && !ddfItem.writeParameters.isNull())
@@ -264,8 +279,14 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                 {
                     bool ok;
 
+                    QVariant value = item->toVariant();
+                    if (!value.isValid())
+                    {
+                        value = ddfItem.defaultValue;
+                    }
+
                     StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
-                    stateChange.addTargetValue(item->descriptor().suffix, item->toVariant());
+                    stateChange.addTargetValue(item->descriptor().suffix, value);
                     stateChange.setChangeTimeoutMs(1000 * 60 * 60);
 
                     if (writeParam.contains(QLatin1String("state.timeout")))
@@ -319,6 +340,11 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
     if (ddf.sleeper >= 0)
     {
         device->item(RCapSleeper)->setValue(ddf.sleeper == 1);
+    }
+
+    if (ddf.supportsMgmtBind >= 0)
+    {
+        device->setSupportsMgmtBind(ddf.supportsMgmtBind == 1);
     }
 
     device->clearBindings();

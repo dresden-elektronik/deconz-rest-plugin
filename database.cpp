@@ -6461,8 +6461,23 @@ static int sqliteSelectDeviceItemCallback(void *user, int ncols, char **colval ,
     return 1;
 }
 
-bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
+bool DB_StoreSubDeviceItem(const Resource *sub, ResourceItem *item)
 {
+    if (!item->needStore())
+    {
+        return true;
+    }
+
+    const char *suffix = item->descriptor().suffix;
+
+    if ((suffix == RAttrMode && item->toNumber() == Sensor::ModeScenes) || suffix == RStatePresence)
+    {
+        // don't waste time on these
+        // TODO(mpi): this needs to be controlled via DDF
+        item->clearNeedStore();
+        return true;
+    }
+
     const ResourceItem *uniqueId = sub->item(RAttrUniqueId);
     if (!uniqueId)
     {
@@ -6527,16 +6542,35 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
                 dt = timestamp - dbResult.timestamp;
             }
 
+#ifdef ARCH_ARM
+            uint64_t storeDelay = 1800;
+#else
+            uint64_t storeDelay = 600;
+#endif
+
             if (isEqual)
             {
                 if (item->descriptor().type == DataTypeString)
                 {
+                    item->clearNeedStore();
                     return true; // don't check timestamp for strings
                 }
 
-                if (item->descriptor().suffix[0] == 's' && dt < 600) // state/*
+                if (suffix[0] == 'a' && dt < storeDelay) // attr/*  but not a string
                 {
                     return true; // only update timestamp every 10 minutes
+                }
+                if (suffix[0] == 's' && dt < storeDelay) // state/*
+                {
+                    return true; // only update timestamp every 10 minutes
+                }
+                if (suffix[0] == 'c' && suffix[1] == 'o' && dt < storeDelay) // config/*
+                {
+                    return true; // only update timestamp every 10 minutes
+                }
+                if (suffix[0] == 'c' && suffix[1] == 'a' && suffix[2] == 'p' && dt < 84000) // cap/*
+                {
+                    return true; // hmm could be skipped all together?
                 }
             }
             else
@@ -6544,7 +6578,7 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
                 // only update 'value' and 'timestamp' every 10 minutes if changed
                 // TODO(mpi): extend the item descriptor to specify storage intervals
                 // we don't need to write the DB for rapid changing values
-                if (item->descriptor().suffix[0] == 's' && dt < 600) // state/*
+                if (item->descriptor().suffix[0] == 's' && dt < storeDelay) // state/*
                 {
                     return true;
                 }
@@ -6562,11 +6596,15 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
                        value.constData(),
                        timestamp, uniqueId->toCString());
 
-
     DBG_Assert(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
-        DBG_Printf(DBG_INFO_L2, "%s\n", &sqlBuf[0]);
+//        DBG_Printf(DBG_INFO_L2, "%s\n", &sqlBuf[0]);
+
+        if (DBG_IsEnabled(DBG_MEASURE))
+        {
+            DBG_Printf(DBG_MEASURE, "DB store %s%s/%s ## %s\n", uniqueId->toCString(), sub->prefix(), item->descriptor().suffix, sqlBuf);
+        }
 
         char *errmsg = nullptr;
 
@@ -6579,6 +6617,10 @@ bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item)
                 DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sqlBuf, errmsg, rc);
                 sqlite3_free(errmsg);
             }
+        }
+        else
+        {
+            item->clearNeedStore();
         }
     }
 
@@ -6727,13 +6769,15 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(QLatin1String uniqueId)
     return result;
 }
 
-bool DB_StoreSubDeviceItems(const Resource *sub)
+bool DB_StoreSubDeviceItems(Resource *sub)
 {
     for (int i = 0; i < sub->itemCount(); i++)
     {
         auto *item = sub->itemForIndex(size_t(i));
-        Q_ASSERT(item);
-        DB_StoreSubDeviceItem(sub, item);
+        if (item && item->needStore())
+        {
+            DB_StoreSubDeviceItem(sub, item);
+        }
     }
 
     return true;

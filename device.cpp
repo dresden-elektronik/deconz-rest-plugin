@@ -260,8 +260,19 @@ void DEV_InitStateHandler(Device *device, const Event &event)
 
         if (device->node())
         {
-            device->item(RAttrExtAddress)->setValue(device->node()->address().ext());
-            device->item(RAttrNwkAddress)->setValue(device->node()->address().nwk());
+            {
+                const deCONZ::Address a = device->node()->address();
+                ResourceItem *ext = device->item(RAttrExtAddress);
+                if (!ext->lastSet().isValid() || ext->toNumber() != a.ext())
+                {
+                    ext->setValue(a.ext());
+                }
+                ResourceItem *nwk = device->item(RAttrNwkAddress);
+                if (!nwk->lastSet().isValid() || nwk->toNumber() != a.nwk())
+                {
+                    nwk->setValue(a.nwk());
+                }
+            }
 
             // got a node, jump to verification
             if (!device->node()->nodeDescriptor().isNull() || device->reachable())
@@ -337,7 +348,13 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
             DBG_Printf(DBG_DEV, "ZDP node descriptor verified: 0x%016llX\n", device->key());
             d->maxResponseTime = d->hasRxOnWhenIdle() ? RxOnWhenIdleResponseTime
                                                       : RxOffWhenIdleResponseTime;
-            device->item(RCapSleeper)->setValue(!d->hasRxOnWhenIdle()); // can be overwritten by DDF
+
+            bool isSleeper = !d->hasRxOnWhenIdle();
+            ResourceItem *capSleeper = device->item(RCapSleeper);
+            if (!capSleeper->lastSet().isValid() || capSleeper->toBool() != isSleeper)
+            {
+                capSleeper->setValue(isSleeper); // can be overwritten by DDF
+            }
             d->setState(DEV_ActiveEndpointsStateHandler);
         }
         else if (!device->reachable()) // can't be queried, go back to #1 init
@@ -462,6 +479,7 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
         for (const auto ep : device->node()->endpoints())
         {
             deCONZ::SimpleDescriptor sd;
+            // TODO(mpi) copy is heavy, just need to search
             if (device->node()->copySimpleDescriptor(ep, &sd) != 0 || sd.deviceId() == 0xffff)
             {
                 needFetchEp = ep;
@@ -809,6 +827,7 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
 void DEV_CheckReachable(Device *device)
 {
     DevicePrivate *d = device->d;
+    bool devReachable = device->reachable();
 
     for (Resource *r : d->subResources)
     {
@@ -818,9 +837,9 @@ void DEV_CheckReachable(Device *device)
             item = r->item(RStateReachable);
         }
 
-        if (item && item->toBool() != device->reachable())
+        if (item && ((item->toBool() != devReachable) || !item->lastSet().isValid()))
         {
-            r->setValue(item->descriptor().suffix, device->reachable());
+            r->setValue(item->descriptor().suffix, devReachable);
         }
     }
 }
@@ -1761,6 +1780,11 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
         {
             const auto *item = r->itemForIndex(size_t(i));
 
+            if (item->zclUnsupportedAttribute())
+            {
+                continue;
+            }
+
             DEV_UpdateReportTracker(device, item);
 
             const auto &ddfItem = DDF_GetItem(item);
@@ -1970,10 +1994,27 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
         { }
         else if (d->readResult.sequenceNumber == EventZclSequenceNumber(event) || d->readResult.ignoreResponseSequenceNumber)
         {
-            DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX ZCL response seq: %u, status: 0x%02X, cluster: 0x%04X\n",
-                   event.resource(), event.deviceKey(), d->readResult.sequenceNumber, EventZclStatus(event), d->readResult.clusterId);
+            uint8_t status = EventZclStatus(event);
+            DBG_Printf(DBG_DEV, "DEV Poll Busy %s/" FMT_MAC " ZCL response seq: %u, status: 0x%02X, cluster: 0x%04X\n",
+                   event.resource(), FMT_MAC_CAST(event.deviceKey()), d->readResult.sequenceNumber, status, d->readResult.clusterId);
 
-            d->pollItems.pop_back();
+            DBG_Assert(!d->pollItems.empty());
+            if (!d->pollItems.empty())
+            {
+                if (status == deCONZ::ZclUnsupportedAttributeStatus)
+                {
+                    const auto &pi = d->pollItems.back();
+                    Resource *r = DEV_GetResource(pi.resource->handle());
+                    ResourceItem *item = r ? r->item(pi.item->descriptor().suffix) : nullptr;
+
+                    if (item)
+                    {
+                        item->setZclUnsupportedAttribute();
+                    }
+                }
+
+                d->pollItems.pop_back();
+            }
             d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
         }
     }
@@ -2118,6 +2159,18 @@ bool Device::managed() const
 void Device::setManaged(bool managed)
 {
     d->managed = managed;
+}
+
+void Device::setSupportsMgmtBind(bool supported)
+{
+    if (supported)
+    {
+        d->binding.mgmtBindSupported = MGMT_BIND_SUPPORTED;
+    }
+    else
+    {
+        d->binding.mgmtBindSupported = MGMT_BIND_NOT_SUPPORTED;
+    }
 }
 
 void Device::handleEvent(const Event &event, DEV_StateLevel level)
@@ -2356,8 +2409,10 @@ Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, E
     if (d == devices.end())
     {
         devices.emplace_back(new Device(key, apsCtrl, parent));
-        QObject::connect(devices.back().get(), SIGNAL(eventNotify(Event)), eventEmitter, SLOT(enqueueEvent(Event)));
-        return devices.back().get();
+        Device *device = devices.back().get();
+        QObject::connect(device, SIGNAL(eventNotify(Event)), eventEmitter, SLOT(enqueueEvent(Event)));
+        device->setHandle(R_CreateResourceHandle(device, devices.size() - 1));
+        return device;
     }
 
     Q_ASSERT(d != devices.end());

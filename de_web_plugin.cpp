@@ -1149,6 +1149,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         {
             for (ResourceItem *i : DeviceJs::instance()->itemsSet())
             {
+                i->setNeedStore();
                 if (i->awake())
                 {
                     awake++;
@@ -1159,7 +1160,17 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 enqueueEvent(Event(r->prefix(), i->descriptor().suffix, idItem->toString(), i, device->key()));
                 if (push && i->lastChanged() == i->lastSet())
                 {
-                    DB_StoreSubDeviceItem(r, i);
+                    const char *itemSuffix = i->descriptor().suffix;
+                    if (itemSuffix[0] == 's') // state/*
+                    {
+                        // don't store state items within APS indication handler as this can block for >1 sec on slow systems
+                    }
+                    else if (r->prefix() != RDevices)
+                    {
+                        DBG_MEASURE_START(DB_StoreSubDeviceItem);
+                        DB_StoreSubDeviceItem(r, i);
+                        DBG_MEASURE_END(DB_StoreSubDeviceItem);
+                    }
                 }
 
                 if (!eventLastUpdatedEmitted && i->descriptor().suffix[0] == 's') // state/*
@@ -1820,7 +1831,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     sensor->setNeedSaveDatabase(true);
     sensor->updateStateTimestamp();
     item->setValue(btn);
-    DBG_Printf(DBG_ZGP, "ZGP button %u %s\n", item->toNumber(), qPrintable(sensor->modelId()));
+    DBG_Printf(DBG_ZGP, "ZGP 0x%08X button %u %s\n", ind.gpdSrcId(), item->toNumber(), qPrintable(sensor->modelId()));
     Event e(RSensors, RStateButtonEvent, sensor->id(), item);
     enqueueEvent(e);
     enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
@@ -1959,6 +1970,8 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
         quint32 gpdOutgoingCounter = 0;
         deCONZ::GPCommissioningOptions options;
         deCONZ::GpExtCommissioningOptions extOptions;
+        uint8_t applicationInformationField = 0;
+        uint8_t numberOfGPDCommands = 0;
         options.byte = 0;
         extOptions.byte = 0;
 
@@ -2013,6 +2026,18 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             stream >> gpdOutgoingCounter;
         }
 
+        if (options.bits.reserved & 1) // applications ID present (TODO flag not yet in deCONZ lib)
+        {
+            if (stream.atEnd()) { return; }
+            stream >> applicationInformationField;
+
+            if (applicationInformationField & 0x04)
+            {
+                if (stream.atEnd()) { return; }
+                stream >> numberOfGPDCommands;
+            }
+        }
+
         SensorFingerprint fp;
         fp.endpoint = GREEN_POWER_ENDPOINT;
         fp.deviceId = gpdDeviceId;
@@ -2059,8 +2084,16 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 sensorNode.setManufacturer("Philips");
                 sensorNode.setSwVersion("1.0");
             }
+            else if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0xc5 && extOptions.byte == 0xF2 && numberOfGPDCommands == 17)
+            {
+                // FoH Outdoor switch
+                sensorNode.setModelId("FOHSWITCH");
+                sensorNode.setManufacturer("PhilipsFoH");
+                sensorNode.setSwVersion("1.0");
+            }
             else if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0xc5 && ind.payload().size() == 46)
             {
+                // Note following can likely be removed in favor of the previous else if ()
                 sensorNode.setModelId("FOHSWITCH");
                 sensorNode.setManufacturer("PhilipsFoH");
                 sensorNode.setSwVersion("1.0");
@@ -2087,7 +2120,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             }
             else
             {
-                DBG_Printf(DBG_INFO, "unsupported green power device 0x%02X\n", gpdDeviceId);
+                DBG_Printf(DBG_INFO, "ZGP srcId: 0x%08X unsupported green power device gpdDeviceId 0x%02X, options.byte: 0x%02X, extOptions.byte: 0x%02X, numGPDCommands: %u, ind.payload: 0x%s\n", ind.gpdSrcId(), gpdDeviceId, options.byte, extOptions.byte, numberOfGPDCommands, qPrintable(ind.payload().toHex()));
                 return;
             }
 
@@ -15750,14 +15783,12 @@ void DeRestPlugin::appAboutToQuit()
         d->openDb();
         d->saveDb();
 
-        // TODO(mpi): Following is really heavy and already done previously
-        //            storing items needs to get more explicit with dirty flags
-#if 0
-        for (const auto &dev : d->m_devices)
+#if 1
+        for (auto &dev : d->m_devices)
         {
             if (dev->managed())
             {
-                for (const auto *sub : dev->subDevices())
+                for (Resource *sub : dev->subDevices())
                 {
                     DB_StoreSubDeviceItems(sub);
                 }
