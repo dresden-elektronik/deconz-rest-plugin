@@ -175,7 +175,7 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300,
+          "refresh.interval": 420,
           "parse": {
             "at": "0x0000",
             "cl": "0x0702",
