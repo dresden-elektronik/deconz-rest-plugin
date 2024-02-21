@@ -1,6 +1,6 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "config/valve_set",
+  "id": "config/setvalve",
   "datatype": "Bool",
   "access": "RW",
   "public": true,
