@@ -50,6 +50,7 @@ const char *REventTimerFired = "event/timerfired";
 const char *REventValidGroup = "event/validgroup";
 const char *REventZclReadReportConfigResponse = "event/zcl.read.report.config.response";
 const char *REventZclResponse = "event/zcl.response";
+const char *REventZdpReload = "event/zdp.reload";
 const char *REventZdpMgmtBindResponse = "event/zdp.mgmt.bind.response";
 const char *REventZdpResponse = "event/zdp.response";
 
