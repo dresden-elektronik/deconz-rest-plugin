@@ -272,11 +272,78 @@ static duk_ret_t DJS_GetResourceEndpoints(duk_context *ctx)
     return 1;  /* one return value */
 }
 
+static duk_ret_t DJS_GetResourceHasCluster(duk_context *ctx)
+{
+    int ep;
+    int cluster;
+    int side = 0;
+    int nargs = duk_get_top(ctx);
+
+    if (nargs < 2)
+    {
+        return duk_type_error(ctx, "R.hasCluster(ep,cluster[,side]) invalid arguments");
+    }
+
+    if (duk_is_number(ctx, 0) == 0)
+    {
+        return duk_type_error(ctx, "R.hasCluster(ep,cluster[,side]) ep MUST be a number");
+    }
+    ep = duk_to_int(ctx, 0);
+
+    if (duk_is_number(ctx, 1) == 0)
+    {
+        return duk_type_error(ctx, "R.hasCluster(ep,cluster,side) cluster MUST be a number");
+    }
+    cluster = duk_to_int(ctx, 1);
+
+    if (nargs == 3)
+    {
+        if (duk_is_number(ctx, 2) == 0)
+        {
+            return duk_type_error(ctx, "R.hasCluster(ep,cluster,side) side MUST be a number");
+        }
+        side = duk_to_int(ctx, 2);
+    }
+
+    if (_djsPriv->resource)
+    {
+        const deCONZ::Node *node = getResourceCoreNode(_djsPriv->resource);
+        if (node)
+        {
+            const deCONZ::SimpleDescriptor *sd = nullptr;
+
+            for (size_t i = 0; i < node->simpleDescriptors().size(); i++)
+            {
+                sd = &node->simpleDescriptors()[i];
+                if (sd->endpoint() != ep)
+                {
+                    continue;
+                }
+
+                const auto &clusters = (side == 0) ? sd->inClusters() : sd->outClusters();
+
+                for (size_t j = 0; j < clusters.size(); j++)
+                {
+                    if (clusters[j].id() == cluster)
+                    {
+                        duk_push_boolean(ctx, 1);
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+
+    duk_push_boolean(ctx, 0);
+    return 1;  /* one return value */
+}
+
 /* Creates 'R' global scope object. */
 static void DJS_InitGlobalResource(duk_context *ctx)
 {
     const duk_function_list_entry my_module_funcs[] = {
         { "item", DJS_GetResourceItem, 1 /* 1 arg */ },
+        { "hasCluster", DJS_GetResourceHasCluster, DUK_VARARGS /* 2..3 args */ },
         { NULL, NULL, 0 }
     };
 
