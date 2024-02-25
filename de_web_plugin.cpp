@@ -15495,52 +15495,54 @@ void DeRestPlugin::idleTimerFired()
                     break;
                 }
 
+                const bool devManaged = device && device->managed();
                 if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastRead(READ_BINDING_TABLE) < (d->idleTotalCounter - IDLE_READ_LIMIT)))
                 {
-                    const bool devManaged = device && device->managed();
-
                     auto ci = sensorNode->fingerPrint().inClusters.begin();
                     const auto cend = sensorNode->fingerPrint().inClusters.end();
                     for (;ci != cend; ++ci)
                     {
                         NodeValue val;
 
-                        if (*ci == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
+                        if (!devManaged)
                         {
-                            val = sensorNode->getZclValue(*ci, 0x0000); // measured value
-                        }
-                        else if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
-                        {
-                            val = sensorNode->getZclValue(*ci, 0x0000); // occupied state
-                        }
-
-                        if (val.timestampLastReport.isValid() &&
-                            val.timestampLastReport.secsTo(now) < (60 * 45)) // got update in timely manner
-                        {
-                            DBG_Printf(DBG_INFO_L2, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
-                        }
-                        else if (!sensorNode->mustRead(READ_BINDING_TABLE))
-                        {
-                            sensorNode->enableRead(READ_BINDING_TABLE);
-                            sensorNode->setLastRead(READ_BINDING_TABLE, d->idleTotalCounter);
-                            sensorNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
-                            d->queryTime = d->queryTime.addSecs(tSpacing);
-                            processSensors = true;
-                        }
-
-                        if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
-                        {
-                            if (!sensorNode->mustRead(READ_OCCUPANCY_CONFIG))
+                            if (*ci == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
                             {
-                                val = sensorNode->getZclValue(*ci, 0x0010); // PIR occupied to unoccupied delay
+                                val = sensorNode->getZclValue(*ci, 0x0000); // measured value
+                            }
+                            else if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
+                            {
+                                val = sensorNode->getZclValue(*ci, 0x0000); // occupied state
+                            }
 
-                                if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 1800)
+                            if (val.timestampLastReport.isValid() &&
+                                    val.timestampLastReport.secsTo(now) < (60 * 45)) // got update in timely manner
+                            {
+                                DBG_Printf(DBG_INFO_L2, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
+                            }
+                            else if (!sensorNode->mustRead(READ_BINDING_TABLE))
+                            {
+                                sensorNode->enableRead(READ_BINDING_TABLE);
+                                sensorNode->setLastRead(READ_BINDING_TABLE, d->idleTotalCounter);
+                                sensorNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
+                                d->queryTime = d->queryTime.addSecs(tSpacing);
+                                processSensors = true;
+                            }
+
+                            if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
+                            {
+                                if (!sensorNode->mustRead(READ_OCCUPANCY_CONFIG))
                                 {
-                                    sensorNode->enableRead(READ_OCCUPANCY_CONFIG);
-                                    sensorNode->setLastRead(READ_OCCUPANCY_CONFIG, d->idleTotalCounter);
-                                    sensorNode->setNextReadTime(READ_OCCUPANCY_CONFIG, d->queryTime);
-                                    d->queryTime = d->queryTime.addSecs(tSpacing);
-                                    processSensors = true;
+                                    val = sensorNode->getZclValue(*ci, 0x0010); // PIR occupied to unoccupied delay
+
+                                    if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 1800)
+                                    {
+                                        sensorNode->enableRead(READ_OCCUPANCY_CONFIG);
+                                        sensorNode->setLastRead(READ_OCCUPANCY_CONFIG, d->idleTotalCounter);
+                                        sensorNode->setNextReadTime(READ_OCCUPANCY_CONFIG, d->queryTime);
+                                        d->queryTime = d->queryTime.addSecs(tSpacing);
+                                        processSensors = true;
+                                    }
                                 }
                             }
                         }
@@ -15623,7 +15625,7 @@ void DeRestPlugin::idleTimerFired()
                     //break;
                 }
 
-                if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT)))
+                if (!devManaged && (d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT)))
                 {
                     if (d->checkSensorBindingsForAttributeReporting(sensorNode))
                     {
