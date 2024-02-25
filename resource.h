@@ -78,6 +78,7 @@ extern const char *REventTick;
 extern const char *REventTimerFired;
 extern const char *REventZclResponse;
 extern const char *REventZclReadReportConfigResponse;
+extern const char *REventZdpReload;
 extern const char *REventZdpMgmtBindResponse;
 extern const char *REventZdpResponse;
 
