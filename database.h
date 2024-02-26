@@ -21,6 +21,10 @@
 
 #define DB_MAX_UNIQUEID_SIZE 31
 
+namespace deCONZ {
+    class Address;
+}
+
 struct DB_Secret
 {
     std::string uniqueId;
@@ -82,7 +86,23 @@ struct DB_LegacyItem
     BufString<128> value;
 };
 
+struct DB_ZclValue
+{
+    int64_t data;
+    int deviceId;
+    uint16_t clusterId;
+    uint16_t attrId;
+    uint8_t endpoint;
+
+    // internal
+    uint8_t loaded;
+};
+
+int DB_StoreDevice(const deCONZ::Address &addr);
+
 int DB_GetSubDeviceItemCount(QLatin1String uniqueId);
+bool DB_LoadZclValue(DB_ZclValue *val);
+bool DB_StoreZclValue(const DB_ZclValue *val);
 bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId);
 bool DB_StoreSubDeviceItem(const Resource *sub, ResourceItem *item);
 bool DB_StoreSubDeviceItems(Resource *sub);

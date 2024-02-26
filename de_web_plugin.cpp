@@ -1171,6 +1171,19 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                         DB_StoreSubDeviceItem(r, i);
                         DBG_MEASURE_END(DB_StoreSubDeviceItem);
                     }
+                    else if (r->prefix() == RDevices && ind.clusterId() == BASIC_CLUSTER_ID)
+                    {
+                        if (itemSuffix == RAttrAppVersion)
+                        {
+                            DB_ZclValue dbVal;
+                            dbVal.deviceId = device->deviceId();
+                            dbVal.endpoint = ind.srcEndpoint();
+                            dbVal.clusterId = ind.clusterId();
+                            dbVal.attrId = 0x0001;
+                            dbVal.data = i->toNumber();
+                            DB_StoreZclValue(&dbVal);
+                        }
+                    }
                 }
 
                 if (!eventLastUpdatedEmitted && i->descriptor().suffix[0] == 's') // state/*
@@ -1249,7 +1262,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case OTAU_CLUSTER_ID:
-            otauDataIndication(ind, zclFrame);
+            otauDataIndication(ind, zclFrame, device);
             break;
 
         case COMMISSIONING_CLUSTER_ID:
@@ -1489,10 +1502,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         default:
             break;
         }
-    }
-    else if (ind.profileId() == DE_PROFILE_ID)
-    {
-        otauDataIndication(ind, deCONZ::ZclFrame());
     }
 
     eventEmitter->process();
@@ -11913,6 +11922,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
 
     case deCONZ::NodeEvent::NodeAdded:
     {
+        int deviceId = -1;
         QTime now = QTime::currentTime();
         if (queryTime.secsTo(now) < 20)
         {
@@ -11920,14 +11930,17 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         }
         if (event.node())
         {
-            refreshDeviceDb(event.node()->address());
+            deviceId = DB_StoreDevice(event.node()->address());
         }
 
         auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, event.node()->address().ext());
-        Q_ASSERT(device);
-        if (device && DEV_InitDeviceBasic(device))
+        if (device)
         {
-            enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
+            device->setDeviceId(deviceId);
+            if (DEV_InitDeviceBasic(device))
+            {
+                enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
+            }
         }
 
         addLightNode(event.node());
@@ -11953,7 +11966,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     {
         if (event.node())
         {
-            refreshDeviceDb(event.node()->address());
+            DB_StoreDevice(event.node()->address());
         }
         break;
     }
