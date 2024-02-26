@@ -32,6 +32,8 @@
 #define MGMT_BIND_SUPPORTED        1
 #define MGMT_BIND_NOT_SUPPORTED    0
 
+#define DEV_INVALID_DEVICE_ID -1
+
 typedef void (*DeviceStateHandler)(Device *, const Event &);
 
 /*! Device state machine description can be found in the wiki:
@@ -45,6 +47,7 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event);
 void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event);
 void DEV_BasicClusterStateHandler(Device *device, const Event &event);
 void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event);
+static const deCONZ::SimpleDescriptor *DEV_GetSimpleDescriptorForServerCluster(const Device *device, deCONZ::ZclClusterId_t clusterId);
 void DEV_BindingHandler(Device *device, const Event &event);
 void DEV_BindingTableReadHandler(Device *device, const Event &event);
 void DEV_BindingTableVerifyHandler(Device *device, const Event &event);
@@ -135,6 +138,7 @@ public:
     std::array<Resource::Handle, MaxSubResources> subResourceHandles;
     std::vector<Resource*> subResources;
     const deCONZ::Node *node = nullptr; //! a reference to the deCONZ core node
+    int deviceId = DEV_INVALID_DEVICE_ID;
     DeviceKey deviceKey = 0; //! for physical devices this is the MAC address
 
     /*! The currently active state handler function(s).
@@ -471,6 +475,7 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
     }
 }
 
+
 /*! #4 This state checks that for all active endpoints simple descriptors are known.
  */
 void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
@@ -490,11 +495,20 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
         }
         else
         {
-            for (const auto ep : device->node()->endpoints())
+            for (uint8_t ep : device->node()->endpoints())
             {
-                deCONZ::SimpleDescriptor sd;
-                // TODO(mpi) copy is heavy, just need to search
-                if (device->node()->copySimpleDescriptor(ep, &sd) != 0 || sd.deviceId() == 0xffff)
+                bool ok = false;
+                for (size_t i = 0; i < device->node()->simpleDescriptors().size(); i++)
+                {
+                    const deCONZ::SimpleDescriptor &sd = device->node()->simpleDescriptors()[i];
+                    if (sd.endpoint() == ep && sd.deviceId() != 0xffff)
+                    {
+                        ok = true;
+                        break;
+                    }
+                }
+
+                if (!ok)
                 {
                     needFetchEp = ep;
                     break;
@@ -566,7 +580,7 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
 
 /*! Returns the first Simple Descriptor for a given server \p clusterId or nullptr if not found.
  */
-const deCONZ::SimpleDescriptor *DEV_GetSimpleDescriptorForServerCluster(const Device *device, deCONZ::ZclClusterId_t clusterId)
+static const deCONZ::SimpleDescriptor *DEV_GetSimpleDescriptorForServerCluster(const Device *device, deCONZ::ZclClusterId_t clusterId)
 {
     for (const auto &sd : device->node()->simpleDescriptors())
     {
@@ -1860,7 +1874,7 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
                 continue;
             }
 
-            DBG_Printf(DBG_DEV, "DEV 0x%016llX read %s, dt %d sec\n", d->deviceKey, item->descriptor().suffix, int(dt));
+            DBG_Printf(DBG_DEV, "DEV " FMT_MAC " read %s, dt %d sec\n", FMT_MAC_CAST(d->deviceKey), item->descriptor().suffix, int(dt));
             result.emplace_back(DEV_PollItem{r, item, ddfItem.readParameters});
         }
     }
@@ -2134,6 +2148,7 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     addItem(DataTypeString, RAttrUniqueId)->setValue(generateUniqueId(key, 0, 0));
     addItem(DataTypeString, RAttrManufacturerName);
     addItem(DataTypeString, RAttrModelId);
+    addItem(DataTypeUInt32, RAttrOtaVersion);
 
     // lazy init since the event handler is connected after the constructor
     QTimer::singleShot(0, this, [this]()
@@ -2152,6 +2167,19 @@ Device::~Device()
     Q_ASSERT(d);
     delete d;
     d = nullptr;
+}
+
+void Device::setDeviceId(int id)
+{
+    if (id >= 0)
+    {
+        d->deviceId = id;
+    }
+}
+
+int Device::deviceId() const
+{
+    return d->deviceId;
 }
 
 void Device::addSubDevice(Resource *sub)

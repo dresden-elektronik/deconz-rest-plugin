@@ -1733,7 +1733,14 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
 
     if (param.endpoint == AutoEndpoint)
     {
-        param.endpoint = resolveAutoEndpoint(r);
+        if (r->prefix() == RDevices)
+        {
+            param.endpoint = item->readEndpoint();
+        }
+        else
+        {
+            param.endpoint = resolveAutoEndpoint(r);
+        }
 
         if (param.endpoint == AutoEndpoint)
         {

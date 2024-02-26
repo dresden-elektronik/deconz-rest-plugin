@@ -1263,7 +1263,7 @@ public:
 
     // Otau
     void initOtau();
-    void otauDataIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
+    void otauDataIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, Device *device);
     bool isOtauBusy();
     bool isOtauActive();
     int otauLastBusyTimeDelta() const;
@@ -1645,7 +1645,6 @@ public:
     bool upgradeDbToUserVersion7();
     bool upgradeDbToUserVersion8();
     bool upgradeDbToUserVersion9();
-    void refreshDeviceDb(const deCONZ::Address &addr);
     void pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data);
     void pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data);
     bool dbIsOpen() const;
