@@ -5,7 +5,7 @@
   "product": "TRADFRI on/off switch - E1743",
   "sleeper": true,
   "status": "Gold",
-  "matchexpr": "var v = R.item('attr/otaversion').val; (v == 0 || v >= 0x23079631);",
+  "matchexpr": "var v = R.item('attr/otaversion').val; (v != 0 && v < 0x23079631);",
   "subdevices": [
     {
       "type": "$TYPE_SWITCH",
@@ -114,6 +114,10 @@
           "refresh.interval": 86400
         },
         {
+          "name": "config/group",
+          "default": "auto"
+        },
+        {
           "name": "config/on"
         },
         {
@@ -130,14 +134,16 @@
   ],
   "bindings": [
     {
-      "bind": "unicast",
+      "bind": "groupcast",
       "src.ep": 1,
-      "cl": "0x0006"
+      "cl": "0x0006",
+      "config.group": 0
     },
     {
-      "bind": "unicast",
+      "bind": "groupcast",
       "src.ep": 1,
-      "cl": "0x0008"
+      "cl": "0x0008",
+      "config.group": 0
     },
     {
       "bind": "unicast",
