@@ -102,12 +102,6 @@
                 {
                     "name": "state/current",
                     "refresh.interval": 300,
-                    "parse": {
-                        "at": "0x0508",
-                        "cl": "0x0b04",
-                        "ep": 0,
-                        "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 1000; }"
-                    },
                     "default": 0
                 },
                 {
