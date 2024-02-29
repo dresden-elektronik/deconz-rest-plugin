@@ -1,0 +1,181 @@
+{
+    "schema": "devcap1.schema.json",
+    "manufacturername": "_TZ3000_zwtj16m9",
+    "modelid": "TS011F",
+    "product": "TS011F",
+    "sleeper": false,
+    "status": "Bronze",
+    "path": "/devices/ts011f.json",
+    "subdevices": [
+        {
+            "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+            "restapi": "/lights",
+            "uuid": [
+                "$address.ext",
+                "0x01"
+            ],
+            "items": [
+                {
+                    "name": "attr/id"
+                },
+                {
+                    "name": "attr/lastannounced"
+                },
+                {
+                    "name": "attr/lastseen"
+                },
+                {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/swversion"
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "state/alert",
+                    "description": "The currently active alert effect.",
+                    "default": "none"
+                },
+                {
+                    "name": "state/on",
+                    "description": "True when device is on; false when off.",
+                    "refresh.interval": 5
+                },
+                {
+                    "name": "state/reachable"
+                }
+            ]
+        },
+        {
+            "type": "$TYPE_POWER_SENSOR",
+            "restapi": "/sensors",
+            "uuid": [
+                "$address.ext",
+                "0x01",
+                "0x0b04"
+            ],
+            "items": [
+                {
+                    "name": "attr/id"
+                },
+                {
+                    "name": "attr/lastannounced"
+                },
+                {
+                    "name": "attr/lastseen"
+                },
+                {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/swversion"
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "config/on"
+                },
+                {
+                    "name": "config/reachable"
+                },
+                {
+                    "name": "state/current",
+                    "refresh.interval": 300,
+                    "parse": {
+                        "at": "0x0508",
+                        "cl": "0x0b04",
+                        "ep": 0,
+                        "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 1000; }"
+                    },
+                    "default": 0
+                },
+                {
+                    "name": "state/lastupdated"
+                },
+                {
+                    "name": "state/power",
+                    "refresh.interval": 300,
+                    "default": 0
+                },
+                {
+                    "name": "state/voltage",
+                    "refresh.interval": 300,
+                    "default": 0
+                }
+            ]
+        },
+        {
+            "type": "$TYPE_CONSUMPTION_SENSOR",
+            "restapi": "/sensors",
+            "uuid": [
+                "$address.ext",
+                "0x01",
+                "0x0702"
+            ],
+            "items": [
+                {
+                    "name": "attr/id"
+                },
+                {
+                    "name": "attr/lastannounced"
+                },
+                {
+                    "name": "attr/lastseen"
+                },
+                {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/swversion"
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "config/on"
+                },
+                {
+                    "name": "config/reachable"
+                },
+                {
+                    "name": "state/consumption",
+                    "refresh.interval": 300,
+                    "default": 0
+                },
+                {
+                    "name": "state/lastupdated"
+                }
+            ]
+        }
+    ]
+}
