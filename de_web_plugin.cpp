@@ -1160,15 +1160,29 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 enqueueEvent(Event(r->prefix(), i->descriptor().suffix, idItem->toString(), i, device->key()));
                 if (push && i->lastChanged() == i->lastSet())
                 {
-                    if (i->descriptor().suffix[0] == 's') // state/*
+                    const char *itemSuffix = i->descriptor().suffix;
+                    if (itemSuffix[0] == 's') // state/*
                     {
                         // don't store state items within APS indication handler as this can block for >1 sec on slow systems
                     }
-                    else
+                    else if (r->prefix() != RDevices)
                     {
                         DBG_MEASURE_START(DB_StoreSubDeviceItem);
                         DB_StoreSubDeviceItem(r, i);
                         DBG_MEASURE_END(DB_StoreSubDeviceItem);
+                    }
+                    else if (r->prefix() == RDevices && ind.clusterId() == BASIC_CLUSTER_ID)
+                    {
+                        if (itemSuffix == RAttrAppVersion)
+                        {
+                            DB_ZclValue dbVal;
+                            dbVal.deviceId = device->deviceId();
+                            dbVal.endpoint = ind.srcEndpoint();
+                            dbVal.clusterId = ind.clusterId();
+                            dbVal.attrId = 0x0001;
+                            dbVal.data = i->toNumber();
+                            DB_StoreZclValue(&dbVal);
+                        }
                     }
                 }
 
@@ -1248,7 +1262,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case OTAU_CLUSTER_ID:
-            otauDataIndication(ind, zclFrame);
+            otauDataIndication(ind, zclFrame, device);
             break;
 
         case COMMISSIONING_CLUSTER_ID:
@@ -1488,10 +1502,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         default:
             break;
         }
-    }
-    else if (ind.profileId() == DE_PROFILE_ID)
-    {
-        otauDataIndication(ind, deCONZ::ZclFrame());
     }
 
     eventEmitter->process();
@@ -1830,7 +1840,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     sensor->setNeedSaveDatabase(true);
     sensor->updateStateTimestamp();
     item->setValue(btn);
-    DBG_Printf(DBG_ZGP, "ZGP button %u %s\n", item->toNumber(), qPrintable(sensor->modelId()));
+    DBG_Printf(DBG_ZGP, "ZGP 0x%08X button %u %s\n", ind.gpdSrcId(), item->toNumber(), qPrintable(sensor->modelId()));
     Event e(RSensors, RStateButtonEvent, sensor->id(), item);
     enqueueEvent(e);
     enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
@@ -1969,6 +1979,8 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
         quint32 gpdOutgoingCounter = 0;
         deCONZ::GPCommissioningOptions options;
         deCONZ::GpExtCommissioningOptions extOptions;
+        uint8_t applicationInformationField = 0;
+        uint8_t numberOfGPDCommands = 0;
         options.byte = 0;
         extOptions.byte = 0;
 
@@ -2023,6 +2035,18 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             stream >> gpdOutgoingCounter;
         }
 
+        if (options.bits.reserved & 1) // applications ID present (TODO flag not yet in deCONZ lib)
+        {
+            if (stream.atEnd()) { return; }
+            stream >> applicationInformationField;
+
+            if (applicationInformationField & 0x04)
+            {
+                if (stream.atEnd()) { return; }
+                stream >> numberOfGPDCommands;
+            }
+        }
+
         SensorFingerprint fp;
         fp.endpoint = GREEN_POWER_ENDPOINT;
         fp.deviceId = gpdDeviceId;
@@ -2069,8 +2093,16 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 sensorNode.setManufacturer("Philips");
                 sensorNode.setSwVersion("1.0");
             }
+            else if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0xc5 && extOptions.byte == 0xF2 && numberOfGPDCommands == 17)
+            {
+                // FoH Outdoor switch
+                sensorNode.setModelId("FOHSWITCH");
+                sensorNode.setManufacturer("PhilipsFoH");
+                sensorNode.setSwVersion("1.0");
+            }
             else if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0xc5 && ind.payload().size() == 46)
             {
+                // Note following can likely be removed in favor of the previous else if ()
                 sensorNode.setModelId("FOHSWITCH");
                 sensorNode.setManufacturer("PhilipsFoH");
                 sensorNode.setSwVersion("1.0");
@@ -2097,7 +2129,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             }
             else
             {
-                DBG_Printf(DBG_INFO, "unsupported green power device 0x%02X\n", gpdDeviceId);
+                DBG_Printf(DBG_INFO, "ZGP srcId: 0x%08X unsupported green power device gpdDeviceId 0x%02X, options.byte: 0x%02X, extOptions.byte: 0x%02X, numGPDCommands: %u, ind.payload: 0x%s\n", ind.gpdSrcId(), gpdDeviceId, options.byte, extOptions.byte, numberOfGPDCommands, qPrintable(ind.payload().toHex()));
                 return;
             }
 
@@ -11890,6 +11922,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
 
     case deCONZ::NodeEvent::NodeAdded:
     {
+        int deviceId = -1;
         QTime now = QTime::currentTime();
         if (queryTime.secsTo(now) < 20)
         {
@@ -11897,14 +11930,17 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         }
         if (event.node())
         {
-            refreshDeviceDb(event.node()->address());
+            deviceId = DB_StoreDevice(event.node()->address());
         }
 
         auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, event.node()->address().ext());
-        Q_ASSERT(device);
-        if (device && DEV_InitDeviceBasic(device))
+        if (device)
         {
-            enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
+            device->setDeviceId(deviceId);
+            if (DEV_InitDeviceBasic(device))
+            {
+                enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
+            }
         }
 
         addLightNode(event.node());
@@ -11930,7 +11966,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     {
         if (event.node())
         {
-            refreshDeviceDb(event.node()->address());
+            DB_StoreDevice(event.node()->address());
         }
         break;
     }
@@ -15472,52 +15508,54 @@ void DeRestPlugin::idleTimerFired()
                     break;
                 }
 
+                const bool devManaged = device && device->managed();
                 if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastRead(READ_BINDING_TABLE) < (d->idleTotalCounter - IDLE_READ_LIMIT)))
                 {
-                    const bool devManaged = device && device->managed();
-
                     auto ci = sensorNode->fingerPrint().inClusters.begin();
                     const auto cend = sensorNode->fingerPrint().inClusters.end();
                     for (;ci != cend; ++ci)
                     {
                         NodeValue val;
 
-                        if (*ci == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
+                        if (!devManaged)
                         {
-                            val = sensorNode->getZclValue(*ci, 0x0000); // measured value
-                        }
-                        else if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
-                        {
-                            val = sensorNode->getZclValue(*ci, 0x0000); // occupied state
-                        }
-
-                        if (val.timestampLastReport.isValid() &&
-                            val.timestampLastReport.secsTo(now) < (60 * 45)) // got update in timely manner
-                        {
-                            DBG_Printf(DBG_INFO_L2, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
-                        }
-                        else if (!sensorNode->mustRead(READ_BINDING_TABLE))
-                        {
-                            sensorNode->enableRead(READ_BINDING_TABLE);
-                            sensorNode->setLastRead(READ_BINDING_TABLE, d->idleTotalCounter);
-                            sensorNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
-                            d->queryTime = d->queryTime.addSecs(tSpacing);
-                            processSensors = true;
-                        }
-
-                        if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
-                        {
-                            if (!sensorNode->mustRead(READ_OCCUPANCY_CONFIG))
+                            if (*ci == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
                             {
-                                val = sensorNode->getZclValue(*ci, 0x0010); // PIR occupied to unoccupied delay
+                                val = sensorNode->getZclValue(*ci, 0x0000); // measured value
+                            }
+                            else if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
+                            {
+                                val = sensorNode->getZclValue(*ci, 0x0000); // occupied state
+                            }
 
-                                if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 1800)
+                            if (val.timestampLastReport.isValid() &&
+                                    val.timestampLastReport.secsTo(now) < (60 * 45)) // got update in timely manner
+                            {
+                                DBG_Printf(DBG_INFO_L2, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
+                            }
+                            else if (!sensorNode->mustRead(READ_BINDING_TABLE))
+                            {
+                                sensorNode->enableRead(READ_BINDING_TABLE);
+                                sensorNode->setLastRead(READ_BINDING_TABLE, d->idleTotalCounter);
+                                sensorNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
+                                d->queryTime = d->queryTime.addSecs(tSpacing);
+                                processSensors = true;
+                            }
+
+                            if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
+                            {
+                                if (!sensorNode->mustRead(READ_OCCUPANCY_CONFIG))
                                 {
-                                    sensorNode->enableRead(READ_OCCUPANCY_CONFIG);
-                                    sensorNode->setLastRead(READ_OCCUPANCY_CONFIG, d->idleTotalCounter);
-                                    sensorNode->setNextReadTime(READ_OCCUPANCY_CONFIG, d->queryTime);
-                                    d->queryTime = d->queryTime.addSecs(tSpacing);
-                                    processSensors = true;
+                                    val = sensorNode->getZclValue(*ci, 0x0010); // PIR occupied to unoccupied delay
+
+                                    if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 1800)
+                                    {
+                                        sensorNode->enableRead(READ_OCCUPANCY_CONFIG);
+                                        sensorNode->setLastRead(READ_OCCUPANCY_CONFIG, d->idleTotalCounter);
+                                        sensorNode->setNextReadTime(READ_OCCUPANCY_CONFIG, d->queryTime);
+                                        d->queryTime = d->queryTime.addSecs(tSpacing);
+                                        processSensors = true;
+                                    }
                                 }
                             }
                         }
@@ -15600,7 +15638,7 @@ void DeRestPlugin::idleTimerFired()
                     //break;
                 }
 
-                if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT)))
+                if (!devManaged && (d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT)))
                 {
                     if (d->checkSensorBindingsForAttributeReporting(sensorNode))
                     {

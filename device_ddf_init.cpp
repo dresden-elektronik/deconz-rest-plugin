@@ -130,6 +130,10 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
             // keep 'id', it might have been loaded from legacy db
             // and will be updated in 'resource_items' table on next write
         }
+        else if (item->lastSet().isValid() && item->toVariant() == dbItem->value)
+        {
+            // nothing to do
+        }
         else
         {
             item->setValue(dbItem->value);
@@ -180,6 +184,18 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
     if (ddfItem.refreshInterval != DeviceDescription::Item::NoRefreshInterval)
     {
         item->setRefreshInterval(deCONZ::TimeSeconds{ddfItem.refreshInterval});
+    }
+
+    if (item->refreshInterval().val == 0 && !ddfItem.readParameters.isNull())
+    {
+        // If a DDF doesn't specify a refresh.interval and also not the generic item
+        // default to 30 seconds to relax polling a bit.
+        // Note: ideally this should be specified in a DDF/generic item.
+        const auto m = ddfItem.readParameters.toMap();
+        if (m.value(QLatin1String("fn")) != QLatin1String("none"))
+        {
+            item->setRefreshInterval(deCONZ::TimeSeconds{30});
+        }
     }
 
     item->setParseFunction(nullptr);
@@ -267,8 +283,14 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                 {
                     bool ok;
 
+                    QVariant value = item->toVariant();
+                    if (!value.isValid())
+                    {
+                        value = ddfItem.defaultValue;
+                    }
+
                     StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
-                    stateChange.addTargetValue(item->descriptor().suffix, item->toVariant());
+                    stateChange.addTargetValue(item->descriptor().suffix, value);
                     stateChange.setChangeTimeoutMs(1000 * 60 * 60);
 
                     if (writeParam.contains(QLatin1String("state.timeout")))
@@ -322,6 +344,11 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
     if (ddf.sleeper >= 0)
     {
         device->item(RCapSleeper)->setValue(ddf.sleeper == 1);
+    }
+
+    if (ddf.supportsMgmtBind >= 0)
+    {
+        device->setSupportsMgmtBind(ddf.supportsMgmtBind == 1);
     }
 
     device->clearBindings();
@@ -456,6 +483,23 @@ bool DEV_InitDeviceBasic(Device *device)
             }
 
             break;
+        }
+    }
+
+    DB_ZclValue zclVal;
+    zclVal.deviceId = device->deviceId();
+    zclVal.endpoint = 0;
+    zclVal.clusterId = 0x0019; // OTA cluster
+    zclVal.attrId = 0x0002; // OTA current file version
+    zclVal.data = 0;
+
+    if (DB_LoadZclValue(&zclVal) && zclVal.data != 0)
+    {
+        ResourceItem *item = device->item(RAttrOtaVersion);
+        if (item && item->toNumber() != zclVal.data)
+        {
+            item->setValue(zclVal.data, ResourceItem::SourceDevice);
+            item->clearNeedPush();
         }
     }
 

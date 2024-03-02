@@ -78,6 +78,7 @@
                 {
           "name": "config/devicemode",
           "awake": true,
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0148",
             "cl": "0xfcc0",

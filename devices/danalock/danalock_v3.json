@@ -130,7 +130,7 @@
           "parse": {
             "cl": "0x0001",
             "at": "0x0021",
-            "eval": "Item.val = Attr.val"
+            "eval": "Item.val = Attr.val / 2"
           },
           "read": {
             "cl": "0x0001",

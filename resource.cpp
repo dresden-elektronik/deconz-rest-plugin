@@ -50,11 +50,13 @@ const char *REventTimerFired = "event/timerfired";
 const char *REventValidGroup = "event/validgroup";
 const char *REventZclReadReportConfigResponse = "event/zcl.read.report.config.response";
 const char *REventZclResponse = "event/zcl.response";
+const char *REventZdpReload = "event/zdp.reload";
 const char *REventZdpMgmtBindResponse = "event/zdp.mgmt.bind.response";
 const char *REventZdpResponse = "event/zdp.response";
 
 const char *RInvalidSuffix = "invalid/suffix";
 
+const char *RAttrAppVersion = "attr/appversion";
 const char *RAttrClass = "attr/class";
 const char *RAttrConfigId = "attr/configid";
 const char *RAttrExtAddress = "attr/extaddress";
@@ -68,6 +70,7 @@ const char *RAttrMode = "attr/mode";
 const char *RAttrModelId = "attr/modelid";
 const char *RAttrName = "attr/name";
 const char *RAttrNwkAddress = "attr/nwkaddress";
+const char *RAttrOtaVersion = "attr/otaversion";
 const char *RAttrPowerOnCt = "attr/poweronct";
 const char *RAttrPowerOnLevel = "attr/poweronlevel";
 const char *RAttrPowerup = "attr/powerup";
@@ -371,6 +374,7 @@ void initResourceDescriptors()
     rItemDescriptors.clear();
 
     // init resource lookup
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrAppVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrClass));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrConfigId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RAttrExtAddress));
@@ -384,6 +388,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrModelId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrName));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RAttrNwkAddress));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrOtaVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RAttrPowerOnCt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RAttrPowerOnLevel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrPowerup));
@@ -904,6 +909,15 @@ void ResourceItem::setImplicit(bool implicit)
     }
 }
 
+void ResourceItem::setZclUnsupportedAttribute()
+{
+    m_flags |= static_cast<uint16_t>(FlagZclUnsupportedAttr);
+}
+
+bool ResourceItem::zclUnsupportedAttribute() const
+{
+    return (m_flags & FlagZclUnsupportedAttr) > 0;
+}
 
 /*! Copy assignment. */
 ResourceItem &ResourceItem::operator=(const ResourceItem &other)
@@ -920,6 +934,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_parseFunction = other.m_parseFunction;
     m_refreshInterval = other.m_refreshInterval;
     m_zclParam = other.m_zclParam;
+    m_readEndpoint = other.m_readEndpoint;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_lastZclReport = other.m_lastZclReport;
@@ -971,6 +986,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
     m_lastChanged = std::move(other.m_lastChanged);
     m_rulesInvolved = std::move(other.m_rulesInvolved);
     m_zclParam = other.m_zclParam;
+    m_readEndpoint = other.m_readEndpoint;
     m_parseFunction = other.m_parseFunction;
     m_refreshInterval = other.m_refreshInterval;
     m_ddfItemHandle = other.m_ddfItemHandle;

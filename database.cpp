@@ -17,6 +17,7 @@
 #include "database.h"
 #include "de_web_plugin_private.h"
 #include "deconz/dbg_trace.h"
+#include "deconz/u_sstream.h"
 #include "device_descriptions.h"
 #include "gateway.h"
 #include "json.h"
@@ -66,6 +67,41 @@ static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , 
                     Implementation
 ******************************************************************************/
 
+static const char _hex_table[16] = {
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+};
+
+void U_sstream_put_mac_address(U_SStream *ss, unsigned long long mac)
+{
+    unsigned i;
+    unsigned char nib;
+
+    // 00:11:22:33:44:55:66:77
+    if ((ss->len - ss->pos) < 23 + 1)
+    {
+        ss->status = U_SSTREAM_ERR_NO_SPACE;
+        return;
+    }
+
+    for (i = 0; i < 8; i++)
+    {
+        nib = (mac >> 56) & 0xFF;
+        mac <<= 8;
+        ss->str[ss->pos] = _hex_table[(nib & 0xF0) >> 4];
+        ss->pos++;
+        ss->str[ss->pos] = _hex_table[(nib & 0x0F)];
+        ss->pos++;
+
+        if (i < 7)
+        {
+            ss->str[ss->pos] = ':';
+            ss->pos++;
+        }
+    }
+
+    ss->str[ss->pos] = '\0';
+}
+
 static QString dbEscapeString(const QString &str)
 {
     QString result;
@@ -94,6 +130,29 @@ static QString dbEscapeString(const QString &str)
 
     return result;
 }
+
+#ifdef DECONZ_DEBUG_BUILD
+static void DB_UpdateHook(void *user, int op, char const *dbName, char const *tableName, sqlite3_int64 rowid)
+{
+    (void)user;
+    const char *opName = "?";
+
+    if      (op == SQLITE_INSERT) { opName = "INSERT"; }
+    else if (op == SQLITE_UPDATE) { opName = "UPDATE"; }
+    else if (op == SQLITE_DELETE) { opName = "DELETE"; }
+
+
+    if (op == SQLITE_UPDATE)
+    {
+        if (tableName[0] == 'd')
+        {
+            DBG_Printf(DBG_INFO_L2, "dummy\n");
+        }
+    }
+    DBG_Printf(DBG_INFO, "%s %s %lld\n", opName, tableName, (long long)rowid);
+
+}
+#endif
 
 
 /*! Inits the database and creates tables/columns if necessary.
@@ -886,21 +945,108 @@ void DeRestPluginPrivate::restoreSourceRoutes()
 }
 
 /*! Puts a new top level device entry in the db (mac address) or refreshes nwk address.
-*/
-void DeRestPluginPrivate::refreshDeviceDb(const deCONZ::Address &addr)
+ */
+int DB_StoreDevice(const deCONZ::Address &addr)
 {
-    if (!addr.hasExt() || !addr.hasNwk())
+    if (!db || !addr.hasExt() || !addr.hasNwk())
+        return -1;
+
+    struct Entry {
+        long id;
+        long nwk;
+    } entry;
+
+    int rc;
+
+    const auto loadDeviceCallback = [](void *user, int ncols, char **colval , char **) -> int
     {
-        return;
+        long id;
+        long nwk;
+        U_SStream ss;
+
+        if (ncols != 2)
+            return 1;
+
+        U_sstream_init(&ss, colval[0], U_StringLength(colval[0]));
+        id = U_sstream_get_long(&ss);
+        if (ss.status != U_SSTREAM_OK)
+            return 1;
+
+        U_sstream_init(&ss, colval[1], U_StringLength(colval[1]));
+        nwk = U_sstream_get_long(&ss);
+        if (ss.status != U_SSTREAM_OK)
+            return 1;
+
+        Entry *e = static_cast<Entry*>(user);
+        e->id = id;
+        e->nwk = nwk;
+        return 0;
+    };
+
+    U_SStream ss;
+    U_sstream_init(&ss, sqlBuf, sizeof(sqlBuf));
+
+    // check already existing
+    U_sstream_put_str(&ss, "SELECT id, nwk FROM devices WHERE mac = '");
+    U_sstream_put_mac_address(&ss, addr.ext());
+    U_sstream_put_str(&ss, "'");
+
+    entry.id = -1;
+    entry.nwk = -1;
+
+    rc = sqlite3_exec(db, sqlBuf, loadDeviceCallback, &entry, nullptr);
+
+    if (rc == SQLITE_OK && entry.id != -1)
+    {
+        if (entry.nwk == addr.nwk())
+            return entry.id; // all there
+
+        // Update NWK address
+        U_sstream_init(&ss, sqlBuf, sizeof(sqlBuf));
+        U_sstream_put_str(&ss, "UPDATE devices SET nwk = ");
+        U_sstream_put_long(&ss, addr.nwk());
+        U_sstream_put_str(&ss, " WHERE mac = '");
+        U_sstream_put_mac_address(&ss, addr.ext());
+        U_sstream_put_str(&ss, "';");
+
+        rc = sqlite3_exec(db, sqlBuf, nullptr, nullptr, nullptr);
+
+        if (rc == SQLITE_OK)
+            return entry.id;
+
+        return -1;
     }
 
-    QString sql = QString(QLatin1String(
-                              "UPDATE devices SET nwk = %2 WHERE mac = '%1';"
-                              "INSERT INTO devices (mac,nwk,timestamp) SELECT '%1', %2, strftime('%s','now') WHERE (SELECT changes() = 0);"))
-            .arg(generateUniqueId(addr.ext(), 0, 0)).arg(addr.nwk());
-    dbQueryQueue.push_back(sql);
+    // add new entry
+    U_sstream_init(&ss, sqlBuf, sizeof(sqlBuf));
+    U_sstream_put_str(&ss, "INSERT INTO devices (mac,nwk,timestamp) SELECT '");
+    U_sstream_put_mac_address(&ss, addr.ext());
+    U_sstream_put_str(&ss, "', ");
+    U_sstream_put_long(&ss, addr.nwk());
+    U_sstream_put_str(&ss, ", strftime('%s','now');");
 
-    queSaveDb(DB_QUERY_QUEUE, DB_SHORT_SAVE_DELAY);
+    rc = sqlite3_exec(db, sqlBuf, nullptr, nullptr, nullptr);
+    if (rc == SQLITE_OK)
+    {
+        U_sstream_init(&ss, sqlBuf, sizeof(sqlBuf));
+
+        // query again to get device id
+        U_sstream_put_str(&ss, "SELECT id, nwk FROM devices WHERE mac = '");
+        U_sstream_put_mac_address(&ss, addr.ext());
+        U_sstream_put_str(&ss, "'");
+
+        entry.id = -1;
+        entry.nwk = -1;
+
+        rc = sqlite3_exec(db, sqlBuf, loadDeviceCallback, &entry, nullptr);
+
+        if (rc == SQLITE_OK && entry.id != -1)
+        {
+            return entry.id;
+        }
+    }
+
+    return -1;
 }
 
 /*! Push/update a zdp descriptor in the database to cache node data.
@@ -1214,6 +1360,10 @@ void DeRestPluginPrivate::openDb()
     DBG_Assert(rc == SQLITE_OK);
 
     ttlDataBaseConnection = idleTotalCounter + DB_CONNECTION_TTL;
+
+#ifdef DECONZ_DEBUG_BUILD
+    sqlite3_update_hook(db, DB_UpdateHook, this);
+#endif
 }
 
 /*! Reads all data sets from sqlite database.
@@ -1251,6 +1401,8 @@ static int sqliteLoadAuthCallback(void *user, int ncols, char **colval , char **
     {
         return 0;
     }
+
+    // TODO remove old entries via lastusedate
 
     DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
 
@@ -6377,6 +6529,94 @@ bool DB_DeleteAlarmSystemDevice(const std::string &uniqueId)
     }
 
     return true;
+}
+
+/*!
+ */
+bool DB_LoadZclValue(DB_ZclValue *val)
+{
+    if (!db || val->deviceId < 0)
+        return false;
+
+    const auto loadCallback = [](void *user, int ncols, char **colval , char **) -> int
+    {
+        long data;
+        U_SStream ss;
+        DB_ZclValue *v = static_cast<DB_ZclValue*>(user);
+
+        if (ncols != 1)
+            return 1;
+
+        U_sstream_init(&ss, colval[0], U_StringLength(colval[0]));
+        data = U_sstream_get_long(&ss); // TODO no 64-bit yet on 32-bit platforms..
+        if (ss.status != U_SSTREAM_OK)
+            return 1;
+
+        v->data = data;
+        v->loaded = 1;
+
+        return 0;
+    };
+
+    U_SStream ss;
+    U_sstream_init(&ss, sqlBuf, sizeof(sqlBuf));
+
+    U_sstream_put_str(&ss, "SELECT data FROM zcl_values WHERE device_id = ");
+    U_sstream_put_long(&ss, val->deviceId);
+    if (val->endpoint != 0)
+    {
+        U_sstream_put_str(&ss, " AND endpoint = ");
+        U_sstream_put_long(&ss, val->endpoint);
+    }
+    U_sstream_put_str(&ss, " AND cluster = ");
+    U_sstream_put_long(&ss, val->clusterId);
+    U_sstream_put_str(&ss, " AND attribute = ");
+    U_sstream_put_long(&ss, val->attrId);
+
+    val->loaded = 0;
+    int rc = sqlite3_exec(db, sqlBuf, loadCallback, val, nullptr);
+
+    if (rc == SQLITE_OK && val->loaded == 1)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+bool DB_StoreZclValue(const DB_ZclValue *val)
+{
+    if (!db || val->deviceId < 0)
+        return false;
+
+    DB_ZclValue v0 = *val;
+
+    if (DB_LoadZclValue(&v0) && v0.data == val->data)
+    {
+        return true; // already present
+    }
+
+    U_SStream ss;
+    U_sstream_init(&ss, sqlBuf, sizeof(sqlBuf));
+
+    U_sstream_put_str(&ss, "INSERT INTO zcl_values (device_id,endpoint,cluster,attribute,data,timestamp) VALUES (");
+    U_sstream_put_long(&ss, val->deviceId);
+    U_sstream_put_str(&ss, ", ");
+    U_sstream_put_long(&ss, val->endpoint);
+    U_sstream_put_str(&ss, ", ");
+    U_sstream_put_long(&ss, val->clusterId);
+    U_sstream_put_str(&ss, ", ");
+    U_sstream_put_long(&ss, val->attrId);
+    U_sstream_put_str(&ss, ", ");
+    U_sstream_put_long(&ss, val->data);
+    U_sstream_put_str(&ss, ", strftime('%s','now'));");
+
+    if (SQLITE_OK == sqlite3_exec(db, sqlBuf, nullptr, nullptr, nullptr))
+    {
+        return true;
+    }
+
+    return false;
 }
 
 bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId)

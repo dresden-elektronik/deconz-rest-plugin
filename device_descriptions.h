@@ -103,6 +103,7 @@ public:
 
     int handle = -1; // index in container
     int sleeper = -1;
+    int supportsMgmtBind = -1;
 
     class Item
     {
@@ -244,6 +245,7 @@ public:
     void setEnabledStatusFilter(const QStringList &filter);
     const QStringList &enabledStatusFilter() const;
     const DeviceDescription &get(const Resource *resource, DDF_MatchControl match = DDF_EvalMatchExpr) const;
+    const DeviceDescription &getFromHandle(DeviceDescription::Item::Handle hnd) const;
     void put(const DeviceDescription &ddf);
     const DeviceDescription &load(const QString &path);
 
