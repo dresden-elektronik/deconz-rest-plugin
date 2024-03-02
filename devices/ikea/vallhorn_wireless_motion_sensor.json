@@ -5,7 +5,6 @@
   "product": "VALLHORN Wireless Motion Sensor",
   "sleeper": true,
   "status": "Gold",
-  "path": "/devices/vallhorn_wireless_motion_sensor.json",
   "subdevices": [
     {
       "type": "$TYPE_PRESENCE_SENSOR",
@@ -46,6 +45,10 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "attr/productname",
+          "static": "Vallhorn presence sensor"
         },
         {
           "name": "attr/productid",
@@ -248,6 +251,20 @@
     }
   ],
   "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "cl": "0x0400",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 5,
+          "max": 300,
+          "change": "0x07d0"
+        }
+      ]
+    },
     {
       "bind": "unicast",
       "src.ep": 2,

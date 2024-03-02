@@ -180,7 +180,7 @@
             "at": "0x0000",
             "cl": "0x0702",
             "ep": 1,
-            "eval": "item.val = 10 * Attr.val"
+            "eval": "Item.val = Attr.val * 10;"
           }
         },
         {

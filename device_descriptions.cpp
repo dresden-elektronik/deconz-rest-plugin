@@ -871,7 +871,10 @@ void DeviceDescriptions::handleEvent(const Event &event)
     }
     else if (event.what() == REventDDFReload)
     {
-        readAll(); // todo read only device specific files?
+        if (event.num() == 0)
+        {
+            readAll(); // todo read only device specific files?
+        }
     }
 }
 
@@ -931,6 +934,22 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
         else
         {
             return *i;
+        }
+    }
+
+    return d->invalidDescription;
+}
+
+const DeviceDescription &DeviceDescriptions::getFromHandle(DeviceDescription::Item::Handle hnd) const
+{
+    Q_D(const DeviceDescriptions);
+    ItemHandlePack h;
+    h.handle = hnd;
+    if (h.handle != DeviceDescription::Item::InvalidItemHandle)
+    {
+        if (h.description < d->descriptions.size())
+        {
+            return d->descriptions[h.description];
         }
     }
 
@@ -1456,7 +1475,7 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
 
     if (resource)
     {
-        const auto ddf = get(resource);
+        const auto ddf = get(resource, DDF_EvalMatchExpr);
 
         if (ddf.isValid())
         {
@@ -2131,6 +2150,11 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QSt
     if (obj.contains(QLatin1String("sleeper")))
     {
         result.sleeper = obj.value(QLatin1String("sleeper")).toBool() ? 1 : 0;
+    }
+
+    if (obj.contains(QLatin1String("supportsMgmtBind")))
+    {
+        result.supportsMgmtBind = obj.value(QLatin1String("supportsMgmtBind")).toBool() ? 1 : 0;
     }
 
     if (obj.contains(QLatin1String("matchexpr")))

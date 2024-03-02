@@ -1,14 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "manufacturername": "OSRAM",
-  "modelid": "Classic A60 W clear - LIGHTIFY",
-  "product": "Classic A60 W clear - LIGHTIFY",
+  "modelid": "PAR16 50 TW",
+  "product": "PAR16 50 TW",
   "sleeper": false,
   "supportsMgmtBind": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_DIMMABLE_LIGHT",
+      "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -47,6 +47,20 @@
           "static": true
         },
         {
+          "name": "cap/color/capabilities",
+          "refresh.interval": 86400
+        },
+        {
+          "name": "cap/color/ct/max",
+          "refresh.interval": 86400,
+          "default": 370
+        },
+        {
+          "name": "cap/color/ct/min",
+          "refresh.interval": 86400,
+          "default": 153
+        },
+        {
           "name": "cap/on/off_with_effect",
           "static": true
         },
@@ -56,6 +70,14 @@
         },
         {
           "name": "state/bri",
+          "refresh.interval": 20
+        },
+        {
+          "name": "state/colormode",
+          "refresh.interval": 20
+        },
+        {
+          "name": "state/ct",
           "refresh.interval": 20
         },
         {

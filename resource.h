@@ -78,12 +78,14 @@ extern const char *REventTick;
 extern const char *REventTimerFired;
 extern const char *REventZclResponse;
 extern const char *REventZclReadReportConfigResponse;
+extern const char *REventZdpReload;
 extern const char *REventZdpMgmtBindResponse;
 extern const char *REventZdpResponse;
 
 // resouce suffixes: state/buttonevent, config/on, ...
 extern const char *RInvalidSuffix;
 
+extern const char *RAttrAppVersion;
 extern const char *RAttrClass;
 extern const char *RAttrConfigId;
 extern const char *RAttrExtAddress;
@@ -97,6 +99,7 @@ extern const char *RAttrMode;
 extern const char *RAttrModelId;
 extern const char *RAttrName;
 extern const char *RAttrNwkAddress;
+extern const char *RAttrOtaVersion;
 extern const char *RAttrPowerOnCt;
 extern const char *RAttrPowerOnLevel;
 extern const char *RAttrPowerup;
@@ -442,7 +445,8 @@ public:
         FlagAwakeOnSet      = 0x10, // REventAwake will be generated when item is set after parse
         FlagImplicit        = 0x20, // the item is always present for a specific resource type
         FlagDynamicDescriptor = 0x40, // ResourceItemDescriptor is dynamic (not specified in code)
-        FlagNeedStore      = 0x80   // set when item needs to be stored to database
+        FlagNeedStore      = 0x80,   // set when item needs to be stored to database
+        FlagZclUnsupportedAttr = 0x100  // set when the "read" function failed with ZCL unsupported attribute status
     };
 
     enum ValueSource
@@ -472,6 +476,8 @@ public:
     void setAwake(bool awake);
     bool implicit() const;
     void setImplicit(bool implicit);
+    void setZclUnsupportedAttribute();
+    bool zclUnsupportedAttribute() const;
     const QString &toString() const;
     QLatin1String toLatin1String() const;
     const char *toCString() const;
@@ -484,6 +490,8 @@ public:
     deCONZ::TimeSeconds refreshInterval() const { return m_refreshInterval; }
     void setRefreshInterval(deCONZ::TimeSeconds interval) { m_refreshInterval = interval; }
     void setZclProperties(const ZCL_Param &param) { m_zclParam = param; }
+    void setReadEndpoint(uint8_t ep) { m_readEndpoint = ep; }
+    uint8_t readEndpoint() const { return m_readEndpoint; }
     bool setValue(const QString &val, ValueSource source = SourceUnknown);
     bool setValue(qint64 val, ValueSource source = SourceUnknown);
     bool setValue(const QVariant &val, ValueSource source = SourceUnknown);
@@ -522,7 +530,7 @@ private:
 
     ValueSource m_valueSource = SourceUnknown;
     bool m_isPublic = true;
-    quint16 m_flags = 0; // bitmap of ResourceItem::ItemFlags
+    uint16_t m_flags = 0; // bitmap of ResourceItem::ItemFlags
     union
     {
         struct {
@@ -544,9 +552,10 @@ private:
     QDateTime m_lastSet;
     QDateTime m_lastChanged;
     std::vector<int> m_rulesInvolved; // the rules a resource item is trigger
-    ZCL_Param m_zclParam{};
+    ZCL_Param m_zclParam{}; // for parse function
     ParseFunction_t m_parseFunction = nullptr;
     quint32 m_ddfItemHandle = 0; // invalid item handle
+    uint8_t m_readEndpoint = 0;
 };
 
 class Resource
