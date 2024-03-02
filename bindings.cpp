@@ -201,7 +201,7 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
         bindingTableReaderTimer->start();
     }
 
-    return false;
+    return true;
 }
 
 /*! Handle bind table confirm.

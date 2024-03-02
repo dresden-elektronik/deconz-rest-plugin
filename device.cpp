@@ -32,6 +32,8 @@
 #define MGMT_BIND_SUPPORTED        1
 #define MGMT_BIND_NOT_SUPPORTED    0
 
+#define DEV_INVALID_DEVICE_ID -1
+
 typedef void (*DeviceStateHandler)(Device *, const Event &);
 
 /*! Device state machine description can be found in the wiki:
@@ -45,6 +47,7 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event);
 void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event);
 void DEV_BasicClusterStateHandler(Device *device, const Event &event);
 void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event);
+static const deCONZ::SimpleDescriptor *DEV_GetSimpleDescriptorForServerCluster(const Device *device, deCONZ::ZclClusterId_t clusterId);
 void DEV_BindingHandler(Device *device, const Event &event);
 void DEV_BindingTableReadHandler(Device *device, const Event &event);
 void DEV_BindingTableVerifyHandler(Device *device, const Event &event);
@@ -135,6 +138,7 @@ public:
     std::array<Resource::Handle, MaxSubResources> subResourceHandles;
     std::vector<Resource*> subResources;
     const deCONZ::Node *node = nullptr; //! a reference to the deCONZ core node
+    int deviceId = DEV_INVALID_DEVICE_ID;
     DeviceKey deviceKey = 0; //! for physical devices this is the MAC address
 
     /*! The currently active state handler function(s).
@@ -154,13 +158,17 @@ public:
     ZDP_Result zdpResult; //! keep track of a running ZDP request
     DA_ReadResult readResult; //! keep track of a running "read" request
 
+    uint8_t zdpNeedFetchEndpointIndex = 0xFF; //! used in combination with flags.needReadSimpleDescriptors
     int maxResponseTime = RxOffWhenIdleResponseTime;
 
     struct
     {
         unsigned char hasDdf : 1;
         unsigned char initialRun : 1;
-        unsigned char reserved : 6;
+        unsigned char needZDPMaintenanceOnce : 1;
+        unsigned char needReadActiveEndpoints : 1;
+        unsigned char needReadSimpleDescriptors : 1;
+        unsigned char reserved : 3;
     } flags{};
 };
 
@@ -260,8 +268,19 @@ void DEV_InitStateHandler(Device *device, const Event &event)
 
         if (device->node())
         {
-            device->item(RAttrExtAddress)->setValue(device->node()->address().ext());
-            device->item(RAttrNwkAddress)->setValue(device->node()->address().nwk());
+            {
+                const deCONZ::Address a = device->node()->address();
+                ResourceItem *ext = device->item(RAttrExtAddress);
+                if (!ext->lastSet().isValid() || ext->toNumber() != a.ext())
+                {
+                    ext->setValue(a.ext());
+                }
+                ResourceItem *nwk = device->item(RAttrNwkAddress);
+                if (!nwk->lastSet().isValid() || nwk->toNumber() != a.nwk())
+                {
+                    nwk->setValue(a.nwk());
+                }
+            }
 
             // got a node, jump to verification
             if (!device->node()->nodeDescriptor().isNull() || device->reachable())
@@ -337,7 +356,13 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
             DBG_Printf(DBG_DEV, "ZDP node descriptor verified: 0x%016llX\n", device->key());
             d->maxResponseTime = d->hasRxOnWhenIdle() ? RxOnWhenIdleResponseTime
                                                       : RxOffWhenIdleResponseTime;
-            device->item(RCapSleeper)->setValue(!d->hasRxOnWhenIdle()); // can be overwritten by DDF
+
+            bool isSleeper = !d->hasRxOnWhenIdle();
+            ResourceItem *capSleeper = device->item(RCapSleeper);
+            if (!capSleeper->lastSet().isValid() || capSleeper->toBool() != isSleeper)
+            {
+                capSleeper->setValue(isSleeper); // can be overwritten by DDF
+            }
             d->setState(DEV_ActiveEndpointsStateHandler);
         }
         else if (!device->reachable()) // can't be queried, go back to #1 init
@@ -396,9 +421,9 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
-        if (!device->node()->endpoints().empty())
+        if (!device->node()->endpoints().empty() && !d->flags.needReadActiveEndpoints)
         {
-            DBG_Printf(DBG_DEV, "ZDP active endpoints verified: 0x%016llX\n", device->key());
+            DBG_Printf(DBG_DEV, "ZDP active endpoints verified: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
             d->setState(DEV_SimpleDescriptorStateHandler);
         }
         else if (!device->reachable())
@@ -439,15 +464,17 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventActiveEndpoints)
     {
+        d->flags.needReadActiveEndpoints = 0;
         d->setState(DEV_InitStateHandler);
         DEV_EnqueueEvent(device, REventAwake);
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_DEV, "read ZDP active endpoints timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "read ZDP active endpoints timeout: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
         d->setState(DEV_InitStateHandler);
     }
 }
+
 
 /*! #4 This state checks that for all active endpoints simple descriptors are known.
  */
@@ -459,19 +486,41 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
     {
         quint8 needFetchEp = 0x00;
 
-        for (const auto ep : device->node()->endpoints())
+        if (d->flags.needReadSimpleDescriptors) // forced read to refresh simple descriptors
         {
-            deCONZ::SimpleDescriptor sd;
-            if (device->node()->copySimpleDescriptor(ep, &sd) != 0 || sd.deviceId() == 0xffff)
+            if (d->zdpNeedFetchEndpointIndex < device->node()->endpoints().size())
             {
-                needFetchEp = ep;
-                break;
+                needFetchEp = device->node()->endpoints()[d->zdpNeedFetchEndpointIndex];
+            }
+        }
+        else
+        {
+            for (uint8_t ep : device->node()->endpoints())
+            {
+                bool ok = false;
+                for (size_t i = 0; i < device->node()->simpleDescriptors().size(); i++)
+                {
+                    const deCONZ::SimpleDescriptor &sd = device->node()->simpleDescriptors()[i];
+                    if (sd.endpoint() == ep && sd.deviceId() != 0xffff)
+                    {
+                        ok = true;
+                        break;
+                    }
+                }
+
+                if (!ok)
+                {
+                    needFetchEp = ep;
+                    break;
+                }
             }
         }
 
         if (needFetchEp == 0x00)
         {
-            DBG_Printf(DBG_DEV, "ZDP simple descriptors verified: 0x%016llX\n", device->key());
+            DBG_Printf(DBG_DEV, "ZDP simple descriptors verified: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
+            d->flags.needReadSimpleDescriptors = 0;
+            d->zdpNeedFetchEndpointIndex = 0xFF;
             d->setState(DEV_BasicClusterStateHandler);
         }
         else if (!device->reachable())
@@ -512,19 +561,26 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventSimpleDescriptor)
     {
+        if (d->flags.needReadSimpleDescriptors) // forced read to refresh simple descriptors (next EP)
+        {
+            if (d->zdpNeedFetchEndpointIndex < device->node()->endpoints().size())
+            {
+                d->zdpNeedFetchEndpointIndex += 1;
+            }
+        }
         d->setState(DEV_InitStateHandler);
         DEV_EnqueueEvent(device, REventAwake);
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_DEV, "read ZDP simple descriptor timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "read ZDP simple descriptor timeout: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
         d->setState(DEV_InitStateHandler);
     }
 }
 
 /*! Returns the first Simple Descriptor for a given server \p clusterId or nullptr if not found.
  */
-const deCONZ::SimpleDescriptor *DEV_GetSimpleDescriptorForServerCluster(const Device *device, deCONZ::ZclClusterId_t clusterId)
+static const deCONZ::SimpleDescriptor *DEV_GetSimpleDescriptorForServerCluster(const Device *device, deCONZ::ZclClusterId_t clusterId)
 {
     for (const auto &sd : device->node()->simpleDescriptors())
     {
@@ -809,6 +865,7 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
 void DEV_CheckReachable(Device *device)
 {
     DevicePrivate *d = device->d;
+    bool devReachable = device->reachable();
 
     for (Resource *r : d->subResources)
     {
@@ -818,9 +875,9 @@ void DEV_CheckReachable(Device *device)
             item = r->item(RStateReachable);
         }
 
-        if (item && item->toBool() != device->reachable())
+        if (item && ((item->toBool() != devReachable) || !item->lastSet().isValid()))
         {
-            r->setValue(item->descriptor().suffix, device->reachable());
+            r->setValue(item->descriptor().suffix, devReachable);
         }
     }
 }
@@ -846,6 +903,8 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
     {
         d->setState(nullptr, STATE_LEVEL_BINDING);
         d->setState(nullptr, STATE_LEVEL_POLL);
+        d->stopStateTimer(STATE_LEVEL_BINDING);
+        d->stopStateTimer(STATE_LEVEL_POLL);
         return;
     }
     else if (event.what() == REventApsConfirm)
@@ -1761,6 +1820,11 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
         {
             const auto *item = r->itemForIndex(size_t(i));
 
+            if (item->zclUnsupportedAttribute())
+            {
+                continue;
+            }
+
             DEV_UpdateReportTracker(device, item);
 
             const auto &ddfItem = DDF_GetItem(item);
@@ -1810,7 +1874,7 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
                 continue;
             }
 
-            DBG_Printf(DBG_DEV, "DEV 0x%016llX read %s, dt %d sec\n", d->deviceKey, item->descriptor().suffix, int(dt));
+            DBG_Printf(DBG_DEV, "DEV " FMT_MAC " read %s, dt %d sec\n", FMT_MAC_CAST(d->deviceKey), item->descriptor().suffix, int(dt));
             result.emplace_back(DEV_PollItem{r, item, ddfItem.readParameters});
         }
     }
@@ -1828,7 +1892,7 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
-        DBG_Printf(DBG_DEV, "DEV Poll Idle enter %s/0x%016llX\n", event.resource(), event.deviceKey());
+        DBG_Printf(DBG_DEV, "DEV Poll Idle enter %s/" FMT_MAC "\n", event.resource(), FMT_MAC_CAST(event.deviceKey()));
     }
     else if (event.what() == REventPoll || event.what() == REventAwake)
     {
@@ -1846,6 +1910,28 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
                 device->item(RAttrNwkAddress)->setValue(addr.nwk());
             }
         }
+
+        if (d->flags.needZDPMaintenanceOnce)
+        {
+            // use some jitter to spread the the one time refresh of ZDP stuff
+            static int randomDelay = 0;
+            randomDelay++;
+            if (randomDelay > (d->deviceKey & 0xFF))
+            {
+                randomDelay = 0;
+                d->flags.needZDPMaintenanceOnce = 0;
+
+                if (!device->item(RCapSleeper)->toBool() && device->reachable())
+                {
+                    d->flags.needReadActiveEndpoints = 1;
+                    d->flags.needReadSimpleDescriptors = 1;
+                    d->zdpNeedFetchEndpointIndex = 0;
+                    DEV_EnqueueEvent(device, REventZdpReload);
+                    return;
+                }
+            }
+        }
+
 
         d->pollItems = DEV_GetPollItems(device);
 
@@ -1970,10 +2056,27 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
         { }
         else if (d->readResult.sequenceNumber == EventZclSequenceNumber(event) || d->readResult.ignoreResponseSequenceNumber)
         {
-            DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX ZCL response seq: %u, status: 0x%02X, cluster: 0x%04X\n",
-                   event.resource(), event.deviceKey(), d->readResult.sequenceNumber, EventZclStatus(event), d->readResult.clusterId);
+            uint8_t status = EventZclStatus(event);
+            DBG_Printf(DBG_DEV, "DEV Poll Busy %s/" FMT_MAC " ZCL response seq: %u, status: 0x%02X, cluster: 0x%04X\n",
+                   event.resource(), FMT_MAC_CAST(event.deviceKey()), d->readResult.sequenceNumber, status, d->readResult.clusterId);
 
-            d->pollItems.pop_back();
+            DBG_Assert(!d->pollItems.empty());
+            if (!d->pollItems.empty())
+            {
+                if (status == deCONZ::ZclUnsupportedAttributeStatus)
+                {
+                    const auto &pi = d->pollItems.back();
+                    Resource *r = DEV_GetResource(pi.resource->handle());
+                    ResourceItem *item = r ? r->item(pi.item->descriptor().suffix) : nullptr;
+
+                    if (item)
+                    {
+                        item->setZclUnsupportedAttribute();
+                    }
+                }
+
+                d->pollItems.pop_back();
+            }
             d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
         }
     }
@@ -2033,6 +2136,10 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     d->apsCtrl = apsCtrl;
     d->deviceKey = key;
     d->flags.initialRun = 1;
+    d->flags.hasDdf = 0;
+    d->flags.needZDPMaintenanceOnce = 1;
+    d->flags.needReadActiveEndpoints = 0;
+    d->flags.needReadSimpleDescriptors = 0;
 
     addItem(DataTypeBool, RStateReachable);
     addItem(DataTypeBool, RCapSleeper);
@@ -2041,6 +2148,7 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     addItem(DataTypeString, RAttrUniqueId)->setValue(generateUniqueId(key, 0, 0));
     addItem(DataTypeString, RAttrManufacturerName);
     addItem(DataTypeString, RAttrModelId);
+    addItem(DataTypeUInt32, RAttrOtaVersion);
 
     // lazy init since the event handler is connected after the constructor
     QTimer::singleShot(0, this, [this]()
@@ -2059,6 +2167,19 @@ Device::~Device()
     Q_ASSERT(d);
     delete d;
     d = nullptr;
+}
+
+void Device::setDeviceId(int id)
+{
+    if (id >= 0)
+    {
+        d->deviceId = id;
+    }
+}
+
+int Device::deviceId() const
+{
+    return d->deviceId;
 }
 
 void Device::addSubDevice(Resource *sub)
@@ -2120,6 +2241,18 @@ void Device::setManaged(bool managed)
     d->managed = managed;
 }
 
+void Device::setSupportsMgmtBind(bool supported)
+{
+    if (supported)
+    {
+        d->binding.mgmtBindSupported = MGMT_BIND_SUPPORTED;
+    }
+    else
+    {
+        d->binding.mgmtBindSupported = MGMT_BIND_NOT_SUPPORTED;
+    }
+}
+
 void Device::handleEvent(const Event &event, DEV_StateLevel level)
 {
     if (event.what() == REventStateEnter || event.what() == REventStateLeave)
@@ -2144,12 +2277,17 @@ void Device::handleEvent(const Event &event, DEV_StateLevel level)
     {
         // REventStateEnter must always arrive first via urgend event queue.
         // This branch should never hit!
-        DBG_Printf(DBG_DEV, "DEV event before REventStateEnter: 0x%016llX, skip: %s\n", d->deviceKey, event.what());
+        DBG_Printf(DBG_DEV, "DEV event before REventStateEnter: " FMT_MAC ", skip: %s\n", FMT_MAC_CAST(d->deviceKey), event.what());
     }
     else if (event.what() == REventDDFReload)
     {
         d->setState(DEV_InitStateHandler);
         d->binding.bindingCheckRound = 0;
+        d->startStateTimer(50, StateLevel0);
+    }
+    else if (event.what() == REventZdpReload)
+    {
+        d->setState(DEV_ActiveEndpointsStateHandler);
         d->startStateTimer(50, StateLevel0);
     }
     else if (d->state[level])
@@ -2214,7 +2352,10 @@ void Device::timerEvent(QTimerEvent *event)
         if (event->timerId() == d->timer[i].timerId())
         {
             d->timer[i].stop(); // single shot
-            d->state[i](this, Event(prefix(), REventStateTimeout, i, key()));
+            if (d->state[i])
+            {
+                d->state[i](this, Event(prefix(), REventStateTimeout, i, key()));
+            }
             break;
         }
     }
@@ -2356,8 +2497,10 @@ Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, E
     if (d == devices.end())
     {
         devices.emplace_back(new Device(key, apsCtrl, parent));
-        QObject::connect(devices.back().get(), SIGNAL(eventNotify(Event)), eventEmitter, SLOT(enqueueEvent(Event)));
-        return devices.back().get();
+        Device *device = devices.back().get();
+        QObject::connect(device, SIGNAL(eventNotify(Event)), eventEmitter, SLOT(enqueueEvent(Event)));
+        device->setHandle(R_CreateResourceHandle(device, devices.size() - 1));
+        return device;
     }
 
     Q_ASSERT(d != devices.end());

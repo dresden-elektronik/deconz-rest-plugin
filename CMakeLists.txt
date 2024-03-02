@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(de_rest_plugin VERSION 2.25.02 LANGUAGES C;CXX)
+project(de_rest_plugin VERSION 2.26.01 LANGUAGES C;CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -71,9 +71,7 @@ set(PLUGIN_INCLUDE_FILES
     device_ddf_init.h
     device_descriptions.h
     device_tick.h
-    device_js/device_js_duktape.h
     device_js/device_js.h
-    device_js/device_js_wrappers.h
     event.h
     event_emitter.h
     fan_control.h
@@ -155,9 +153,7 @@ add_library(${PROJECT_NAME} SHARED
     device_ddf_init.cpp
     device_descriptions.cpp
     device_js/duktape.c
-    device_js/device_js.cpp
     device_js/device_js_duktape.cpp
-    device_js/device_js_wrappers.cpp
     device_tick.cpp
     de_web_plugin.cpp
     de_web_widget.cpp

@@ -87,6 +87,7 @@
         {
           "name": "config/clickmode",
           "awake": true,
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0125",
             "cl": "0xfcc0",
@@ -122,6 +123,7 @@
         {
           "name": "config/devicemode",
           "awake": true,
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0009",
             "cl": "0xfcc0",
