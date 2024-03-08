@@ -92,11 +92,6 @@
           "name": "state/temperature",
           "parse": {"fn": "tuya", "dpid": 24, "eval": "Item.val = Attr.val * 10;"},
           "read": {"fn": "none"}
-        },
-        {
-          "name": "state/valve",
-          "parse": {"fn": "tuya", "dpid": 36, "eval": "Item.val = Attr.val > 5;"},
-          "read": {"fn": "none"}
         }
       ]
     }
