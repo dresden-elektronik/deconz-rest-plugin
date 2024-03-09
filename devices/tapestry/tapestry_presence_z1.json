@@ -116,8 +116,8 @@
                     "parse": {
                         "at": "0x0000",
                         "cl": "0x0405",
-                        "eval": "Item.val = Attr.val",
-                        "fn": "zcl"
+                        "ep": 1,
+                        "eval": "Item.val = Attr.val"
                     },
                     "default": 0
                 },
@@ -181,8 +181,8 @@
                     "parse": {
                         "at": "0x0000",
                         "cl": "0x0402",
-                        "eval": "Item.val = Attr.val",
-                        "fn": "zcl"
+                        "ep": 1,
+                        "eval": "Item.val = Attr.val"
                     },
                     "default": 0
                 }
