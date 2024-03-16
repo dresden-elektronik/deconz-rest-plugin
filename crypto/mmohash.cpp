@@ -100,6 +100,8 @@ bool CRYPTO_GetMmoHashFromInstallCode(const std::string &hexString, std::vector<
 {
 #ifdef Q_OS_WIN
     QLibrary libCrypto(QLatin1String("libcrypto-1_1.dll"));
+#elif defined (__APPLE__)
+    QLibrary libCrypto(QLatin1String("../Frameworks/libcrypto.3.dylib"));
 #else
     QLibrary libCrypto("crypto");
 #endif
