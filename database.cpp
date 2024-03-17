@@ -3251,6 +3251,17 @@ static int sqliteLoadAllRulesCallback(void *user, int ncols, char **colval , cha
             {
                 rule.etag = val;
             }
+            else if (strcmp(colname[i], "lasttriggered") == 0)
+            {
+                if (colval[i][0] >= '0' && colval[i][0] <= '9') // isdigit()
+                {
+                    rule.m_lastTriggered = QDateTime::fromString(val, QLatin1String("yyyy-MM-ddTHH:mm:ssZ"));
+                }
+            }
+            else if (strcmp(colname[i], "timestriggered") == 0)
+            {
+                rule.setTimesTriggered(val.toUInt());
+            }
             else if (strcmp(colname[i], "owner") == 0)
             {
                 rule.setOwner(val);
@@ -5423,11 +5434,18 @@ void DeRestPluginPrivate::saveDb()
     // save/delete rules
     if (saveDatabaseItems & DB_RULES)
     {
-        std::vector<Rule>::const_iterator i = rules.begin();
-        std::vector<Rule>::const_iterator end = rules.end();
+        auto i = rules.begin();
+        const auto end = rules.end();
 
         for (; i != end; ++i)
         {
+            if (!i->needSaveDatabase())
+            {
+                continue;
+            }
+
+            i->clearNeedSaveDatabase();
+
             const QString &rid = i->id();
 
             if (i->state() == Rule::StateDeleted)
@@ -5453,19 +5471,23 @@ void DeRestPluginPrivate::saveDb()
 
             QString actionsJSON = Rule::actionsToString(i->actions());
             QString conditionsJSON = Rule::conditionsToString(i->conditions());
+            QString lastTriggered;
 
-//            QString sql = QString(QLatin1String("REPLACE INTO rules (rid, name, created, etag, lasttriggered, owner, status, timestriggered, actions, conditions) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10')"))
-//                    .arg(rid, i->name(), i->creationtime(),
-//                         i->etag, i->lastTriggered(), i->owner(),
-//                         i->status(), QString::number(i->timesTriggered()), actionsJSON)
-//                    .arg(conditionsJSON);
+            if (i->lastTriggered().isValid())
+            {
+                lastTriggered = i->lastTriggered().toString(QLatin1String("yyyy-MM-ddTHH:mm:ssZ"));
+            }
+            else
+            {
+                lastTriggered = QLatin1String("none");
+            }
 
             QString sql = QLatin1String("REPLACE INTO rules (rid, name, created, etag, lasttriggered, owner, status, timestriggered, actions, conditions, periodic) VALUES ('") +
                     rid + QLatin1String("','") +
                     i->name() + QLatin1String("','") +
                     i->creationtime() + QLatin1String("','") +
                     i->etag + QLatin1String("','") +
-                    QLatin1String("none','") +
+                    lastTriggered + QLatin1String("','") +
                     i->owner() + QLatin1String("','") +
                     i->status() + QLatin1String("','") +
                     QString::number(i->timesTriggered()) + QLatin1String("','") +

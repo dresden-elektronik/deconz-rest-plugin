@@ -3937,6 +3937,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
                         {
                             DBG_Printf(DBG_INFO, "ikea remote delete legacy rule %s\n", qPrintable(ri->name()));
                             ri->setState(Rule::StateDeleted);
+                            ri->setNeedSaveDatabase();
                             changed = true;
                         }
                     }
