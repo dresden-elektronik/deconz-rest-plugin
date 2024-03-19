@@ -91,6 +91,7 @@ set(PLUGIN_INCLUDE_FILES
     resource.h
     resourcelinks.h
     rest_alarmsystems.h
+    rest_api.h
     rest_devices.h
     rest_node_base.h
     rule.h
@@ -187,6 +188,7 @@ add_library(${PROJECT_NAME} SHARED
     resource.cpp
     resourcelinks.cpp
     rest_alarmsystems.cpp
+    rest_api.cpp
     rest_capabilities.cpp
     rest_configuration.cpp
     rest_devices.cpp

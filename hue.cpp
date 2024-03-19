@@ -3,6 +3,7 @@
  */
 
 #include <QString>
+#include <math.h>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 

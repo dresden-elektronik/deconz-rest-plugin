@@ -18,6 +18,7 @@
 #include <QVariantMap>
 #include <QNetworkInterface>
 #include <QProcessEnvironment>
+#include <math.h>
 #include "rest_alarmsystems.h"
 #include "daylight.h"
 #include "de_web_plugin.h"
