@@ -25,6 +25,7 @@
 #include "simple_metering.h"
 #include "thermostat.h"
 #include "thermostat_ui_configuration.h"
+#include "tuya.h"
 #include "utils/utils.h"
 
 /*! In a DDF a sub device can specify valid keyvalue pairs for a ResourceItem.suffix in the meta object.

@@ -3,6 +3,7 @@
  * Handle LIDL Melinera Smart LED lightstrip (for Xmas tree).
  */
 
+#include <math.h>
 #include "de_web_plugin_private.h"
 #include "utils/utils.h"
 
