@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2013-2024 dresden elektronik ingenieurtechnik gmbh.
+ * All rights reserved.
+ *
+ * The software in this package is published under the terms of the BSD
+ * style license a copy of which has been included with this distribution in
+ * the LICENSE.txt file.
+ *
+ */
+
 #include <QBuffer>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -546,7 +556,7 @@ void GatewayPrivate::handleEventStateNotAuthorized(GW_Event event)
         map[QLatin1String("devicetype")] = QLatin1String("x-gw");
         //map[QLatin1String("username")] = apikey;
 
-        QString json = deCONZ::jsonStringFromMap(map);
+        QString json = Json::serialize(map);
 
         reqBuffer->close();
         reqBuffer->setData(json.toUtf8());
@@ -757,7 +767,7 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
                 {
                     map[QLatin1String("transitiontime")] = (double) cmd.transitionTime;
                 }
-                json = deCONZ::jsonStringFromMap(map);
+                json = Json::serialize(map);
                 DBG_Printf(DBG_INFO_L2, "GW body %s\n", qPrintable(json));
             }
             else
