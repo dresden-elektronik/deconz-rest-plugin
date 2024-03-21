@@ -1,9 +1,9 @@
 {
     "schema": "devcap1.schema.json",
     "manufacturername": "Tapestry",
-    "modelid": "Presence Z1",
+    "modelid": "THPZ1",
     "vendor": "Tapestry",
-    "product": "Presence Z1",
+    "product": "Presence Z1 (THPZ1)",
     "sleeper": false,
     "status": "Gold",
     "subdevices": [
