@@ -103,14 +103,14 @@
           "name": "config/offset",
           "refresh.interval": 3660,
           "read": {
-            "at": "0x0003",
+            "at": "0x0010",
             "cl": "0x0201",
             "ep": 1,
             "fn": "zcl:attr",
             "mf": "0x10f2"
           },
           "parse": {
-            "at": "0x0003",
+            "at": "0x0010",
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val * 100;",
@@ -118,7 +118,7 @@
             "mf": "0x10f2"
           },
           "write": {
-            "at": "0x0003",
+            "at": "0x0010",
             "cl": "0x0201",
             "dt": "0x30",
             "ep": 1,
@@ -127,6 +127,26 @@
             "mf": "0x10f2"
           },
           "range": [-1000, 1000]
+        },
+        {
+          "name": "config/externalsensortemp",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x0013",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x10f2"
+          },
+          "parse": {
+            "at": "0x0013",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl:attr",
+            "mf": "0x10f2"
+          },
+          "default": 0
         },
         {
           "name": "config/on"
@@ -215,6 +235,14 @@
         {
           "at": "0x0000",
           "dt": "0x29",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000064"
+        },
+        {
+          "at": "0x0013",
+          "dt": "0x29",
+          "mf": "0x10F2",
           "min": 60,
           "max": 300,
           "change": "0x00000064"
