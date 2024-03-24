@@ -3251,6 +3251,8 @@ static int sqliteLoadAllRulesCallback(void *user, int ncols, char **colval , cha
             {
                 rule.etag = val;
             }
+#if 0 // don't reload for now, see https://github.com/dresden-elektronik/deconz-rest-plugin/pull/7672
+      // the values are still stored in the database for the last session to provide debugging hints
             else if (strcmp(colname[i], "lasttriggered") == 0)
             {
                 if (colval[i][0] >= '0' && colval[i][0] <= '9') // isdigit()
@@ -3262,6 +3264,7 @@ static int sqliteLoadAllRulesCallback(void *user, int ncols, char **colval , cha
             {
                 rule.setTimesTriggered(val.toUInt());
             }
+#endif
             else if (strcmp(colname[i], "owner") == 0)
             {
                 rule.setOwner(val);
