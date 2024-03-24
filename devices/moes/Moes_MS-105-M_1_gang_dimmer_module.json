@@ -3,12 +3,12 @@
   "manufacturername": ["_TZE200_la2c2uo9", "_TZE204_dcnsggvz"],
   "modelid": ["TS0601", "TS0601"],
   "vendor": "Moes",
-  "product": "Moes 1-Gang Dimmer Module",
+  "product": "Moes ZM-105-M 1-Gang Dimmer Module",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_DIMMABLE_PLUGIN_UNIT",
+      "type": "$TYPE_DIMMABLE_LIGHT",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -61,7 +61,7 @@
           "parse": {"fn": "tuya", "dpid": 2, "eval": "Item.val = (Attr.val / 1000.0) * 254.0;"},
           "write": {"fn": "tuya", "dpid": 2, "dt": "0x2b", "eval": "(Item.val / 254.0) * 1000.0;"},
           "read": {"fn": "none"},
-          "refresh.interval": 84000
+          "refresh.interval": 300
         },
         {
           "name": "state/reachable"
