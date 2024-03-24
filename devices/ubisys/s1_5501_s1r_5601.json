@@ -126,7 +126,7 @@
             "cl": "0xFC00",
             "cmd": "0x01",
             "ep": "0xE8",
-            "eval": "let m = ''; for (var i = 4; i < ZclFrame.payloadSize; i++) { m += ('00' + ZclFrame.at(i).toString(16)).slice(-2); } m = m.toUpperCase(); if ( m == '4101000B000D0206004200B0040000') { Item.val = 'momentary'; } else if ( m == '41020006000D0206000206000302060002') { Item.val = 'rocker'; } else { Item.val = 'custom_' + m; }",
+            "eval": "let m = ''; for (var i = 4; i < ZclFrame.payloadSize; i++) { m += ('00' + ZclFrame.at(i).toString(16)).slice(-2); } m = m.toUpperCase(); if ( m == '41020006000D0206000206010D03060002') { Item.val = 'momentary'; } else if ( m == '41020006000D0206000206000302060002') { Item.val = 'rocker'; } else { Item.val = 'custom_' + m; }",
             "fn": "zcl:cmd"
           },
           "write": {
@@ -134,7 +134,7 @@
             "ep": "0xE8",
             "cl": "0xFC00",
             "cmd": "0x02",
-            "eval": "if (Item.val == 'momentary') { '0100484101000B000D0206004200B0040000' } else if (Item.val == 'rocker') { '01004841020006000D0206000206000302060002' } else if (Item.val.slice(0,7) == 'custom_') { '010048' + Item.val.slice(7, Item.val.length) }",
+            "eval": "if (Item.val == 'momentary') { '01004841020006000D0206000206010D03060002' } else if (Item.val == 'rocker') { '01004841020006000D0206000206000302060002' } else if (Item.val.slice(0,7) == 'custom_') { '010048' + Item.val.slice(7, Item.val.length) }",
             "fc": "0x10"
           },
           "default" : "momentary",
