@@ -817,7 +817,7 @@
           <attribute id="0x8000" name="Button Press" type="u8" access="r" required="o"/>
         </attribute-set>
         <attribute-set id="0x8001" description="Tuya special">
-          <attribute id="0x8001" name="Back Light mode" type="enum8" default="0" required="o" access="r">
+          <attribute id="0x8001" name="Back Light mode" type="enum8" default="0" required="o" access="rw">
             <value name="Mode 1-Off" value="0"></value>
             <value name="Mode 2-Light when On" value="1"></value>
             <value name="Mode 3-Light when Off" value="2"></value>
