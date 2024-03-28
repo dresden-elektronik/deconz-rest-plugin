@@ -108,6 +108,10 @@
           "refresh.interval": 86400
         },
         {
+          "name": "config/group",
+          "default": "auto"
+        },
+        {
           "name": "config/ledindication",
           "parse": {
             "fn": "zcl:attr",
@@ -260,10 +264,16 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername"
+          "name": "attr/manufacturername",
+          "read": {
+            "fn": "none"
+          }
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/name"
@@ -362,10 +372,16 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername"
+          "name": "attr/manufacturername",
+          "read": {
+            "fn": "none"
+          }
         },
         {
-          "name": "attr/modelid"
+          "name": "attr/modelid",
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/name"
@@ -569,6 +585,12 @@
           "max": 7200
         }
       ]
+    },
+    {
+      "bind": "groupcast",
+      "src.ep": 2,
+      "cl": "0x0006",
+      "config.group": 0
     }
   ]
 }
