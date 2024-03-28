@@ -1867,6 +1867,6 @@
                 [1, "0x03", "ONOFF", "ON", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x03", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"]
             ]
-        },
+        }
     }
 }
