@@ -47,12 +47,10 @@
           "default": "none"
         },
         {
-          "name": "state/bri",
-          "refresh.interval": 5
+          "name": "state/bri"
         },
         {
-          "name": "state/on",
-          "refresh.interval": 5
+          "name": "state/on"
         },
         {
           "name": "state/reachable"
@@ -148,13 +146,15 @@
             "cl": "0x0000",
             "ep": 2,
             "eval": "Item.val = (Attr.val >= 0 && Attr.val <= 15) ? 15 - Attr.val : 14",
-            "fn": "zcl:attr"
+            "fn": "zcl:attr",
+            "mf": "0x1224"
           },
           "read": {
             "at": "0x8905",
             "cl": "0x0000",
             "ep": 2,
-            "fn": "zcl:attr"
+            "fn": "zcl:attr",
+            "mf": "0x1224"
           },
           "write": {
             "at": "0x8905",
@@ -162,7 +162,8 @@
             "dt": "0x20",
             "ep": 2,
             "eval": "if (Item.val >= 0 && Item.val <= 15) { 15 - Item.val }",
-            "fn": "zcl:attr"
+            "fn": "zcl:attr",
+            "mf": "0x1224"
           },
           "default": 14,
           "range": [
