@@ -5533,6 +5533,18 @@ Contactor > On/off=0003 - HP/HC=0004</description>
       </client>
     </cluster>
 	  
+    <!-- SONOFF -->
+    <cluster id="0xfc11" name="Sonoff specific" mfcode="0x1286">
+      <description>Cluster for light sensor</description>
+      <server>
+        <attribute id="0x2001" name="Brightness" type="u8" access="r" required="m" mfcode="0x1286">
+          <description></description>
+        </attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+	  
     <!-- Leviton -->
     <cluster id="0x8007" name="Leviton Specific Load Cluster" mfcode="0x109b">
       <description>Additional features implemented in Leviton’s DG6HD.</description>
