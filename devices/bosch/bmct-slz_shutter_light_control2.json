@@ -300,9 +300,9 @@
           "default" : "momentary",
           "values": [
             ["\"momentary\"", "All inputs in momentary mode"],
+            ["\"momentaryswitched\"", "All inputs in momentary mode (sides switched)"],
             ["\"rocker\"", "All inputs in rocker mode"],
-            ["\"rocker\"", "All inputs in rocker mode"],
-            ["\"rocker\"", "All inputs in rocker mode"]
+            ["\"rockerswitched\"", "All inputs in rocker mode (sides switched)"]
           ]
         },
         {
@@ -313,13 +313,15 @@
             "cl": "0xFCA0",
             "ep": "0x01",
             "eval": "Item.val = Attr.val;",
-            "fn": "zcl:attr"
+            "fn": "zcl:attr",
+            "mf": "0x1209"
           },
           "read": {
             "at": "0x0008",
             "cl": "0xFCA0",
             "ep": "0x01",
-            "fn": "zcl:attr"
+            "fn": "zcl:attr",
+            "mf": "0x1209"
           },
           "write": {
             "at": "0x0008",
@@ -327,7 +329,8 @@
             "dt": "0x10",
             "ep": "0x01",
             "eval": "Item.val",
-            "fn": "zcl:attr"
+            "fn": "zcl:attr",
+            "mf": "0x1209"
           },
           "default": false
         },
@@ -399,8 +402,7 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/power",
-          "refresh.interval": 10
+          "name": "state/power"
         }
       ]
     },
