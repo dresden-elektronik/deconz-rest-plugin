@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/standby_time",
+	"datatype": "UInt32",
+	"access": "RW",
+	"public": true,
+	"description": "Sets the time delay to start the device's standby mode."
+}

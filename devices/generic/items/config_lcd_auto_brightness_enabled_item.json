@@ -1,0 +1,8 @@
+{
+	"schema": "resourceitem1.schema.json",
+	"id": "config/lcd_auto_brightness_enabled",
+	"datatype": "Bool",
+	"access": "RW",
+	"public": true,
+	"description": "Sets whether the LCD's automatic brightness is enabled or not."
+}
