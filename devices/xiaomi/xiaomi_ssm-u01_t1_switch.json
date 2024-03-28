@@ -125,7 +125,14 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/temperature"
+          "name": "config/temperature",
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0002",
+            "ep": 1,
+            "eval": "Item.val = Attr.val * 100;",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "state/current",
@@ -233,7 +240,14 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/temperature"
+          "name": "config/temperature",
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0002",
+            "ep": 1,
+            "eval": "Item.val = Attr.val * 100;",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "state/consumption",
