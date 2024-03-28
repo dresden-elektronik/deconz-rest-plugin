@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_txpirhfq","_TZ3000_qmi1cfuq", "_TZ3000_ji4araar","_TZ3000_v7sopte0","_TYZB01_qeqvmvti","_TZ3000_7jsk6lxz"],
-  "modelid": ["TS0011", "TS0011", "TS0011","TS0011","TS0011","TS0011"],
+  "manufacturername": ["_TZ3000_txpirhfq","_TZ3000_qmi1cfuq", "_TZ3000_ji4araar","_TZ3000_v7sopte0","_TYZB01_qeqvmvti","_TZ3000_7jsk6lxz", "_TZ3000_hhiodade"],
+  "modelid": ["TS0011", "TS0011", "TS0011","TS0011","TS0011","TS0011", "TS0011"],
   "product": "1 gang switch module",
   "sleeper": false,
   "status": "Gold",
