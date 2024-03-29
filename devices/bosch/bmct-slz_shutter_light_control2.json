@@ -205,7 +205,7 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"momentary": 0, "rocker": 1, "custom": 2}
+          "config/mode": {"momentary": 1, "momentaryswitched": 2, "rocker": 3, "rockerswitched": 4}
         }
       },
       "items": [
