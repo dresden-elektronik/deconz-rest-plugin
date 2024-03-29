@@ -25,6 +25,7 @@
 #include "simple_metering.h"
 #include "thermostat.h"
 #include "thermostat_ui_configuration.h"
+#include "tuya.h"
 #include "utils/utils.h"
 
 /*! In a DDF a sub device can specify valid keyvalue pairs for a ResourceItem.suffix in the meta object.
@@ -3937,6 +3938,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
                         {
                             DBG_Printf(DBG_INFO, "ikea remote delete legacy rule %s\n", qPrintable(ri->name()));
                             ri->setState(Rule::StateDeleted);
+                            ri->setNeedSaveDatabase();
                             changed = true;
                         }
                     }
