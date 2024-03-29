@@ -96,8 +96,8 @@ public:
     const QDateTime &lastTriggered() const;
     const QString &creationtime() const;
     void setCreationtime(const QString &creationtime);
-    const quint32 &timesTriggered() const;
-    void setTimesTriggered(const quint32 &timesTriggered);
+    quint32 timesTriggered() const;
+    void setTimesTriggered(quint32 timesTriggered);
     int triggerPeriodic() const;
     void setTriggerPeriodic(int ms);
     const QString &owner() const;
@@ -110,6 +110,9 @@ public:
     void setActions(const std::vector<RuleAction> &actions);
     bool isEnabled() const;
     int handle() const;
+    bool needSaveDatabase() const { return m_needSave; }
+    void setNeedSaveDatabase() { m_needSave = true; }
+    void clearNeedSaveDatabase() { m_needSave = false; }
 
     static QString actionsToString(const std::vector<RuleAction> &actions);
     static QString conditionsToString(const std::vector<RuleCondition> &conditions);
@@ -122,6 +125,7 @@ public:
     QDateTime m_lastTriggered;
 
 private:
+    bool m_needSave = false;
     State m_state;
     QString m_id;
     int m_handle;

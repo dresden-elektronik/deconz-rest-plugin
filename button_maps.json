@@ -734,11 +734,12 @@
         },
         "xiaomiSwitchB1acn01Map": {
             "vendor": "Xiaomi",
-            "doc": "WXKG11LM 2018 remote",
-            "modelids": ["lumi.remote.b1acn01"],
+            "doc": "WXKG11LM 2018 remote and WB-R02D switch",
+            "modelids": ["lumi.remote.b1acn01", "lumi.remote.b1acn02"],
             "map": [
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"],
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"]
             ]

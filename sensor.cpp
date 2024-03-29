@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2024 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -46,7 +46,7 @@ QString SensorFingerprint::toString() const
         map["out"] = ls;
     }
 
-    return deCONZ::jsonStringFromMap(map);
+    return Json::serialize(map);
 }
 
 /*! Parses a fingerprint from JSON string.

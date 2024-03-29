@@ -13,6 +13,7 @@
 #include <QTcpSocket>
 #include <QUrlQuery>
 #include <QVariantMap>
+#include <math.h>
 #include "database.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
@@ -20,6 +21,7 @@
 #include "json.h"
 #include "colorspace.h"
 #include "product_match.h"
+#include "tuya.h"
 
 /*! Lights REST API broker.
     \param req - request data

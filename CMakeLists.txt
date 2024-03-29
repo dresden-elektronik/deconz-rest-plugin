@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(de_rest_plugin VERSION 2.26.01 LANGUAGES C;CXX)
+project(de_rest_plugin VERSION 2.26.03 LANGUAGES C;CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -91,6 +91,7 @@ set(PLUGIN_INCLUDE_FILES
     resource.h
     resourcelinks.h
     rest_alarmsystems.h
+    rest_api.h
     rest_devices.h
     rest_node_base.h
     rule.h
@@ -187,6 +188,7 @@ add_library(${PROJECT_NAME} SHARED
     resource.cpp
     resourcelinks.cpp
     rest_alarmsystems.cpp
+    rest_api.cpp
     rest_capabilities.cpp
     rest_configuration.cpp
     rest_devices.cpp
@@ -273,7 +275,11 @@ target_compile_definitions(${PROJECT_NAME}
 
 if (OPENSSL_FOUND)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_OPENSSL=1)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${OPENSSL_INCLUDE_DIR})
+    if (APPLE)
+        target_include_directories(${PROJECT_NAME} PRIVATE ${OPENSSL_INCLUDE_DIRS})
+    else()
+        target_include_directories(${PROJECT_NAME} PRIVATE ${OPENSSL_INCLUDE_DIR})
+    endif()
 endif()
 
 if (Qt5Core_VERSION_STRING VERSION_LESS "5.15.0")
