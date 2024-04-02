@@ -28,7 +28,7 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"schedule": 0, "manual": 1, "off": 5}
+          "config/mode": {"auto": 0, "manual": 1, "off": 5}
         }
       },
       "items": [
@@ -180,7 +180,7 @@
             "cl": "0x0201",
             "dt": "0x30",
             "ep": 1,
-            "eval": "if (Item.val == 'schedule') { 0 } else if (Item.val == 'manual') { 1 } else if (Item.val == 'off') { 5 };",
+            "eval": "if (Item.val == 'auto') { 0 } else if (Item.val == 'manual') { 1 } else if (Item.val == 'off') { 5 };",
             "fn": "zcl:attr",
             "mf": "0x1209"
           },
@@ -188,7 +188,7 @@
             "at": "0x4007",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "if (Attr.val == 0) { Item.val = 'schedule' } else if (Attr.val == 1) { Item.val = 'manual' } else if (Attr.val == 5) { Item.val = 'off' };",
+            "eval": "if (Attr.val == 0) { Item.val = 'auto' } else if (Attr.val == 1) { Item.val = 'manual' } else if (Attr.val == 5) { Item.val = 'off' };",
             "fn": "zcl:attr",
             "mf": "0x1209"
           },
