@@ -6062,6 +6062,35 @@ Contactor > On/off=0003 - HP/HC=0004</description>
       </client>
     </cluster>
 
+    <cluster id="0xfca0" name="Bosch specific" mfcode="0x1209">
+      <description>Bosch specific attributes.</description>
+      <server>
+        <attribute id="0x0000" name="Device mode" type="enum8" mfcode="0x1209" access="rw" required="m">
+          <value name="Disabled" value="0x00"></value>
+          <value name="Shutter" value="0x01"></value>
+          <value name="Light" value="0x04"></value>
+        </attribute>
+        <attribute id="0x0001" name="Switch type" type="enum8" mfcode="0x1209" access="rw" required="m">
+          <value name="Undefined" value="0x00"></value>
+          <value name="Momentary" value="0x01"></value>
+          <value name="Momentary (sides switched)" value="0x02"></value>
+          <value name="Rocker" value="0x03"></value>
+          <value name="Rocker (sides switched)" value="0x04"></value>
+        </attribute>
+        <attribute id="0x0002" name="Calibration opening time" type="u32" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0003" name="Calibration closing time" type="u32" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0008" name="Child lock" type="bool" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0013" name="Motor state" type="enum8" mfcode="0x1209" access="r" required="m">
+          <value name="Idle" value="0x00"></value>
+          <value name="Opening" value="0x01"></value>
+          <value name="Closing" value="0x02"></value>
+        </attribute>
+        <attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x1209" access="r" required="m"></attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
     <cluster id="0xfdee" name="AIR Measurement Config" mfcode="0x1155">
       <description>BOSCH Thermotechnik indoor air quality configuration</description>
       <server>
