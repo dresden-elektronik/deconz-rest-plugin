@@ -1,0 +1,191 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": ["_TZE200_lsanae15", "_TZE200_bkkmqmyo", "_TZE200_eaac7dkw", "_TZE204_bkkmqmyo"],
+  "modelid": ["TS0601", "TS0601", "TS0601", "TS0601"],
+  "product": "Single Phase Din Rail Smart Energy Meter",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+      {
+      "type": "$TYPE_ON_OFF_OUTPUT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on",
+          "parse": {"fn": "tuya", "dpid": 16, "eval": "Item.val = Attr.val;" },
+          "write": {"fn": "tuya", "dpid": 16, "dt": "0x10", "eval": "Item.val == 1 ? 1 : 0;"},
+          "read": {"fn": "tuya"}
+        },
+        {
+          "name": "config/tuya_unlock"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_CONSUMPTION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0702"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/consumption",
+          "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = Attr.val * 10;" },
+          "read": {"fn": "none"},
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0b04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {"fn": "zcl", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "none"}
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/current",
+          "parse": {"fn": "tuya", "dpid": 6, "eval": "const buffer = Buffer.from(Attr.val, 'hex'); Item.val = (buffer[4] | buffer[8] << 8) / 1000;" },
+          "read": {"fn": "none"},
+          "default": 0
+        },
+        {
+          "name": "state/voltage",
+          "parse": {"fn": "tuya", "dpid": 6, "eval": "const buffer = Buffer.from(Attr.val, 'hex'); Item.val = (buffer[1] | buffer[0] << 8) / 10;" },
+          "read": {"fn": "none"},
+          "default": 0
+        },
+        {
+          "name": "state/power",
+          "parse": {"fn": "tuya", "dpid": 103, "eval": "Item.val = Attr.val / 10;" },
+          "read": {"fn": "none"},
+          "default": 0
+        }
+      ]
+    }
+  ]
+}
