@@ -53,15 +53,13 @@
           "name": "state/on",
           "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = Attr.val;" },
           "write": {"fn": "tuya", "dpid": 1, "dt": "0x10", "eval": "Item.val == 1 ? 1 : 0;"},
-          "read": {"fn": "tuya"},
-          "refresh.interval": 300
+          "read": {"fn": "none"}
         },
         {
           "name": "state/bri",
           "parse": {"fn": "tuya", "dpid": 2, "eval": "Item.val = (Attr.val / 1000.0) * 254.0;"},
           "write": {"fn": "tuya", "dpid": 2, "dt": "0x2b", "eval": "(Item.val / 254.0) * 1000.0;"},
-          "read": {"fn": "none"},
-          "refresh.interval": 300
+          "read": {"fn": "none"}
         },
         {
           "name": "state/reachable"
