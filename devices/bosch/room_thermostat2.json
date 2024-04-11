@@ -92,8 +92,7 @@
         },
         {
           "name": "config/coolsetpoint",
-          "refresh.interval": 360,
-          "default": 7
+          "refresh.interval": 360
         },
         {
           "name": "config/checkin",
@@ -150,7 +149,7 @@
             "at": "0x4042",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1209"
           },
@@ -158,8 +157,7 @@
         },
         {
           "name": "config/heatsetpoint",
-          "refresh.interval": 360,
-          "default": 5
+          "refresh.interval": 360
         },
         {
           "name": "config/locked",
@@ -208,14 +206,14 @@
             "cl": "0x0201",
             "dt": "0x28",
             "ep": 1,
-            "eval": "Item.val / 10;",
+            "eval": "Item.val / 10",
             "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0010",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val * 10;",
+            "eval": "Item.val = Attr.val * 10",
             "fn": "zcl:attr"
           }
         },
@@ -278,7 +276,7 @@
             "at": "0x5000",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1209"
           }
@@ -299,7 +297,7 @@
             "at": "0x0000",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr"
           }
         }
@@ -403,7 +401,7 @@
             "at": "0x0000",
             "cl": "0x0405",
             "ep": 1,
-            "eval": "Item.val = Attr.val + R.item('config/offset').val;",
+            "eval": "Item.val = Attr.val + R.item('config/offset').val",
             "fn": "zcl:attr"
           }
         },
