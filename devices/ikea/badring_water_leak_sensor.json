@@ -99,7 +99,7 @@
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0500",
-            "at": "0x0000"
+            "at": "0x0002"
           },
           "awake": true,
           "refresh.interval": 84600
