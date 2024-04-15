@@ -28,7 +28,7 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"auto": 0, "manual": 1, "off": 5}
+          "config/mode": {"off": 0, "cool": 3, "heat": 4}
         }
       },
       "items": [
@@ -104,69 +104,6 @@
           "name": "config/devicemode",
           "refresh.interval": 3600,
           "read": {
-            "at": "0x001C",
-            "cl": "0x0201",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "write": {
-            "at": "0x001C",
-            "cl": "0x0201",
-            "dt": "0x30",
-            "ep": 1,
-            "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'cool') { 3 } else if (Item.val == 'heat') { 4 };",
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x001C",
-            "cl": "0x0201",
-            "ep": 1,
-            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 3) { Item.val = 'cool' } else if (Attr.val == 4) { Item.val = 'heat' };",
-            "fn": "zcl:attr"
-          },
-          "default": "heat"
-        },
-        {
-          "name": "config/externalwindowopen",
-          "refresh.interval": 3660,
-          "read": {
-            "at": "0x4042",
-            "cl": "0x0201",
-            "ep": 1,
-            "fn": "zcl:attr",
-            "mf": "0x1209"
-          },
-          "write": {
-            "at": "0x4042",
-            "cl": "0x0201",
-            "dt": "0x30",
-            "ep": 1,
-            "eval": "Item.val ? 1 : 0;",
-            "fn": "zcl:attr",
-            "mf": "0x1209"
-          },
-          "parse": {
-            "at": "0x4042",
-            "cl": "0x0201",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr",
-            "mf": "0x1209"
-          },
-          "default": false
-        },
-        {
-          "name": "config/heatsetpoint",
-          "refresh.interval": 360
-        },
-        {
-          "name": "config/locked",
-          "refresh.interval": 3660
-        },
-        {
-          "name": "config/mode",
-          "refresh.interval": 3600,
-          "read": {
             "at": "0x4007",
             "cl": "0x0201",
             "ep": 1,
@@ -193,6 +130,69 @@
           "default": "manual"
         },
         {
+          "name": "config/externalwindowopen",
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x4042",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "write": {
+            "at": "0x4042",
+            "cl": "0x0201",
+            "dt": "0x30",
+            "ep": 1,
+            "eval": "Item.val ? 1 : 0;",
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "parse": {
+            "at": "0x4042",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "default": false
+        },
+        {
+          "name": "config/heatsetpoint",
+          "refresh.interval": 360
+        },
+        {
+          "name": "config/locked",
+          "refresh.interval": 3660
+        },
+        {
+          "name": "config/mode",
+          "refresh.interval": 3600,
+          "read": {
+            "at": "0x001C",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x001C",
+            "cl": "0x0201",
+            "dt": "0x30",
+            "ep": 1,
+            "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'cool') { 3 } else if (Item.val == 'heat') { 4 };",
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x001C",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 3) { Item.val = 'cool' } else if (Attr.val == 4) { Item.val = 'heat' };",
+            "fn": "zcl:attr"
+          },
+          "default": "heat"
+        },
+        {
           "name": "config/offset",
           "refresh.interval": 3660,
           "read": {
@@ -206,14 +206,14 @@
             "cl": "0x0201",
             "dt": "0x28",
             "ep": 1,
-            "eval": "Item.val / 10",
+            "eval": "Item.val / 10;",
             "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0010",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val * 10",
+            "eval": "Item.val = Attr.val * 10;",
             "fn": "zcl:attr"
           }
         },
@@ -276,7 +276,7 @@
             "at": "0x5000",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val",
+            "eval": "Item.val = Attr.val;",
             "fn": "zcl:attr",
             "mf": "0x1209"
           }
@@ -297,7 +297,7 @@
             "at": "0x0000",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val",
+            "eval": "Item.val = Attr.val;",
             "fn": "zcl:attr"
           }
         }
@@ -401,7 +401,7 @@
             "at": "0x0000",
             "cl": "0x0405",
             "ep": 1,
-            "eval": "Item.val = Attr.val + R.item('config/offset').val",
+            "eval": "Item.val = Attr.val + R.item('config/offset').val;",
             "fn": "zcl:attr"
           }
         },
