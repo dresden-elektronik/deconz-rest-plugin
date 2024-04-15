@@ -28,7 +28,7 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"off": 0, "cool": 3, "heat": 4}
+          "config/mode": {"cool": 3, "heat": 4, "off": 0}
         }
       },
       "items": [
@@ -451,6 +451,12 @@
           "min": 1,
           "max": 300,
           "change": "0x00000001"
+        },
+        {
+          "at": "0x001C",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300
         },
         {
           "at": "0x4007",
