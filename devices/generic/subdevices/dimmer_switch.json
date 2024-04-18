@@ -9,7 +9,6 @@
     "0x01"
   ],
   "items": [
-    "state/alert",
     "state/bri",
     "state/on",
     "state/reachable"
