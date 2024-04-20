@@ -11,7 +11,7 @@
   "vendor": "Moes",
   "product": "MS-104BZ Wired Switch 2 gangs",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_ON_OFF_LIGHT",
