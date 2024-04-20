@@ -114,14 +114,14 @@
             "cl": "0x0201",
             "dt": "0x30",
             "ep": 1,
-            "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'cool') { 3 } else if (Item.val == 'heat') { 4 };",
+            "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'cooling') { 3 } else if (Item.val == 'heating') { 4 };",
             "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x001C",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 3) { Item.val = 'cool' } else if (Attr.val == 4) { Item.val = 'heat' };",
+            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 3) { Item.val = 'cooling' } else if (Attr.val == 4) { Item.val = 'heating' };",
             "fn": "zcl:attr"
           },
           "default": "heat"
