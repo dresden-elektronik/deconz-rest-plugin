@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3000_bmfw9ykl",
-  "modelid": "TS0210",
+  "manufacturername": ["_TZ3000_bmfw9ykl", "_TZ3000_lzdjjfss", "_TZ3000_lqpt3mvr"],
+  "modelid": ["TS0210","TS0210","TS0210"],
   "vendor": "Tuya",
   "product": "Moes vibration sensor",
   "sleeper": true,
