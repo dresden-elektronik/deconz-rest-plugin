@@ -27,6 +27,7 @@ const char *HttpContentJS          = "text/javascript";
 const char *HttpContentPNG         = "image/png";
 const char *HttpContentJPG         = "image/jpg";
 const char *HttpContentSVG         = "image/svg+xml";
+const char *HttpContentOctetStream = "application/octet-stream";
 
 /*! Creates a error map used in JSON response.
     \param id - error id

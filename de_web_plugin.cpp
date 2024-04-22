@@ -16203,17 +16203,18 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     stream << "HTTP/1.1 " << rsp.httpStatus << "\r\n";
     stream << "Access-Control-Allow-Origin: *\r\n";
     stream << "Content-Type: " << rsp.contentType << "\r\n";
-    stream << "Content-Length: " << str.size() << "\r\n";
-
-    if (!rsp.hdrFields.empty())
+    if (rsp.contentLength)
     {
-        auto i = rsp.hdrFields.cbegin();
-        const auto end = rsp.hdrFields.cend();
+        stream << "Content-Length: " << rsp.contentLength << "\r\n";
+    }
+    else if (str.size())
+    {
+        stream << "Content-Length: " << str.size() << "\r\n";
+    }
 
-        for (; i != end; ++i)
-        {
-            stream << i->first << ": " <<  i->second << "\r\n";
-        }
+    if (rsp.fileName)
+    {
+        stream << "Content-Disposition: attachment; filename=\"" << rsp.fileName << "\"\r\n";
     }
 
     if (!rsp.etag.isEmpty())
@@ -16222,14 +16223,16 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     }
     stream << "\r\n";
 
-    if (!str.isEmpty())
+    if (rsp.bin && rsp.contentLength)
+    {
+        stream.flush();
+        sock->write(rsp.bin, rsp.contentLength);
+        sock->flush();
+    }
+    else if (!str.isEmpty())
     {
         stream << str;
-    }
-
-    stream.flush();
-    if (!str.isEmpty())
-    {
+        stream.flush();
         DBG_Printf(DBG_HTTP, "%s\n", qPrintable(str));
     }
 
