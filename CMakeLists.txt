@@ -146,6 +146,7 @@ add_library(${PROJECT_NAME} SHARED
     crypto/password.cpp
     crypto/random.cpp
     crypto/scrypt.cpp
+    cj/cj_all.c
     database.cpp
     daylight.cpp
     de_otau.cpp
@@ -274,6 +275,8 @@ target_compile_definitions(${PROJECT_NAME}
     GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
     GW_DEFAULT_NAME="\"\"Phoscon-GW\"\""
 )
+
+target_include_directories(${PROJECT_NAME} PRIVATE cj)
 
 if (OPENSSL_FOUND)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_OPENSSL=1)
