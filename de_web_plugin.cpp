@@ -53,6 +53,7 @@
 #include "read_files.h"
 #include "tuya.h"
 #include "utils/utils.h"
+#include "utils/scratchmem.h"
 #include "xiaomi.h"
 #include "zcl/zcl.h"
 #include "zdp/zdp.h"
@@ -594,6 +595,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     apsCtrlWrapper(deCONZ::ApsController::instance())
 {
     plugin = this;
+    ScratchMemInit();
 
     DEV_SetTestManaged(deCONZ::appArgumentNumeric("--dev-test-managed", 0));
 
@@ -944,6 +946,7 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
     delete deviceJs;
     deviceJs = nullptr;
     eventEmitter = nullptr;
+    ScratchMemDestroy();
 }
 
 DeRestPluginPrivate *DeRestPluginPrivate::instance()
@@ -15887,6 +15890,9 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 {
     QString content;
     QTextStream stream(sock);
+
+    ScratchMemRewind(0);
+    ScratchMemWaypoint swp;
 
     stream.setCodec(QTextCodec::codecForName("UTF-8"));
     d->pushClientForClose(sock, 60);
