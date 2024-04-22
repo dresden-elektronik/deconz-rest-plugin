@@ -112,6 +112,7 @@ set(PLUGIN_INCLUDE_FILES
     utils/ArduinoJson.h
     utils/ArduinoJson-v6.19.4.h
     utils/bufstring.h
+    utils/scratchmem.h
     utils/stringcache.h
     utils/utils.h
     websocket_server.h
@@ -222,6 +223,7 @@ add_library(${PROJECT_NAME} SHARED
     ui/text_lineedit.cpp
     upnp.cpp
     utils/bufstring.cpp
+    utils/scratchmem.cpp
     utils/stringcache.cpp
     utils/utils.cpp
     websocket_server.cpp
