@@ -10,6 +10,7 @@
 
 #include <QString>
 
+#include <deconz/u_assert.h>
 #include <deconz/dbg_trace.h>
 #include <utils/stringcache.h>
 #include "resource.h"
@@ -771,18 +772,24 @@ ResourceItem::ResourceItem(const ResourceItem &other)
 
 bool ResourceItem::setItemString(const QString &str)
 {
+    if (!(m_rid->type == DataTypeString ||
+          m_rid->type == DataTypeTimePattern))
+    {
+        return false;
+    }
+
     const auto utf8 = str.toUtf8();
 
-    if (utf8.size() <= int(m_istr.maxSize()))
+    // for now keep all attr/* items also as atoms
+    if (utf8.size() <= int(m_istr.maxSize()) && m_rid->suffix[0] != 'a' && m_rid->suffix[1] != 't')
     {
         m_istr.setString(utf8.constData());
-        m_strHandle = {};
+        m_strHandle = STRING_CACHE_INVALID_HANDLE;
         return true;
     }
 
-    m_strHandle =  GlobalStringCache()->put(utf8.constData(), size_t(utf8.size()), StringCache::Immutable);
-
-    return isValid(m_strHandle);
+    m_strHandle = StringCacheAdd(utf8.constData(), (unsigned)utf8.size(), StringCacheImmutable);
+    return m_strHandle != STRING_CACHE_INVALID_HANDLE;
 }
 
 /*! Move constructor. */
@@ -1081,13 +1088,19 @@ const QString &ResourceItem::toString() const
 
 QLatin1String ResourceItem::toLatin1String() const
 {
-    if (!isValid(m_strHandle))
+    if (m_strHandle == STRING_CACHE_INVALID_HANDLE)
     {
         return m_istr;
     }
-    else if (m_strHandle.base->length > 0)
+    else
     {
-        return QLatin1String(&m_strHandle.base->buf[0], m_strHandle.base->length);
+        const char *str;
+        unsigned length;
+
+        if (StringCacheGet(m_strHandle, &str, &length))
+        {
+            return QLatin1String(str, length);
+        }
     }
 
     return QLatin1String("");
@@ -1095,9 +1108,16 @@ QLatin1String ResourceItem::toLatin1String() const
 
 const char *ResourceItem::toCString() const
 {
-    if (isValid(m_strHandle))
+    if (m_strHandle != STRING_CACHE_INVALID_HANDLE)
     {
-        return &m_strHandle.base->buf[0];
+        const char *str;
+        unsigned length;
+
+        if (StringCacheGet(m_strHandle, &str, &length))
+        {
+            U_ASSERT(str[length] == '\0');
+            return str;
+        }
     }
 
     return m_istr.c_str();

@@ -481,6 +481,7 @@ public:
     const QString &toString() const;
     QLatin1String toLatin1String() const;
     const char *toCString() const;
+    unsigned atomIndex() const { return m_strHandle; }
     qint64 toNumber() const;
     qint64 toNumberPrevious() const;
     deCONZ::SteadyTimeRef lastZclReport() const { return m_lastZclReport; }
@@ -544,7 +545,7 @@ private:
     };
     deCONZ::SteadyTimeRef m_lastZclReport;
 
-    BufStringCacheHandle m_strHandle; // for strings which don't fit into \c m_istr
+    unsigned m_strHandle = 0; // for strings which don't fit into \c m_istr
     ItemString m_istr; // internal embedded small string
     deCONZ::TimeSeconds m_refreshInterval;
     QString *m_str = nullptr;
