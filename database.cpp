@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2024 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -32,7 +32,7 @@ static const char *pragmaPageCount = "PRAGMA page_count";
 static const char *pragmaPageSize = "PRAGMA page_size";
 static const char *pragmaFreeListCount = "PRAGMA freelist_count";
 
-static sqlite3 *db = nullptr; // TODO should be member of Database class
+static sqlite3 *db = nullptr;
 static char sqlBuf[MAX_SQL_LEN];
 
 static StaticJsonDocument<1024 * 1024 * 2> dbJson; /* 2 mega bytes*/
@@ -48,6 +48,14 @@ struct DB_Callback {
 ******************************************************************************/
 static bool initAlarmSystemsTable();
 static bool initSecretsTable();
+static bool setDbUserVersion(int userVersion);
+static int getDbPragmaInteger(const char *sql);
+static bool upgradeDbToUserVersion1();
+static bool upgradeDbToUserVersion2();
+static bool upgradeDbToUserVersion6();
+static bool upgradeDbToUserVersion7();
+static bool upgradeDbToUserVersion8();
+static bool upgradeDbToUserVersion9();
 static int sqliteLoadAuthCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadUserparameterCallback(void *user, int ncols, char **colval , char **colname);
@@ -430,7 +438,7 @@ void DeRestPluginPrivate::createTempViews()
 
 /*! Returns SQLite pragma parameters specified by \p sql.
  */
-int DeRestPluginPrivate::getDbPragmaInteger(const char *sql)
+static int getDbPragmaInteger(const char *sql)
 {
     int rc;
     int val = -1;
@@ -457,7 +465,7 @@ int DeRestPluginPrivate::getDbPragmaInteger(const char *sql)
 }
 
 /*! Writes database user_version to \p userVersion. */
-bool DeRestPluginPrivate::setDbUserVersion(int userVersion)
+static bool setDbUserVersion(int userVersion)
 {
     int rc;
     char *errmsg;
@@ -482,7 +490,7 @@ bool DeRestPluginPrivate::setDbUserVersion(int userVersion)
 }
 
 /*! Upgrades database to user_version 1. */
-bool DeRestPluginPrivate::upgradeDbToUserVersion1()
+static bool upgradeDbToUserVersion1()
 {
     int rc;
     char *errmsg;
@@ -549,7 +557,7 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion1()
 }
 
 /*! Upgrades database to user_version 2. */
-bool DeRestPluginPrivate::upgradeDbToUserVersion2()
+static bool upgradeDbToUserVersion2()
 {
     int rc;
     char *errmsg;
@@ -587,7 +595,7 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion2()
 }
 
 /*! Upgrades database to user_version 6. */
-bool DeRestPluginPrivate::upgradeDbToUserVersion6()
+static bool upgradeDbToUserVersion6()
 {
     DBG_Printf(DBG_INFO, "DB upgrade to user_version 6\n");
 
@@ -650,7 +658,7 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion6()
 }
 
 /*! Upgrades database to user_version 7. */
-bool DeRestPluginPrivate::upgradeDbToUserVersion7()
+static bool upgradeDbToUserVersion7()
 {
     DBG_Printf(DBG_INFO, "DB upgrade to user_version 7\n");
 
@@ -701,7 +709,7 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion7()
 }
 
 /*! Upgrades database to user_version 8. */
-bool DeRestPluginPrivate::upgradeDbToUserVersion8()
+static bool upgradeDbToUserVersion8()
 {
     DBG_Printf(DBG_INFO, "DB upgrade to user_version 8\n");
 
@@ -731,7 +739,7 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion8()
 }
 
 /*! Upgrades database to user_version 9. */
-bool DeRestPluginPrivate::upgradeDbToUserVersion9()
+static bool upgradeDbToUserVersion9()
 {
     DBG_Printf(DBG_INFO, "DB upgrade to user_version 9\n");
 
@@ -5759,7 +5767,7 @@ void DeRestPluginPrivate::saveDb()
 
     if (rc == SQLITE_OK)
     {
-        DBG_Printf(DBG_INFO_L2, "DB saved in %ld ms\n", measTimer.elapsed());
+        DBG_Printf(DBG_INFO_L2, "DB saved in %ld ms\n", (long)measTimer.elapsed());
 
         if (saveDatabaseItems & DB_SYNC)
         {
@@ -7020,7 +7028,7 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(QLatin1String uniqueId)
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
-        int rc = sqlite3_exec(db, qPrintable(sqlBuf), DB_LoadSubDeviceItemsCallback, &result, &errmsg);
+        int rc = sqlite3_exec(db, sqlBuf, DB_LoadSubDeviceItemsCallback, &result, &errmsg);
 
         if (errmsg)
         {
