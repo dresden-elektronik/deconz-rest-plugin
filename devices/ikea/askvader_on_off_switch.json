@@ -14,7 +14,7 @@
         "$address.ext",
         "0x01"
       ],
-	"items": [
+      "items": [
         {
           "name": "attr/id"
         },
