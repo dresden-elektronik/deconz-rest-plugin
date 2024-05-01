@@ -5,7 +5,7 @@
   "vendor": "IKEA of Sweden",
   "product": "FYRTUR block-out roller blind",
   "sleeper": false,
-  "status": "Draft",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_WINDOW_COVERING_DEVICE",
