@@ -2368,7 +2368,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     {
         //Profalux device don't have manufactureName and ModelID so can't wait for RAttrManufacturerName or RAttrModelId
     }
-    else  if (permitJoinFlag)
+    else if (permitJoinFlag)
     {
         // during pairing only proceed when device code has finished query Basic Cluster
         if (device->item(RAttrManufacturerName)->toString().isEmpty() ||
