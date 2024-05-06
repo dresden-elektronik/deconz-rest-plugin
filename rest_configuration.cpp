@@ -2727,16 +2727,10 @@ int DeRestPluginPrivate::changePassword(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::deletePassword(const ApiRequest &req, ApiResponse &rsp)
 {
-    // reset only allowed for certain referers
     bool ok = true;
-    QString referer = req.hdr.value(QLatin1String("Referer"));
-    if (referer.isEmpty() || !(referer.contains(QLatin1String("login.html")) || referer.contains(QLatin1String("login2.html"))))
-    {
-        ok = false;
-    }
 
     // reset only allowed within first 10 minutes after startup
-    if (ok && getUptime() > 600)
+    if (getUptime() > 600)
     {
         ok = false;
     }
