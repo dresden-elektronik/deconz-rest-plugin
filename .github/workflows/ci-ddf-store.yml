@@ -100,7 +100,7 @@ jobs:
           bundler-output-directory-format: ${{ inputs.bundlerOutputDirectoryFormat }}
           bundler-output-file-format: ${{ inputs.bundlerOutputFileFormat }}
           bundler-file-modified-method: ${{ inputs.bundlerFileModifiedMethod }}
-          
+
           # Bundler Validation options
           bundler-validation-strict: ${{ inputs.validationStrict }}
           bundler-validation-enforce-uuid: ${{ inputs.validationEnforceUUID }}
@@ -148,7 +148,7 @@ jobs:
           upload-artifact-enabled: true
           upload-artifact-filter: 'added,modified'
           upload-artifact-retention-days: 3
-          
+
           # DDF Store
           # Bundles are uploaded only on the push event when the PR is merged
           upload-store-enabled: false
