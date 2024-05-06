@@ -29,6 +29,48 @@ on:
         required: true
         default: false
         type: boolean
+      bundlerSignatureKeys:
+        description: Comma seperated list of private keys to sign the bundle with
+        required: false
+        default: ''
+        type: string
+      bundlerOutputDirectoryFormat:
+        description: Format of the output directory structure
+        required: true
+        default: 'flat'
+        type: choice
+        options:
+          - 'flat'
+          - 'source-tree'
+      bundlerOutputFileFormat:
+        description: Format of the output files names
+        required: true
+        default: 'hash'
+        type: choice
+        options:
+          - 'hash'
+          - 'name'
+          - 'name-hash'
+      bundlerFileModifiedMethod:
+        description: Method to use to get the file modification time
+        required: true
+        default: 'gitlog'
+        type: choice
+        options:
+          - 'gitlog'
+          - 'mtime'
+          - 'ctime'
+      validationStrict:
+        description: Enable strict validation
+        required: true
+        default: false
+        type: boolean
+      validationEnforceUUID:
+        description: Enforce UUID in the DDF
+        required: true
+        default: true
+        type: boolean
+
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -52,6 +94,16 @@ jobs:
         with:
           mode: manual
           source-devices-path: 'devices'
+
+          # Bundler options
+          bundler-sign-keys: ${{ inputs.bundlerSignatureKeys }}
+          bundler-output-directory-format: ${{ inputs.bundlerOutputDirectoryFormat }}
+          bundler-output-file-format: ${{ inputs.bundlerOutputFileFormat }}
+          bundler-file-modified-method: ${{ inputs.bundlerFileModifiedMethod }}
+          
+          # Bundler Validation options
+          bundler-validation-strict: ${{ inputs.validationStrict }}
+          bundler-validation-enforce-uuid: ${{ inputs.validationEnforceUUID }}
 
           # Github artifact
           upload-artifact-enabled: ${{ inputs.uploadArtifact == true }}
