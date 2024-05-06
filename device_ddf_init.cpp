@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2024 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8,6 +8,7 @@
  *
  */
 
+#include "deconz/u_assert.h"
 #include "device.h"
 #include "device_compat.h"
 #include "device_descriptions.h"
@@ -34,8 +35,6 @@ static QString uniqueIdFromTemplate(const QStringList &templ, const Device *devi
 
        ["$address.ext", <endpoint>]
        ["$address.ext", <endpoint>, <cluster>]
-       ["$address.ext", <endpoint>, "out.cluster", <cluster1>, <cluster2>, ...]
-       ["$address.ext", <endpoint>, "in.cluster", <cluster1>, <cluster2>, ...]
     */
 
     if (templ.size() > 1 && templ.first() == QLatin1String("$address.ext"))
@@ -49,34 +48,6 @@ static QString uniqueIdFromTemplate(const QStringList &templ, const Device *devi
             if (pos2.at(0).isDigit())
             {
                 clusterId = pos2.toUInt(&ok, 0);
-            }
-            else if (device->node() && (pos2 == QLatin1String("out.cluster") || pos2 == QLatin1String("in.cluster")))
-            {
-                // select clusterId if endpoint contains cluster from list
-                // the cluster list, ordered by priority
-                const auto clusterSide = pos2.at(0) == 'o' ? deCONZ::ClientCluster : deCONZ::ServerCluster;
-                const  auto &simpleDescriptors = device->node()->simpleDescriptors();
-                const auto sd = std::find_if(simpleDescriptors.cbegin(), simpleDescriptors.cend(),
-                                             [endpoint](const auto &x) { return x.endpoint() == endpoint; });
-                if (sd != simpleDescriptors.cend())
-                {
-                    const auto &clusters = sd->clusters(clusterSide);
-
-                    for (int i = 3; i < templ.size(); i++)
-                    {
-                        clusterId = templ.at(i).toUInt(&ok, 0);
-                        if (!ok) { break; } // no clusterId, maybe in future other commands follow (doh)
-
-                        const auto cl = std::find_if(clusters.cbegin(), clusters.cend(),
-                                                     [clusterId](const auto &x){ return x.id() == clusterId; });
-
-                        ok = cl != clusters.cend();
-                        if (ok)
-                        {
-                            break;
-                        }
-                    }
-                }
             }
         }
     }
@@ -93,12 +64,12 @@ static QString uniqueIdFromTemplate(const QStringList &templ, const Device *devi
  */
 static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item &ddfItem, const std::vector<DB_ResourceItem> &dbItems, Resource *rsub)
 {
-    Q_ASSERT(rsub);
-    Q_ASSERT(ddfItem.isValid());
+    U_ASSERT(rsub);
+    U_ASSERT(ddfItem.isValid());
 
     auto *item = rsub->item(ddfItem.descriptor.suffix);
     const char *uniqueId = rsub->item(RAttrUniqueId)->toCString();
-    Q_ASSERT(uniqueId);
+    U_ASSERT(uniqueId);
 
     if (item)
     {
@@ -116,7 +87,7 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
         }
     }
 
-    Q_ASSERT(item);
+    U_ASSERT(item);
 
     const auto dbItem = std::find_if(dbItems.cbegin(), dbItems.cend(), [&ddfItem](const auto &dbItem)
     {
@@ -248,7 +219,7 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
         }
 
         // TODO storing should be done else where, since this is init code
-        DB_StoreSubDevice(device->item(RAttrUniqueId)->toLatin1String(), rsub->item(RAttrUniqueId)->toString());
+        DB_StoreSubDevice(rsub->item(RAttrUniqueId)->toCString());
         DB_StoreSubDeviceItem(rsub, rsub->item(RAttrManufacturerName));
         DB_StoreSubDeviceItem(rsub, rsub->item(RAttrModelId));
 
@@ -425,7 +396,7 @@ bool DEV_InitBaseDescriptionForDevice(Device *device, DeviceDescription &ddf)
         {
             const ResourceItem *item = r->itemForIndex(i);
 
-            DeviceDescription::Item ddfItem = DeviceDescriptions::instance()->getItem(item);
+            DeviceDescription::Item ddfItem = dd->getGenericItem(item->descriptor().suffix);
 
             if (!ddfItem.isValid())
             {
@@ -448,6 +419,61 @@ bool DEV_InitBaseDescriptionForDevice(Device *device, DeviceDescription &ddf)
 
 bool DEV_InitDeviceBasic(Device *device)
 {
+    {
+        ResourceItem *ddfPolicy = device->item(RAttrDdfPolicy);
+        U_ASSERT(ddfPolicy);
+
+        {
+            // load attr/ddf_policy and attr/ddf_hash from database if exists
+
+            std::vector<DB_ResourceItem2> dbItems2;
+
+            if (DB_LoadDeviceItems(device->deviceId(), dbItems2))
+            {
+                for (const auto &dbItem : dbItems2)
+                {
+                    U_ASSERT(dbItem.valueSize != 0);
+                    if (dbItem.valueSize == 0)
+                    {
+                        continue;
+                    }
+
+                    if (dbItem.name == RAttrDdfPolicy && ddfPolicy)
+                    {
+                        ddfPolicy->setValue(dbItem.value, (int)dbItem.valueSize);
+                        ddfPolicy->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem.timestampMs));
+                    }
+                    else if (dbItem.name == RAttrDdfHash)
+                    {
+                        U_ASSERT(dbItem.valueSize == 32);
+                        if (dbItem.valueSize == 32)
+                        {
+                            ResourceItem *ddfHash = device->item(RAttrDdfPolicy);
+                            ddfHash->setValue(dbItem.value, (int)dbItem.valueSize);
+                            ddfHash->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem.timestampMs));
+                        }
+                    }
+                }
+            }
+        }
+
+        // if no attr/ddf_policy is set, use the default
+        if (ddfPolicy && ddfPolicy->toLatin1String().size() == 0)
+        {
+            ddfPolicy->setValue("latest_prefer_stable", -1);
+
+            // DB_ResourceItem2 dbItem;
+
+            // if (DB_ResourceItem2DbItem(ddfPolicy, &dbItem))
+            // {
+            //     if (DB_StoreDeviceItem(device->deviceId(), dbItem))
+            //     {
+
+            //     }
+            // }
+        }
+    }
+
     const auto dbItems = DB_LoadSubDeviceItemsOfDevice(device->item(RAttrUniqueId)->toLatin1String());
 
     size_t found = 0;

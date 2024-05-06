@@ -2147,6 +2147,8 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     addItem(DataTypeString, RAttrUniqueId)->setValue(generateUniqueId(key, 0, 0));
     addItem(DataTypeString, RAttrManufacturerName);
     addItem(DataTypeString, RAttrModelId);
+    addItem(DataTypeString, RAttrDdfPolicy);
+    addItem(DataTypeString, RAttrDdfHash);
     addItem(DataTypeUInt32, RAttrOtaVersion);
 
     // lazy init since the event handler is connected after the constructor
