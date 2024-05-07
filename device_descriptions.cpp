@@ -20,7 +20,7 @@
 #include <deconz/dbg_trace.h>
 #include <deconz/file.h>
 #include <deconz/u_assert.h>
-#include <deconz/u_sstream.h>
+#include <deconz/u_sstream_ex.h>
 #include <deconz/buffer_pool.h>
 #include <deconz/u_memory.h>
 #include <deconz/u_time.h>
@@ -1089,63 +1089,65 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
      * Filter matching DDFs, there can be multiple entries for the same modelid and manufacturer name.
      * Further sorting for the 'best' match according to attr/ddf_policy is done afterwards.
      */
-    auto i = d->descriptions.begin();
-
-    for (;matchedCount < matchedIndices.size();)
     {
-        i = std::find_if(i, d->descriptions.end(), [modelidAtomIndex, mfnameAtomIndex](const DeviceDescription &ddf)
+        auto i = d->descriptions.begin();
+
+        for (;matchedCount < matchedIndices.size();)
         {
-            if (ddf.mfnameAtomIndices.size() != ddf.modelidAtomIndices.size())
+            i = std::find_if(i, d->descriptions.end(), [modelidAtomIndex, mfnameAtomIndex](const DeviceDescription &ddf)
             {
-                return false; // should not happen
-            }
-
-            for (size_t j = 0; j < ddf.modelidAtomIndices.size(); j++)
-            {
-                if (ddf.modelidAtomIndices[j] == modelidAtomIndex && ddf.mfnameAtomIndices[j] == mfnameAtomIndex)
-                    return true;
-            }
-
-            return false;
-        });
-
-        if (i == d->descriptions.end())
-        {
-            // nothing found, try to load further DDFs
-            if (loadDDFAndBundlesFromDisc(resource))
-            {
-                continue; // found DDFs or bundles, try again
-            }
-            break;
-        }
-
-        if (!i->matchExpr.isEmpty() && match == DDF_EvalMatchExpr)
-        {
-            DeviceJs *djs = DeviceJs::instance();
-            djs->reset();
-            djs->setResource(resource->parentResource() ? resource->parentResource() : resource);
-            if (djs->evaluate(i->matchExpr) == JsEvalResult::Ok)
-            {
-                const auto res = djs->result();
-                DBG_Printf(DBG_DDF, "matchexpr: %s --> %s\n", qPrintable(i->matchExpr), qPrintable(res.toString()));
-                if (res.toBool()) // needs to evaluate to true
+                if (ddf.mfnameAtomIndices.size() != ddf.modelidAtomIndices.size())
                 {
-                    matchedIndices[matchedCount] = i->handle;
-                    matchedCount++;
+                    return false; // should not happen
+                }
+
+                for (size_t j = 0; j < ddf.modelidAtomIndices.size(); j++)
+                {
+                    if (ddf.modelidAtomIndices[j] == modelidAtomIndex && ddf.mfnameAtomIndices[j] == mfnameAtomIndex)
+                        return true;
+                }
+
+                return false;
+            });
+
+            if (i == d->descriptions.end())
+            {
+                // nothing found, try to load further DDFs
+                if (loadDDFAndBundlesFromDisc(resource))
+                {
+                    continue; // found DDFs or bundles, try again
+                }
+                break;
+            }
+
+            if (!i->matchExpr.isEmpty() && match == DDF_EvalMatchExpr)
+            {
+                DeviceJs *djs = DeviceJs::instance();
+                djs->reset();
+                djs->setResource(resource->parentResource() ? resource->parentResource() : resource);
+                if (djs->evaluate(i->matchExpr) == JsEvalResult::Ok)
+                {
+                    const auto res = djs->result();
+                    DBG_Printf(DBG_DDF, "matchexpr: %s --> %s\n", qPrintable(i->matchExpr), qPrintable(res.toString()));
+                    if (res.toBool()) // needs to evaluate to true
+                    {
+                        matchedIndices[matchedCount] = i->handle;
+                        matchedCount++;
+                    }
+                }
+                else
+                {
+                    DBG_Printf(DBG_DDF, "failed to evaluate matchexpr for %s: %s, err: %s\n", qPrintable(resource->item(RAttrUniqueId)->toString()), qPrintable(i->matchExpr), qPrintable(djs->errorString()));
                 }
             }
             else
             {
-                DBG_Printf(DBG_DDF, "failed to evaluate matchexpr for %s: %s, err: %s\n", qPrintable(resource->item(RAttrUniqueId)->toString()), qPrintable(i->matchExpr), qPrintable(djs->errorString()));
+                matchedIndices[matchedCount] = i->handle;
+                matchedCount++;
             }
-        }
-        else
-        {
-            matchedIndices[matchedCount] = i->handle;
-            matchedCount++;
-        }
 
-        i++; // proceed search
+            i++; // proceed search
+        }
     }
 
     if (matchedCount != 0)
@@ -1276,7 +1278,46 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
 
         if (policy == atDDFPolicyPin)
         {
+            /*
+             * Lookup a matching bundle by its hash. This is finicky but ensures no bugus is matched.
+             */
+            const Resource *rParent = resource->parentResource() ? resource->parentResource() : resource;
+            const ResourceItem *ddfHashItem = rParent->item(RAttrDdfHash);
 
+            if (ddfHashItem)
+            {
+                unsigned len = U_strlen(ddfHashItem->toCString());
+                if (len == 64)
+                {
+                    uint32_t hash[8] = {0};
+
+                    { // convert bundle hash string to binary
+                        U_SStream ss;
+                        uint8_t *byte = reinterpret_cast<uint8_t*>(&hash[0]);
+
+                        U_sstream_init(&ss, (void*)ddfHashItem->toCString(), len);
+
+                        for (int i = 0; i < 32; i++)
+                            byte[i] = U_sstream_get_hex_byte(&ss);
+                    }
+
+                    // The hash must belong to one of the earlier matched bundles.
+                    for (unsigned i = 0; i < matchedCount; i++)
+                    {
+                        const DeviceDescription &ddf = d->descriptions[matchedIndices[i]];
+
+                        int j = 0;
+                        for (; j < 8; j++)
+                        {
+                            if (ddf.sha256Hash[j] != hash[j])
+                                break;
+                        }
+
+                        if (j == 8) // match
+                            return ddf;
+                    }
+                }
+            }
         }
 
         /*
