@@ -771,7 +771,7 @@ int RestDevices::getDeviceDDF(const ApiRequest &req, ApiResponse &rsp)
 int RIS_GetDeviceIntrospect(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req)
-    rsp.str = QLatin1String("[\"introspect\": false]");
+    rsp.str = QLatin1String("{\"introspect\": false}");
     return REQ_READY_SEND;
 }
 
