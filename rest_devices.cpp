@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2024 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -243,11 +243,28 @@ int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    const DeviceDescription ddf = plugin->deviceDescriptions->get(device);
+    const DeviceDescription &ddf = plugin->deviceDescriptions->get(device);
 
     if (ddf.isValid())
     {
         rsp.map["productid"] = ddf.product;
+    }
+
+    {
+        const ResourceItem *ddfPolicyItem = device->item(RAttrDdfPolicy);
+        if (ddfPolicyItem)
+        {
+            rsp.map["ddf_policy"] = ddfPolicyItem->toString();
+        }
+    }
+
+    if (ddf.storageLocation == deCONZ::DdfBundleLocation || ddf.storageLocation == deCONZ::DdfBundleUserLocation)
+    {
+        const ResourceItem *ddfHashItem = device->item(RAttrDdfHash);
+        if (ddfHashItem && ddfHashItem->toCString()[0] != '\0')
+        {
+            rsp.map["ddf_hash"] = ddfHashItem->toString();
+        }
     }
 
     QVariantList subDevices;

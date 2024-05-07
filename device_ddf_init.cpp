@@ -13,6 +13,7 @@
 #include "device_compat.h"
 #include "device_descriptions.h"
 #include "device_ddf_init.h"
+#include "deconz/u_sstream_ex.h"
 #include "database.h"
 #include "poll_control.h"
 #include "utils/utils.h"
@@ -185,6 +186,26 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
 
     size_t subCount = 0;
     auto *dd = DeviceDescriptions::instance();
+
+    if (ddf.storageLocation == deCONZ::DdfBundleLocation || ddf.storageLocation == deCONZ::DdfBundleUserLocation)
+    {
+        ResourceItem *ddfhashItem = device->item(RAttrDdfHash);
+        U_ASSERT(ddfhashItem);
+
+        char buf[72];
+        U_SStream ss;
+        U_sstream_init(&ss, buf, sizeof(buf));
+        U_sstream_put_hex(&ss, &ddf.sha256Hash[0], sizeof(ddf.sha256Hash));
+
+        for (unsigned i = 0; i < ss.pos; i++) // workaround to convert to lower case
+        {
+            if (buf[i] >= 'A' && buf[i] <= 'F')
+                buf[i] = buf[i] + ('a' - 'A');
+        }
+
+        U_ASSERT(ss.pos == 64);
+        ddfhashItem->setValue(buf, 64);
+    }
 
     for (const auto &sub : ddf.subDevices)
     {
@@ -445,10 +466,10 @@ bool DEV_InitDeviceBasic(Device *device)
                     }
                     else if (dbItem.name == RAttrDdfHash)
                     {
-                        U_ASSERT(dbItem.valueSize == 32);
-                        if (dbItem.valueSize == 32)
+                        U_ASSERT(dbItem.valueSize == 64);
+                        if (dbItem.valueSize == 64)
                         {
-                            ResourceItem *ddfHash = device->item(RAttrDdfPolicy);
+                            ResourceItem *ddfHash = device->item(RAttrDdfHash);
                             ddfHash->setValue(dbItem.value, (int)dbItem.valueSize);
                             ddfHash->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem.timestampMs));
                         }
