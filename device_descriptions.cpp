@@ -157,12 +157,6 @@ static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, 
 static void DDF_TryCompileAndFixJavascript(QString *expr, const QString &path);
 DeviceDescription DDF_LoadScripts(const DeviceDescription &ddf);
 
-// TODO(mpi): this needs to go in memory/string module
-static unsigned U_strlen(const char *str)
-{
-    return strlen(str);
-}
-
 /*! Constructor. */
 DeviceDescriptions::DeviceDescriptions(QObject *parent) :
     QObject(parent),
