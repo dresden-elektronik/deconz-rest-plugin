@@ -16,6 +16,7 @@
 #include "product_match.h"
 #include "database.h"
 #include "device_descriptions.h"
+#include "device_ddf_bundle.h"
 #include "deconz/u_assert.h"
 #include "deconz/u_sstream_ex.h"
 #include "deconz/u_memory.h"
@@ -1186,28 +1187,6 @@ int RestDevices::putDeviceReloadDDF(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
-bool sanitizeBundleHashString(char *str, unsigned len)
-{
-    if (len != 64)
-        return false;
-
-    for (unsigned i = 0; i < len; i++)
-    {
-        char ch = str[i];
-
-        if      (ch >= '0' && ch <= '9') { } // ok
-        else if (ch >= 'a' && ch <= 'f') { } // ok
-        else if (ch >= 'A' && ch <= 'F') { str[i] = ch + ('a' - 'A'); } // convert to lower case
-        else
-        {
-            return false; // invalid hex char
-        }
-    }
-
-    return true;
-}
-
-
 /*
 
     curl -X PUT -H "Content-Type: application/json" -d '{"policy": "nope", "hash":"value"}' 127.0.0.1:8090/api/12345/devices/00.99/ddf/policy
@@ -1307,7 +1286,7 @@ int RestDevices::putDeviceSetDDFPolicy(const ApiRequest &req, ApiResponse &rsp)
         }
 
         bundleHashLen = U_strlen(bundleHashBuf);
-        if (!sanitizeBundleHashString(bundleHashBuf, bundleHashLen))
+        if (!DDFB_SanitizeBundleHashString(bundleHashBuf, bundleHashLen))
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, errAddr, QString("invalid value, %1, for parameter, hash").arg(bundleHashBuf)));
             rsp.httpStatus = HttpStatusBadRequest;

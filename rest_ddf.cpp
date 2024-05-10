@@ -285,19 +285,35 @@ int REST_DDF_GetBundle(const ApiRequest &req, ApiResponse &rsp)
     // wget --content-disposition 127.0.0.1:8090/api/12345/ddf/bundles/0a34938f63f0ccb40e1672799c898889989574f617c103fb64496e9ad78c29a2
 
     FS_File fp;
-    auto bundleHash = req.hdr.pathAt(4);
+    FS_Dir dir;
+    unsigned basePathLength;
+    char bundleHashStr[U_SHA256_HASH_SIZE * 2 + 1];
 
-    if (bundleHash.size() != 64)
     {
-        rsp.httpStatus = HttpStatusBadRequest;
-        return REQ_READY_SEND;
+        auto urlBundleHash = req.hdr.pathAt(4);
+
+        if (urlBundleHash.size() != (U_SHA256_HASH_SIZE * 2))
+        {
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        U_memcpy(bundleHashStr, urlBundleHash.data(), U_SHA256_HASH_SIZE * 2);
+        bundleHashStr[U_SHA256_HASH_SIZE * 2] = '\0';
+
+        if (!DDFB_SanitizeBundleHashString(bundleHashStr, U_SHA256_HASH_SIZE * 2))
+        {
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
     }
 
     unsigned maxFileNameLength = 72;
-    char *bundlePath = SCRATCH_ALLOC(char*, MAX_PATH_LENGTH);
+    char *path = SCRATCH_ALLOC(char*, MAX_PATH_LENGTH);
     char *fileName = SCRATCH_ALLOC(char*, maxFileNameLength);
+    rsp.bin = SCRATCH_ALLOC(char*, MAX_BUNDLE_SIZE);
 
-    if (!bundlePath || !fileName)
+    if (!path || !fileName || !rsp.bin)
     {
         rsp.httpStatus = HttpStatusServiceUnavailable;
         return REQ_READY_SEND;
@@ -306,51 +322,84 @@ int REST_DDF_GetBundle(const ApiRequest &req, ApiResponse &rsp)
     {
         U_SStream ssFileName;
         U_sstream_init(&ssFileName, fileName, maxFileNameLength);
-        U_sstream_put_str(&ssFileName, bundleHash.data());
+        U_sstream_put_str(&ssFileName, bundleHashStr);
         U_sstream_put_str(&ssFileName, ".ddf");
     }
 
-    {
-        QString loc = deCONZ::getStorageLocation(deCONZ::DdfBundleUserLocation);
-        U_SStream ssPath;
-        U_sstream_init(&ssPath, bundlePath, MAX_PATH_LENGTH);
-        U_sstream_put_str(&ssPath, qPrintable(loc));
-        U_sstream_put_str(&ssPath, "/");
-        U_sstream_put_str(&ssPath, fileName);
-    }
+    deCONZ::StorageLocation locations[2] = { deCONZ::DdfBundleUserLocation, deCONZ::DdfBundleLocation };
 
-    if (FS_OpenFile(&fp, FS_MODE_R, bundlePath))
+    for (int locIt = 0; locIt < 2; locIt++)
     {
-        long fileSize = FS_GetFileSize(&fp);
-        if (fileSize > 0 && fileSize <= MAX_BUNDLE_SIZE)
+        U_SStream ss;
         {
-            rsp.bin = SCRATCH_ALLOC(char*, fileSize);
-            if (!rsp.bin)
-            {
-                FS_CloseFile(&fp);
-                rsp.httpStatus = HttpStatusServiceUnavailable;
-                return REQ_READY_SEND;
-            }
-
-            if (FS_ReadFile(&fp, rsp.bin, fileSize) == fileSize)
-            {
-                FS_CloseFile(&fp);
-                rsp.contentLength = (unsigned)fileSize;
-                rsp.fileName = fileName;
-                rsp.httpStatus = HttpStatusOk;
-                rsp.contentType = HttpContentOctetStream;
-                return REQ_READY_SEND;
-            }
+            QString loc = deCONZ::getStorageLocation(locations[locIt]);
+            U_sstream_init(&ss, path, MAX_PATH_LENGTH);
+            U_sstream_put_str(&ss, qPrintable(loc));
+            basePathLength = ss.pos;
         }
 
-        FS_CloseFile(&fp);
+        if (FS_OpenDir(&dir, path))
+        {
+            for (;FS_ReadDir(&dir);)
+            {
+                if (dir.entry.type != FS_TYPE_FILE)
+                    continue;
+
+                U_sstream_init(&ss, dir.entry.name, strlen(dir.entry.name));
+
+                if (U_sstream_find(&ss, ".ddf") == 0)
+                    continue;
+
+                U_sstream_init(&ss, path, MAX_PATH_LENGTH);
+                ss.pos = basePathLength; // reuse path and append the filename to existing base path
+                U_sstream_put_str(&ss, "/");
+                U_sstream_put_str(&ss, dir.entry.name);
+
+                if (FS_OpenFile(&fp, FS_MODE_R, path))
+                {
+                    long fileSize = FS_GetFileSize(&fp);
+                    if (fileSize > 0 && fileSize <= MAX_BUNDLE_SIZE)
+                    {
+                        if (FS_ReadFile(&fp, rsp.bin, fileSize) == fileSize)
+                        {
+                            U_BStream bs;
+                            uint8_t sha256[U_SHA256_HASH_SIZE];
+
+                            U_bstream_init(&bs, rsp.bin, fileSize);
+
+                            if (IsValidDDFBundle(&bs, sha256))
+                            {
+                                char sha256Str[(U_SHA256_HASH_SIZE * 2) + 1];
+                                BinToHexAscii(sha256, U_SHA256_HASH_SIZE, sha256Str);
+
+                                if (U_memcmp(bundleHashStr, sha256Str, U_SHA256_HASH_SIZE * 2) == 0)
+                                {
+                                    FS_CloseFile(&fp);
+                                    FS_CloseDir(&dir);
+
+                                    rsp.contentLength = (unsigned)fileSize;
+                                    rsp.fileName = fileName;
+                                    rsp.httpStatus = HttpStatusOk;
+                                    rsp.contentType = HttpContentOctetStream;
+                                    return REQ_READY_SEND;
+                                }
+                            }
+                        }
+                    }
+
+                    FS_CloseFile(&fp);
+                }
+            }
+
+            FS_CloseDir(&dir);
+        }
     }
 
     {
         rsp.httpStatus = HttpStatusNotFound;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE,
-                               QString("/ddf/bundles/%1").arg(bundleHash),
-                               QString("resource, /ddf/bundles/%1, not available").arg(bundleHash)));
+                               QString("/ddf/bundles/%1").arg(bundleHashStr),
+                               QString("resource, /ddf/bundles/%1, not available").arg(bundleHashStr)));
     }
 
     return REQ_READY_SEND;

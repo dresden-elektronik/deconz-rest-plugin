@@ -24,6 +24,7 @@ int DDFB_IsChunk(U_BStream *bs, const char *tag);
 int DDFB_SkipChunk(U_BStream *bs);
 int DDFB_ReadExtfChunk(U_BStream *bs, DDFB_ExtfChunk *extf);
 int IsValidDDFBundle(U_BStream *bs, unsigned char sha256[U_SHA256_HASH_SIZE]);
+bool DDFB_SanitizeBundleHashString(char *str, unsigned len);
 
 
 #endif // DEVICE_DDF_BUNDLE_H

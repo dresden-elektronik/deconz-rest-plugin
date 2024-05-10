@@ -108,6 +108,27 @@ int IsValidDDFBundle(U_BStream *bs, unsigned char sha256[U_SHA256_HASH_SIZE])
     return 1;
 }
 
+bool DDFB_SanitizeBundleHashString(char *str, unsigned len)
+{
+    if (len != 64)
+        return false;
+
+    for (unsigned i = 0; i < len; i++)
+    {
+        char ch = str[i];
+
+        if      (ch >= '0' && ch <= '9') { } // ok
+        else if (ch >= 'a' && ch <= 'f') { } // ok
+        else if (ch >= 'A' && ch <= 'F') { str[i] = ch + ('a' - 'A'); } // convert to lower case
+        else
+        {
+            return false; // invalid hex char
+        }
+    }
+
+    return true;
+}
+
 int DDFB_ReadExtfChunk(U_BStream *bs, DDFB_ExtfChunk *extf)
 {
     U_BStream bs1;
