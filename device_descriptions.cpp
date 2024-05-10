@@ -2621,7 +2621,7 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
 
     if (resource)
     {
-        const auto ddf = get(resource, DDF_EvalMatchExpr);
+        const DeviceDescription &ddf = get(resource, DDF_EvalMatchExpr);
 
         if (ddf.isValid())
         {
@@ -2638,6 +2638,10 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
                 if (ddf.status == QLatin1String("Draft"))
                 {
                     result = 2;
+                }
+                else if (ddf.storageLocation == deCONZ::DdfBundleLocation || ddf.storageLocation == deCONZ::DdfBundleUserLocation)
+                {
+                    result = 3;
                 }
             }
         }

@@ -845,13 +845,20 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
     {
         DEV_PublishToCore(device);
 
-        if (event.num() == 1)
+        if (event.num() == 1 || event.num() == 3)
         {
             d->managed = true;
             d->flags.hasDdf = 1;
             d->setState(DEV_IdleStateHandler);
             // TODO(mpi): temporary forward this info here, gets replaced by device actor later
-            DEV_ForwardNodeChange(device, QLatin1String("hasddf"), QLatin1String("1"));
+            if (event.num() == 1)
+            {
+                DEV_ForwardNodeChange(device, QLatin1String("hasddf"), QLatin1String("1"));
+            }
+            else if (event.num() == 3)
+            {
+                DEV_ForwardNodeChange(device, QLatin1String("hasddf"), QLatin1String("2"));
+            }
         }
         else
         {
