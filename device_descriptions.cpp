@@ -2478,10 +2478,11 @@ void DeviceDescriptions::readAllBundles()
                 if (DDFB_FindChunk(&bs, "DESC", &chunkSize) == 0)
                     continue;
 
+                /*
+                 * Only load bundles into memory for devices which are present.
+                 */
                 if (DDF_IsBundleScheduled(pctx, (char*)&bs.data[bs.pos], chunkSize, d->ddfLoadRecords) == 0)
-                {
-                    // continue; // TODO TEMP ONLY
-                }
+                    continue;
 
                 // limit to DDFB content
                 U_bstream_init(&bs, &fileData[ddfbChunkOffset], ddfbChunkSize);
