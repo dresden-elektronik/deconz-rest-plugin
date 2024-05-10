@@ -28,6 +28,7 @@
           "0x0008"
         ]
       },
+      "meta": {"group.endpoints": [1] },
       "items": [
         {
           "name": "attr/id"
@@ -99,7 +100,8 @@
           "refresh.interval": 86400
         },
         {
-          "name": "config/group"
+          "name": "config/group",
+          "default": "auto"
         },
         {
           "name": "config/on"
