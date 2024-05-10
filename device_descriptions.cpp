@@ -2504,22 +2504,40 @@ void DeviceDescriptions::readAllBundles()
                     DDFB_SkipChunk(&bs);
                 }
 
+                if (!pctx->extChunks)
+                    continue; // must not be empty
+
                 if (DDF_ReadConstantsJson(pctx, d->constants2))
                 {
 
                 }
 
-                // now process the actual DDF content
-                U_bstream_init(&bs, &fileData[ddfbChunkOffset], ddfbChunkSize);
+                /*
+                 * Now process the actual DDF content which is in ETXF chunk with type DDFC.
+                 */
 
-                if (DDFB_FindChunk(&bs, "DDFC", &chunkSize) == 0)
+                DDFB_ExtfChunk *extfDDFC = nullptr;
+
+                for (DDFB_ExtfChunk *extf = pctx->extChunks; extf; extf = extf->next)
                 {
-                    continue;
+                    if (extf->fileType[0] != 'D' || extf->fileType[1] != 'D' || extf->fileType[2] != 'F' || extf->fileType[3] != 'C')
+                        continue;
+
+                    JSON_Schema schema = DDF_GetJsonSchema(extf->fileData, extf->fileSize);
+
+                    if (schema == JSON_SCHEMA_DEV_CAP_1)
+                    {
+                        extfDDFC = extf;
+                        break;
+                    }
                 }
 
+                if (!extfDDFC)
+                    continue; // main DDF JSON must be present
+
                 // tmp swap where data points
-                pctx->fileData = &bs.data[bs.pos];
-                pctx->fileDataSize = chunkSize;
+                pctx->fileData = extfDDFC->fileData;
+                pctx->fileDataSize = extfDDFC->fileSize;
 
                 DeviceDescription ddf = DDF_ReadDeviceFile(pctx);
                 if (!ddf.isValid())
