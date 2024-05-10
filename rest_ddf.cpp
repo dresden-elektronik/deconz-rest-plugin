@@ -130,7 +130,7 @@ int REST_DDF_GetDescriptors(const ApiRequest &req, ApiResponse &rsp)
     unsigned curCursor = 1;
     unsigned nextCursor = 0;
     unsigned nRecords = 0;
-    unsigned maxRecords = 2;
+    unsigned maxRecords = 64;
 
     auto url = req.hdr.url();
 
