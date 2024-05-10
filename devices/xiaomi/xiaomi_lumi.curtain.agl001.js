@@ -1,11 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "FYRTUR block-out roller blind",
-  "vendor": "IKEA of Sweden",
-  "product": "FYRTUR block-out roller blind",
+  "manufacturername": "$MF_LUMI",
+  "modelid": "lumi.curtain.agl001",
+  "product": "ZNCLBL01LM",
   "sleeper": false,
-  "status": "Draft",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_WINDOW_COVERING_DEVICE",
@@ -15,9 +14,6 @@
         "0x01"
       ],
       "items": [
-        {
-          "name": "attr/id"
-        },
         {
           "name": "attr/lastannounced"
         },
@@ -43,19 +39,25 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "state/lift"
+          "name": "state/lift",
+          "refresh.interval": 700,
+          "read": {
+            "at": "0x0008",
+            "cl": "0x0102"
+          },
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0102",
+            "eval": "Item.val = 100 - Attr.val"
+          },
+          "default": 0
         },
         {
           "name": "state/open",
           "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0102",
             "at": "0x0008",
-            "eval": "Item.val = Attr.val < 100"
-          },
-          "read": {
-            "fn": "none"
+            "cl": "0x0102",
+            "eval": "Item.val = Attr.val > 0"
           }
         },
         {
@@ -71,26 +73,7 @@
         "0x01",
         "0x0001"
       ],
-      "fingerprint": {
-        "profile": "0x0104",
-        "device": "0x0202",
-        "endpoint": "0x01",
-        "in": [
-          "0x0000",
-          "0x0001",
-          "0x0102"
-        ],
-        "out": [
-          "0x0019"
-        ]
-      },
       "items": [
-        {
-          "name": "attr/id"
-        },
-        {
-          "name": "attr/lastannounced"
-        },
         {
           "name": "attr/lastseen"
         },
@@ -104,10 +87,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
-          "read": {
-            "fn": "none"
-          }
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -116,21 +96,22 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "state/battery",
+          "awake": true,
+          "refresh.interval": 86400,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "default": 0
+        },
+        {
           "name": "config/on"
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "state/battery",
-          "refresh.interval": 3700,
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0001",
-            "at": "0x0021",
-            "eval": "Item.val = Attr.val"
-          }
         },
         {
           "name": "state/lastupdated"
@@ -142,27 +123,14 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0001",
       "report": [
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 1,
+          "min": 60,
           "max": 3600,
-          "change": "0x00000001"
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0102",
-      "report": [
-        {
-          "at": "0x0008",
-          "dt": "0x20",
-          "min": 1,
-          "max": 300,
           "change": "0x00000001"
         }
       ]

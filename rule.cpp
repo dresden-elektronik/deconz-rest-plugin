@@ -97,17 +97,17 @@ void Rule::setCreationtime(const QString &creationtime)
 
 /*! Returns the count the rule was triggered.
  */
-const quint32 &Rule::timesTriggered() const
+quint32 Rule::timesTriggered() const
 {
-    return this->m_timesTriggered;
+    return m_timesTriggered;
 }
 
 /*! Sets the count the rule was triggered.
     \param timesTriggered the count the rule was triggered
  */
-void Rule::setTimesTriggered(const quint32 &timesTriggered)
+void Rule::setTimesTriggered(quint32 timesTriggered)
 {
-    this->m_timesTriggered = timesTriggered;
+    m_timesTriggered = timesTriggered;
 }
 
 /*! Returns the trigger periodic time value in milliseconds.

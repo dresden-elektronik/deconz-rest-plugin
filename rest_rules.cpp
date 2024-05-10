@@ -530,6 +530,7 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
 
             DBG_Printf(DBG_INFO, "create rule %s: %s\n", qPrintable(rule.id()), qPrintable(rule.name()));
             rules.push_back(rule);
+            rules.back().setNeedSaveDatabase();
             indexRulesTriggers();
             queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
 
@@ -811,6 +812,7 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
     {
         updateEtag(rule->etag);
         updateEtag(gwConfigEtag);
+        rule->setNeedSaveDatabase();
         queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
     }
 
@@ -947,6 +949,7 @@ int DeRestPluginPrivate::deleteRule(const ApiRequest &req, ApiResponse &rsp)
 
     updateEtag(gwConfigEtag);
     updateEtag(rule->etag);
+    rule->setNeedSaveDatabase();
 
     queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
 
@@ -1435,9 +1438,10 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
     {
         rule.m_lastTriggered = QDateTime::currentDateTimeUtc();
         rule.setTimesTriggered(rule.timesTriggered() + 1);
+        rule.setNeedSaveDatabase();
         updateEtag(rule.etag);
         updateEtag(gwConfigEtag);
-        queSaveDb(DB_RULES, DB_HUGE_SAVE_DELAY);
+        //queSaveDb(DB_RULES, DB_HUGE_SAVE_DELAY);
     }
 }
 

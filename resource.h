@@ -78,12 +78,14 @@ extern const char *REventTick;
 extern const char *REventTimerFired;
 extern const char *REventZclResponse;
 extern const char *REventZclReadReportConfigResponse;
+extern const char *REventZdpReload;
 extern const char *REventZdpMgmtBindResponse;
 extern const char *REventZdpResponse;
 
 // resouce suffixes: state/buttonevent, config/on, ...
 extern const char *RInvalidSuffix;
 
+extern const char *RAttrAppVersion;
 extern const char *RAttrClass;
 extern const char *RAttrConfigId;
 extern const char *RAttrExtAddress;
@@ -97,6 +99,7 @@ extern const char *RAttrMode;
 extern const char *RAttrModelId;
 extern const char *RAttrName;
 extern const char *RAttrNwkAddress;
+extern const char *RAttrOtaVersion;
 extern const char *RAttrPowerOnCt;
 extern const char *RAttrPowerOnLevel;
 extern const char *RAttrPowerup;
@@ -478,6 +481,7 @@ public:
     const QString &toString() const;
     QLatin1String toLatin1String() const;
     const char *toCString() const;
+    unsigned atomIndex() const { return m_strHandle; }
     qint64 toNumber() const;
     qint64 toNumberPrevious() const;
     deCONZ::SteadyTimeRef lastZclReport() const { return m_lastZclReport; }
@@ -487,6 +491,8 @@ public:
     deCONZ::TimeSeconds refreshInterval() const { return m_refreshInterval; }
     void setRefreshInterval(deCONZ::TimeSeconds interval) { m_refreshInterval = interval; }
     void setZclProperties(const ZCL_Param &param) { m_zclParam = param; }
+    void setReadEndpoint(uint8_t ep) { m_readEndpoint = ep; }
+    uint8_t readEndpoint() const { return m_readEndpoint; }
     bool setValue(const QString &val, ValueSource source = SourceUnknown);
     bool setValue(qint64 val, ValueSource source = SourceUnknown);
     bool setValue(const QVariant &val, ValueSource source = SourceUnknown);
@@ -539,7 +545,7 @@ private:
     };
     deCONZ::SteadyTimeRef m_lastZclReport;
 
-    BufStringCacheHandle m_strHandle; // for strings which don't fit into \c m_istr
+    unsigned m_strHandle = 0; // for strings which don't fit into \c m_istr
     ItemString m_istr; // internal embedded small string
     deCONZ::TimeSeconds m_refreshInterval;
     QString *m_str = nullptr;
@@ -547,9 +553,10 @@ private:
     QDateTime m_lastSet;
     QDateTime m_lastChanged;
     std::vector<int> m_rulesInvolved; // the rules a resource item is trigger
-    ZCL_Param m_zclParam{};
+    ZCL_Param m_zclParam{}; // for parse function
     ParseFunction_t m_parseFunction = nullptr;
     quint32 m_ddfItemHandle = 0; // invalid item handle
+    uint8_t m_readEndpoint = 0;
 };
 
 class Resource

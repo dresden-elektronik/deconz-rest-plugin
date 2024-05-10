@@ -201,7 +201,7 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
         bindingTableReaderTimer->start();
     }
 
-    return false;
+    return true;
 }
 
 /*! Handle bind table confirm.
@@ -927,7 +927,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         return false;
     }
 
-    const QString modelId = r->item(RAttrModelId)->toString();
+    const QLatin1String modelId = r->item(RAttrModelId)->toLatin1String();
     const quint16 manufacturerCode = bt.restNode->node()->nodeDescriptor().manufacturerCode();
 
     if (bt.binding.clusterId == BOSCH_AIR_QUALITY_CLUSTER_ID && manufacturerCode == VENDOR_BOSCH2)

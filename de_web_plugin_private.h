@@ -18,9 +18,6 @@
 #include <stdint.h>
 #include <queue>
 #include <memory>
-#if QT_VERSION < 0x050000
-#include <QHttpRequestHeader>
-#endif
 #include <sqlite3.h>
 #include <deconz.h>
 #include "device.h"
@@ -31,19 +28,17 @@
 #include "event_emitter.h"
 #include "green_power.h"
 #include "resource.h"
+#include "rest_api.h"
 #include "rest_node_base.h"
 #include "light_node.h"
 #include "group.h"
 #include "group_info.h"
-#include "ias_zone.h"
 #include "scene.h"
 #include "sensor.h"
 #include "resourcelinks.h"
 #include "rule.h"
 #include "bindings.h"
-#include <math.h>
 #include "websocket_server.h"
-#include "tuya.h"
 
 // enable domain specific string literals
 using namespace deCONZ::literals;
@@ -52,35 +47,6 @@ using namespace deCONZ::literals;
   // Workaround to detect ARM and AARCH64 in older Qt versions.
   #define ARCH_ARM
 #endif
-
-/*! JSON generic error message codes */
-#define ERR_UNAUTHORIZED_USER          1
-#define ERR_INVALID_JSON               2
-#define ERR_RESOURCE_NOT_AVAILABLE     3
-#define ERR_METHOD_NOT_AVAILABLE       4
-#define ERR_MISSING_PARAMETER          5
-#define ERR_PARAMETER_NOT_AVAILABLE    6
-#define ERR_INVALID_VALUE              7
-#define ERR_PARAMETER_NOT_MODIFIABLE   8
-#define ERR_TOO_MANY_ITEMS             11
-#define ERR_DUPLICATE_EXIST            100 // de extension
-#define ERR_NOT_ALLOWED_SENSOR_TYPE    501
-#define ERR_SENSOR_LIST_FULL           502
-#define ERR_RULE_ENGINE_FULL           601
-#define ERR_CONDITION_ERROR            607
-#define ERR_ACTION_ERROR               608
-#define ERR_INTERNAL_ERROR             901
-
-#define ERR_NOT_CONNECTED              950 // de extension
-#define ERR_BRIDGE_BUSY                951 // de extension
-
-#define ERR_LINK_BUTTON_NOT_PRESSED    101
-#define ERR_DEVICE_OFF                 201
-#define ERR_DEVICE_NOT_REACHABLE       202
-#define ERR_BRIDGE_GROUP_TABLE_FULL    301
-#define ERR_DEVICE_GROUP_TABLE_FULL    302
-
-#define ERR_DEVICE_SCENES_TABLE_FULL   402 // de extension
 
 #define IDLE_TIMER_INTERVAL 1000
 #define IDLE_LIMIT 30
@@ -428,10 +394,6 @@ using namespace deCONZ::literals;
 #define MAX_RULE_NAME_LENGTH 64
 #define MAX_SENSOR_NAME_LENGTH 32
 
-// REST API return codes
-#define REQ_READY_SEND   0
-#define REQ_NOT_HANDLED -1
-
 // Special application return codes
 #define APP_RET_UPDATE        40
 #define APP_RET_RESTART_APP   41
@@ -488,9 +450,6 @@ using namespace deCONZ::literals;
 void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime, quint8 mode);
 int getFreeSensorId(); // TODO needs to be part of a Database class
 int getFreeLightId();  // TODO needs to be part of a Database class
-
-// REST API common
-QVariantMap errorToMap(int id, const QString &ressource, const QString &description);
 
 extern const quint64 macPrefixMask;
 
@@ -703,24 +662,6 @@ inline bool checkMacAndVendor(const deCONZ::Node *node, quint16 vendor)
 
 quint8 zclNextSequenceNumber();
 const deCONZ::Node *getCoreNode(uint64_t extAddress);
-
-// HTTP status codes
-extern const char *HttpStatusOk;
-extern const char *HttpStatusAccepted;
-extern const char *HttpStatusNotModified;
-extern const char *HttpStatusUnauthorized;
-extern const char *HttpStatusBadRequest;
-extern const char *HttpStatusForbidden;
-extern const char *HttpStatusNotFound;
-extern const char *HttpStatusNotImplemented;
-extern const char *HttpStatusServiceUnavailable;
-extern const char *HttpContentHtml;
-extern const char *HttpContentCss;
-extern const char *HttpContentJson;
-extern const char *HttpContentJS;
-extern const char *HttpContentPNG;
-extern const char *HttpContentJPG;
-extern const char *HttpContentSVG;
 
 // Forward declarations
 class DeviceDescriptions;
@@ -981,67 +922,6 @@ public:
     QString useragent;
 };
 
-enum ApiVersion
-{
-    ApiVersion_1,        //!< common version 1.0
-    ApiVersion_1_DDEL,   //!< version 1.0, "Accept: application/vnd.ddel.v1"
-    ApiVersion_1_1_DDEL, //!< version 1.1, "Accept: application/vnd.ddel.v1.1"
-    ApiVersion_2_DDEL,   //!< version 2.0, "Accept: application/vnd.ddel.v2"
-    ApiVersion_3_DDEL    //!< version 3.0, "Accept: application/vnd.ddel.v3"
-};
-
-enum ApiAuthorisation
-{
-    ApiAuthNone,
-    ApiAuthLocal,
-    ApiAuthInternal,
-    ApiAuthFull
-};
-
-enum ApiMode
-{
-    ApiModeNormal,
-    ApiModeStrict,
-    ApiModeEcho,
-    ApiModeHue
-};
-
-/*! \class ApiRequest
-
-    Helper to simplify HTTP REST request handling.
- */
-class ApiRequest
-{
-public:
-    ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSocket *s, const QString &c);
-    QString apikey() const;
-    ApiVersion apiVersion() const { return version; }
-
-    const QHttpRequestHeader &hdr;
-    const QStringList &path;
-    QTcpSocket *sock;
-    QString content;
-    ApiVersion version;
-    ApiAuthorisation auth;
-    ApiMode mode;
-};
-
-/*! \class ApiResponse
-
-    Helper to simplify HTTP REST request handling.
- */
-class ApiResponse
-{
-public:
-    QString etag;
-    const char *httpStatus;
-    const char *contentType;
-    QList<QPair<QString, QString> > hdrFields; // extra header fields
-    QVariantMap map; // json content
-    QVariantList list; // json content
-    QString str; // json string
-};
-
 /*! \class ApiConfig
 
     Provide config to the resource system.
@@ -1263,7 +1143,7 @@ public:
 
     // Otau
     void initOtau();
-    void otauDataIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
+    void otauDataIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, Device *device);
     bool isOtauBusy();
     bool isOtauActive();
     int otauLastBusyTimeDelta() const;
@@ -1637,15 +1517,6 @@ public:
     void checkDbUserVersion();
     void cleanUpDb();
     void createTempViews();
-    int getDbPragmaInteger(const char *sql);
-    bool setDbUserVersion(int userVersion);
-    bool upgradeDbToUserVersion1();
-    bool upgradeDbToUserVersion2();
-    bool upgradeDbToUserVersion6();
-    bool upgradeDbToUserVersion7();
-    bool upgradeDbToUserVersion8();
-    bool upgradeDbToUserVersion9();
-    void refreshDeviceDb(const deCONZ::Address &addr);
     void pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data);
     void pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data);
     bool dbIsOpen() const;

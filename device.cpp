@@ -32,6 +32,8 @@
 #define MGMT_BIND_SUPPORTED        1
 #define MGMT_BIND_NOT_SUPPORTED    0
 
+#define DEV_INVALID_DEVICE_ID -1
+
 typedef void (*DeviceStateHandler)(Device *, const Event &);
 
 /*! Device state machine description can be found in the wiki:
@@ -45,6 +47,7 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event);
 void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event);
 void DEV_BasicClusterStateHandler(Device *device, const Event &event);
 void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event);
+static const deCONZ::SimpleDescriptor *DEV_GetSimpleDescriptorForServerCluster(const Device *device, deCONZ::ZclClusterId_t clusterId);
 void DEV_BindingHandler(Device *device, const Event &event);
 void DEV_BindingTableReadHandler(Device *device, const Event &event);
 void DEV_BindingTableVerifyHandler(Device *device, const Event &event);
@@ -135,6 +138,7 @@ public:
     std::array<Resource::Handle, MaxSubResources> subResourceHandles;
     std::vector<Resource*> subResources;
     const deCONZ::Node *node = nullptr; //! a reference to the deCONZ core node
+    int deviceId = DEV_INVALID_DEVICE_ID;
     DeviceKey deviceKey = 0; //! for physical devices this is the MAC address
 
     /*! The currently active state handler function(s).
@@ -154,13 +158,17 @@ public:
     ZDP_Result zdpResult; //! keep track of a running ZDP request
     DA_ReadResult readResult; //! keep track of a running "read" request
 
+    uint8_t zdpNeedFetchEndpointIndex = 0xFF; //! used in combination with flags.needReadSimpleDescriptors
     int maxResponseTime = RxOffWhenIdleResponseTime;
 
     struct
     {
         unsigned char hasDdf : 1;
         unsigned char initialRun : 1;
-        unsigned char reserved : 6;
+        unsigned char needZDPMaintenanceOnce : 1;
+        unsigned char needReadActiveEndpoints : 1;
+        unsigned char needReadSimpleDescriptors : 1;
+        unsigned char reserved : 3;
     } flags{};
 };
 
@@ -282,7 +290,7 @@ void DEV_InitStateHandler(Device *device, const Event &event)
         }
         else
         {
-            DBG_Printf(DBG_DEV, "DEV Init no node found: 0x%016llX\n", event.deviceKey());
+            DBG_Printf(DBG_DEV, "DEV Init no node found: " FMT_MAC "\n", FMT_MAC_CAST(event.deviceKey()));
 
             if ((device->key() & 0xffffffff00000000LLU) == 0)
             {
@@ -345,7 +353,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
     {
         if (!device->node()->nodeDescriptor().isNull())
         {
-            DBG_Printf(DBG_DEV, "ZDP node descriptor verified: 0x%016llX\n", device->key());
+            DBG_Printf(DBG_DEV, "DEV ZDP node descriptor verified: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
             d->maxResponseTime = d->hasRxOnWhenIdle() ? RxOnWhenIdleResponseTime
                                                       : RxOffWhenIdleResponseTime;
 
@@ -400,7 +408,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_DEV, "read ZDP node descriptor timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "DEV read ZDP node descriptor timeout: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
         d->setState(DEV_InitStateHandler);
     }
 }
@@ -413,9 +421,9 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
-        if (!device->node()->endpoints().empty())
+        if (!device->node()->endpoints().empty() && !d->flags.needReadActiveEndpoints)
         {
-            DBG_Printf(DBG_DEV, "ZDP active endpoints verified: 0x%016llX\n", device->key());
+            DBG_Printf(DBG_DEV, "DEV ZDP active endpoints verified: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
             d->setState(DEV_SimpleDescriptorStateHandler);
         }
         else if (!device->reachable())
@@ -456,15 +464,17 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventActiveEndpoints)
     {
+        d->flags.needReadActiveEndpoints = 0;
         d->setState(DEV_InitStateHandler);
         DEV_EnqueueEvent(device, REventAwake);
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_DEV, "read ZDP active endpoints timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "DEV read ZDP active endpoints timeout: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
         d->setState(DEV_InitStateHandler);
     }
 }
+
 
 /*! #4 This state checks that for all active endpoints simple descriptors are known.
  */
@@ -476,20 +486,41 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
     {
         quint8 needFetchEp = 0x00;
 
-        for (const auto ep : device->node()->endpoints())
+        if (d->flags.needReadSimpleDescriptors) // forced read to refresh simple descriptors
         {
-            deCONZ::SimpleDescriptor sd;
-            // TODO(mpi) copy is heavy, just need to search
-            if (device->node()->copySimpleDescriptor(ep, &sd) != 0 || sd.deviceId() == 0xffff)
+            if (d->zdpNeedFetchEndpointIndex < device->node()->endpoints().size())
             {
-                needFetchEp = ep;
-                break;
+                needFetchEp = device->node()->endpoints()[d->zdpNeedFetchEndpointIndex];
+            }
+        }
+        else
+        {
+            for (uint8_t ep : device->node()->endpoints())
+            {
+                bool ok = false;
+                for (size_t i = 0; i < device->node()->simpleDescriptors().size(); i++)
+                {
+                    const deCONZ::SimpleDescriptor &sd = device->node()->simpleDescriptors()[i];
+                    if (sd.endpoint() == ep && sd.deviceId() != 0xffff)
+                    {
+                        ok = true;
+                        break;
+                    }
+                }
+
+                if (!ok)
+                {
+                    needFetchEp = ep;
+                    break;
+                }
             }
         }
 
         if (needFetchEp == 0x00)
         {
-            DBG_Printf(DBG_DEV, "ZDP simple descriptors verified: 0x%016llX\n", device->key());
+            DBG_Printf(DBG_DEV, "DEV ZDP simple descriptors verified: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
+            d->flags.needReadSimpleDescriptors = 0;
+            d->zdpNeedFetchEndpointIndex = 0xFF;
             d->setState(DEV_BasicClusterStateHandler);
         }
         else if (!device->reachable())
@@ -530,19 +561,26 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventSimpleDescriptor)
     {
+        if (d->flags.needReadSimpleDescriptors) // forced read to refresh simple descriptors (next EP)
+        {
+            if (d->zdpNeedFetchEndpointIndex < device->node()->endpoints().size())
+            {
+                d->zdpNeedFetchEndpointIndex += 1;
+            }
+        }
         d->setState(DEV_InitStateHandler);
         DEV_EnqueueEvent(device, REventAwake);
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_DEV, "read ZDP simple descriptor timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "DEV read ZDP simple descriptor timeout: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
         d->setState(DEV_InitStateHandler);
     }
 }
 
 /*! Returns the first Simple Descriptor for a given server \p clusterId or nullptr if not found.
  */
-const deCONZ::SimpleDescriptor *DEV_GetSimpleDescriptorForServerCluster(const Device *device, deCONZ::ZclClusterId_t clusterId)
+static const deCONZ::SimpleDescriptor *DEV_GetSimpleDescriptorForServerCluster(const Device *device, deCONZ::ZclClusterId_t clusterId)
 {
     for (const auto &sd : device->node()->simpleDescriptors())
     {
@@ -639,7 +677,7 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
 
     if (!device->reachable())
     {
-        DBG_Printf(DBG_DEV, "DEV not reachable, skip read %s: 0x%016llX\n", item->descriptor().suffix, device->key());
+        DBG_Printf(DBG_DEV, "DEV not reachable, skip read %s: " FMT_MAC "\n", item->descriptor().suffix, FMT_MAC_CAST(device->key()));
         return false;
     }
 
@@ -647,7 +685,7 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
 
     if (!sd)
     {
-        DBG_Printf(DBG_DEV, "TODO cluster 0x%04X not found: 0x%016llX\n", device->key(), static_cast<quint16>(clusterId));
+        DBG_Printf(DBG_DEV, "DEV TODO cluster 0x%04X not found: " FMT_MAC "\n", static_cast<quint16>(clusterId), FMT_MAC_CAST(device->key()));
         return false;
     }
 
@@ -709,7 +747,7 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
                 return; // keep state and wait for REventStateTimeout or response
             }
 
-            DBG_Printf(DBG_DEV, "Failed to read %s: 0x%016llX\n", it.suffix, device->key());
+            DBG_Printf(DBG_DEV, "DEV failed to read %s: " FMT_MAC "\n", it.suffix, FMT_MAC_CAST(device->key()));
             break;
         }
 
@@ -719,7 +757,7 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
         }
         else
         {
-            DBG_Printf(DBG_DEV, "DEV modelId: %s, 0x%016llX\n", qPrintable(device->item(RAttrModelId)->toString()), device->key());
+            DBG_Printf(DBG_DEV, "DEV modelId: %s, " FMT_MAC "\n", qPrintable(device->item(RAttrModelId)->toString()), FMT_MAC_CAST(device->key()));
             d->setState(DEV_GetDeviceDescriptionHandler);
         }
     }
@@ -744,13 +782,13 @@ void DEV_BasicClusterStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == RAttrManufacturerName || event.what() == RAttrModelId)
     {
-        DBG_Printf(DBG_DEV, "DEV received %s: 0x%016llX\n", event.what(), device->key());
+        DBG_Printf(DBG_DEV, "DEV received %s: " FMT_MAC "\n", event.what(), FMT_MAC_CAST(device->key()));
         d->setState(DEV_InitStateHandler); // ok re-evaluate
         DEV_EnqueueEvent(device, REventAwake);
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_DEV, "DEV read basic cluster timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "DEV read basic cluster timeout: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
         d->setState(DEV_InitStateHandler);
     }
 }
@@ -865,6 +903,8 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
     {
         d->setState(nullptr, STATE_LEVEL_BINDING);
         d->setState(nullptr, STATE_LEVEL_POLL);
+        d->stopStateTimer(STATE_LEVEL_BINDING);
+        d->stopStateTimer(STATE_LEVEL_POLL);
         return;
     }
     else if (event.what() == REventApsConfirm)
@@ -880,7 +920,7 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
             if (d->idleApsConfirmErrors > MaxIdleApsConfirmErrors && device->item(RStateReachable)->toBool())
             {
                 d->idleApsConfirmErrors = 0;
-                DBG_Printf(DBG_DEV, "DEV: Idle max APS confirm errors: 0x%016llX\n", device->key());
+                DBG_Printf(DBG_DEV, "DEV Idle max APS confirm errors: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
                 device->item(RStateReachable)->setValue(false);
                 DEV_CheckReachable(device);
             }
@@ -897,7 +937,7 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
 
     if (!device->reachable() && !device->item(RCapSleeper)->toBool())
     {
-        DBG_Printf(DBG_DEV, "DEV (NOT reachable) Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
+        DBG_Printf(DBG_DEV, "DEV (NOT reachable) Idle event %s/" FMT_MAC "/%s\n", event.resource(), FMT_MAC_CAST(event.deviceKey()), event.what());
     }
 
     DEV_CheckItemChanges(device, event);
@@ -920,7 +960,7 @@ void DEV_BindingHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
-        DBG_Printf(DBG_DEV, "DEV Binding enter %s/0x%016llX\n", event.resource(), event.deviceKey());
+        DBG_Printf(DBG_DEV, "DEV Binding enter %s/" FMT_MAC "\n", event.resource(), FMT_MAC_CAST(event.deviceKey()));
     }
     else if (event.what() == REventPoll || event.what() == REventAwake || event.what() == REventBindingTick)
     {
@@ -975,7 +1015,7 @@ void DEV_BindingTableReadHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
-        DBG_Printf(DBG_DEV, "DEV Binding read bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
+        DBG_Printf(DBG_DEV, "DEV Binding read bindings %s/" FMT_MAC "\n", event.resource(), FMT_MAC_CAST(event.deviceKey()));
         d->binding.mgmtBindStartIndex = 0;
         DEV_EnqueueEvent(device, REventBindingTick);
     }
@@ -1021,7 +1061,6 @@ void DEV_BindingTableReadHandler(Device *device, const Event &event)
                 const uint8_t seq = buf[0];
                 const uint8_t status = buf[1];
 
-
                 if (seq != d->zdpResult.zdpSeq)
                 {
                     return;
@@ -1063,7 +1102,7 @@ void DEV_BindingTableReadHandler(Device *device, const Event &event)
                     }
                     else
                     {
-                        DBG_Printf(DBG_DEV, "ZDP read binding table error: 0x%016llX, status: 0x%02X (TODO handle?)\n", device->key(), status);
+                        DBG_Printf(DBG_DEV, "DEV ZDP read binding table error: " FMT_MAC ", status: 0x%02X (TODO handle?)\n", FMT_MAC_CAST(device->key()), status);
                     }
                     d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
                 }
@@ -1072,7 +1111,7 @@ void DEV_BindingTableReadHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_DEV, "ZDP read binding table timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "DEV ZDP read binding table timeout: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
         d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
     }
 }
@@ -1083,7 +1122,7 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
-        DBG_Printf(DBG_DEV, "DEV Binding verify bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
+        DBG_Printf(DBG_DEV, "DEV Binding verify bindings %s/" FMT_MAC "\n", event.resource(), FMT_MAC_CAST(event.deviceKey()));
         DEV_EnqueueEvent(device, REventBindingTick);
     }
     else if (event.what() != REventBindingTick)
@@ -1169,13 +1208,13 @@ void DEV_BindingTableVerifyHandler(Device *device, const Event &event)
 
             if (i->dstAddressMode() == deCONZ::ApsExtAddress)
             {
-                DBG_Printf(DBG_DEV, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, dst: 0x%016llX, dstEp: 0x%02X, dt: %lld seconds\n",
-                           i->srcAddress(), i->clusterId(), i->dstAddressMode(), i->dstAddress().ext(), i->dstEndpoint(), dt);
+                DBG_Printf(DBG_DEV, "DEV BND " FMT_MAC " cl: 0x%04X, dstAddrmode: %u, dst: " FMT_MAC ", dstEp: 0x%02X, dt: %d seconds\n",
+                           FMT_MAC_CAST(i->srcAddress()), i->clusterId(), i->dstAddressMode(), FMT_MAC_CAST(i->dstAddress().ext()), i->dstEndpoint(), (int)dt);
             }
             else if (i->dstAddressMode() == deCONZ::ApsGroupAddress)
             {
-                DBG_Printf(DBG_DEV, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, group: 0x%04X, dstEp: 0x%02X, dt: %lld seconds\n",
-                           i->srcAddress(), i->clusterId(), i->dstAddressMode(), i->dstAddress().group(), i->dstEndpoint(), dt);
+                DBG_Printf(DBG_DEV, "DEV BND  " FMT_MAC " cl: 0x%04X, dstAddrmode: %u, group: 0x%04X, dstEp: 0x%02X, dt: %d seconds\n",
+                           FMT_MAC_CAST(i->srcAddress()), i->clusterId(), i->dstAddressMode(), i->dstAddress().group(), i->dstEndpoint(), (int)dt);
             }
 
             if (dt < 0 || dt > 1800) // TODO max value
@@ -1270,7 +1309,7 @@ void DEV_BindingCreateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_DEV, "ZDP create binding timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "DEV ZDP create binding timeout: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
         d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
     }
 }
@@ -1360,7 +1399,7 @@ void DEV_BindingRemoveHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_DEV, "ZDP remove binding timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "DEV ZDP remove binding timeout: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
         d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
     }
 }
@@ -1404,18 +1443,18 @@ static bool reportingConfigurationValid(const Device *device, const Event &event
 
             okCount++;
 
-            DBG_Printf(DBG_DEV, "ZCL report configuration cl: 0x%04X, at: 0x%04X OK 0x%016llX\n", rsp.clusterId, record.attributeId, device->key());
+            DBG_Printf(DBG_DEV, "DEV ZCL report configuration cl: 0x%04X, at: 0x%04X OK " FMT_MAC "\n", rsp.clusterId, record.attributeId, FMT_MAC_CAST(device->key()));
         }
     }
 
     if (okCount == d->binding.readReportParam.records.size())
     {
-        DBG_Printf(DBG_DEV, "ZCL report configuration cl: 0x%04X, mfcode: 0x%04X verified 0x%016llX\n", rsp.clusterId, rsp.manufacturerCode, device->key());
+        DBG_Printf(DBG_DEV, "DEV ZCL report configuration cl: 0x%04X, mfcode: 0x%04X verified " FMT_MAC "\n", rsp.clusterId, rsp.manufacturerCode, FMT_MAC_CAST(device->key()));
         return true;
     }
     else
     {
-        DBG_Printf(DBG_DEV, "ZCL report configuration cl: 0x%04X, mfcode: 0x%04X needs update 0x%016llX\n", rsp.clusterId, rsp.manufacturerCode, device->key());
+        DBG_Printf(DBG_DEV, "DEV ZCL report configuration cl: 0x%04X, mfcode: 0x%04X needs update " FMT_MAC "\n", rsp.clusterId, rsp.manufacturerCode, FMT_MAC_CAST(device->key()));
         return false;
     }
 }
@@ -1457,7 +1496,7 @@ void DEV_ReadReportConfigurationHandler(Device *device, const Event &event)
             }
             else if ((tnow - tracker.lastConfigureCheck) < deCONZ::TimeSeconds{3600})
             {
-                DBG_Printf(DBG_DEV, "0x%016llX skip read ZCL report config for 0x%04X / 0x%04X\n", d->deviceKey, bnd.clusterId, report.attributeId);
+                DBG_Printf(DBG_DEV, "DEV " FMT_MAC " skip read ZCL report config for 0x%04X / 0x%04X\n", FMT_MAC_CAST(d->deviceKey), bnd.clusterId, report.attributeId);
                 continue;
             }
 
@@ -1553,7 +1592,7 @@ void DEV_ReadReportConfigurationHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_DEV, "ZCL read report configuration timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "DEV ZCL read report configuration timeout: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
         d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
     }
 }
@@ -1664,8 +1703,8 @@ void DEV_ConfigureReportingHandler(Device *device, const Event &event)
     {
         if (d->binding.zclResult.sequenceNumber == EventZclSequenceNumber(event))
         {
-            DBG_Printf(DBG_DEV, "DEV configure reporting %s/0x%016llX ZCL response seq: %u, status: 0x%02X\n",
-                   event.resource(), event.deviceKey(), d->binding.zclResult.sequenceNumber, EventZclStatus(event));
+            DBG_Printf(DBG_DEV, "DEV configure reporting %s/" FMT_MAC " ZCL response seq: %u, status: 0x%02X\n",
+                   event.resource(), FMT_MAC_CAST(event.deviceKey()), d->binding.zclResult.sequenceNumber, EventZclStatus(event));
 
             if (EventZclStatus(event) == deCONZ::ZclSuccessStatus)
             {
@@ -1692,7 +1731,7 @@ void DEV_ConfigureReportingHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_DEV, "ZCL configure reporting timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_DEV, "DEV ZCL configure reporting timeout: " FMT_MAC "\n", FMT_MAC_CAST(device->key()));
         d->setState(DEV_BindingHandler, STATE_LEVEL_BINDING);
     }
 }
@@ -1703,7 +1742,7 @@ void DEV_BindingIdleHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
-        DBG_Printf(DBG_DEV, "DEV Binding idle enter %s/0x%016llX\n", event.resource(), event.deviceKey());
+        DBG_Printf(DBG_DEV, "DEV Binding idle enter %s/" FMT_MAC "\n", event.resource(), FMT_MAC_CAST(event.deviceKey()));
         d->startStateTimer(BindingAutoCheckInterval, STATE_LEVEL_BINDING);
     }
     else if (event.what() == REventStateLeave)
@@ -1834,7 +1873,7 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
                 continue;
             }
 
-            DBG_Printf(DBG_DEV, "DEV 0x%016llX read %s, dt %d sec\n", d->deviceKey, item->descriptor().suffix, int(dt));
+            DBG_Printf(DBG_DEV, "DEV " FMT_MAC " read %s, dt %d sec\n", FMT_MAC_CAST(d->deviceKey), item->descriptor().suffix, int(dt));
             result.emplace_back(DEV_PollItem{r, item, ddfItem.readParameters});
         }
     }
@@ -1852,7 +1891,7 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
-        DBG_Printf(DBG_DEV, "DEV Poll Idle enter %s/0x%016llX\n", event.resource(), event.deviceKey());
+        DBG_Printf(DBG_DEV, "DEV Poll Idle enter %s/" FMT_MAC "\n", event.resource(), FMT_MAC_CAST(event.deviceKey()));
     }
     else if (event.what() == REventPoll || event.what() == REventAwake)
     {
@@ -1870,6 +1909,28 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
                 device->item(RAttrNwkAddress)->setValue(addr.nwk());
             }
         }
+
+        if (d->flags.needZDPMaintenanceOnce)
+        {
+            // use some jitter to spread the the one time refresh of ZDP stuff
+            static int randomDelay = 0;
+            randomDelay++;
+            if (randomDelay > (d->deviceKey & 0xFF))
+            {
+                randomDelay = 0;
+                d->flags.needZDPMaintenanceOnce = 0;
+
+                if (!device->item(RCapSleeper)->toBool() && device->reachable())
+                {
+                    d->flags.needReadActiveEndpoints = 1;
+                    d->flags.needReadSimpleDescriptors = 1;
+                    d->zdpNeedFetchEndpointIndex = 0;
+                    DEV_EnqueueEvent(device, REventZdpReload);
+                    return;
+                }
+            }
+        }
+
 
         d->pollItems = DEV_GetPollItems(device);
 
@@ -1912,7 +1973,7 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
         }
         else
         {
-            DBG_Printf(DBG_DEV, "DEV: Poll Next no read function for item: %s / 0x%016llX\n", poll.item->descriptor().suffix, device->key());
+            DBG_Printf(DBG_DEV, "DEV Poll Next no read function for item: %s / " FMT_MAC "\n", poll.item->descriptor().suffix, FMT_MAC_CAST(device->key()));
             d->pollItems.pop_back();
             d->startStateTimer(5, STATE_LEVEL_POLL); // try next
             return;
@@ -1926,7 +1987,7 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
         {
             poll.retry++;
 
-            DBG_Printf(DBG_DEV, "DEV: Poll Next failed to enqueue read item: %s / 0x%016llX\n", poll.item->descriptor().suffix, device->key());
+            DBG_Printf(DBG_DEV, "DEV Poll Next failed to enqueue read item: %s / " FMT_MAC "\n", poll.item->descriptor().suffix, FMT_MAC_CAST(device->key()));
             if (poll.retry >= MaxPollItemRetries)
             {
                 d->pollItems.pop_back();
@@ -1973,8 +2034,8 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventApsConfirm && EventApsConfirmId(event) == d->readResult.apsReqId)
     {
-        DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX APS-DATA.confirm id: %u, ZCL seq: %u, status: 0x%02X\n",
-                   event.resource(), event.deviceKey(), d->readResult.apsReqId, d->readResult.sequenceNumber, EventApsConfirmStatus(event));
+        DBG_Printf(DBG_DEV, "DEV Poll Busy %s/" FMT_MAC " APS-DATA.confirm id: %u, ZCL seq: %u, status: 0x%02X\n",
+                   event.resource(), FMT_MAC_CAST(event.deviceKey()), d->readResult.apsReqId, d->readResult.sequenceNumber, EventApsConfirmStatus(event));
 
         if (EventApsConfirmStatus(event) == deCONZ::ApsSuccessStatus)
         {
@@ -2020,8 +2081,8 @@ void DEV_PollBusyStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_DEV, "DEV Poll Busy %s/0x%016llX timeout seq: %u, cluster: 0x%04X\n",
-           event.resource(), event.deviceKey(), d->readResult.sequenceNumber, d->readResult.clusterId);
+        DBG_Printf(DBG_DEV, "DEV Poll Busy %s/" FMT_MAC " timeout seq: %u, cluster: 0x%04X\n",
+           event.resource(), FMT_MAC_CAST(event.deviceKey()), d->readResult.sequenceNumber, d->readResult.clusterId);
         checkPollItemRetry(d->pollItems);
         d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
     }
@@ -2033,7 +2094,7 @@ void DEV_DeadStateHandler(Device *device, const Event &event)
 {
     if (event.what() == REventStateEnter)
     {
-        DBG_Printf(DBG_DEV, "DEV enter passive state 0x%016llX\n", event.deviceKey());
+        DBG_Printf(DBG_DEV, "DEV enter passive state " FMT_MAC "\n", FMT_MAC_CAST(event.deviceKey()));
     }
     else if (event.what() == REventStateLeave)
     {
@@ -2074,6 +2135,10 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     d->apsCtrl = apsCtrl;
     d->deviceKey = key;
     d->flags.initialRun = 1;
+    d->flags.hasDdf = 0;
+    d->flags.needZDPMaintenanceOnce = 1;
+    d->flags.needReadActiveEndpoints = 0;
+    d->flags.needReadSimpleDescriptors = 0;
 
     addItem(DataTypeBool, RStateReachable);
     addItem(DataTypeBool, RCapSleeper);
@@ -2082,6 +2147,7 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     addItem(DataTypeString, RAttrUniqueId)->setValue(generateUniqueId(key, 0, 0));
     addItem(DataTypeString, RAttrManufacturerName);
     addItem(DataTypeString, RAttrModelId);
+    addItem(DataTypeUInt32, RAttrOtaVersion);
 
     // lazy init since the event handler is connected after the constructor
     QTimer::singleShot(0, this, [this]()
@@ -2100,6 +2166,19 @@ Device::~Device()
     Q_ASSERT(d);
     delete d;
     d = nullptr;
+}
+
+void Device::setDeviceId(int id)
+{
+    if (id >= 0)
+    {
+        d->deviceId = id;
+    }
+}
+
+int Device::deviceId() const
+{
+    return d->deviceId;
 }
 
 void Device::addSubDevice(Resource *sub)
@@ -2197,12 +2276,17 @@ void Device::handleEvent(const Event &event, DEV_StateLevel level)
     {
         // REventStateEnter must always arrive first via urgend event queue.
         // This branch should never hit!
-        DBG_Printf(DBG_DEV, "DEV event before REventStateEnter: 0x%016llX, skip: %s\n", d->deviceKey, event.what());
+        DBG_Printf(DBG_DEV, "DEV event before REventStateEnter: " FMT_MAC ", skip: %s\n", FMT_MAC_CAST(d->deviceKey), event.what());
     }
     else if (event.what() == REventDDFReload)
     {
         d->setState(DEV_InitStateHandler);
         d->binding.bindingCheckRound = 0;
+        d->startStateTimer(50, StateLevel0);
+    }
+    else if (event.what() == REventZdpReload)
+    {
+        d->setState(DEV_ActiveEndpointsStateHandler);
         d->startStateTimer(50, StateLevel0);
     }
     else if (d->state[level])
@@ -2267,7 +2351,10 @@ void Device::timerEvent(QTimerEvent *event)
         if (event->timerId() == d->timer[i].timerId())
         {
             d->timer[i].stop(); // single shot
-            d->state[i](this, Event(prefix(), REventStateTimeout, i, key()));
+            if (d->state[i])
+            {
+                d->state[i](this, Event(prefix(), REventStateTimeout, i, key()));
+            }
             break;
         }
     }
@@ -2368,7 +2455,7 @@ void Device::addBinding(const DDF_Binding &bnd)
     }
     else
     {
-        DBG_Printf(DBG_DEV, "DEV add binding cluster: 0x%04X,  0x%016llX\n", bnd.clusterId, d->deviceKey);
+        DBG_Printf(DBG_DEV, "DEV add binding cluster: 0x%04X, " FMT_MAC "\n", bnd.clusterId, FMT_MAC_CAST(d->deviceKey));
         BindingTracker tracker{};
 
         d->binding.bindings.push_back(bnd);

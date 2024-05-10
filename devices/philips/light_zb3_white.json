@@ -3,18 +3,23 @@
   "manufacturername": [
     "$MF_PHILIPS",
     "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY"
   ],
   "modelid": [
     "LWA001",
+    "LWA028",
     "LWE002",
     "LWA001",
+    "LWA028",
     "LWE002"
   ],
   "product": "Hue white light",
   "sleeper": false,
   "status": "Gold",
+  "matchexpr": "R.hasCluster(0x0b,0xfc03)",
   "subdevices": [
     {
       "type": "$TYPE_DIMMABLE_LIGHT",

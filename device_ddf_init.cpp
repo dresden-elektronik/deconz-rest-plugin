@@ -130,6 +130,10 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
             // keep 'id', it might have been loaded from legacy db
             // and will be updated in 'resource_items' table on next write
         }
+        else if (item->lastSet().isValid() && item->toVariant() == dbItem->value)
+        {
+            // nothing to do
+        }
         else
         {
             item->setValue(dbItem->value);
@@ -479,6 +483,23 @@ bool DEV_InitDeviceBasic(Device *device)
             }
 
             break;
+        }
+    }
+
+    DB_ZclValue zclVal;
+    zclVal.deviceId = device->deviceId();
+    zclVal.endpoint = 0;
+    zclVal.clusterId = 0x0019; // OTA cluster
+    zclVal.attrId = 0x0002; // OTA current file version
+    zclVal.data = 0;
+
+    if (DB_LoadZclValue(&zclVal) && zclVal.data != 0)
+    {
+        ResourceItem *item = device->item(RAttrOtaVersion);
+        if (item && item->toNumber() != zclVal.data)
+        {
+            item->setValue(zclVal.data, ResourceItem::SourceDevice);
+            item->clearNeedPush();
         }
     }
 

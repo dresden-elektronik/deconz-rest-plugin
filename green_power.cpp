@@ -72,6 +72,9 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
 #ifdef Q_OS_WIN
     QLibrary libCrypto(QLatin1String("libcrypto-1_1.dll"));
     QLibrary libSsl(QLatin1String("libssl-1_1.dll"));
+#elif defined (__APPLE__)
+    QLibrary libCrypto(QLatin1String("../Frameworks/libcrypto.3.dylib"));
+    QLibrary libSsl(QLatin1String("../Frameworks/libssl.3.dylib"));
 #else
     QLibrary libCrypto(QLatin1String("crypto"));
     QLibrary libSsl(QLatin1String("ssl"));

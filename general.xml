@@ -389,6 +389,85 @@
             <value name="0x02 - Indicate motion detection" value="1"></value>
           </attribute>
         </attribute-set>
+        
+        
+        
+        <attribute-set id="0x9000" description="Sunricher specific" mfcode="0x1224">
+          <attribute id="0x8806" name="Dimming brightness curve" type="u8" default="0x00" access="rw" required="m" mfcode="0x1224">
+            <description>Works after reset power of the device.
+              0: linear,
+              15: logarithmic with gamma value 1.5,
+              18: logarithmic with gamma value 1.8</description>
+          </attribute>
+          <attribute id="0x8903" name="Motion sensor daylight sensor lux threshold" type="u16" default="0x0000" access="rw" required="m" mfcode="0x1224">
+            <description>2 bytes, only when the detected lux is lower than the threshold, turning on the light is permitted. For instance, with value 0x0000, this function does not work.</description>
+          </attribute>
+          <attribute id="0x8904" name="Motion sensor operation mode" type="u8" default="0x00" access="rw" required="m" mfcode="0x1224">
+            <description>0: means auto mode,
+              1: means manual mode
+              
+              Auto mode means that when a motion is detected, the device will output PWM according to the set brightness threshold, and delay time.
+              PWM status needs to be reported to the gateway.
+              
+              Manual mode means that PWM output is controlled and determined by the gateway or the wireless switch, not associated with motion detection.</description>
+          </attribute>
+          <attribute id="0x8905" name="Motion sensor sensitivity setting" type="u8" default="0x01" access="rw" required="m" mfcode="0x1224">
+            <description>Works after reset power of the device. 1 byte, data range 0-15, 0 is the highest sensitivity, 15 is the lowest sensitivity.</description>
+          </attribute>
+          <attribute id="0x8906" name="Motion sensor microwave detection" type="u8" default="0x01" access="rw" required="m" mfcode="0x1224">
+            <description>Works after reset power of the device.
+              0: disabled,
+              1: enabled.</description>
+          </attribute>
+          <attribute id="0x8907" name="Send ON/OFF command to the touchlink devices" type="u8" default="0x01" access="rw" required="m" mfcode="0x1224">
+            <description>Works after reset power of the device. Configuration of whether to send ON/OFF command to the touchlink devices and binding devices.
+              0=do not send,
+              1=send</description>
+          </attribute>
+          <attribute id="0x890C" name="Brightness module" type="u8" default="0x01" access="rw" required="m" mfcode="0x1224">
+            <description>0=disabled,
+              1=enabled</description>
+          </attribute>
+          <attribute id="0x8902" name="Light on time" type="u16" default="0x003C" access="rw" required="m" mfcode="0x1224">
+            <description>Light on time (the first delay time).
+              Works after reset power of the device. When motion sensor mode is set as auto mode, and motion is detected, after the person leaves, light on time of the device.
+              2 bytes, unit is second.</description>
+          </attribute>
+          <attribute id="0x8908" name="Brightness of PWM output when motion detected" type="u16" default="0x0000" access="rw" required="m" mfcode="0x1224">
+            <description>Configuration of the brightness value of PWM output when motion detected, this brightness value is controlled through PWM output working as PID
+              closed loop control to achieve the constant light output. Value range is 0-1000LUX, 0LUX means this attribute is disabled, and PWM output when motion 
+              detected is not associated with the brightness value.</description>
+          </attribute>
+          <attribute id="0x8909" name="PWM output percentage when motion detected" type="u8" default="0xfe" access="rw" required="m" mfcode="0x1224">
+            <description>Configuration of PWM output percentage when motion detected. Value Range is 0-254, which means 0-100%.
+              When configured PID closed loop control brightness LUX is 0, PWM output of the device is according to this value.</description>
+          </attribute>
+          <attribute id="0x890A" name="Light on time (status 2nd delay)" type="u8" default="0x00" access="rw" required="m" mfcode="0x1224">
+            <description>After the light on time expires, the light status within the duration of 2nd delay time. Value Range is 0-254, which means 0-100%.</description>
+          </attribute>
+          <attribute id="0x8901" name="Light on time (duration 2nd delay)" type="u16" default="0x003C" access="rw" required="m" mfcode="0x1224">
+            <description>After the light on time expires, the duration of 2nd delay time. Value range is 0-65536s.</description>
+          </attribute>
+          <attribute id="0x890B" name="Light status after expiration 2nd delay time" type="u8" default="0x00" access="rw" required="m" mfcode="0x1224">
+            <description>After the 2nd delay time expires, the status of the light. Value Range is 0-254, which means 0-100%.</description>
+          </attribute>
+          <attribute id="0x890D" name="Linearity error ratio coefficient of LUX measurement (M)" type="u16" default="0x03E8" access="rw" required="m" mfcode="0x1224">
+            <description>Default value is 1000, which means 1000 per mill. When increase the value of M, LUX measurement value will be magnified linearly.
+              When decrease the value of M, LUX measurement value will be minified linearly. For instance, modify M value as 1001, LUX measurement value will be magnified
+              to 1.001 times. Modify M value as 500, LUX measurement value will be magnified to 0.5 times.</description>
+          </attribute>
+          <attribute id="0x890E" name="Fixed deviation of LUX measurement" type="s16" default="0x0000" access="rw" required="m" mfcode="0x1224">
+            <description>For instance, if we need to increase the measurement value by 100LUX, then this parameter value will be +100.
+              If we need to decrease the measurement value by 100LUX, then this parameter value will be -100.
+</description>
+          </attribute>
+        </attribute-set>
+        <attribute-set id="0x9000" description="Sunricher specific" mfcode="0x1224">
+          <attribute id="0x9001" name="Light PWM Frequency" type="u16" default="0x0CE4" access="rw" required="m" mfcode="0x1224">
+            <description>Works after reset power of the device, the device that directly outputs PWM can be configured,
+              DO NOT set the PWM frequency too high which will affect the dimming resolution.</description>
+          </attribute>
+        </attribute-set>
         <attribute-set id="0xe000" description="Schneider specific" mfcode="0x105e">
           <attribute id="0xe001" name="Application FW Version" type="cstring" access="r" required="o" mfcode="0x105e"></attribute>
           <attribute id="0xe002" name="Application HW Version" type="cstring" access="r" required="o" mfcode="0x105e"></attribute>
@@ -817,7 +896,7 @@
           <attribute id="0x8000" name="Button Press" type="u8" access="r" required="o"/>
         </attribute-set>
         <attribute-set id="0x8001" description="Tuya special">
-          <attribute id="0x8001" name="Back Light mode" type="enum8" default="0" required="o" access="r">
+          <attribute id="0x8001" name="Back Light mode" type="enum8" default="0" required="o" access="rw">
             <value name="Mode 1-Off" value="0"></value>
             <value name="Mode 2-Light when On" value="1"></value>
             <value name="Mode 3-Light when Off" value="2"></value>
@@ -5533,6 +5612,18 @@ Contactor > On/off=0003 - HP/HC=0004</description>
       </client>
     </cluster>
 	  
+    <!-- SONOFF -->
+    <cluster id="0xfc11" name="Sonoff specific" mfcode="0x1286">
+      <description>Cluster for light sensor</description>
+      <server>
+        <attribute id="0x2001" name="Brightness" type="u8" access="r" required="m" mfcode="0x1286">
+          <description></description>
+        </attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+	  
     <!-- Leviton -->
     <cluster id="0x8007" name="Leviton Specific Load Cluster" mfcode="0x109b">
       <description>Additional features implemented in Leviton’s DG6HD.</description>
@@ -6044,6 +6135,35 @@ Contactor > On/off=0003 - HP/HC=0004</description>
         <attribute id="0x0001" name="Motion alert reset" type="u16" mfcode="0x1209" access="rw" required="m"></attribute>
         <attribute id="0x0002" name="Device setup time" type="u16" mfcode="0x1209" access="rw" required="m"></attribute>
         <attribute id="0x0003" name="Audio alert on motion" type="bool" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x1209" access="r" required="m"></attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
+    <cluster id="0xfca0" name="Bosch specific" mfcode="0x1209">
+      <description>Bosch specific attributes.</description>
+      <server>
+        <attribute id="0x0000" name="Device mode" type="enum8" mfcode="0x1209" access="rw" required="m">
+          <value name="Disabled" value="0x00"></value>
+          <value name="Shutter" value="0x01"></value>
+          <value name="Light" value="0x04"></value>
+        </attribute>
+        <attribute id="0x0001" name="Switch type" type="enum8" mfcode="0x1209" access="rw" required="m">
+          <value name="Undefined" value="0x00"></value>
+          <value name="Momentary" value="0x01"></value>
+          <value name="Momentary (sides switched)" value="0x02"></value>
+          <value name="Rocker" value="0x03"></value>
+          <value name="Rocker (sides switched)" value="0x04"></value>
+        </attribute>
+        <attribute id="0x0002" name="Calibration opening time" type="u32" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0003" name="Calibration closing time" type="u32" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0008" name="Child lock" type="bool" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0013" name="Motor state" type="enum8" mfcode="0x1209" access="r" required="m">
+          <value name="Idle" value="0x00"></value>
+          <value name="Opening" value="0x01"></value>
+          <value name="Closing" value="0x02"></value>
+        </attribute>
         <attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x1209" access="r" required="m"></attribute>
       </server>
       <client>

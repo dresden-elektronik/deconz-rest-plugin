@@ -51,7 +51,9 @@
 #include "rest_devices.h"
 #include "rest_alarmsystems.h"
 #include "read_files.h"
+#include "tuya.h"
 #include "utils/utils.h"
+#include "utils/scratchmem.h"
 #include "xiaomi.h"
 #include "zcl/zcl.h"
 #include "zdp/zdp.h"
@@ -64,23 +66,6 @@
 #endif
 
 DeRestPluginPrivate *plugin = nullptr;
-
-const char *HttpStatusOk           = "200 OK"; // OK
-const char *HttpStatusAccepted     = "202 Accepted"; // Accepted but not complete
-const char *HttpStatusNotModified  = "304 Not Modified"; // For ETag / If-None-Match
-const char *HttpStatusBadRequest   = "400 Bad Request"; // Malformed request
-const char *HttpStatusUnauthorized = "401 Unauthorized"; // Unauthorized
-const char *HttpStatusForbidden    = "403 Forbidden"; // Understand request but no permission
-const char *HttpStatusNotFound     = "404 Not Found"; // Requested uri not found
-const char *HttpStatusServiceUnavailable = "503 Service Unavailable";
-const char *HttpStatusNotImplemented = "501 Not Implemented";
-const char *HttpContentHtml        = "text/html; charset=utf-8";
-const char *HttpContentCss         = "text/css";
-const char *HttpContentJson        = "application/json; charset=utf-8";
-const char *HttpContentJS          = "text/javascript";
-const char *HttpContentPNG         = "image/png";
-const char *HttpContentJPG         = "image/jpg";
-const char *HttpContentSVG         = "image/svg+xml";
 
 static int checkZclAttributesDelay = 750;
 static uint MaxGroupTasks = 4;
@@ -610,6 +595,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     apsCtrlWrapper(deCONZ::ApsController::instance())
 {
     plugin = this;
+    ScratchMemInit();
 
     DEV_SetTestManaged(deCONZ::appArgumentNumeric("--dev-test-managed", 0));
 
@@ -960,6 +946,7 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
     delete deviceJs;
     deviceJs = nullptr;
     eventEmitter = nullptr;
+    ScratchMemDestroy();
 }
 
 DeRestPluginPrivate *DeRestPluginPrivate::instance()
@@ -1171,6 +1158,19 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                         DB_StoreSubDeviceItem(r, i);
                         DBG_MEASURE_END(DB_StoreSubDeviceItem);
                     }
+                    else if (r->prefix() == RDevices && ind.clusterId() == BASIC_CLUSTER_ID)
+                    {
+                        if (itemSuffix == RAttrAppVersion)
+                        {
+                            DB_ZclValue dbVal;
+                            dbVal.deviceId = device->deviceId();
+                            dbVal.endpoint = ind.srcEndpoint();
+                            dbVal.clusterId = ind.clusterId();
+                            dbVal.attrId = 0x0001;
+                            dbVal.data = i->toNumber();
+                            DB_StoreZclValue(&dbVal);
+                        }
+                    }
                 }
 
                 if (!eventLastUpdatedEmitted && i->descriptor().suffix[0] == 's') // state/*
@@ -1249,7 +1249,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case OTAU_CLUSTER_ID:
-            otauDataIndication(ind, zclFrame);
+            otauDataIndication(ind, zclFrame, device);
             break;
 
         case COMMISSIONING_CLUSTER_ID:
@@ -1489,10 +1489,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         default:
             break;
         }
-    }
-    else if (ind.profileId() == DE_PROFILE_ID)
-    {
-        otauDataIndication(ind, deCONZ::ZclFrame());
     }
 
     eventEmitter->process();
@@ -2234,26 +2230,6 @@ bool DeRestPluginPrivate::isInNetwork()
     return false;
 }
 
-/*! Creates a error map used in JSON response.
-    \param id - error id
-    \param ressource example: "/lights/2"
-    \param description example: "resource, /lights/2, not available"
-    \return the map
- */
-QVariantMap errorToMap(int id, const QString &ressource, const QString &description)
-{
-    QVariantMap map;
-    QVariantMap error;
-    error["type"] = (double)id;
-    error["address"] = ressource.toHtmlEscaped();
-    error["description"] = description.toHtmlEscaped();
-    map["error"] = error;
-
-    DBG_Printf(DBG_INFO_L2, "API error %d, %s, %s\n", id, qPrintable(ressource), qPrintable(description));
-
-    return map;
-}
-
 /*! Creates a new unique ETag for a resource.
  */
 void DeRestPluginPrivate::updateEtag(QString &etag)
@@ -2388,7 +2364,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, node->address().ext());
     Q_ASSERT(device);
 
-    if (permitJoinFlag)
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_PROFALUX)
+    {
+        //Profalux device don't have manufactureName and ModelID so can't wait for RAttrManufacturerName or RAttrModelId
+    }
+    else if (permitJoinFlag)
     {
         // during pairing only proceed when device code has finished query Basic Cluster
         if (device->item(RAttrManufacturerName)->toString().isEmpty() ||
@@ -11913,6 +11893,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
 
     case deCONZ::NodeEvent::NodeAdded:
     {
+        int deviceId = -1;
         QTime now = QTime::currentTime();
         if (queryTime.secsTo(now) < 20)
         {
@@ -11920,14 +11901,17 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         }
         if (event.node())
         {
-            refreshDeviceDb(event.node()->address());
+            deviceId = DB_StoreDevice(event.node()->address());
         }
 
         auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, event.node()->address().ext());
-        Q_ASSERT(device);
-        if (device && DEV_InitDeviceBasic(device))
+        if (device)
         {
-            enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
+            device->setDeviceId(deviceId);
+            if (DEV_InitDeviceBasic(device))
+            {
+                enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
+            }
         }
 
         addLightNode(event.node());
@@ -11953,7 +11937,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     {
         if (event.node())
         {
-            refreshDeviceDb(event.node()->address());
+            DB_StoreDevice(event.node()->address());
         }
         break;
     }
@@ -15495,52 +15479,54 @@ void DeRestPlugin::idleTimerFired()
                     break;
                 }
 
+                const bool devManaged = device && device->managed();
                 if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastRead(READ_BINDING_TABLE) < (d->idleTotalCounter - IDLE_READ_LIMIT)))
                 {
-                    const bool devManaged = device && device->managed();
-
                     auto ci = sensorNode->fingerPrint().inClusters.begin();
                     const auto cend = sensorNode->fingerPrint().inClusters.end();
                     for (;ci != cend; ++ci)
                     {
                         NodeValue val;
 
-                        if (*ci == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
+                        if (!devManaged)
                         {
-                            val = sensorNode->getZclValue(*ci, 0x0000); // measured value
-                        }
-                        else if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
-                        {
-                            val = sensorNode->getZclValue(*ci, 0x0000); // occupied state
-                        }
-
-                        if (val.timestampLastReport.isValid() &&
-                            val.timestampLastReport.secsTo(now) < (60 * 45)) // got update in timely manner
-                        {
-                            DBG_Printf(DBG_INFO_L2, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
-                        }
-                        else if (!sensorNode->mustRead(READ_BINDING_TABLE))
-                        {
-                            sensorNode->enableRead(READ_BINDING_TABLE);
-                            sensorNode->setLastRead(READ_BINDING_TABLE, d->idleTotalCounter);
-                            sensorNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
-                            d->queryTime = d->queryTime.addSecs(tSpacing);
-                            processSensors = true;
-                        }
-
-                        if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
-                        {
-                            if (!sensorNode->mustRead(READ_OCCUPANCY_CONFIG))
+                            if (*ci == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
                             {
-                                val = sensorNode->getZclValue(*ci, 0x0010); // PIR occupied to unoccupied delay
+                                val = sensorNode->getZclValue(*ci, 0x0000); // measured value
+                            }
+                            else if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
+                            {
+                                val = sensorNode->getZclValue(*ci, 0x0000); // occupied state
+                            }
 
-                                if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 1800)
+                            if (val.timestampLastReport.isValid() &&
+                                    val.timestampLastReport.secsTo(now) < (60 * 45)) // got update in timely manner
+                            {
+                                DBG_Printf(DBG_INFO_L2, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
+                            }
+                            else if (!sensorNode->mustRead(READ_BINDING_TABLE))
+                            {
+                                sensorNode->enableRead(READ_BINDING_TABLE);
+                                sensorNode->setLastRead(READ_BINDING_TABLE, d->idleTotalCounter);
+                                sensorNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
+                                d->queryTime = d->queryTime.addSecs(tSpacing);
+                                processSensors = true;
+                            }
+
+                            if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
+                            {
+                                if (!sensorNode->mustRead(READ_OCCUPANCY_CONFIG))
                                 {
-                                    sensorNode->enableRead(READ_OCCUPANCY_CONFIG);
-                                    sensorNode->setLastRead(READ_OCCUPANCY_CONFIG, d->idleTotalCounter);
-                                    sensorNode->setNextReadTime(READ_OCCUPANCY_CONFIG, d->queryTime);
-                                    d->queryTime = d->queryTime.addSecs(tSpacing);
-                                    processSensors = true;
+                                    val = sensorNode->getZclValue(*ci, 0x0010); // PIR occupied to unoccupied delay
+
+                                    if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 1800)
+                                    {
+                                        sensorNode->enableRead(READ_OCCUPANCY_CONFIG);
+                                        sensorNode->setLastRead(READ_OCCUPANCY_CONFIG, d->idleTotalCounter);
+                                        sensorNode->setNextReadTime(READ_OCCUPANCY_CONFIG, d->queryTime);
+                                        d->queryTime = d->queryTime.addSecs(tSpacing);
+                                        processSensors = true;
+                                    }
                                 }
                             }
                         }
@@ -15623,7 +15609,7 @@ void DeRestPlugin::idleTimerFired()
                     //break;
                 }
 
-                if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT)))
+                if (!devManaged && (d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT)))
                 {
                     if (d->checkSensorBindingsForAttributeReporting(sensorNode))
                     {
@@ -15908,6 +15894,9 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 {
     QString content;
     QTextStream stream(sock);
+
+    ScratchMemRewind(0);
+    ScratchMemWaypoint swp;
 
     stream.setCodec(QTextCodec::codecForName("UTF-8"));
     d->pushClientForClose(sock, 60);
@@ -16218,17 +16207,18 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     stream << "HTTP/1.1 " << rsp.httpStatus << "\r\n";
     stream << "Access-Control-Allow-Origin: *\r\n";
     stream << "Content-Type: " << rsp.contentType << "\r\n";
-    stream << "Content-Length: " << str.size() << "\r\n";
-
-    if (!rsp.hdrFields.empty())
+    if (rsp.contentLength)
     {
-        auto i = rsp.hdrFields.cbegin();
-        const auto end = rsp.hdrFields.cend();
+        stream << "Content-Length: " << rsp.contentLength << "\r\n";
+    }
+    else if (str.size())
+    {
+        stream << "Content-Length: " << str.size() << "\r\n";
+    }
 
-        for (; i != end; ++i)
-        {
-            stream << i->first << ": " <<  i->second << "\r\n";
-        }
+    if (rsp.fileName)
+    {
+        stream << "Content-Disposition: attachment; filename=\"" << rsp.fileName << "\"\r\n";
     }
 
     if (!rsp.etag.isEmpty())
@@ -16237,14 +16227,16 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     }
     stream << "\r\n";
 
-    if (!str.isEmpty())
+    if (rsp.bin && rsp.contentLength)
+    {
+        stream.flush();
+        sock->write(rsp.bin, rsp.contentLength);
+        sock->flush();
+    }
+    else if (!str.isEmpty())
     {
         stream << str;
-    }
-
-    stream.flush();
-    if (!str.isEmpty())
-    {
+        stream.flush();
         DBG_Printf(DBG_HTTP, "%s\n", qPrintable(str));
     }
 
