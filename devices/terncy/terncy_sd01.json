@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "96f18b8e-88d4-44cb-b30e-63cc958c2c96",
   "manufacturername": ["Xiaoyan", "TERNCY"],
   "modelid": ["TERNCY-SD01", "TERNCY-SD01"],
   "vendor": "Terncy",

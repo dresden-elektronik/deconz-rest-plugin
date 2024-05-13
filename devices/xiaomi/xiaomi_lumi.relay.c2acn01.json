@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "4fc4be68-d226-4fca-b249-885f3c52b8b4",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.relay.c2acn01",
   "product": "wireless relay with neutral",

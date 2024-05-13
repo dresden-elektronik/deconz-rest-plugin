@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "e35a7968-ef48-4c5f-9a7c-1c63aaf7e74a",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI control outlet",
   "vendor": "IKEA",

@@ -1,5 +1,6 @@
 {
     "schema": "devcap1.schema.json",
+    "uuid": "1d90bd73-6292-4387-bf0f-a4a87ad4701b",
     "manufacturername": "Schneider Electric",
     "modelid": "NHPB/SHUTTER/1",
     "vendor": "Wiser Odace",
