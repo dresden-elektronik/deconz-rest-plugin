@@ -70,7 +70,11 @@ on:
         required: true
         default: true
         type: boolean
-
+      autoCommitUUID:
+        description: Enable auto update of UUID
+        required: true
+        default: true
+        type: boolean
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -103,7 +107,10 @@ jobs:
 
           # Bundler Validation options
           bundler-validation-strict: ${{ inputs.validationStrict }}
-          bundler-validation-enforce-uuid: ${{ inputs.validationEnforceUUID }}
+          bundler-validation-enforce-uuid: ${{ inputs.validationEnforceUUID && !inputs.autoCommitUUID }}
+
+          # UUID automatic generation
+          auto-commit-uuid: ${{ inputs.autoCommitUUID }}
 
           # Github artifact
           upload-artifact-enabled: ${{ inputs.uploadArtifact == true }}
@@ -125,6 +132,10 @@ jobs:
         with:
           mode: push
           source-devices-path: 'devices'
+
+          # UUID automatic generation
+          auto-commit-uuid: 'true'
+          bundler-validation-enforce-uuid: 'false'
 
           # Github artifact
           upload-artifact-enabled: false
