@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "eb70937d-16de-48f6-9aef-e50a6c0831f6",
   "manufacturername": [" _TZ3000_itb0omhv", "_TZ3000_4upl1fcj","_TZ3000_wqcbzbae", "_TZ3000_tk3s5tyg", "_TZ3000_mrpevh8p", "_TZ3000_qgwcxxws", "_TZ3000_yj6k7vfo", "_TZ3000_axpdxqgu"],
   "modelid": ["TS0041", "TS0041", "TS0041", "TS0041", "TS0041", "TS0041", "TS0041", "TS0041"],
   "product": "Tuya 1-gang remote",

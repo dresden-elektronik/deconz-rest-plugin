@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "605e6c67-92fb-4c0e-a195-7e0261a012d2",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI bulb E14 WS opal 600lm",
   "product": "TRADFRI bulb E14 WS opal 600lm",
