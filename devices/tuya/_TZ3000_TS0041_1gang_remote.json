@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": [" _TZ3000_itb0omhv", "_TZ3000_4upl1fcj","_TZ3000_wqcbzbae", "_TZ3000_tk3s5tyg", "_TZ3000_mrpevh8p", "_TZ3000_qgwcxxws"],
-  "modelid": ["TS0041", "TS0041", "TS0041", "TS0041", "TS0041", "TS0041"],
-  "product": "Tuya 1 gangs switch battery",
+  "manufacturername": [" _TZ3000_itb0omhv", "_TZ3000_4upl1fcj","_TZ3000_wqcbzbae", "_TZ3000_tk3s5tyg", "_TZ3000_mrpevh8p", "_TZ3000_qgwcxxws", "_TZ3000_yj6k7vfo", "_TZ3000_axpdxqgu"],
+  "modelid": ["TS0041", "TS0041", "TS0041", "TS0041", "TS0041", "TS0041", "TS0041", "TS0041"],
+  "product": "Tuya 1-gang remote",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
