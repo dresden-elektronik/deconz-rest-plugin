@@ -4,6 +4,7 @@ name: Continuous integration DDF Bundles
 
 permissions:
   contents: write
+  issues: write
   pull-requests: write
 
 # Controls when the action will run.
