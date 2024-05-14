@@ -16743,6 +16743,29 @@ void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
     }
 }
 
+/*! Callback when new DDF bundle is uploaded.
+    For each matching device trigger a DDF reload event.
+ */
+void DEV_ReloadDeviceIdendifier(unsigned atomIndexMfname, unsigned atomIndexModelid)
+{
+    for (auto &dev : plugin->m_devices)
+    {
+        {
+            const ResourceItem *mfname = dev->item(RAttrManufacturerName);
+            if (!mfname || mfname->atomIndex() != atomIndexMfname)
+                continue;
+        }
+
+        {
+            const ResourceItem *modelid = dev->item(RAttrModelId);
+            if (!modelid || modelid->atomIndex() != atomIndexModelid)
+                continue;
+        }
+
+        enqueueEvent(Event(RDevices, REventDDFReload, 0, dev->key()));
+    }
+}
+
 /*! Returns deCONZ core node for a given \p extAddress.
  */
 const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddress)

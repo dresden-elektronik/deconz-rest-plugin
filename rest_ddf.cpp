@@ -588,6 +588,9 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
                 return REQ_READY_SEND;
             }
 
+            // notify device descriptions to trigger reload
+            DEV_DDF_BundleUpdated((uint8_t*)&data[binStart], binEnd - binStart);
+
             DBG_Printf(DBG_INFO, "DDF bundle written: %s\n", bundlePath);
 
             rsp.httpStatus = HttpStatusOk;

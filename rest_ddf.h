@@ -17,4 +17,9 @@ class ApiResponse;
 /*! REST-API endpoint for DDF. */
 int REST_DDF_HandleApi(const ApiRequest &req, ApiResponse &rsp);
 
+/*! Callback for POST DDF bundle request to notify device description code
+    of updated bundle data.
+ */
+void DEV_DDF_BundleUpdated(unsigned char *data, unsigned dataSize);
+
 #endif // REST_DDF_H

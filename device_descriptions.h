@@ -303,4 +303,6 @@ void DDF_AnnoteZclParse1(int line, const char* file, const Resource *resource, R
 const DeviceDescription::Item &DDF_GetItem(const ResourceItem *item);
 Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex);
 
+void DEV_ReloadDeviceIdendifier(unsigned atomIndexMfname, unsigned atomIndexModelid);
+
 #endif // DEVICEDESCRIPTIONS_H

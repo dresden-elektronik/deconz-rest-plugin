@@ -2254,6 +2254,109 @@ void DeviceDescriptions::readAllRawJson()
     }
 #endif
 
+/*! Trigger REventDDFReload for all present devices which match with device identifier pair of DDF bundle.
+ */
+static int DDF_ReloadBundleDevices(const char *desc, unsigned descSize, std::vector<DDF_LoadRecord> &ddfLoadRecords)
+{
+    cj_ctx cj[1];
+    char buf[96];
+    cj_token_ref ref;
+    cj_token_ref parent_ref;
+    cj_token_ref deviceids_ref;
+    AT_AtomIndex modelid_ati;
+    AT_AtomIndex mfname_ati;
+    cj_token *tokens;
+    unsigned n_tokens = 1024;
+
+    ScratchMemWaypoint swp;
+    tokens = SCRATCH_ALLOC(cj_token*, n_tokens * sizeof(*tokens));
+    U_ASSERT(tokens);
+    if (!tokens)
+        return 0;
+
+    cj_parse_init(cj, desc, descSize, tokens, n_tokens);
+    cj_parse(cj);
+
+    if (cj->status != CJ_OK)
+        return 0;
+
+    parent_ref = 0;
+    deviceids_ref = cj_value_ref(cj, parent_ref, "device_identifiers");
+
+    // array of 2 string element arrays
+    // "device_identifiers":[["LUMI","lumi.sensor_magnet"]]
+
+    if (deviceids_ref == CJ_INVALID_TOKEN_INDEX)
+        return 0;
+
+    if (tokens[deviceids_ref].type != CJ_TOKEN_ARRAY_BEG)
+        return 0;
+
+    // verify flat string array, and equal size for manufacturer names and modelids
+    for (ref = deviceids_ref + 1; tokens[ref].type != CJ_TOKEN_ARRAY_END && ref < cj[0].tokens_pos; )
+    {
+        if (tokens[ref].type == CJ_TOKEN_ITEM_SEP)
+        {
+            ref++;
+            continue;
+        }
+
+        // inner array for each entry
+        if (tokens[ref].type != CJ_TOKEN_ARRAY_BEG)
+            break;
+
+        if (tokens[ref + 1].type != CJ_TOKEN_STRING) // mfname
+            break;
+
+        if (tokens[ref + 2].type != CJ_TOKEN_ITEM_SEP)
+            break;
+
+        if (tokens[ref + 3].type != CJ_TOKEN_STRING) // modelid
+            break;
+
+        if (tokens[ref + 4].type != CJ_TOKEN_ARRAY_END)
+            break;
+
+        /*
+         * Lookup if the manufacturername and modelid pair has registered atoms.
+         * If not this can't be a bundle of interest.
+         */
+        bool foundAtoms = true;
+
+        if (cj_copy_ref_utf8(cj, buf, sizeof(buf), ref + 1) == 0)
+            break; // this has to be a valid string
+
+        if (AT_GetAtomIndex(buf, U_strlen(buf), &mfname_ati) == 0)
+            foundAtoms = false; // unknown, can be ok
+
+        if (cj_copy_ref_utf8(cj, buf, sizeof(buf), ref + 3) == 0)
+            break; // this has to be a valid string
+
+        if (AT_GetAtomIndex(buf, U_strlen(buf), &modelid_ati) == 0)
+            foundAtoms = false; // unknown, can be ok
+
+        ref += 5;
+        if (!foundAtoms)
+            continue;
+
+        for (size_t j = 0; j < ddfLoadRecords.size(); j++)
+        {
+            const DDF_LoadRecord &rec = ddfLoadRecords[j];
+
+            if (rec.mfname.index != mfname_ati.index)
+                continue;
+
+            if (rec.modelid.index != modelid_ati.index)
+                continue;
+
+            // trigger DDF reload event for matching devices
+            DEV_ReloadDeviceIdendifier(mfname_ati.index, modelid_ati.index);
+        }
+    }
+
+    return 1;
+}
+
 static int DDF_IsBundleScheduled(DDF_ParseContext *pctx, const char *desc, unsigned descSize, const std::vector<DDF_LoadRecord> &ddfLoadRecords)
 {
     cj_ctx cj[1];
@@ -2358,6 +2461,26 @@ static int DDF_IsBundleScheduled(DDF_ParseContext *pctx, const char *desc, unsig
     }
 
     return 0;
+}
+
+void DEV_DDF_BundleUpdated(unsigned char *data, unsigned dataSize)
+{
+    U_BStream bs;
+    unsigned chunkSize;
+
+    U_bstream_init(&bs, data, dataSize);
+
+    if (DDFB_FindChunk(&bs, "RIFF", &chunkSize) == 0)
+        return;
+
+    if (DDFB_FindChunk(&bs, "DDFB", &chunkSize) == 0)
+        return;
+
+    if (DDFB_FindChunk(&bs, "DESC", &chunkSize) == 0)
+        return;
+
+    _instance->readAllBundles(); // this is a bit hard core, but does the job for now
+    DDF_ReloadBundleDevices((char*)&bs.data[bs.pos], chunkSize, _priv->ddfLoadRecords);
 }
 
 /*! Reads all scheduled DDF bundles.
