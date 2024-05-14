@@ -845,13 +845,20 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
     {
         DEV_PublishToCore(device);
 
-        if (event.num() == 1)
+        if (event.num() == 1 || event.num() == 3)
         {
             d->managed = true;
             d->flags.hasDdf = 1;
             d->setState(DEV_IdleStateHandler);
             // TODO(mpi): temporary forward this info here, gets replaced by device actor later
-            DEV_ForwardNodeChange(device, QLatin1String("hasddf"), QLatin1String("1"));
+            if (event.num() == 1)
+            {
+                DEV_ForwardNodeChange(device, QLatin1String("hasddf"), QLatin1String("1"));
+            }
+            else if (event.num() == 3)
+            {
+                DEV_ForwardNodeChange(device, QLatin1String("hasddf"), QLatin1String("2"));
+            }
         }
         else
         {
@@ -2147,6 +2154,8 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     addItem(DataTypeString, RAttrUniqueId)->setValue(generateUniqueId(key, 0, 0));
     addItem(DataTypeString, RAttrManufacturerName);
     addItem(DataTypeString, RAttrModelId);
+    addItem(DataTypeString, RAttrDdfPolicy);
+    addItem(DataTypeString, RAttrDdfHash);
     addItem(DataTypeUInt32, RAttrOtaVersion);
 
     // lazy init since the event handler is connected after the constructor

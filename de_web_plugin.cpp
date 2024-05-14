@@ -48,6 +48,7 @@
 #include "poll_control.h"
 #include "poll_manager.h"
 #include "product_match.h"
+#include "rest_ddf.h"
 #include "rest_devices.h"
 #include "rest_alarmsystems.h"
 #include "read_files.h"
@@ -649,8 +650,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
         deviceDescriptions->setEnabledStatusFilter(filter);
     }
 
-    deviceDescriptions->readAll();
-
     connect(databaseTimer, SIGNAL(timeout()),
             this, SLOT(saveDatabaseTimerFired()));
 
@@ -724,6 +723,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     ttlDataBaseConnection = 0;
     openDb();
     initDb();
+
+    deviceDescriptions->prepare();
+    deviceDescriptions->readAll();
+
     readDb();
 
     DB_LoadAlarmSystemDevices(alarmSystemDeviceTable.get());
@@ -16069,6 +16072,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
                 {
                     ret = d->restDevices->handleApi(req, rsp);
                 }
+                else if (apiModule == QLatin1String("ddf"))
+                {
+                    ret = REST_DDF_HandleApi(req, rsp);
+                }
                 else if (apiModule == QLatin1String("lights"))
                 {
                     ret = d->handleLightsApi(req, rsp);
@@ -16733,6 +16740,29 @@ void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
                 plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
             }
         }
+    }
+}
+
+/*! Callback when new DDF bundle is uploaded.
+    For each matching device trigger a DDF reload event.
+ */
+void DEV_ReloadDeviceIdendifier(unsigned atomIndexMfname, unsigned atomIndexModelid)
+{
+    for (auto &dev : plugin->m_devices)
+    {
+        {
+            const ResourceItem *mfname = dev->item(RAttrManufacturerName);
+            if (!mfname || mfname->atomIndex() != atomIndexMfname)
+                continue;
+        }
+
+        {
+            const ResourceItem *modelid = dev->item(RAttrModelId);
+            if (!modelid || modelid->atomIndex() != atomIndexModelid)
+                continue;
+        }
+
+        enqueueEvent(Event(RDevices, REventDDFReload, 0, dev->key()));
     }
 }
 
