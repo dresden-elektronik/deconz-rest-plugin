@@ -2,6 +2,10 @@
 
 name: Continuous integration DDF Bundles
 
+permissions:
+  contents: write
+  pull-requests: write
+
 # Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
