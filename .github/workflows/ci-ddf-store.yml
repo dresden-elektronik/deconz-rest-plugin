@@ -129,7 +129,7 @@ jobs:
           upload-store-token: ${{ secrets.STORE_TOKEN }}
 
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DDF_BUNDLE_CI_PAT }}
 
       - name: Run DDF Push Action
         if: github.event_name == 'push'
@@ -151,7 +151,7 @@ jobs:
           upload-store-url: 'https://ddf.cryonet.io'
           upload-store-token: ${{ secrets.STORE_TOKEN }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DDF_BUNDLE_CI_PAT }}
 
       - name: Run DDF Pull Request Interaction
         if: github.event_name == 'pull_request'
@@ -170,4 +170,4 @@ jobs:
           upload-store-enabled: false
 
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DDF_BUNDLE_CI_PAT }}
