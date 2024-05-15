@@ -66,7 +66,7 @@ body:
         - deCONZ GUI: Menu > Help > About deCONZ.
       value: |
            - Host system: (Raspberry Pi / PC / NAS / MAC)
-           - Running method: (Raspbian / Ubuntu / Home Assistent deCONZ Add-on / Marthoc Docker container / Windows / Virtual Machine)
+           - Running method: (Raspbian / Ubuntu / Home Assistent deCONZ Add-on / deconz-docker container / Windows / Virtual Machine)
            - Firmware version: (26xxyy00)
            - deCONZ version (not Home assistant Addon version!): (2.xx.yy)
            - Device: (ConBee I / ConBee II / ConBee III / RaspBee I / RaspBee II)
