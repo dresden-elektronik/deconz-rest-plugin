@@ -1,0 +1,90 @@
+name: Interactions dispatcher
+
+on:
+  workflow_run:
+    workflows: ["CI DDF Bundles"]
+
+jobs:
+  use_output:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        name: 'Interactions dispatcher'
+
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            async function upsertComment(owner, repo, issue_number, marker, body) {
+              const {data: comments} = await github.rest.issues.listComments(
+                {owner, repo, issue_number});
+            
+              body = `${marker}\n${body}`;
+            
+              const existing = comments.filter((c) => c.body.includes(marker));
+              if (existing.length > 0) {
+                const last = existing[existing.length - 1];
+                core.info(`Updating comment ${last.id}`);
+                await github.rest.issues.updateComment({
+                  owner, repo,
+                  body,
+                  comment_id: last.id,
+                });
+              } else {
+                core.info(`Creating a comment in issue / PR #${issue_number}`);
+                await github.rest.issues.createComment({issue_number, body, owner, repo});
+              }
+            }
+            
+            async function run(){
+              const {owner, repo} = context.repo;
+            
+              core.info("Fetching artifacts list")
+              const allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+                owner,
+                repo,
+                run_id: context.payload.workflow_run.id,
+              });
+            
+              const matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+                return artifact.name === "interaction_data"
+              })[0];
+              
+              if(matchArtifact === undefined) {
+                core.info("No artifact found, stopping the action")
+                return
+              }
+            
+              core.info(`Downloading artifact #${matchArtifact.id}`)
+              const download = await github.rest.actions.downloadArtifact({
+                  owner,
+                  repo,
+                  artifact_id: matchArtifact.id,
+                  archive_format: 'zip',
+              });
+
+              await github.rest.actions.deleteArtifact({
+                owner,
+                repo,
+                artifact_id: matchArtifact.id
+              })
+              
+              fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/interaction_data.zip`, Buffer.from(download.data));
+            
+              await exec.exec(`unzip ${process.env.GITHUB_WORKSPACE}/interaction_data.zip`);
+            
+              const interaction_data = JSON.parse(fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/interaction_data.json`));
+            
+              await Promise.all(interaction_data.map(async (data) => {
+                const {mode, marker, issue_number, body} = data;
+            
+                if(mode === 'upsert')
+                  await upsertComment(owner, repo, issue_number, marker, body);
+                else if(mode === 'insert')
+                  await github.rest.issues.createComment({issue_number, body, owner, repo});
+                
+              }));
+            }
+            
+            run();
