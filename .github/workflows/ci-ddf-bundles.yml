@@ -164,5 +164,8 @@ jobs:
           # Bundles are uploaded only on the push event when the PR is merged
           upload-store-enabled: false
 
+          # Validation
+          bundler-validation-enforce-uuid: 'false'
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
