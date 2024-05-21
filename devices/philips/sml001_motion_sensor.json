@@ -450,6 +450,7 @@
         },
         {
           "name": "state/measured_value",
+          "public": false,
           "awake": true,
           "parse": {
             "fn": "zcl:attr",
