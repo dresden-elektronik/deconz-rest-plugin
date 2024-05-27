@@ -16,6 +16,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QSettings>
+#include <QTimer>
 #include <deconz/atom_table.h>
 #include <deconz/dbg_trace.h>
 #include <deconz/file.h>
@@ -106,9 +107,14 @@ struct ConstantEntry
 enum DDF_LoadState
 {
     DDF_LoadStateScheduled,
-    DDF_LoadStateNotFound,
-    DDF_LoadStateLoadedRawJson,
-    DDF_LoadStateLoadedBundle
+    DDF_LoadStateLoaded
+};
+
+enum DDF_ReloadWhat
+{
+    DDF_ReloadIdle,
+    DDF_ReloadBundles,
+    DDF_ReloadAll
 };
 
 struct DDF_LoadRecord
@@ -141,6 +147,9 @@ public:
 
     std::vector<DDF_LoadRecord> ddfLoadRecords;
     std::vector<U_ECC_PublicKeySecp256k1> publicKeys;
+
+    DDF_ReloadWhat ddfReloadWhat = DDF_ReloadIdle;
+    QTimer *ddfReloadTimer = nullptr;
 };
 
 static int DDF_ReadFileInMemory(DDF_ParseContext *pctx);
@@ -165,6 +174,9 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
     _instance = this;
     _priv = d_ptr2;
 
+    d_ptr2->ddfReloadTimer = new QTimer(this);
+    d_ptr2->ddfReloadTimer->setSingleShot(true);
+    connect(d_ptr2->ddfReloadTimer, &QTimer::timeout, this, &DeviceDescriptions::ddfReloadTimerFired);
 
     {
         // register DDF policy atoms used later on for fast comparisons
@@ -1024,7 +1036,6 @@ void DeviceDescriptions::handleEvent(const Event &event)
     {
         if (event.num() == 0)
         {
-            readAll(); // todo read only device specific files?
         }
     }
 }
@@ -1984,7 +1995,7 @@ void DeviceDescriptions::readAllRawJson()
 
     std::vector<DDF_SubDeviceDescriptor> subDevices;
 
-    std::array<deCONZ::StorageLocation, 2> locations = { deCONZ::DdfUserLocation, deCONZ::DdfLocation};
+    std::array<deCONZ::StorageLocation, 2> locations = { deCONZ::DdfLocation, deCONZ::DdfUserLocation};
 
     for (size_t dit = 0; dit < locations.size(); dit++)
     {
@@ -2135,15 +2146,10 @@ void DeviceDescriptions::readAllRawJson()
 
                                         for (k = 0; k < d->ddfLoadRecords.size(); k++)
                                         {
-                                            if (d->ddfLoadRecords[k].loadState != DDF_LoadStateScheduled)
-                                            {
-                                                continue;
-                                            }
-
                                             if (mfnameIndex.index == d->ddfLoadRecords[k].mfname.index &&
                                                 modelidIndex.index == d->ddfLoadRecords[k].modelid.index)
                                             {
-                                                d->ddfLoadRecords[k].loadState = DDF_LoadStateLoadedRawJson;
+                                                //d->ddfLoadRecords[k].loadState = DDF_LoadStateLoadedRawJson;
                                                 scheduled = true;
                                                 break;
                                             }
@@ -2267,6 +2273,7 @@ static int DDF_ReloadBundleDevices(const char *desc, unsigned descSize, std::vec
     AT_AtomIndex mfname_ati;
     cj_token *tokens;
     unsigned n_tokens = 1024;
+    int n_marked = 0;
 
     ScratchMemWaypoint swp;
     tokens = SCRATCH_ALLOC(cj_token*, n_tokens * sizeof(*tokens));
@@ -2341,7 +2348,7 @@ static int DDF_ReloadBundleDevices(const char *desc, unsigned descSize, std::vec
 
         for (size_t j = 0; j < ddfLoadRecords.size(); j++)
         {
-            const DDF_LoadRecord &rec = ddfLoadRecords[j];
+            DDF_LoadRecord &rec = ddfLoadRecords[j];
 
             if (rec.mfname.index != mfname_ati.index)
                 continue;
@@ -2349,12 +2356,15 @@ static int DDF_ReloadBundleDevices(const char *desc, unsigned descSize, std::vec
             if (rec.modelid.index != modelid_ati.index)
                 continue;
 
-            // trigger DDF reload event for matching devices
-            DEV_ReloadDeviceIdendifier(mfname_ati.index, modelid_ati.index);
+            if (rec.loadState != DDF_LoadStateScheduled)
+            {
+                rec.loadState = DDF_LoadStateScheduled;
+                n_marked++;
+            }
         }
     }
 
-    return 1;
+    return n_marked > 0;
 }
 
 static int DDF_IsBundleScheduled(DDF_ParseContext *pctx, const char *desc, unsigned descSize, const std::vector<DDF_LoadRecord> &ddfLoadRecords)
@@ -2479,8 +2489,65 @@ void DEV_DDF_BundleUpdated(unsigned char *data, unsigned dataSize)
     if (DDFB_FindChunk(&bs, "DESC", &chunkSize) == 0)
         return;
 
-    _instance->readAllBundles(); // this is a bit hard core, but does the job for now
-    DDF_ReloadBundleDevices((char*)&bs.data[bs.pos], chunkSize, _priv->ddfLoadRecords);
+    if (DDF_ReloadBundleDevices((char*)&bs.data[bs.pos], chunkSize, _priv->ddfLoadRecords) != 0)
+    {
+        _priv->ddfReloadWhat = DDF_ReloadBundles;
+        _priv->ddfReloadTimer->stop();
+        _priv->ddfReloadTimer->start(2000);
+    }
+}
+
+void DeviceDescriptions::reloadAllRawJsonAndBundles(const Resource *resource)
+{
+
+    const ResourceItem *mfnameItem = resource->item(RAttrManufacturerName);
+    const ResourceItem *modelidItem = resource->item(RAttrModelId);
+    unsigned mfnameAtomIndex = mfnameItem->atomIndex();
+    unsigned modelidAtomIndex = modelidItem->atomIndex();
+
+    for (size_t j = 0; j < d_ptr2->ddfLoadRecords.size(); j++)
+    {
+        DDF_LoadRecord &rec = d_ptr2->ddfLoadRecords[j];
+
+        if (rec.mfname.index != mfnameAtomIndex)
+            continue;
+
+        if (rec.modelid.index != modelidAtomIndex)
+            continue;
+
+        if (rec.loadState != DDF_LoadStateScheduled)
+        {
+            rec.loadState = DDF_LoadStateScheduled;
+        }
+    }
+
+    d_ptr2->ddfReloadWhat = DDF_ReloadAll;
+    d_ptr2->ddfReloadTimer->stop();
+    d_ptr2->ddfReloadTimer->start(1000);
+}
+
+void DeviceDescriptions::ddfReloadTimerFired()
+{
+    if (d_ptr2->ddfReloadWhat == DDF_ReloadAll)
+    {
+        readAll();
+    }
+    else if (d_ptr2->ddfReloadWhat == DDF_ReloadBundles)
+    {
+        readAllBundles();
+    }
+
+    d_ptr2->ddfReloadWhat = DDF_ReloadIdle;
+
+     for (DDF_LoadRecord &rec : d_ptr2->ddfLoadRecords)
+     {
+        // trigger DDF reload event for matching devices
+        if (rec.loadState == DDF_LoadStateScheduled)
+        {
+            rec.loadState = DDF_LoadStateLoaded;
+            DEV_ReloadDeviceIdendifier(rec.mfname.index, rec.modelid.index);
+        }
+     }
 }
 
 /*! Reads all scheduled DDF bundles.
@@ -2789,6 +2856,32 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
 
             if (DEV_InitBaseDescriptionForDevice(device, ddf1))
             {
+                /*
+                 * Register all atoms for faster lookups.
+                 */
+                for (const auto &mfname : ddf1.manufacturerNames)
+                {
+                    const QString m = constantToString(mfname);
+
+                    AT_AtomIndex ati;
+                    if (AT_AddAtom(m.toUtf8().data(), m.size(), &ati) && ati.index != 0)
+                    {
+                        ddf1.mfnameAtomIndices.push_back(ati.index);
+                    }
+                }
+
+                for (const auto &modelId : ddf1.modelIds)
+                {
+                    const QString m = constantToString(modelId);
+
+                    AT_AtomIndex ati;
+                    if (AT_AddAtom(m.toUtf8().data(), m.size(), &ati) && ati.index != 0)
+                    {
+                        ddf1.modelidAtomIndices.push_back(ati.index);
+                    }
+                }
+
+                ddf1.storageLocation = deCONZ::DdfUserLocation;
                 d->descriptions.push_back(std::move(ddf1));
                 DDF_UpdateItemHandlesForIndex(d->descriptions, d->loadCounter, d->descriptions.size() - 1);
             }

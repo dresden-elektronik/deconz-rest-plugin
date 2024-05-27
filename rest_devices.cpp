@@ -1170,7 +1170,11 @@ int RestDevices::putDeviceReloadDDF(const ApiRequest &req, ApiResponse &rsp)
 
     if (deviceKey)
     {
-        emit eventNotify(Event(RDevices, REventDDFReload, 0, deviceKey));
+        Device *device = DEV_GetDevice(plugin->m_devices, deviceKey);
+        if (device)
+        {
+            DeviceDescriptions::instance()->reloadAllRawJsonAndBundles(device);
+        }
 
         QVariantMap rspItem;
         QVariantMap rspItemState;
