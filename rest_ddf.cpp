@@ -404,6 +404,10 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
 {
     ScratchMemWaypoint swp;
 
+    // general error response
+    const QVariantMap errInvalidData = errorToMap(ERR_INVALID_DDF_BUNDLE, "/ddf/bundles", "body contains invalid DDF bundle(s) data");
+    const QVariantMap errServiceNotAvailable = errorToMap(ERR_INTERNAL_ERROR, "/ddf/bundles", "Internal error, can't process request");
+
     // TEST call
     // curl -F 'data=@./starkvind_air_purifier_toolbox.ddf' 127.0.0.1:8090/api/12345/ddf/bundles
 
@@ -425,18 +429,21 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
     if (U_sstream_starts_with(&ss, "multipart/form-data") == 0)
     {
         rsp.httpStatus = HttpStatusBadRequest;
+        rsp.list.append(errInvalidData);
         return REQ_READY_SEND;
     }
 
     if (U_sstream_find(&ss, "boundary=") == 0) // no boundary marker?
     {
         rsp.httpStatus = HttpStatusBadRequest;
+        rsp.list.append(errInvalidData);
         return REQ_READY_SEND;
     }
 
     if (U_sstream_find(&ss, "=") == 0)
     {
         rsp.httpStatus = HttpStatusBadRequest;
+        rsp.list.append(errInvalidData);
         return REQ_READY_SEND;
     }
     ss.pos++;
@@ -447,6 +454,7 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
     if (!boundary)
     {
         rsp.httpStatus = HttpStatusServiceUnavailable;
+        rsp.list.append(errServiceNotAvailable);
         return REQ_READY_SEND;
     }
     U_memcpy(boundary, &ss.str[ss.pos], boundaryLen);
@@ -456,6 +464,7 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
     if (MAX_BUNDLE_SIZE < dataSize)
     {
         rsp.httpStatus = HttpStatusBadRequest;
+        rsp.list.append(errInvalidData);
         return REQ_READY_SEND;
     }
 
@@ -464,6 +473,7 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
     if (!data)
     {
         rsp.httpStatus = HttpStatusServiceUnavailable;
+        rsp.list.append(errServiceNotAvailable);
         return REQ_READY_SEND;
     }
 
@@ -480,6 +490,7 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
         if (U_sstream_find(&ss, boundary) == 0) // there might be a preample before the first boundary
         {
             rsp.httpStatus = HttpStatusBadRequest;
+            rsp.list.append(errInvalidData);
             return REQ_READY_SEND;
         }
 
@@ -500,6 +511,7 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
         if (U_sstream_find(&ss, boundary) == 0)
         {
             rsp.httpStatus = HttpStatusBadRequest;
+            rsp.list.append(errInvalidData);
             return REQ_READY_SEND;
         }
 
@@ -533,6 +545,7 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
         if (!bundleHash || !bundleHashStr)
         {
             rsp.httpStatus = HttpStatusServiceUnavailable;
+            rsp.list.append(errServiceNotAvailable);
             return REQ_READY_SEND;
         }
 
@@ -540,6 +553,7 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
         if (IsValidDDFBundle(&bs, bundleHash) == 0)
         {
             rsp.httpStatus = HttpStatusBadRequest;
+            rsp.list.append(errInvalidData);
             return REQ_READY_SEND;
         }
 
@@ -554,6 +568,7 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
         if (!bundlePath)
         {
             rsp.httpStatus = HttpStatusServiceUnavailable;
+            rsp.list.append(errServiceNotAvailable);
             return REQ_READY_SEND;
         }
 
@@ -579,7 +594,8 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
             FS_CloseFile(&fp);
             if (n != bs.size)
             {
-                rsp.httpStatus = HttpStatusBadRequest; // TODO different error
+                rsp.httpStatus = HttpStatusServiceUnavailable;
+                rsp.list.append(errServiceNotAvailable);
                 return REQ_READY_SEND;
             }
 
