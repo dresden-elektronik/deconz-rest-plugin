@@ -67,6 +67,7 @@ curl -F 'data=@/home/mpi/some.ddf' 127.0.0.1:8090/api/12345/ddf
 static int WriteBundleDescriptorToResponse(U_BStream *bs, U_SStream *ss, unsigned nRecords)
 {
     unsigned chunkSize;
+    unsigned char sha256[U_SHA256_HASH_SIZE];
     char sha256Str[(U_SHA256_HASH_SIZE * 2) + 1];
 
     if (DDFB_FindChunk(bs, "RIFF", &chunkSize) == 0)
@@ -80,7 +81,6 @@ static int WriteBundleDescriptorToResponse(U_BStream *bs, U_SStream *ss, unsigne
     }
 
     {
-        unsigned char sha256[U_SHA256_HASH_SIZE];
         // Bundle hash over DDFB chunk (header + data)
         if (U_Sha256(&bs->data[bs->pos - 8], chunkSize + 8, sha256) == 0)
         {
@@ -99,8 +99,8 @@ static int WriteBundleDescriptorToResponse(U_BStream *bs, U_SStream *ss, unsigne
         return 0;
     }
 
-    // enough space for descriptor plus hash key
-    if ((ss->pos + chunkSize + 128) < ss->len)
+    // enough space for descriptor | hash key | file hash
+    if ((ss->pos + chunkSize + 128 + 128 + 96) < ss->len)
     {
         if (nRecords > 0)
             U_sstream_put_str(ss, ",");
@@ -112,11 +112,29 @@ static int WriteBundleDescriptorToResponse(U_BStream *bs, U_SStream *ss, unsigne
         U_memcpy(&ss->str[ss->pos], &bsDDFB.data[bsDDFB.pos], chunkSize);
         ss->pos += chunkSize;
 
-        return 1;
+
+        // hash over complete bundle file
+        if (U_Sha256(&bs->data[0], bs->size, sha256) == 0)
+        {
+            return 0; // should not happen
+        }
+
+        BinToHexAscii(sha256, U_SHA256_HASH_SIZE, sha256Str);
+
+        // sneak in the file hash at the end
+        for (;ss->pos && ss->str[ss->pos] != '}'; ss->pos--)
+        {}
+
+        if (ss->str[ss->pos] == '}')
+        {
+            U_sstream_put_str(ss, ", \"file_hash\": \"");
+            U_sstream_put_str(ss, sha256Str);
+            U_sstream_put_str(ss, "\"}");
+            return 1;
+        }
     }
 
     DBG_Printf(DBG_INFO, "DESC: %.*s\n", chunkSize, &bsDDFB.data[bsDDFB.pos]);
-
 
     return 0;
 }
