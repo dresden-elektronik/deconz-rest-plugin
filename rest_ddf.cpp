@@ -273,29 +273,6 @@ int REST_DDF_GetDescriptors(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
-int REST_DDF_GetDescriptor(const ApiRequest &req, ApiResponse &rsp)
-{
-    // TEST call
-    // curl -vv 127.0.0.1:8090/api/12345/ddf/descriptors/0a34938f63f0ccb40e1672799c898889989574f617c103fb64496e9ad78c29a2
-
-    auto bundleHash = req.hdr.pathAt(4);
-
-    if (bundleHash.size() != 64)
-    {
-        rsp.httpStatus = HttpStatusBadRequest;
-        return REQ_READY_SEND;
-    }
-
-    rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE,
-                               QString("/ddf/descriptors/%1").arg(bundleHash),
-                               QString("resource, /ddf/descriptors/%1, not available").arg(bundleHash)));
-
-
-    rsp.httpStatus = HttpStatusNotFound;
-
-    return REQ_READY_SEND;
-}
-
 int REST_DDF_GetBundle(const ApiRequest &req, ApiResponse &rsp)
 {
     // TEST call
@@ -637,12 +614,6 @@ int REST_DDF_HandleApi(const ApiRequest &req, ApiResponse &rsp)
     if (req.hdr.pathComponentsCount() == 5 && req.hdr.httpMethod() == HttpGet && req.hdr.pathAt(3) == "bundles")
     {
         return REST_DDF_GetBundle(req, rsp);
-    }
-
-    // GET /api/<apikey>/ddf/descriptors/<sha256-hash>
-    if (req.hdr.pathComponentsCount() == 5 && req.hdr.httpMethod() == HttpGet && req.hdr.pathAt(3) == "descriptors")
-    {
-        return REST_DDF_GetDescriptor(req, rsp);
     }
 
     // POST /api/<apikey>/ddf/bundles
