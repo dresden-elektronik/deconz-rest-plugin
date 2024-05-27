@@ -283,6 +283,9 @@ public Q_SLOTS:
     void readAllRawJson();
     void readAllBundles();
 
+    void ddfReloadTimerFired();
+    void reloadAllRawJsonAndBundles(const Resource *resource);
+
 Q_SIGNALS:
     void eventNotify(const Event&); //! Emitted \p Event needs to be enqueued in a higher layer.
     void loaded();
