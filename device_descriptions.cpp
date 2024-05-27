@@ -2356,11 +2356,8 @@ static int DDF_ReloadBundleDevices(const char *desc, unsigned descSize, std::vec
             if (rec.modelid.index != modelid_ati.index)
                 continue;
 
-            if (rec.loadState != DDF_LoadStateScheduled)
-            {
-                rec.loadState = DDF_LoadStateScheduled;
-                n_marked++;
-            }
+            rec.loadState = DDF_LoadStateScheduled;
+            n_marked++;
         }
     }
 
