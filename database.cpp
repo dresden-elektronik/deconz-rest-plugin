@@ -7032,6 +7032,20 @@ std::vector<DB_IdentifierPair> DB_LoadIdentifierPairs()
 
     DeRestPluginPrivate::instance()->closeDb();
 
+    if (DBG_IsEnabled(DBG_DDF))
+    {
+        for (size_t i = 0; i < result.size(); i++)
+        {
+            AT_Atom mfname = AT_GetAtomByIndex({result[i].mfnameAtomIndex});
+            AT_Atom modelid = AT_GetAtomByIndex({result[i].modelIdAtomIndex});
+
+            U_ASSERT(mfname.data && mfname.len);
+            U_ASSERT(modelid.data && modelid.len);
+
+            DBG_Printf(DBG_DDF, "DDF identifier pair: %s | %s\n", (const char*)mfname.data, (const char*)modelid.data);
+        }
+    }
+
     return result;
 }
 
