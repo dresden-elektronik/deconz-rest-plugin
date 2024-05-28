@@ -1083,12 +1083,13 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
 
     if (modelidAtomIndex == 0 || mfnameAtomIndex == 0)
     {
-        return d->invalidDescription; // should not happen
+        U_ASSERT(modelidItem->toString().isEmpty());
+        U_ASSERT(mfnameItem->toString().isEmpty());
+        return d->invalidDescription; // happens when called from legacy init code addLightNode() etc.
     }
 
     U_ASSERT(modelidAtomIndex != 0);
     U_ASSERT(mfnameAtomIndex != 0);
-
 
     /*
      * Filter matching DDFs, there can be multiple entries for the same modelid and manufacturer name.
@@ -1172,7 +1173,14 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
 
             if (ddf1.storageLocation == deCONZ::DdfLocation || ddf1.storageLocation == deCONZ::DdfUserLocation)
             {
-                rawJsonIndex = matchedIndices[i];
+                if (rawJsonIndex == invalidIndex)
+                {
+                    rawJsonIndex = matchedIndices[i];
+                }
+                else if (d->descriptions[rawJsonIndex].status == QLatin1String("Draft"))
+                {
+                    rawJsonIndex = matchedIndices[i];
+                }
                 continue;
             }
 
@@ -1997,6 +2005,35 @@ void DeviceDescriptions::readAllRawJson()
 
     std::array<deCONZ::StorageLocation, 2> locations = { deCONZ::DdfLocation, deCONZ::DdfUserLocation};
 
+    bool hasConstants = false;
+
+    // need to resolve constants first
+    for (size_t dit = 0; dit < locations.size(); dit++)
+    {
+        const QString filePath = deCONZ::getStorageLocation(locations[dit]) + "/generic/constants.json";
+
+        pctx->filePath[0] = '\0';
+        pctx->filePathLength = 0;
+        pctx->scratchPos = 0;
+
+        {
+            U_SStream ss;
+            U_sstream_init(&ss, pctx->filePath, sizeof(pctx->filePath));
+            U_sstream_put_str(&ss, filePath.toUtf8().data());
+            pctx->filePathLength = ss.pos;
+        }
+
+        if (DDF_ReadFileInMemory(pctx))
+        {
+            if (DDF_ReadConstantsJson(pctx, d->constants2))
+            {
+                hasConstants = true;
+            }
+        }
+    }
+
+    U_ASSERT(hasConstants);
+
     for (size_t dit = 0; dit < locations.size(); dit++)
     {
         const QString dirpath = deCONZ::getStorageLocation(locations[dit]);
@@ -2019,13 +2056,6 @@ void DeviceDescriptions::readAllRawJson()
 
             if (it.filePath().endsWith(QLatin1String("generic/constants.json")))
             {
-                if (DDF_ReadFileInMemory(pctx))
-                {
-                    if (DDF_ReadConstantsJson(pctx, d->constants2))
-                    {
-
-                    }
-                }
             }
             else if (it.fileName() == QLatin1String("button_maps.json"))
             {  }
@@ -2836,7 +2866,7 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
 
         if (result >= 0)
         {
-            DBG_Printf(DBG_INFO, "DEV found DDF for " FMT_MAC ", path: %s\n", FMT_MAC_CAST(event.deviceKey()), qPrintable(ddf.path));
+            DBG_Printf(DBG_INFO, "DEV found DDF for " FMT_MAC ", path: %s, result: %d\n", FMT_MAC_CAST(event.deviceKey()), qPrintable(ddf.path), result);
         }
 
         if (result == 0)
