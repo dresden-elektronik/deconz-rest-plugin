@@ -10,7 +10,8 @@
     "V3-BTZBE",
     "V3-BTZB"
   ],
-  "product": "Danalock V3",
+  "vendor": "Danalock",
+  "product": "V3 Smart Lock (V3-BTZB/V3-BTZBE)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

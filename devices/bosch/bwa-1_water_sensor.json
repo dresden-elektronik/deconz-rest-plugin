@@ -4,7 +4,7 @@
   "manufacturername": "$MF_BOSCH",
   "modelid": "RBSH-WS-ZB-EU",
   "vendor": "Bosch",
-  "product": "BWA-1 water sensor",
+  "product": "Water Alarm (BWA-1)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

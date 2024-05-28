@@ -4,7 +4,7 @@
   "manufacturername": "$MF_BOSCH",
   "modelid": "RBSH-SD-ZB-EU",
   "vendor": "Bosch",
-  "product": "Smoke Alarm II",
+  "product": "Smoke Alarm II (BSD-2)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
