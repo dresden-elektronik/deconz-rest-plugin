@@ -4,7 +4,7 @@
   "manufacturername": ["Danfoss", "Danfoss", "D5X84YU", "D5X84YU", "Danfoss"],
   "modelid": ["eTRV0100", "eTRV0103", "eT093WRO", "eT093WRG", "TRV001"],
   "vendor": "Danfoss",
-  "product": "Ally Radiator Thermostat (014G2461)",
+  "product": "Ally radiator thermostat (014G2461)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

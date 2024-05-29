@@ -4,7 +4,7 @@
   "manufacturername": "$MF_BOSCH",
   "modelid": "RBSH-MMS-ZB-EU",
   "vendor": "Bosch",
-  "product": "Light/shutter control II (BMCT-SLZ)",
+  "product": "Light and shutter control II (BMCT-SLZ)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

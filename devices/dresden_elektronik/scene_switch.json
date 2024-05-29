@@ -3,7 +3,8 @@
   "uuid": "57f972c5-ead9-4ee2-be54-2b89b0deedf2",
   "manufacturername": "dresden elektronik",
   "modelid": "Scene Switch",
-  "product": "Scene Switch",
+  "vendor": "Dresden Elektronik",
+  "product": "Multifunctional wireless switch (Scene switch)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

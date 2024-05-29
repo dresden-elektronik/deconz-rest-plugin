@@ -3,7 +3,8 @@
   "uuid": "ba595349-3541-41d6-a79f-965115d547a7",
   "manufacturername": "Phoscon",
   "modelid": "Hive",
-  "product": "Hive",
+  "vendor": "Dresden Elektronik",
+  "product": "Portable ambient light (Phoscon Hive)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

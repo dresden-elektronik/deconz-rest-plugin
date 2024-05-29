@@ -3,8 +3,8 @@
   "uuid": "a069007b-ba8a-4b8d-b76c-6d8ea492544c",
   "manufacturername": "_TZ3000_bguser20",
   "modelid": "TS0201",
-  "vendor": "Tuya Aubess",
-  "product": "Temperature and Humidity Sensor (WSD500A)",
+  "vendor": "Aubess",
+  "product": "Temperature and humidity sensor (WSD500A)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
