@@ -3,7 +3,8 @@
   "uuid": "4b16f6c7-b57e-4d7a-9eff-894c5023ab9e",
   "manufacturername": "innr",
   "modelid": "SP 240",
-  "product": "SP 240",
+  "vendor": "Innr",
+  "product": "Smart plug (SP 240)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

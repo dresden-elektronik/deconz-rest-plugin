@@ -4,7 +4,7 @@
   "manufacturername": ["frient A/S", "frient A/S"],
   "modelid": ["HMSZB-110", "HMSZB-120"],
   "vendor": "Develco",
-  "product": "Temperature/humidity sensor HMSZB-110/HMSZB-120",
+  "product": "Frient temperature and humidity sensor (HMSZB-110/HMSZB-120)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

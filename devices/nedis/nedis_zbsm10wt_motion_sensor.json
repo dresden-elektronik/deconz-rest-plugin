@@ -3,8 +3,8 @@
    "uuid":"05069614-e8f7-4ec3-b036-d321ea6713db",
    "manufacturername":"_TZ3000_nss8amz9",
    "modelid":"TS0202",
-   "product":"Zigbee motion sensor ZBSM10WT",
-  "vendor": "Nedis",
+   "vendor": "Nedis",
+   "product":"Zigbee motion sensor (ZBSM10WT)",
    "sleeper":true,
    "status":"Gold",
    "subdevices":[
