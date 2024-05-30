@@ -3,13 +3,13 @@
   "uuid": "711cfee9-6235-4db7-be0e-52b5a976a231",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.plug.maeu01",
-  "vendor": "Xiaomi",
-  "product": "Aqara smart plug SP-EUC01",
+  "vendor": "Xiaomi Aqara",
+  "product": "Smart plug (SP-EUC01)",
   "sleeper": false,
   "status": "Gold",
   "comment": "DDF for device firmwares at least above 0.0.0_0022, paired with xBee I fw 0x26400500 / xBee II fw 0x266f0700 and above",
   "matchexpr": "(R.endpoints.indexOf(0x15) !== -1) && (R.endpoints.indexOf(0x1F) !== -1);",
-  "md:known_issues": [ "xiaomi_known_issues_plugfw.md" ],
+  "md:known_issues": [ "xiaomi_known_issues_frimware_update.md" ],
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",
