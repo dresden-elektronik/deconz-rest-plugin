@@ -2,7 +2,8 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.curtain.agl001",
-  "product": "ZNCLBL01LM",
+  "vendor": "Aqara",
+  "product": "Curtain Driver E1 (ZNCLBL01LM)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
