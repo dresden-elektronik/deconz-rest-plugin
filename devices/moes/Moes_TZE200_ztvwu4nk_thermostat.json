@@ -82,8 +82,8 @@
         },
         {
           "name": "config/preset",
-          "parse": {"fn": "tuya", "dpid": 2, "script": "tuya_trv_preset.js"},
-          "write": {"fn": "tuya", "dpid": 2, "dt": "0x30", "script": "tuya_trv_preset_set.js"},
+          "parse": {"fn": "tuya", "dpid": 2, "script": "../tuya/tuya_trv_preset.js"},
+          "write": {"fn": "tuya", "dpid": 2, "dt": "0x30", "script": "../tuya/tuya_trv_preset_set.js"},
           "read": {"fn": "none"}
         },
         {
