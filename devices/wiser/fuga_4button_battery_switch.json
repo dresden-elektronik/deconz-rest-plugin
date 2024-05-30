@@ -3,7 +3,8 @@
   "uuid": "6520f051-3aca-4197-8bb1-882398107fc9",
   "manufacturername": ["Schneider Electric", "Schneider Electric"],
   "modelid": ["FLS/AIRLINK/4", "FLS/SYSTEM-M/4"],
-  "product": "4 or 2 Button Switch wireless",
+  "vendor": "Schneider Electric",
+  "product": "LK Fuga Wiser wireless battery 2 or 4 button switch (550D6001/WDE002906)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

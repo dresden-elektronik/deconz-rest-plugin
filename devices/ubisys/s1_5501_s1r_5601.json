@@ -3,8 +3,8 @@
   "uuid": "d275912e-9490-4deb-9225-c17b882703ae",
   "manufacturername": ["ubisys", "ubisys"],
   "modelid": ["S1 (5501)", "S1-R (5601)"],
-  "vendor": "ubisys",
-  "product": "S1 (5501) / S1-R (5601) power switch",
+  "vendor": "Ubisys",
+  "product": "Power switch (S1 (5501)/S1-R (5601))",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -3,7 +3,8 @@
   "uuid": "7f333034-1cf4-41a4-aa3f-00a600b12a92",
   "manufacturername": "ubisys",
   "modelid": "LD6",
-  "product": "Lighting Driver LD6",
+  "vendor": "Ubisys",
+  "product": "Lighting driver (LD6)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
