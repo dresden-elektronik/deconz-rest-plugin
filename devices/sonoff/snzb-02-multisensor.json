@@ -3,8 +3,8 @@
   "uuid": "52815a37-6180-4ab8-83ef-021d75496a7b",
   "manufacturername": ["eWeLink","SONOFF","SONOFF"],
   "modelid": ["TH01","SNZB-02D","SNZB-02P"],
-  "vendor": "SONOFF",
-  "product": "SNZB-02 multisensor",
+  "vendor": "Sonoff",
+  "product": "Temperature And Humidity Sensor (SNZB-02)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

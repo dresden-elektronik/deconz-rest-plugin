@@ -5,8 +5,8 @@
     "doc:hdr": "Motion sensor RH3040",
     "manufacturername": ["TUYATEC-zn9wyqtr", "TUYATEC-lakq7nse", "TUYATEC-53o41joc"],
     "modelid": ["RH3040", "RH3040", "RH3040"],
-    "vendor": "$MF_TUYA",
-    "product": "Motion Sensor RH3040",
+    "vendor": "Tuya",
+    "product": "Motion sensor (RH3040)",
     "status": "Gold",
     "supportsMgmtBind": true,
     "subdevices": [

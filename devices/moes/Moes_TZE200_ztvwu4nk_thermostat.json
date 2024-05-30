@@ -3,8 +3,8 @@
   "uuid": "90e437ea-e697-4490-8944-e0d8ef0dc1d0",
   "manufacturername": ["_TZE200_ztvwu4nk", "_TZE204_5toc8efa", "_TZE200_5toc8efa", "_TZE200_ye5jkfsb", "_TZE204_aoclfnxz", "_TZE200_u9bfwha0"],
   "modelid": ["TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601"],
-  "vendor": "Tuya",
-  "product": "Moes Thermostat",
+  "vendor": "Moes",
+  "product": "Thermostat for Water/Gas Boiler (BHT-002)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
