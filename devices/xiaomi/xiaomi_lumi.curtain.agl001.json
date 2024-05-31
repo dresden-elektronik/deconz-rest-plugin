@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "d82a31d8-30b1-4ad4-b9ff-771791baafe7",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.curtain.agl001",
   "vendor": "Aqara",
