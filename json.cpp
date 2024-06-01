@@ -1,7 +1,16 @@
-/**
- * \file json.cpp
+/*
+ * Copyright (c) 2013-2024 dresden elektronik ingenieurtechnik gmbh.
+ * All rights reserved.
+ *
+ * The software in this package is published under the terms of the BSD
+ * style license a copy of which has been included with this distribution in
+ * the LICENSE.txt file.
+ *
  */
- 
+
+#include "deconz/u_assert.h"
+#include "deconz/u_sstream.h"
+#include "utils/scratchmem.h"
 #include "json.h"
 #include <QLocale>
 
@@ -564,4 +573,229 @@ int Json::nextToken(const QString &json, int &index)
 	}
 
 	return JsonTokenNone;
+}
+
+enum JsonBuilderState
+{
+    JBS_Initial,
+    JBS_Empty,
+    JBS_Element,
+    JBS_Key
+};
+
+enum JsonBuilderConstants
+{
+    kJB_None = 0,
+    kJB_MaxNesting = 16,
+    kJB_Object = 4,
+    kJB_Array = 8,
+};
+
+class JsonBuilderPrivate
+{
+public:
+    U_SStream ss;
+    JsonBuilderState state;
+    int needComma;
+    int err;
+    int nesting;
+    uint8_t stack[kJB_MaxNesting];
+};
+
+JsonBuilder::JsonBuilder(unsigned bufsize)
+{
+    d = SCRATCH_ALLOC(JsonBuilderPrivate*, sizeof(*d));
+    U_ASSERT(d && "failed to alloc JsonBuilderPrivate");
+    if (!d)
+        return;
+
+    d->state = JBS_Initial;
+    d->nesting = 0;
+    d->err = 0;
+    d->stack[0] = kJB_None;
+
+    d->ss.str = SCRATCH_ALLOC(char*, bufsize);
+    U_ASSERT(d->ss.str && "failed to alloc JsonBuilderPrivate.ss.str");
+    if (!d->ss.str)
+    {
+        d = nullptr;
+        return;
+    }
+
+    U_sstream_init(&d->ss, d->ss.str, bufsize);
+}
+
+void JsonBuilder::startArray()
+{
+    U_ASSERT(d->nesting < kJB_MaxNesting);
+    if (d->nesting == kJB_MaxNesting)
+    {
+        d->err = 1;
+        return;
+    }
+
+    if (d->state == JBS_Element)
+    {
+        U_sstream_put_str(&d->ss, ",");
+    }
+
+    d->stack[d->nesting] = kJB_Array;
+    d->nesting++;
+    U_sstream_put_str(&d->ss, "[");
+    d->state = JBS_Empty;
+}
+
+void JsonBuilder::endArray()
+{
+    U_ASSERT(d->nesting > 0);
+    if (d->nesting == 0)
+    {
+        d->err = 1;
+        return;
+    }
+
+    d->nesting--;
+    U_ASSERT(d->stack[d->nesting] == kJB_Array);
+    if (d->stack[d->nesting] != kJB_Array)
+    {
+        d->err = 1;
+        return;
+    }
+
+    d->stack[d->nesting] = kJB_None;
+    U_sstream_put_str(&d->ss, "]");
+    d->state = JBS_Element;
+}
+
+void JsonBuilder::startObject()
+{
+    U_ASSERT(d->nesting < kJB_MaxNesting);
+    if (d->nesting == kJB_MaxNesting)
+    {
+        d->err = 1;
+        return;
+    }
+
+    if (d->state == JBS_Element)
+    {
+        U_sstream_put_str(&d->ss, ",");
+    }
+
+    d->stack[d->nesting] = kJB_Object;
+    d->nesting++;
+    U_sstream_put_str(&d->ss, "{");
+    d->state = JBS_Empty;
+}
+
+void JsonBuilder::endObject()
+{
+    U_ASSERT(d->nesting > 0);
+    if (d->nesting == 0)
+    {
+        d->err = 1;
+        return;
+    }
+
+    d->nesting--;
+    U_ASSERT(d->stack[d->nesting] == kJB_Object);
+    if (d->stack[d->nesting] != kJB_Object)
+    {
+        d->err = 1;
+        return;
+    }
+
+    d->stack[d->nesting] = kJB_None;
+    U_sstream_put_str(&d->ss, "}");
+    d->state = JBS_Element;
+}
+
+void JsonBuilder::addKey(const char *key)
+{
+    if (d->nesting == 0)
+    {
+        d->err = 1;
+        return;
+    }
+
+    bool isObject = d->stack[d->nesting - 1] == kJB_Object;
+
+    if (!isObject)
+    {
+        d->err = 1;
+        return;
+    }
+
+    if (d->state == JBS_Empty || d->state == JBS_Element)
+    {
+        if (d->state == JBS_Element)
+        {
+            U_sstream_put_str(&d->ss, ",");
+        }
+        U_sstream_put_str(&d->ss, "\"");
+        U_sstream_put_str(&d->ss, key);
+        U_sstream_put_str(&d->ss, "\"");
+        U_sstream_put_str(&d->ss, ":");
+        d->state = JBS_Key;
+    }
+    else
+    {
+        d->err = 1;
+        return;
+    }
+}
+
+void JsonBuilder::addNumber(double num)
+{
+    if (d->nesting == 0)
+    {
+        d->err = 1;
+        return;
+    }
+
+    bool isObject = d->stack[d->nesting - 1] == kJB_Object;
+
+    if (isObject)
+    {
+        if (d->state != JBS_Key)
+        {
+            d->err = 1;
+            return;
+        }
+    }
+    else if (d->state == JBS_Element)
+    {
+        U_sstream_put_str(&d->ss, ",");
+    }
+
+    U_sstream_put_double(&d->ss, num, 6);
+    d->state = JBS_Element;
+}
+
+void JsonBuilder::addString(const char *str)
+{
+    if (d->nesting == 0)
+    {
+        d->err = 1;
+        return;
+    }
+
+    bool isObject = d->stack[d->nesting - 1] == kJB_Object;
+
+    if (isObject)
+    {
+        if (d->state != JBS_Key)
+        {
+            d->err = 1;
+            return;
+        }
+    }
+    else if (d->state == JBS_Element)
+    {
+        U_sstream_put_str(&d->ss, ",");
+    }
+
+    U_sstream_put_str(&d->ss, "\"");
+    U_sstream_put_str(&d->ss, str);
+    U_sstream_put_str(&d->ss, "\"");
+    d->state = JBS_Element;
 }

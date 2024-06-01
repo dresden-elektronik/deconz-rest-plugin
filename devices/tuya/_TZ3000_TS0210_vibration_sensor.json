@@ -1,19 +1,31 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": [" _TZ3000_itb0omhv", "_TZ3000_4upl1fcj","_TZ3000_wqcbzbae", "_TZ3000_tk3s5tyg", "_TZ3000_mrpevh8p", "_TZ3000_qgwcxxws"],
-  "modelid": ["TS0041", "TS0041", "TS0041", "TS0041", "TS0041", "TS0041"],
-  "product": "Tuya 1 gangs switch battery",
-  "sleeper": false,
+  "uuid": "a4ade039-8213-47cc-8f92-09b04d7557cd",
+  "manufacturername": ["_TZ3000_bmfw9ykl", "_TZ3000_lzdjjfss", "_TZ3000_lqpt3mvr"],
+  "modelid": ["TS0210","TS0210","TS0210"],
+  "vendor": "Tuya",
+  "product": "Moes vibration sensor",
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_SWITCH",
+      "type": "$TYPE_PRESENCE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0006"
+        "0x0500"
       ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0500"
+        ]
+      },
       "items": [
         {
           "name": "attr/id"
@@ -34,9 +46,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -47,12 +57,6 @@
         {
           "name": "config/battery",
           "awake": true,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -60,18 +64,35 @@
             "eval": "Item.val = Attr.val / 2"
           },
           "default": 0
-        },        
+        },
+        {
+          "name": "config/duration",
+          "default": 1
+        },
+        {
+          "name": "config/enrolled",
+          "public": false
+        },
         {
           "name": "config/on"
+        },
+        {
+          "name": "config/pending"
         },
         {
           "name": "config/reachable"
         },
         {
-          "name": "state/buttonevent"
+          "name": "state/lastupdated"
         },
         {
-          "name": "state/lastupdated"
+          "name": "state/lowbattery",
+          "awake": true
+        },
+        {
+          "name": "state/presence",
+          "awake": true,
+          "default": false
         }
       ]
     }
@@ -80,6 +101,7 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0001",
       "report": [
         {
@@ -95,7 +117,7 @@
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
-      "cl": "0x0006"
+      "cl": "0x0500"
     }
   ]
 }

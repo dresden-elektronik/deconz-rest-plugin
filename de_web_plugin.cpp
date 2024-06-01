@@ -48,11 +48,13 @@
 #include "poll_control.h"
 #include "poll_manager.h"
 #include "product_match.h"
+#include "rest_ddf.h"
 #include "rest_devices.h"
 #include "rest_alarmsystems.h"
 #include "read_files.h"
 #include "tuya.h"
 #include "utils/utils.h"
+#include "utils/scratchmem.h"
 #include "xiaomi.h"
 #include "zcl/zcl.h"
 #include "zdp/zdp.h"
@@ -594,6 +596,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     apsCtrlWrapper(deCONZ::ApsController::instance())
 {
     plugin = this;
+    ScratchMemInit();
 
     DEV_SetTestManaged(deCONZ::appArgumentNumeric("--dev-test-managed", 0));
 
@@ -646,8 +649,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
         deviceDescriptions->setEnabledStatusFilter(filter);
     }
-
-    deviceDescriptions->readAll();
 
     connect(databaseTimer, SIGNAL(timeout()),
             this, SLOT(saveDatabaseTimerFired()));
@@ -722,6 +723,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     ttlDataBaseConnection = 0;
     openDb();
     initDb();
+
+    deviceDescriptions->prepare();
+    deviceDescriptions->readAll();
+
     readDb();
 
     DB_LoadAlarmSystemDevices(alarmSystemDeviceTable.get());
@@ -944,6 +949,7 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
     delete deviceJs;
     deviceJs = nullptr;
     eventEmitter = nullptr;
+    ScratchMemDestroy();
 }
 
 DeRestPluginPrivate *DeRestPluginPrivate::instance()
@@ -2361,7 +2367,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, node->address().ext());
     Q_ASSERT(device);
 
-    if (permitJoinFlag)
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_PROFALUX)
+    {
+        //Profalux device don't have manufactureName and ModelID so can't wait for RAttrManufacturerName or RAttrModelId
+    }
+    else if (permitJoinFlag)
     {
         // during pairing only proceed when device code has finished query Basic Cluster
         if (device->item(RAttrManufacturerName)->toString().isEmpty() ||
@@ -15888,6 +15898,9 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     QString content;
     QTextStream stream(sock);
 
+    ScratchMemRewind(0);
+    ScratchMemWaypoint swp;
+
     stream.setCodec(QTextCodec::codecForName("UTF-8"));
     d->pushClientForClose(sock, 60);
 
@@ -16059,6 +16072,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
                 {
                     ret = d->restDevices->handleApi(req, rsp);
                 }
+                else if (apiModule == QLatin1String("ddf"))
+                {
+                    ret = REST_DDF_HandleApi(req, rsp);
+                }
                 else if (apiModule == QLatin1String("lights"))
                 {
                     ret = d->handleLightsApi(req, rsp);
@@ -16197,17 +16214,18 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     stream << "HTTP/1.1 " << rsp.httpStatus << "\r\n";
     stream << "Access-Control-Allow-Origin: *\r\n";
     stream << "Content-Type: " << rsp.contentType << "\r\n";
-    stream << "Content-Length: " << str.size() << "\r\n";
-
-    if (!rsp.hdrFields.empty())
+    if (rsp.contentLength)
     {
-        auto i = rsp.hdrFields.cbegin();
-        const auto end = rsp.hdrFields.cend();
+        stream << "Content-Length: " << rsp.contentLength << "\r\n";
+    }
+    else if (str.size())
+    {
+        stream << "Content-Length: " << str.size() << "\r\n";
+    }
 
-        for (; i != end; ++i)
-        {
-            stream << i->first << ": " <<  i->second << "\r\n";
-        }
+    if (rsp.fileName)
+    {
+        stream << "Content-Disposition: attachment; filename=\"" << rsp.fileName << "\"\r\n";
     }
 
     if (!rsp.etag.isEmpty())
@@ -16216,14 +16234,16 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     }
     stream << "\r\n";
 
-    if (!str.isEmpty())
+    if (rsp.bin && rsp.contentLength)
+    {
+        stream.flush();
+        sock->write(rsp.bin, rsp.contentLength);
+        sock->flush();
+    }
+    else if (!str.isEmpty())
     {
         stream << str;
-    }
-
-    stream.flush();
-    if (!str.isEmpty())
-    {
+        stream.flush();
         DBG_Printf(DBG_HTTP, "%s\n", qPrintable(str));
     }
 
@@ -16720,6 +16740,29 @@ void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
                 plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
             }
         }
+    }
+}
+
+/*! Callback when new DDF bundle is uploaded.
+    For each matching device trigger a DDF reload event.
+ */
+void DEV_ReloadDeviceIdendifier(unsigned atomIndexMfname, unsigned atomIndexModelid)
+{
+    for (auto &dev : plugin->m_devices)
+    {
+        {
+            const ResourceItem *mfname = dev->item(RAttrManufacturerName);
+            if (!mfname || mfname->atomIndex() != atomIndexMfname)
+                continue;
+        }
+
+        {
+            const ResourceItem *modelid = dev->item(RAttrModelId);
+            if (!modelid || modelid->atomIndex() != atomIndexModelid)
+                continue;
+        }
+
+        enqueueEvent(Event(RDevices, REventDDFReload, 0, dev->key()));
     }
 }
 

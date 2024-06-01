@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "790755f4-7320-42ee-8334-f9fa8c80cdc3",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.magnet.acn001",
   "vendor": "Xiaomi",

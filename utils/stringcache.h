@@ -11,7 +11,7 @@
 #ifndef STRING_CACHE_H
 #define STRING_CACHE_H
 
-#include <utils/bufstring.h>
+#define STRING_CACHE_INVALID_HANDLE 0
 
 /*! \class StringCache
 
@@ -19,29 +19,17 @@
     Immutable read only strings are only added to the cache but never removed.
     Mutable string can be used for things like per resource names.
 */
-class StringCache
+enum StringCacheMode
 {
-public:
-    enum Mode {Mutable, Immutable};
-
-    /*! Adds a string if not already exists when \p mode is \c Immutable.
-        Adding the same immutable string multiple times will only reference the same slot
-        in the cache (deduplication).
-
-        \returns A valid handle when the entry is added or already exists.
-        \returns Invalid handle if the string is too large or the cache is full.
-     */
-    BufStringCacheHandle put(const char *str, size_t length, Mode mode);
-
-private:
-    // BufStringCache<32, 1024> mutable32; // for names and other strings
-    BufStringCache<32, 1024> immutable32;
-    BufStringCache<64, 1024> immutable64;
-    BufStringCache<128, 512> immutable128;
+    StringCacheMutable,
+    StringCacheImmutable
 };
 
-/*! Returns pointer to the global string cache.
+/*! Adds string to the global string cache.
+
+    \returns non zero handle or STRING_CACHE_INVALID_HANDLE.
  */
-StringCache *GlobalStringCache();
+unsigned StringCacheAdd(const char *str, unsigned length, StringCacheMode mode);
+bool StringCacheGet(unsigned handle, const char **str, unsigned *length);
 
 #endif // STRING_CACHE_H

@@ -94,8 +94,20 @@ class DeviceDescription
 public:
     bool isValid() const { return !manufacturerNames.isEmpty() && !modelIds.empty() && !subDevices.empty(); }
 
+    uint32_t sha256Hash[8] = {}; // either raw .json hash or bundle hash
+    int64_t lastModified = 0;
+    uint64_t signedBy = 0; // each bit is an index into d->publicKeys[] (max. 64)
+
+    // TODO get rid of QStringLists use the atom lists instead
     QStringList modelIds;
     QStringList manufacturerNames; // as reported in Basic cluster
+
+    std::vector<unsigned> modelidAtomIndices;
+    std::vector<unsigned> mfnameAtomIndices;
+
+    int storageLocation = -1; // deCONZ::StorageLocation
+
+    QString path;
     QString vendor; // optional: friendly name of manufacturer
     QString product;
     QString status;
@@ -108,7 +120,7 @@ public:
     class Item
     {
     public:
-        using Handle = quint32;
+        using Handle = uint32_t;
         enum Constants {
             NoRefreshInterval = -1,
             InvalidItemHandle = 0
@@ -180,7 +192,6 @@ public:
         SensorFingerprint fingerPrint;
     };
 
-    QString path;
     std::vector<SubDevice> subDevices;
     std::vector<DDF_Binding> bindings;
 };
@@ -244,16 +255,17 @@ public:
     ~DeviceDescriptions();
     void setEnabledStatusFilter(const QStringList &filter);
     const QStringList &enabledStatusFilter() const;
-    const DeviceDescription &get(const Resource *resource, DDF_MatchControl match = DDF_EvalMatchExpr) const;
+    const DeviceDescription &get(const Resource *resource, DDF_MatchControl match = DDF_EvalMatchExpr);
     const DeviceDescription &getFromHandle(DeviceDescription::Item::Handle hnd) const;
     void put(const DeviceDescription &ddf);
     const DeviceDescription &load(const QString &path);
 
     const DeviceDescription::SubDevice &getSubDevice(const Resource *resource) const;
 
+    void prepare();
+
     QString constantToString(const QString &constant) const;
     QString stringToConstant(const QString &str) const;
-    QStringList constants(const QString &prefix = QString()) const;
 
     const DDF_Items &genericItems() const;
     const DeviceDescription::Item &getItem(const ResourceItem *item) const;
@@ -268,6 +280,11 @@ public:
 public Q_SLOTS:
     void handleEvent(const Event &event);
     void readAll();
+    void readAllRawJson();
+    void readAllBundles();
+
+    void ddfReloadTimerFired();
+    void reloadAllRawJsonAndBundles(const Resource *resource);
 
 Q_SIGNALS:
     void eventNotify(const Event&); //! Emitted \p Event needs to be enqueued in a higher layer.
@@ -275,6 +292,7 @@ Q_SIGNALS:
 
 private:
     void handleDDFInitRequest(const Event &event);
+    bool loadDDFAndBundlesFromDisc(const Resource *resource);
 
     Q_DECLARE_PRIVATE_D(d_ptr2, DeviceDescriptions)
     DeviceDescriptionsPrivate *d_ptr2 = nullptr;
@@ -287,5 +305,7 @@ bool DDF_IsStatusEnabled(const QString &status);
 void DDF_AnnoteZclParse1(int line, const char* file, const Resource *resource, ResourceItem *item, quint8 ep, quint16 clusterId, quint16 attributeId, const char *eval);
 const DeviceDescription::Item &DDF_GetItem(const ResourceItem *item);
 Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex);
+
+void DEV_ReloadDeviceIdendifier(unsigned atomIndexMfname, unsigned atomIndexModelid);
 
 #endif // DEVICEDESCRIPTIONS_H

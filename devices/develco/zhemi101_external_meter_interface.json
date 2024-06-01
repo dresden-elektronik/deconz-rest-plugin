@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "fccf500b-00d4-4bf6-b42d-27784e3803c2",
   "manufacturername": ["Develco Products A/S", "frient A/S", "Develco"],
   "modelid": ["ZHEMI101", "ZHEMI101", "ZHEMI101"],
   "vendor": "Develco products",
