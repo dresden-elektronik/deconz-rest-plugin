@@ -28,6 +28,7 @@
 #define ERR_INVALID_VALUE              7
 #define ERR_PARAMETER_NOT_MODIFIABLE   8
 #define ERR_TOO_MANY_ITEMS             11
+#define ERR_INVALID_DDF_BUNDLE         12
 #define ERR_DUPLICATE_EXIST            100 // de extension
 #define ERR_NOT_ALLOWED_SENSOR_TYPE    501
 #define ERR_SENSOR_LIST_FULL           502
@@ -68,6 +69,7 @@ extern const char *HttpContentJS;
 extern const char *HttpContentPNG;
 extern const char *HttpContentJPG;
 extern const char *HttpContentSVG;
+extern const char *HttpContentOctetStream;
 
 enum ApiVersion
 {
@@ -122,12 +124,14 @@ class ApiResponse
 {
 public:
     QString etag;
-    const char *httpStatus;
-    const char *contentType;
-    QList<QPair<QString, QString> > hdrFields; // extra header fields
+    const char *httpStatus = nullptr;
+    const char *contentType = nullptr;
+    unsigned contentLength = 0;
+    const char *fileName = nullptr; // for Content-Disposition: attachment: filename="<fileName>"
     QVariantMap map; // json content
     QVariantList list; // json content
     QString str; // json string
+    char *bin = nullptr;
 };
 
 // REST API common

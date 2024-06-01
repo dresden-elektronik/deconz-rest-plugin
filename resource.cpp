@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2024 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -10,6 +10,7 @@
 
 #include <QString>
 
+#include <deconz/u_assert.h>
 #include <deconz/dbg_trace.h>
 #include <utils/stringcache.h>
 #include "resource.h"
@@ -59,6 +60,8 @@ const char *RInvalidSuffix = "invalid/suffix";
 const char *RAttrAppVersion = "attr/appversion";
 const char *RAttrClass = "attr/class";
 const char *RAttrConfigId = "attr/configid";
+const char *RAttrDdfHash = "attr/ddf_hash";
+const char *RAttrDdfPolicy = "attr/ddf_policy";
 const char *RAttrExtAddress = "attr/extaddress";
 const char *RAttrGroupAddress = "attr/groupaddress";
 const char *RAttrId = "attr/id";
@@ -377,6 +380,8 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrAppVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrClass));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrConfigId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrDdfHash));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrDdfPolicy));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RAttrExtAddress));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RAttrGroupAddress));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrId));
@@ -771,18 +776,24 @@ ResourceItem::ResourceItem(const ResourceItem &other)
 
 bool ResourceItem::setItemString(const QString &str)
 {
+    if (!(m_rid->type == DataTypeString ||
+          m_rid->type == DataTypeTimePattern))
+    {
+        return false;
+    }
+
     const auto utf8 = str.toUtf8();
 
-    if (utf8.size() <= int(m_istr.maxSize()))
+    // for now keep all attr/* items also as atoms
+    if (utf8.size() <= int(m_istr.maxSize()) && m_rid->suffix[0] != 'a' && m_rid->suffix[1] != 't')
     {
         m_istr.setString(utf8.constData());
-        m_strHandle = {};
+        m_strHandle = STRING_CACHE_INVALID_HANDLE;
         return true;
     }
 
-    m_strHandle =  GlobalStringCache()->put(utf8.constData(), size_t(utf8.size()), StringCache::Immutable);
-
-    return isValid(m_strHandle);
+    m_strHandle = StringCacheAdd(utf8.constData(), (unsigned)utf8.size(), StringCacheImmutable);
+    return m_strHandle != STRING_CACHE_INVALID_HANDLE;
 }
 
 /*! Move constructor. */
@@ -1081,13 +1092,19 @@ const QString &ResourceItem::toString() const
 
 QLatin1String ResourceItem::toLatin1String() const
 {
-    if (!isValid(m_strHandle))
+    if (m_strHandle == STRING_CACHE_INVALID_HANDLE)
     {
         return m_istr;
     }
-    else if (m_strHandle.base->length > 0)
+    else
     {
-        return QLatin1String(&m_strHandle.base->buf[0], m_strHandle.base->length);
+        const char *str;
+        unsigned length;
+
+        if (StringCacheGet(m_strHandle, &str, &length))
+        {
+            return QLatin1String(str, length);
+        }
     }
 
     return QLatin1String("");
@@ -1095,9 +1112,16 @@ QLatin1String ResourceItem::toLatin1String() const
 
 const char *ResourceItem::toCString() const
 {
-    if (isValid(m_strHandle))
+    if (m_strHandle != STRING_CACHE_INVALID_HANDLE)
     {
-        return &m_strHandle.base->buf[0];
+        const char *str;
+        unsigned length;
+
+        if (StringCacheGet(m_strHandle, &str, &length))
+        {
+            U_ASSERT(str[length] == '\0');
+            return str;
+        }
     }
 
     return m_istr.c_str();
@@ -1117,6 +1141,27 @@ qint64 ResourceItem::toNumberPrevious() const
 bool ResourceItem::toBool() const
 {
     return m_num != 0;
+}
+
+/*! Sets the item string to \p str.
+
+    \param str - utf8 string, \0 terminated
+    \param length - the length of str excluding \0 (aka strlen(str))
+                    can be -1 to let the length be determined automatically
+ */
+bool ResourceItem::setValue(const char *str, int length, ValueSource source)
+{
+    U_ASSERT(str);
+    U_ASSERT(length >= -1);
+
+    if (length == -1) // strlen
+    {
+        for (length = 0; str[length]; length++)
+        {}
+    }
+
+    const QVariant val(QLatin1String(str, length));
+    return setValue(val, source);
 }
 
 bool ResourceItem::setValue(const QString &val, ValueSource source)
@@ -1295,6 +1340,69 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
     }
 
     m_valueSource = SourceUnknown;
+    return false;
+}
+
+/*! Returns true if the items string exactls equals \p str.
+
+    This helps to get rid of some Qt specific checks.
+    So instead of
+
+         if (item->toString() == QLatin1String("some string")) {}
+
+    write
+
+         if (item->equalsString("some string")) {}
+
+    \param str - utf8 string
+    \param length - optional length of str aka strlen(str)
+                    the default value of -1 means the length is determined automatically
+ */
+bool ResourceItem::equalsString(const char *str, int length) const
+{
+    U_ASSERT(str);
+    U_ASSERT(length >= -1);
+    if (!str)
+    {
+        return false;
+    }
+
+    if (length == -1) // strlen
+    {
+        for (length = 0; str[length]; length++)
+        {}
+    }
+
+    if (m_strHandle != STRING_CACHE_INVALID_HANDLE && length > 0)
+    {
+        const char *istr;
+        unsigned ilen;
+        if (StringCacheGet(m_strHandle, &istr, &ilen))
+        {
+            if (ilen != length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < length; i++)
+            {
+                if (str[i] != istr[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    if (m_istr.size() == (size_t)length)
+    {
+        return m_istr == str;
+    }
+
     return false;
 }
 

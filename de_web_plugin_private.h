@@ -1517,14 +1517,6 @@ public:
     void checkDbUserVersion();
     void cleanUpDb();
     void createTempViews();
-    int getDbPragmaInteger(const char *sql);
-    bool setDbUserVersion(int userVersion);
-    bool upgradeDbToUserVersion1();
-    bool upgradeDbToUserVersion2();
-    bool upgradeDbToUserVersion6();
-    bool upgradeDbToUserVersion7();
-    bool upgradeDbToUserVersion8();
-    bool upgradeDbToUserVersion9();
     void pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data);
     void pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data);
     bool dbIsOpen() const;

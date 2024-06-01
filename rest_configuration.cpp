@@ -2095,7 +2095,14 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         if (error)
         {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/utc"), QString("invalid value, %1, for parameter, utc").arg(map["utc"].toString())));
+            if (map.contains("UTC"))
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/UTC"), QString("invalid value, %1, for parameter, UTC").arg(map["UTC"].toString())));
+            }
+            else if (map.contains("utc"))
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/utc"), QString("invalid value, %1, for parameter, utc").arg(map["utc"].toString())));
+            }
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
@@ -2153,7 +2160,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         if (error)
         {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/localtime"), QString("invalid value, %1, for parameter, utc").arg(map["localtime"].toString())));
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/localtime"), QString("invalid value, %1, for parameter, localtime").arg(map["localtime"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
@@ -2727,16 +2734,10 @@ int DeRestPluginPrivate::changePassword(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::deletePassword(const ApiRequest &req, ApiResponse &rsp)
 {
-    // reset only allowed for certain referers
     bool ok = true;
-    QString referer = req.hdr.value(QLatin1String("Referer"));
-    if (referer.isEmpty() || !(referer.contains(QLatin1String("login.html")) || referer.contains(QLatin1String("login2.html"))))
-    {
-        ok = false;
-    }
 
     // reset only allowed within first 10 minutes after startup
-    if (ok && getUptime() > 600)
+    if (getUptime() > 600)
     {
         ok = false;
     }
