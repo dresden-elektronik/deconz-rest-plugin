@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "6fc0fda8-a625-46fd-97ca-e985b79c73fd",
   "manufacturername": ["_TZ3000_nkcobies","_TZ3000_j1v25l17","_TZ3000_ynmowqk2"],
   "modelid": ["TS011F","TS011F","TS011F"],
   "product": "HG08673 LIDL SilverCrest smart plug with monitoring (DK, EU, FR)",
@@ -180,7 +181,7 @@
             "at": "0x0000",
             "cl": "0x0702",
             "ep": 1,
-            "eval": "Item.val = Attr.val * 10;"
+            "eval": "Item.val = Attr.val * 10"
           }
         },
         {

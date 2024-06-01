@@ -1,5 +1,11 @@
-/**
- * \file json.h
+/*
+ * Copyright (c) 2013-2024 dresden elektronik ingenieurtechnik gmbh.
+ * All rights reserved.
+ *
+ * The software in this package is published under the terms of the BSD
+ * style license a copy of which has been included with this distribution in
+ * the LICENSE.txt file.
+ *
  */
 
 #ifndef JSON_H
@@ -7,6 +13,29 @@
 
 #include <QVariant>
 #include <QString>
+
+/* CJ
+ * Low level JSON module
+ */
+#include "cj/cj.h"
+
+/*
+ * CJ extra modules, have no header thus declare protoypes here.
+ */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int cj_copy_ref_utf8(cj_ctx *ctx, char *buf, unsigned size, cj_token_ref ref);
+int cj_ref_to_boolean(cj_ctx *ctx, int *result, cj_token_ref ref);
+int cj_ref_to_double(cj_ctx *ctx, double *result, cj_token_ref ref);
+int cj_ref_to_long(cj_ctx *ctx, long *result, cj_token_ref ref);
+int cj_ref_to_null(cj_ctx *ctx, cj_token_ref ref);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 /**
  * \enum JsonToken
@@ -165,6 +194,31 @@ class Json
 		 * \return int The next JSON token
 		 */
 		static int nextToken(const QString &json, int &index);
+};
+
+
+/*!
+ * \class JsonBuilder
+ * \brief JSON builder class that uses scratch allocator under the hood.
+ */
+class JsonBuilderPrivate;
+
+class JsonBuilder
+{
+public:
+    JsonBuilder() = delete;
+    explicit JsonBuilder(unsigned bufsize);
+
+    void startArray();
+    void endArray();
+    void startObject();
+    void endObject();
+    void addKey(const char *key);
+    void addNumber(double num);
+    void addString(const char *str);
+
+private:
+    JsonBuilderPrivate *d = nullptr;
 };
 
 #endif //JSON_H

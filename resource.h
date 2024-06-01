@@ -88,6 +88,8 @@ extern const char *RInvalidSuffix;
 extern const char *RAttrAppVersion;
 extern const char *RAttrClass;
 extern const char *RAttrConfigId;
+extern const char *RAttrDdfHash;
+extern const char *RAttrDdfPolicy;
 extern const char *RAttrExtAddress;
 extern const char *RAttrGroupAddress;
 extern const char *RAttrId;
@@ -481,6 +483,7 @@ public:
     const QString &toString() const;
     QLatin1String toLatin1String() const;
     const char *toCString() const;
+    unsigned atomIndex() const { return m_strHandle; }
     qint64 toNumber() const;
     qint64 toNumberPrevious() const;
     deCONZ::SteadyTimeRef lastZclReport() const { return m_lastZclReport; }
@@ -492,9 +495,11 @@ public:
     void setZclProperties(const ZCL_Param &param) { m_zclParam = param; }
     void setReadEndpoint(uint8_t ep) { m_readEndpoint = ep; }
     uint8_t readEndpoint() const { return m_readEndpoint; }
+    bool setValue(const char *str, int length, ValueSource source = SourceUnknown);
     bool setValue(const QString &val, ValueSource source = SourceUnknown);
     bool setValue(qint64 val, ValueSource source = SourceUnknown);
     bool setValue(const QVariant &val, ValueSource source = SourceUnknown);
+    bool equalsString(const char *str, int length = -1) const;
     const ResourceItemDescriptor &descriptor() const;
     const QDateTime &lastSet() const;
     const QDateTime &lastChanged() const;
@@ -544,7 +549,7 @@ private:
     };
     deCONZ::SteadyTimeRef m_lastZclReport;
 
-    BufStringCacheHandle m_strHandle; // for strings which don't fit into \c m_istr
+    unsigned m_strHandle = 0; // for strings which don't fit into \c m_istr
     ItemString m_istr; // internal embedded small string
     deCONZ::TimeSeconds m_refreshInterval;
     QString *m_str = nullptr;

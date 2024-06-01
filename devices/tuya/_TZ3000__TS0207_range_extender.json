@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "9d273448-b13a-41a8-9dfe-1e1de9927214",
   "manufacturername": ["_TZ3000_m0vaazab","_TZ3000_ufttklsz","_TZ3000_5k5vh43t","_TZ3000_gszjt2xx"],
   "modelid": ["TS0207","TS0207","TS0207","TS0207"],
   "product": "Range Extender",

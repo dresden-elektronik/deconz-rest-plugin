@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "637ed291-d6e1-4a32-880f-0893516fb425",
   "manufacturername": ["$MF_LUMI", "$MF_LUMI"],
   "modelid": ["lumi.sensor_cube", "lumi.sensor_cube.aqgl01"],
   "vendor": "Xiaomi",

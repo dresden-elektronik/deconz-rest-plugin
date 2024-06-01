@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "d9e2a290-e2b4-42de-bd95-4b46b4f0a142",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.switch.n0agl1",
   "vendor": "Xiaomi",
@@ -125,16 +126,6 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/temperature",
-          "parse": {
-            "at": "0x0000",
-            "cl": "0x0002",
-            "ep": 1,
-            "eval": "Item.val = Attr.val * 100;",
-            "fn": "zcl:attr"
-          }
-        },
-        {
           "name": "state/current",
           "parse": {
             "at": "0x00F7",
@@ -238,16 +229,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature",
-          "parse": {
-            "at": "0x0000",
-            "cl": "0x0002",
-            "ep": 1,
-            "eval": "Item.val = Attr.val * 100;",
-            "fn": "zcl:attr"
-          }
         },
         {
           "name": "state/consumption",

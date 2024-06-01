@@ -1,14 +1,15 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZ3000_bmfw9ykl",
-  "modelid": "TS0210",
-  "vendor": "Tuya",
-  "product": "Moes vibration sensor",
+  "uuid": "90d10a96-9cf9-4639-bd04-74feb26aec9a",
+  "manufacturername": "$MF_IKEA",
+  "modelid": "BADRING Water Leakage Sensor",
+  "vendor": "IKEA",
+  "product": "BADRING Water Leakage Sensor",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_PRESENCE_SENSOR",
+      "type": "$TYPE_WATER_LEAK_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -56,27 +57,29 @@
         {
           "name": "config/battery",
           "awake": true,
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          },
-          "default": 0
+            "eval": "Item.val = Math.round(Attr.val / 2)",
+            "fn": "zcl:attr"
+          }
         },
         {
-          "name": "config/duration",
-          "default": 1
-        },
-        {
-          "name": "config/enrolled",
-          "public": false
-        },
-        {
-          "name": "config/on"
+          "name": "config/checkin"
         },
         {
           "name": "config/pending"
+        },
+        {
+          "name": "config/on"
         },
         {
           "name": "config/reachable"
@@ -85,13 +88,22 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery",
-          "awake": true
+          "name": "config/enrolled"
         },
         {
-          "name": "state/presence",
+          "name": "state/water",
+          "parse": {
+            "fn": "ias:zonestatus",
+            "mask": "alarm1,alarm2"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0500",
+            "at": "0x0002"
+          },
           "awake": true,
-          "default": false
+          "refresh.interval": 84600
         }
       ]
     }
@@ -100,23 +112,21 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
       "cl": "0x0001",
       "report": [
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
-          "change": "0x00000001"
+          "min": 3600,
+          "max": 43200,
+          "change": "0x00000002"
         }
       ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0500"
     }
   ]
 }

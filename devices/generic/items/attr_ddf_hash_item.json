@@ -1,0 +1,9 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "attr/ddf_hash",
+  "datatype": "String",
+  "access": "RW",
+  "public": true,
+  "implicit": true,
+  "description": "Hash of active DDF bundle."
+}
