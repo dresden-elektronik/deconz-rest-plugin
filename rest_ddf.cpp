@@ -13,6 +13,8 @@
 #include "device_ddf_bundle.h"
 #include "rest_api.h"
 #include "rest_ddf.h"
+#include "json.h"
+#include "deconz/u_assert.h"
 #include "deconz/file.h"
 #include "deconz/u_sstream.h"
 #include "deconz/u_memory.h"
@@ -66,6 +68,10 @@ curl -F 'data=@/home/mpi/some.ddf' 127.0.0.1:8090/api/12345/ddf
 
 static int WriteBundleDescriptorToResponse(U_BStream *bs, U_SStream *ss, unsigned nRecords)
 {
+    cj_ctx cj;
+    cj_token tokens[2048];
+    cj_token *tok;
+    char ibuf[512];
     unsigned chunkSize;
     unsigned char sha256[U_SHA256_HASH_SIZE];
     char sha256Str[(U_SHA256_HASH_SIZE * 2) + 1];
@@ -84,6 +90,7 @@ static int WriteBundleDescriptorToResponse(U_BStream *bs, U_SStream *ss, unsigne
         // Bundle hash over DDFB chunk (header + data)
         if (U_Sha256(&bs->data[bs->pos - 8], chunkSize + 8, sha256) == 0)
         {
+            U_ASSERT(0 && "SHA-256 not working");
             return 0; // should not happen
         }
 
@@ -99,6 +106,21 @@ static int WriteBundleDescriptorToResponse(U_BStream *bs, U_SStream *ss, unsigne
         return 0;
     }
 
+    U_ASSERT(chunkSize > 32);
+
+    cj_parse_init(&cj, (char*)&bsDDFB.data[bsDDFB.pos], chunkSize, tokens, sizeof(tokens)/sizeof(tokens[0]));
+    cj_parse(&cj);
+    U_ASSERT(cj.status == CJ_OK);
+
+    if (cj.status != CJ_OK)
+    {
+        return 0;
+    }
+
+    U_ASSERT(cj.tokens_pos > 0);
+    U_ASSERT(cj.tokens[0].type == CJ_TOKEN_OBJECT_BEG);
+    U_ASSERT(cj.tokens[cj.tokens_pos - 1].type == CJ_TOKEN_OBJECT_END);
+
     // enough space for descriptor | hash key | file hash
     if ((ss->pos + chunkSize + 128 + 128 + 96) < ss->len)
     {
@@ -109,32 +131,49 @@ static int WriteBundleDescriptorToResponse(U_BStream *bs, U_SStream *ss, unsigne
         U_sstream_put_str(ss, sha256Str);
         U_sstream_put_str(ss, "\":");
 
-        U_memcpy(&ss->str[ss->pos], &bsDDFB.data[bsDDFB.pos], chunkSize);
-        ss->pos += chunkSize;
+        // copy all tokens except closing '}'
+        for (cj_size i = 0; i < cj.tokens_pos - 1; i++)
+        {
+            tok = &cj.tokens[i];
+            U_ASSERT(tok->len != 0);
+            if (sizeof(ibuf) - 1 < tok->len)
+            {
+                U_ASSERT(0 && "unexpected large JSON token");
+                return 0; // should not happen
+            }
 
+            if (tok->type == CJ_TOKEN_STRING) // include quotes
+            {
+                U_ASSERT(tok->pos != 0);
+                U_memcpy(ibuf, &cj.buf[tok->pos - 1], tok->len + 2);
+                ibuf[tok->len + 2] = '\0';
+            }
+            else
+            {
+                U_memcpy(ibuf, &cj.buf[tok->pos], tok->len);
+                ibuf[tok->len] = '\0';
+            }
+
+            U_sstream_put_str(ss, ibuf);
+            U_ASSERT(ss->status == U_SSTREAM_OK);
+        }
 
         // hash over complete bundle file
         if (U_Sha256(&bs->data[0], bs->size, sha256) == 0)
         {
+            U_ASSERT(0 && "SHA-256 not working");
             return 0; // should not happen
         }
 
         BinToHexAscii(sha256, U_SHA256_HASH_SIZE, sha256Str);
 
-        // sneak in the file hash at the end
-        for (;ss->pos && ss->str[ss->pos] != '}'; ss->pos--)
-        {}
+        // add "file_hash" at the end
+        U_sstream_put_str(ss, ", \"file_hash\": \"");
+        U_sstream_put_str(ss, sha256Str);
+        U_sstream_put_str(ss, "\"}");
+        return ss->status == U_SSTREAM_OK;
 
-        if (ss->str[ss->pos] == '}')
-        {
-            U_sstream_put_str(ss, ", \"file_hash\": \"");
-            U_sstream_put_str(ss, sha256Str);
-            U_sstream_put_str(ss, "\"}");
-            return 1;
-        }
     }
-
-    DBG_Printf(DBG_INFO, "DESC: %.*s\n", chunkSize, &bsDDFB.data[bsDDFB.pos]);
 
     return 0;
 }
@@ -142,6 +181,7 @@ static int WriteBundleDescriptorToResponse(U_BStream *bs, U_SStream *ss, unsigne
 int REST_DDF_GetDescriptors(const ApiRequest &req, ApiResponse &rsp)
 {
     // TEST call
+
     // curl -vv 127.0.0.1:8090/api/12345/ddf/descriptors
     // curl -vv 127.0.0.1:8090/api/12345/ddf/descriptors?next=<token>
     unsigned reqCursor = 1;
