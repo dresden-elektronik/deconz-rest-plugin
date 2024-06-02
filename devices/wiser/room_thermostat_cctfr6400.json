@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "75137123-75e5-4c15-9620-d6e360d8de27",
   "manufacturername": "Schneider Electric",
   "modelid": "Thermostat",
   "product": "Room thermostat CCTFR6400",
