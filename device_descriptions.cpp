@@ -1995,6 +1995,8 @@ void DeviceDescriptions::readAllRawJson()
         return;
     }
 
+    DBG_Printf(DBG_DDF, "DDF try to find raw JSON DDFs for %u identifier pairs\n", (unsigned)d->ddfLoadRecords.size());
+
     DDF_ParseContext *pctx = new(ctx_mem)DDF_ParseContext; // placement new into scratch memory, no further cleanup needed
     U_ASSERT(pctx);
     pctx->extChunks = nullptr;
@@ -2027,9 +2029,15 @@ void DeviceDescriptions::readAllRawJson()
         {
             if (DDF_ReadConstantsJson(pctx, d->constants2))
             {
+                DBG_Printf(DBG_DDF, "DDF loaded %d string constants from %s\n", (int)d->constants2.size(), pctx->filePath);
                 hasConstants = true;
             }
         }
+    }
+
+    if (d->constants2.empty() || !hasConstants) // should not happen
+    {
+        DBG_Printf(DBG_DDF, "DDF failed to load string constants\n");
     }
 
     U_ASSERT(hasConstants);
@@ -2110,7 +2118,10 @@ void DeviceDescriptions::readAllRawJson()
                         if (result.isValid())
                         {
                             result.storageLocation = locations[dit];
-                            U_Sha256(pctx->fileData, pctx->fileDataSize, (unsigned char*)&result.sha256Hash[0]);
+                            if (U_Sha256(pctx->fileData, pctx->fileDataSize, (unsigned char*)&result.sha256Hash[0]) == 0)
+                            {
+                                DBG_Printf(DBG_DDF, "DDF failed to create SHA-256 hash of DDF\n");
+                            }
 
                             unsigned j = 0;
                             unsigned k = 0;
@@ -2152,6 +2163,9 @@ void DeviceDescriptions::readAllRawJson()
                                         AT_AtomIndex mfnameIndex;
                                         AT_AtomIndex modelidIndex;
 
+                                        mfnameIndex.index = 0;
+                                        modelidIndex.index = 0;
+
                                         /*
                                          * Try to get atoms for the mfname/modelid pair.
                                          * Note: If they don't exist, this isn't the pair we are looking for!
@@ -2162,7 +2176,15 @@ void DeviceDescriptions::readAllRawJson()
                                             const QByteArray m = constantToString(result.manufacturerNames[j]).toUtf8();
                                             if (AT_GetAtomIndex(m.constData(), (unsigned)m.size(), &mfnameIndex) != 1)
                                             {
-                                                continue;
+                                                if (m.startsWith('$'))
+                                                {
+                                                    DBG_Printf(DBG_DDF, "DDF failed to resolve constant %s\n", m.data());
+                                                    // continue here anyway as long as modelid matches
+                                                }
+                                                else
+                                                {
+                                                    continue;
+                                                }
                                             }
                                         }
 
@@ -2176,10 +2198,17 @@ void DeviceDescriptions::readAllRawJson()
 
                                         for (k = 0; k < d->ddfLoadRecords.size(); k++)
                                         {
-                                            if (mfnameIndex.index == d->ddfLoadRecords[k].mfname.index &&
-                                                modelidIndex.index == d->ddfLoadRecords[k].modelid.index)
+                                            if (modelidIndex.index == d->ddfLoadRecords[k].modelid.index)
                                             {
-                                                //d->ddfLoadRecords[k].loadState = DDF_LoadStateLoadedRawJson;
+                                                if (mfnameIndex.index == 0)
+                                                {
+                                                    // ignore for now, in worst case we load a DDF to memory which isn't used
+                                                    U_ASSERT(0);
+                                                }
+                                                else if (mfnameIndex.index != d->ddfLoadRecords[k].mfname.index)
+                                                {
+                                                    continue;
+                                                }
                                                 scheduled = true;
                                                 break;
                                             }
@@ -2190,6 +2219,10 @@ void DeviceDescriptions::readAllRawJson()
                                             break;
                                         }
                                     }
+                                }
+                                else
+                                {
+                                    DBG_Printf(DBG_DDF, "DDF ignore %s due unequal manufacturername/modelid array sizes\n", pctx->filePath);
                                 }
 
                                 if (scheduled)
@@ -2219,6 +2252,7 @@ void DeviceDescriptions::readAllRawJson()
                                         }
                                     }
 
+                                    DBG_Printf(DBG_DDF, "DDF cache raw JSON DDF %s\n", pctx->filePath);
                                     d->descriptions.push_back(std::move(result));
                                 }
                             }
@@ -2248,7 +2282,7 @@ void DeviceDescriptions::readAllRawJson()
             ddf = DDF_LoadScripts(ddf);
         }
 
-        DBG_Printf(DBG_DDF, "loaded %d DDFs\n", (int)d->descriptions.size());
+        DBG_Printf(DBG_DDF, "DDF loaded %d raw JSON DDFs\n", (int)d->descriptions.size());
     }
 
     DBG_MEASURE_END(DDF_ReadRawJson);
@@ -3272,7 +3306,10 @@ static DeviceDescription::Item DDF_ParseItem(DDF_ParseContext *pctx, const QJson
             }
         }
 
-        DBG_Printf(DBG_DDF, "DDF loaded resource item descriptor: %s, public: %u\n", result.descriptor.suffix, (result.isPublic ? 1 : 0));
+        if (DBG_IsEnabled(DBG_INFO_L2))
+        {
+            DBG_Printf(DBG_DDF, "DDF loaded resource item descriptor: %s, public: %u\n", result.descriptor.suffix, (result.isPublic ? 1 : 0));
+        }
     }
     else
     {

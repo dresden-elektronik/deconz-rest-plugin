@@ -74,11 +74,17 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
 
     if (item)
     {
-        DBG_Printf(DBG_DDF, "sub-device: %s, has item: %s\n", uniqueId, ddfItem.descriptor.suffix);
+        if (DBG_IsEnabled(DBG_INFO_L2))
+        {
+            DBG_Printf(DBG_DDF, "sub-device: %s, has item: %s\n", uniqueId, ddfItem.descriptor.suffix);
+        }
     }
     else
     {
-        DBG_Printf(DBG_DDF, "sub-device: %s, create item: %s\n", uniqueId, ddfItem.descriptor.suffix);
+        if (DBG_IsEnabled(DBG_INFO_L2))
+        {
+            DBG_Printf(DBG_DDF, "sub-device: %s, create item: %s\n", uniqueId, ddfItem.descriptor.suffix);
+        }
         item = rsub->addItem(ddfItem.descriptor.type, ddfItem.descriptor.suffix);
 
         DBG_Assert(item);

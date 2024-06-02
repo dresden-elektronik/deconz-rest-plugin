@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2020-2024 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8,7 +8,6 @@
  *
  */
 
-#include <QLibrary>
 #include <QDataStream>
 
 #ifdef HAS_OPENSSL
@@ -29,6 +28,7 @@
 #include "deconz/dbg_trace.h"
 #include "deconz/green_power.h"
 #include "deconz/zcl.h"
+#include "deconz/u_library_ex.h"
 #include "green_power.h"
 #include "resource.h"
 
@@ -49,6 +49,8 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
     GpKey_t result = { 0 };
 
 #ifdef HAS_RECENT_OPENSSL
+    void *libCrypto = nullptr;
+    void *libSsl = nullptr;
     const unsigned char defaultTCLinkKey[] = { 0x5A, 0x69, 0x67, 0x42, 0x65, 0x65, 0x41, 0x6C, 0x6C, 0x69, 0x61, 0x6E, 0x63, 0x65, 0x30, 0x39 };
 
     unsigned char nonce[13]; // u8 source address, u32 frame counter, u8 security control
@@ -69,18 +71,10 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
 
     nonce[12] = 0x05;
 
-#ifdef Q_OS_WIN
-    QLibrary libCrypto(QLatin1String("libcrypto-1_1.dll"));
-    QLibrary libSsl(QLatin1String("libssl-1_1.dll"));
-#elif defined (__APPLE__)
-    QLibrary libCrypto(QLatin1String("../Frameworks/libcrypto.3.dylib"));
-    QLibrary libSsl(QLatin1String("../Frameworks/libssl.3.dylib"));
-#else
-    QLibrary libCrypto(QLatin1String("crypto"));
-    QLibrary libSsl(QLatin1String("ssl"));
-#endif
+    libCrypto = U_library_open_ex("libcrypto");
+    libSsl = U_library_open_ex("libssl");
 
-    if (!libCrypto.load() || !libSsl.load())
+    if (!libCrypto || !libSsl)
     {
         DBG_Printf(DBG_ZGP, "[ZGP] OpenSSl library for ZGP encryption not found\n");
         return result;
@@ -88,13 +82,13 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
 
     unsigned long openSslVersion = 0;
 
-    auto _OpenSSL_version_num = reinterpret_cast<unsigned long (*)(void)>(libCrypto.resolve("OpenSSL_version_num"));
-    const auto _EVP_CIPHER_CTX_new = reinterpret_cast<EVP_CIPHER_CTX*(*)(void)>(libCrypto.resolve("EVP_CIPHER_CTX_new"));
-    const auto _EVP_EncryptInit_ex = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher, ENGINE *impl, const unsigned char *key, const unsigned char *iv)>(libCrypto.resolve("EVP_EncryptInit_ex"));
-    const auto _EVP_CIPHER_CTX_ctrl = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr)>(libCrypto.resolve("EVP_CIPHER_CTX_ctrl"));
-    const auto _EVP_EncryptUpdate = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl, const unsigned char *in, int inl)>(libCrypto.resolve("EVP_EncryptUpdate"));
-    const auto _EVP_CIPHER_CTX_free = reinterpret_cast<void (*)(EVP_CIPHER_CTX *c)>(libCrypto.resolve("EVP_CIPHER_CTX_free"));
-    const auto _EVP_aes_128_ccm  = reinterpret_cast<const EVP_CIPHER *(*)(void)>(libCrypto.resolve("EVP_aes_128_ccm"));
+    auto _OpenSSL_version_num = reinterpret_cast<unsigned long (*)(void)>(U_library_symbol(libCrypto, "OpenSSL_version_num"));
+    const auto _EVP_CIPHER_CTX_new = reinterpret_cast<EVP_CIPHER_CTX*(*)(void)>(U_library_symbol(libCrypto, "EVP_CIPHER_CTX_new"));
+    const auto _EVP_EncryptInit_ex = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher, ENGINE *impl, const unsigned char *key, const unsigned char *iv)>(U_library_symbol(libCrypto, "EVP_EncryptInit_ex"));
+    const auto _EVP_CIPHER_CTX_ctrl = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr)>(U_library_symbol(libCrypto, "EVP_CIPHER_CTX_ctrl"));
+    const auto _EVP_EncryptUpdate = reinterpret_cast<int (*)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl, const unsigned char *in, int inl)>(U_library_symbol(libCrypto, "EVP_EncryptUpdate"));
+    const auto _EVP_CIPHER_CTX_free = reinterpret_cast<void (*)(EVP_CIPHER_CTX *c)>(U_library_symbol(libCrypto, "EVP_CIPHER_CTX_free"));
+    const auto _EVP_aes_128_ccm  = reinterpret_cast<const EVP_CIPHER *(*)(void)>(U_library_symbol(libCrypto, "EVP_aes_128_ccm"));
 
     if (_OpenSSL_version_num)
     {
