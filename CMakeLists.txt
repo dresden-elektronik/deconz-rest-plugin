@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(de_rest_plugin VERSION 2.26.03 LANGUAGES C;CXX)
+project(de_rest_plugin VERSION 2.27.02 LANGUAGES C;CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -68,6 +68,7 @@ set(PLUGIN_INCLUDE_FILES
     device.h
     device_access_fn.h
     device_compat.h
+    device_ddf_bundle.h
     device_ddf_init.h
     device_descriptions.h
     device_tick.h
@@ -92,6 +93,7 @@ set(PLUGIN_INCLUDE_FILES
     resourcelinks.h
     rest_alarmsystems.h
     rest_api.h
+    rest_ddf.h
     rest_devices.h
     rest_node_base.h
     rule.h
@@ -153,6 +155,7 @@ add_library(${PROJECT_NAME} SHARED
     device_access_fn.cpp
     device_compat.cpp
     device.cpp
+    device_ddf_bundle.cpp
     device_ddf_init.cpp
     device_descriptions.cpp
     device_js/duktape.c
@@ -193,6 +196,7 @@ add_library(${PROJECT_NAME} SHARED
     rest_api.cpp
     rest_capabilities.cpp
     rest_configuration.cpp
+    rest_ddf.cpp
     rest_devices.cpp
     rest_gateways.cpp
     rest_groups.cpp

@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "18f34296-3284-4d97-9765-85d3f09c7962",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.remote.acn004",
   "matchexpr": "R.endpoints.length === 3",

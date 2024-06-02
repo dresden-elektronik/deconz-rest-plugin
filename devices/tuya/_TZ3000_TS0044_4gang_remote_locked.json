@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": [" _TZ3000_itb0omhv", "_TZ3000_4upl1fcj","_TZ3000_wqcbzbae", "_TZ3000_tk3s5tyg", "_TZ3000_mrpevh8p", "_TZ3000_qgwcxxws"],
-  "modelid": ["TS0041", "TS0041", "TS0041", "TS0041", "TS0041", "TS0041"],
-  "product": "Tuya 1 gangs switch battery",
-  "sleeper": false,
+  "uuid": "1ca9db80-e00c-4d5d-84b2-7451b19d6e46",
+  "manufacturername": ["_TZ3000_a4xycprs", "_TZ3000_u3nv1jwk"],
+  "modelid": ["TS0044", "TS0044"],
+  "product": "Tuya 4-gang locked remote",
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
@@ -35,8 +36,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -46,23 +58,26 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
+          "refresh.interval": 86400,
           "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
+            "fn": "zcl:attr",
             "ep": 1,
-            "fn": "zcl:attr"
+            "cl": "0x0001",
+            "at": "0x0021"
           },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          },
-          "default": 0
-        },        
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl:attr"
+          }
+        },
         {
           "name": "config/on"
+        },
+        {
+          "name": "config/tuya_unlock"
         },
         {
           "name": "config/reachable"
@@ -80,20 +95,38 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
       "cl": "0x0001",
       "report": [
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
-          "change": "0x00000001"
+          "min": 64500,
+          "max": 65500,
+          "change": "0x00000002"
         }
       ]
     },
     {
       "bind": "unicast",
-      "src.ep": 1,
+      "src.ep": 2,
+      "dst.ep": 1,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "dst.ep": 1,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 4,
       "dst.ep": 1,
       "cl": "0x0006"
     }

@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "85676803-9d00-47fe-838f-ce76dfafc276",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_motion.aq2",
   "vendor": "Xiaomi",

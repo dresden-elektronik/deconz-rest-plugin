@@ -28,6 +28,7 @@
 #define ERR_INVALID_VALUE              7
 #define ERR_PARAMETER_NOT_MODIFIABLE   8
 #define ERR_TOO_MANY_ITEMS             11
+#define ERR_INVALID_DDF_BUNDLE         12
 #define ERR_DUPLICATE_EXIST            100 // de extension
 #define ERR_NOT_ALLOWED_SENSOR_TYPE    501
 #define ERR_SENSOR_LIST_FULL           502

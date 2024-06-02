@@ -88,6 +88,8 @@ extern const char *RInvalidSuffix;
 extern const char *RAttrAppVersion;
 extern const char *RAttrClass;
 extern const char *RAttrConfigId;
+extern const char *RAttrDdfHash;
+extern const char *RAttrDdfPolicy;
 extern const char *RAttrExtAddress;
 extern const char *RAttrGroupAddress;
 extern const char *RAttrId;
@@ -493,9 +495,11 @@ public:
     void setZclProperties(const ZCL_Param &param) { m_zclParam = param; }
     void setReadEndpoint(uint8_t ep) { m_readEndpoint = ep; }
     uint8_t readEndpoint() const { return m_readEndpoint; }
+    bool setValue(const char *str, int length, ValueSource source = SourceUnknown);
     bool setValue(const QString &val, ValueSource source = SourceUnknown);
     bool setValue(qint64 val, ValueSource source = SourceUnknown);
     bool setValue(const QVariant &val, ValueSource source = SourceUnknown);
+    bool equalsString(const char *str, int length = -1) const;
     const ResourceItemDescriptor &descriptor() const;
     const QDateTime &lastSet() const;
     const QDateTime &lastChanged() const;
