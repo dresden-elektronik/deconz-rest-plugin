@@ -4,7 +4,7 @@
   "manufacturername": "Schneider Electric",
   "modelid": "Thermostat",
   "vendor": "Schneider Electric",
-  "product": "Wiser Room thermostat (CCTFR6400)",
+  "product": "Wiser room thermostat (CCTFR6400)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
