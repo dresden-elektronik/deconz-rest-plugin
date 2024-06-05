@@ -4,7 +4,7 @@
   "manufacturername": ["_TZ3000_ksw8qtmt", "_TZ3000_2putqrmw"],
   "modelid": ["TS011F", "TS011F"],
   "vendor": "Nous",
-  "product": "Nous A1Z smart plug",
+  "product": "Smart zigbee socket (A1Z)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

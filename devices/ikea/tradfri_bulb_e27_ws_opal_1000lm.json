@@ -3,7 +3,8 @@
   "uuid": "75aad11e-f313-4ce0-a5b1-5c62566ed1d6",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI bulb E27 WS opal 1000lm",
-  "product": "TRADFRI bulb E27 WS opal 1000lm",
+  "vendor": "IKEA",
+  "product": "Tradfri LED bulb E27 1000 lumen, dimmable white spectrum opal white (LED1732G11)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

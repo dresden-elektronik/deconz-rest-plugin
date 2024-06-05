@@ -3,7 +3,8 @@
   "uuid": "9cc2db31-a047-4431-b646-1e72d9a3fd0f",
   "manufacturername": "$MF_IKEA",
   "modelid": "PARASOLL Door/Window Sensor",
-  "product": "PARASOLL Door/Window Sensor",
+  "vendor": "IKEA",
+  "product": "Parasoll door/window sensor (E2013)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

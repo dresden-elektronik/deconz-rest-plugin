@@ -3,7 +3,8 @@
   "uuid": "7d02b7c0-456a-48ee-b690-eae30c3b7c46",
   "manufacturername": "OSRAM",
   "modelid": "Plug 01",
-  "product": "Plug 01",
+  "vendor": "Osram",
+  "product": "Smart+ Plug (AB3257001NJ)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

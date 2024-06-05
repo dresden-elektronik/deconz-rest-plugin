@@ -3,7 +3,8 @@
   "uuid": "a1e3894c-d259-4235-852e-2aea617df251",
   "manufacturername": ["_TZ3000_5e235jpa", "_TZ3000_t8hzpgnd", "_TZ3000_tzvbimpq", "_TZ3000_i3rjdrwu"],
   "modelid": ["TS0042", "TS0042", "TS0042", "TS0042"],
-  "product": "Tuya 2-gang remote",
+  "vendor": "Tuya",
+  "product": "2-gang remote (TS0042)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

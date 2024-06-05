@@ -3,7 +3,8 @@
     "uuid": "524fadcb-a83c-4f33-acfa-81eb41e22978",
     "manufacturername": "$MF_LUTRON",
     "modelid": "Z3-1BRL",
-    "product": "Aurora",
+    "vendor": "Lutron",
+    "product": "Aurora smart bulb dimmer (Z3-1BRL)",
     "status": "Gold",
     "md:known_issues": [ "lutron_known_issues.md" ],
     "subdevices": [

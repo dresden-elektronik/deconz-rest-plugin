@@ -3,7 +3,8 @@
   "uuid": "5d4a970d-3a95-4e2b-8aa8-82a885221fe1",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRIbulbE14WScandleopal470lm",
-  "product": "TRADFRIbulbE14WScandleopal470lm",
+  "vendor": "IKEA",
+  "product": "Tradfri LED bulb E14 470 lumen, wireless dimmable white spectrum/chandelier opal white (LED1949C5)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

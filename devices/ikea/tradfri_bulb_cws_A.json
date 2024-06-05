@@ -9,7 +9,8 @@
     "TRADFRI bulb E27 CWS 806lm",
     "TRADFRI bulb GU10 CWS 345lm"
   ],
-  "product": "TRÅDFRI LED bulb E27 806lm color/white spectrum globe, TRÅDFRI LED bulb GU10 345lm color/white spectrum",
+  "vendor": "IKEA",
+  "product": "Tradfri LED bulb E27 806 lumen CWS and GU10 345 lumen CWS (LED2004G8/LED2110R3)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

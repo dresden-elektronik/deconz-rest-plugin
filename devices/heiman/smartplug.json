@@ -3,7 +3,8 @@
     "uuid": "14938c50-2781-41e4-80a4-d38b3a996ca1",
     "manufacturername": "Heiman",
     "modelid": "SmartPlug",
-    "product": "SmartPlug",
+    "vendor": "Heiman",
+    "product": "Metering Plug (HS2SK)",
     "sleeper": false,
     "status": "Gold",
     "subdevices": [

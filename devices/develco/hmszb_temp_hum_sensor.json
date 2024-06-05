@@ -4,7 +4,7 @@
   "manufacturername": ["Develco Products A/S", "Develco Products A/S"],
   "modelid": ["HMSZB-110", "HMSZB-120"],
   "vendor": "Develco Products",
-  "product": "Temperature/humidity sensor HMSZB-110/HMSZB-120",
+  "product": "Temperature and humidity sensor (HMSZB-110/HMSZB-120)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

@@ -3,7 +3,8 @@
   "uuid": "50f0db9d-c73d-4d65-aae1-64976334323f",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRIbulbE27WSglobeopal1055lm",
-  "product": "Tradfri LED bulb E27 1055 lumen",
+  "vendor": "IKEA",
+  "product": "Tradfri LED bulb E27 1055 lumen, dimmable, white spectrum, opal white (LED2003G10)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

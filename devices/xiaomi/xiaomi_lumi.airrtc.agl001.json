@@ -3,8 +3,8 @@
   "uuid": "7e3db69a-d38c-4f71-b9c3-fdbd807333fa",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.airrtc.agl001",
-  "vendor": "Aqara",
-  "product": "E1 Thermostat",
+  "vendor": "Xiaomi Aqara",
+  "product": "Smart radiator thermostat E1 (SRTS-A01)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

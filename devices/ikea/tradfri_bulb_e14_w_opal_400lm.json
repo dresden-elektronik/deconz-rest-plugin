@@ -3,7 +3,8 @@
   "uuid": "c10e59de-f978-46ac-b7b2-14a1de9415d9",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI bulb E14 W op/ch 400lm",
-  "product": "TRADFRI bulb E14 W op/ch 400lm",
+  "vendor": "IKEA",
+  "product": "Tradfri LED bulb E12 400 lumen, wireless dimmable warm white, chandelier opal (LED1649C5)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -3,7 +3,8 @@
   "uuid": "3a7cad20-0c89-4f6a-b629-dd696f59eab8",
   "manufacturername": "_TZ3000_wkr3jqmr",
   "modelid": "TS0004",
-  "product": "Tuya 4 output module",
+  "vendor": "Tuya",
+  "product": "4 output module (TS0004)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -3,8 +3,8 @@
   "uuid": "90a67336-789a-4284-89a9-6f07bcbd2c9a",
   "manufacturername": ["_TZ3000_mraovvmm", "_TZ3000_u5u4cakc"],
   "modelid": ["TS011F", "TS011F"],
-  "product": "BW-SHP15",
-  "vendor": "Blitzwolf",
+  "vendor": "BlitzWolf",
+  "product": "Power monitoring 16A 3680W EU plug (BW-SHP15)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

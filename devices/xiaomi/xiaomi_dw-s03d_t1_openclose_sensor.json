@@ -3,8 +3,8 @@
   "uuid": "8fd50f36-98c3-4e75-8e51-4644f90dd043",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.magnet.agl02",
-  "vendor": "Xiaomi",
-  "product": "Aqara T1 open/close sensor DW-S03D",
+  "vendor": "Xiaomi Aqara",
+  "product": "T1 open/close sensor (DW-S03D)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

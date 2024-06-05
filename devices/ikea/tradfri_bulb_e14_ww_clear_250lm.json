@@ -3,7 +3,8 @@
   "uuid": "70d4ffdd-afdc-476d-8d5d-c217ac240b8f",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRIbulbE14WWclear250lm",
-  "product": "TRÅDFRI LED bulb E14 250lm warm white clear chandelier",
+  "vendor": "IKEA",
+  "product": "Tradfri LED bulb E14 250 lumen WW clear, dimmable (LED1935C3)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -3,8 +3,8 @@
   "uuid": "f601e062-83a5-4ad1-b2e3-e15af0c6fc70",
   "manufacturername": ["$MF_LUMI"],
   "modelid": ["lumi.remote.cagl02"],
-  "vendor": "Xiaomi",
-  "product": "Aqara T1 Pro Cube MFKZQ12LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "T1 pro cube (MFKZQ12LM)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

@@ -1,10 +1,10 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "39410b10-dfa0-4b25-aad3-b1d170d11b36",
-  "manufacturername": "Bosch",
+  "manufacturername": "$MF_BOSCH",
   "modelid": "RBSH-MMS-ZB-EU",
   "vendor": "Bosch",
-  "product": "Light/shutter control II (BMCT-SLZ)",
+  "product": "Light and shutter control II (BMCT-SLZ)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -3,8 +3,8 @@
   "uuid": "c6d2cc27-f9d1-4c93-8c6e-0beb6c97e682",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_smoke",
-  "vendor": "Xiaomi",
-  "product": "Mijia Honeywell smoke detector JTYJ-GD-01LM/BW",
+  "vendor": "Xiaomi Mi",
+  "product": "Honeywell fire alarm smoke detector (JTYJ-GD-01LM/BW)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

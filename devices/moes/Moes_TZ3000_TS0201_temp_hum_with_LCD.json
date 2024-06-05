@@ -4,7 +4,7 @@
   "manufacturername": ["_TZ3000_ywagc4rj","_TZ3000_itnrsufe"],
   "modelid": ["TS0201","TS0201"],
   "vendor": "Moes",
-  "product": "TS0201",
+  "product": "Temperature and humidity sensor (TS0201)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

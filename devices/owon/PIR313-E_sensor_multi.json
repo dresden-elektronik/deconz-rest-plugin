@@ -3,8 +3,8 @@
   "uuid": "01178dcc-3cae-426b-851c-ea705dd03b3a",
   "manufacturername": "OWON",
   "modelid": "PIR313",
-  "vendor": "OWON",
-  "product": "PIR313",
+  "vendor": "Owon",
+  "product": "Motion multi sensor (PIR313)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

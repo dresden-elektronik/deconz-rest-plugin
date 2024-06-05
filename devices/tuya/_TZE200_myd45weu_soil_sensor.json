@@ -3,7 +3,8 @@
   "uuid": "d32fe4d8-def4-4bd0-9d6e-8822d793f387",
   "manufacturername": ["_TZE200_myd45weu", "_TZE200_9cqcpkgb", "_TZE200_ga1maeof"],
   "modelid": ["TS0601", "TS0601", "TS0601"],
-  "product": "Tuya Soil Sensor",
+  "vendor": "Tuya",
+  "product": "Tuya Soil Sensor (TS0601)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

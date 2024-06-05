@@ -4,7 +4,7 @@
   "manufacturername": "_TZ3000_j5fbnjeh",
   "modelid": "TS0201",
   "vendor": "Tesla Global Limited",
-  "product": "TSL-SEN-TAH",
+  "product": "Temperature and humidity sensor (TSL-SEN-TAH)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

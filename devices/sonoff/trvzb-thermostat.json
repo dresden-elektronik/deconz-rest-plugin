@@ -3,8 +3,8 @@
   "uuid": "762fa019-837e-4d90-9147-1e9bd841b807",
   "manufacturername": "SONOFF",
   "modelid": "TRVZB",
-  "vendor": "SONOFF",
-  "product": "TRVZB Thermostat",
+  "vendor": "Sonoff",
+  "product": "Thermostat (TRVZB)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

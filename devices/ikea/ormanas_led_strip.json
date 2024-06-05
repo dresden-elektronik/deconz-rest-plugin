@@ -3,7 +3,8 @@
   "uuid": "6b05491f-10ed-40e3-9fd2-d2f7758cb5a1",
   "manufacturername": "$MF_IKEA",
   "modelid": "ORMANAS LED Strip",
-  "product": "ORMANAS LED Strip",
+  "vendor": "IKEA",
+  "product": "Ormanas LED lighting strip (L2112)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
