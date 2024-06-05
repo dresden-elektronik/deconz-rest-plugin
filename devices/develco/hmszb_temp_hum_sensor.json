@@ -3,8 +3,8 @@
   "uuid": "f8f891ec-fd3d-4053-b574-cd9769caa488",
   "manufacturername": ["Develco Products A/S", "Develco Products A/S"],
   "modelid": ["HMSZB-110", "HMSZB-120"],
-  "vendor": "Develco",
-  "product": "Frient temperature and humidity sensor (HMSZB-110/HMSZB-120)",
+  "vendor": "Develco Products",
+  "product": "Temperature and humidity sensor (HMSZB-110/HMSZB-120)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

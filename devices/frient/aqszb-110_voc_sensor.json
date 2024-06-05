@@ -3,8 +3,8 @@
   "uuid": "14bd9844-c3e9-4831-a92d-91093da03de8",
   "manufacturername": "frient A/S",
   "modelid": "AQSZB-110",
-  "vendor": "Develco",
-  "product": "Frient air quality sensor (AQSZB-110)",
+  "vendor": "Frient",
+  "product": "Air quality sensor (AQSZB-110)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

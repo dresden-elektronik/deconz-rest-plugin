@@ -3,8 +3,8 @@
   "uuid": "fccf500b-00d4-4bf6-b42d-27784e3803c2",
   "manufacturername": ["Develco Products A/S", "frient A/S", "Develco"],
   "modelid": ["ZHEMI101", "ZHEMI101", "ZHEMI101"],
-  "vendor": "Develco",
-  "product": "Frient electricity meter interface (ZHEMI101)",
+  "vendor": "Develco Products",
+  "product": "Electricity meter interface (ZHEMI101)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
