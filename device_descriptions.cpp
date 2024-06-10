@@ -1502,7 +1502,7 @@ const DeviceDescription::SubDevice &DeviceDescriptions::getSubDevice(const Resou
         for (int i = 0; i < resource->itemCount(); i++)
         {
             const ResourceItem *item = resource->itemForIndex(size_t(i));
-            assert(item);
+            U_ASSERT(item);
 
             h.handle = item->ddfItemHandle();
             if (h.handle == DeviceDescription::Item::InvalidItemHandle)

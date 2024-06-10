@@ -762,7 +762,7 @@ bool ddfSerializeV1(JsonDoc &doc, const DeviceDescription &ddf, char *buf, size_
     {
         sz = serializeJson(doc, buf, bufsize);
     }
-    assert(sz < bufsize);
+    U_ASSERT(sz < bufsize);
 
     DBG_Printf(DBG_INFO, "JSON serialized size %d\n", int(sz));
 
