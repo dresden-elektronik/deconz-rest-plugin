@@ -246,7 +246,7 @@ static void DB_CleanupDuplSensors(sqlite3 *db)
                                  " AND deletedState == 'normal'"
                                  " GROUP BY uniqueid"
                                  " HAVING COUNT(uniqueid) > 1");
-    assert(size_t(ret) < sizeof(sqlBuf));
+    U_ASSERT(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
@@ -274,7 +274,7 @@ static void DB_CleanupDuplSensors(sqlite3 *db)
                                      " WHERE uniqueid = '%s'"
                                      " AND deletedState == 'normal'"
                                      " ORDER BY sid DESC LIMIT 1", uniqueid.c_str());
-        assert(size_t(ret) < sizeof(sqlBuf));
+        U_ASSERT(size_t(ret) < sizeof(sqlBuf));
         if (size_t(ret) < sizeof(sqlBuf))
         {
             char *errmsg = nullptr;
@@ -295,7 +295,7 @@ static void DB_CleanupDuplSensors(sqlite3 *db)
         // delete sensors with same uniqueid which have a higher 'sid' as lowest known one
         ret = snprintf(sqlBuf, sizeof(sqlBuf), "DELETE FROM sensors"
                                      " WHERE uniqueid = '%s' and sid != '%s'", uniqueid.c_str(), result.front().c_str());
-        assert(size_t(ret) < sizeof(sqlBuf));
+        U_ASSERT(size_t(ret) < sizeof(sqlBuf));
         if (size_t(ret) < sizeof(sqlBuf))
         {
             char *errmsg = nullptr;
@@ -7064,8 +7064,8 @@ struct SelectDeviceItemData
  */
 static int sqliteSelectDeviceItemCallback(void *user, int ncols, char **colval , char **colname)
 {
-    assert(user);
-    assert(ncols == 3);
+    U_ASSERT(user);
+    U_ASSERT(ncols == 3);
 
     Q_UNUSED(colname)
 
@@ -7137,7 +7137,7 @@ bool DB_StoreSubDeviceItem(const Resource *sub, ResourceItem *item)
                    uniqueId->toCString(),
                    item->descriptor().suffix);
 
-    assert(size_t(ret) < sizeof(sqlBuf));
+    U_ASSERT(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
@@ -7294,7 +7294,7 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(QLatin1String deviceU
     int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT item,value,timestamp FROM resource_items"
                                  " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid LIKE '%%%s%%')",
                                  deviceUniqueId.data());
-    assert(size_t(ret) < sizeof(sqlBuf));
+    U_ASSERT(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
@@ -7316,7 +7316,7 @@ int DB_GetSubDeviceItemCount(QLatin1String uniqueId)
 {
     int result = 0;
 
-    assert(db); // should be called while db is open
+    U_ASSERT(db); // should be called while db is open
     if (!db)
     {
         return result;
@@ -7326,7 +7326,7 @@ int DB_GetSubDeviceItemCount(QLatin1String uniqueId)
                                          " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%s')",
                                          uniqueId.data());
 
-    assert(size_t(rc) < sizeof(sqlBuf));
+    U_ASSERT(size_t(rc) < sizeof(sqlBuf));
     if (size_t(rc) < sizeof(sqlBuf))
     {
         sqlite3_stmt *res = nullptr;
@@ -7360,7 +7360,7 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(QLatin1String uniqueId)
 {
     std::vector<DB_ResourceItem> result;
 
-    assert(uniqueId.size() <= 64);
+    U_ASSERT(uniqueId.size() <= 64);
     if (uniqueId.size() > 64)
     {
         return result;
@@ -7377,7 +7377,7 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(QLatin1String uniqueId)
                                          " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%s')",
                                          uniqueId.data());
 
-    assert(size_t(ret) < sizeof(sqlBuf));
+    U_ASSERT(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
@@ -7494,7 +7494,7 @@ bool DB_LoadLegacySensorValue(DB_LegacyItem *litem)
     int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT %s FROM sensors WHERE uniqueid = '%s' AND deletedState = 'normal'",
                        column.c_str(), litem->uniqueId.c_str());
 
-    assert(size_t(ret) < sizeof(sqlBuf));
+    U_ASSERT(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
@@ -7543,7 +7543,7 @@ std::vector<std::string> DB_LoadLegacySensorUniqueIds(QLatin1String deviceUnique
     int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT uniqueid FROM sensors WHERE uniqueid LIKE '%%%s%%' AND type = '%s' AND deletedState = 'normal'",
                        deviceUniqueId.data(), type);
 
-    assert(size_t(ret) < sizeof(sqlBuf));
+    U_ASSERT(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
@@ -7574,7 +7574,7 @@ bool DB_LoadLegacyLightValue(DB_LegacyItem *litem)
     litem->value.clear();
 
     int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT %s FROM nodes WHERE mac = '%s'", litem->column .c_str(), litem->uniqueId.c_str());
-    assert(size_t(ret) < sizeof(sqlBuf));
+    U_ASSERT(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
