@@ -2663,7 +2663,7 @@ void DeviceDescriptions::readAllBundles()
 
                 U_sstream_init(&ss, dir.entry.name, strlen(dir.entry.name));
 
-                if (U_sstream_find(&ss, ".ddf") == 0)
+                if (U_sstream_find(&ss, ".ddf") == 0 && U_sstream_find(&ss, ".ddb") == 0)
                     continue;
 
                 ScratchMemRewind(scratchPosPerBundle);

@@ -62,7 +62,7 @@ static unsigned char *BinToHexAscii(const void *hex, unsigned length, void *asci
 
 Test upload of .ddf file
 
-curl -F 'data=@/home/mpi/some.ddf' 127.0.0.1:8090/api/12345/ddf
+curl -F 'data=@/home/mpi/some.ddb' 127.0.0.1:8090/api/12345/ddf
 
 */
 
@@ -253,7 +253,7 @@ int REST_DDF_GetDescriptors(const ApiRequest &req, ApiResponse &rsp)
 
                 U_sstream_init(&ss, dir.entry.name, strlen(dir.entry.name));
 
-                if (U_sstream_find(&ss, ".ddf") == 0)
+                if (U_sstream_find(&ss, ".ddf") == 0 && U_sstream_find(&ss, ".ddb") == 0)
                     continue;
 
                 if (curCursor < reqCursor)
@@ -358,7 +358,7 @@ int REST_DDF_GetBundle(const ApiRequest &req, ApiResponse &rsp)
         U_SStream ssFileName;
         U_sstream_init(&ssFileName, fileName, maxFileNameLength);
         U_sstream_put_str(&ssFileName, bundleHashStr);
-        U_sstream_put_str(&ssFileName, ".ddf");
+        U_sstream_put_str(&ssFileName, ".ddb");
     }
 
     deCONZ::StorageLocation locations[2] = { deCONZ::DdfBundleUserLocation, deCONZ::DdfBundleLocation };
@@ -382,7 +382,7 @@ int REST_DDF_GetBundle(const ApiRequest &req, ApiResponse &rsp)
 
                 U_sstream_init(&ss, dir.entry.name, strlen(dir.entry.name));
 
-                if (U_sstream_find(&ss, ".ddf") == 0)
+                if (U_sstream_find(&ss, ".ddf") == 0 && U_sstream_find(&ss, ".ddb") == 0)
                     continue;
 
                 U_sstream_init(&ss, path, MAX_PATH_LENGTH);
@@ -449,7 +449,7 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
     const QVariantMap errServiceNotAvailable = errorToMap(ERR_INTERNAL_ERROR, "/ddf/bundles", "Internal error, can't process request");
 
     // TEST call
-    // curl -F 'data=@./starkvind_air_purifier_toolbox.ddf' 127.0.0.1:8090/api/12345/ddf/bundles
+    // curl -F 'data=@./starkvind_air_purifier_toolbox.ddb' 127.0.0.1:8090/api/12345/ddf/bundles
 
     if (req.hdr.contentLength() < 32 || req.hdr.contentLength() > 512000)
     {
@@ -612,6 +612,11 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
+#if 1
+        // The file extension was changed from .ddf to .ddb in v2.27.4-beta.
+        // In case the same bundle with .ddf extension exists, the file will be deleted
+        // so that only a .ddb will exists.
+    {
         {
             U_SStream ssPath;
             U_sstream_init(&ssPath, bundlePath, MAX_PATH_LENGTH);
@@ -619,6 +624,23 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
             U_sstream_put_str(&ssPath, "/");
             U_sstream_put_str(&ssPath, bundleHashStr);
             U_sstream_put_str(&ssPath, ".ddf");
+        }
+
+        if (FS_OpenFile(&fp, FS_MODE_R, bundlePath))
+        {
+            FS_CloseFile(&fp);
+            FS_DeleteFile(bundlePath);
+        }
+    }
+#endif
+
+        {
+            U_SStream ssPath;
+            U_sstream_init(&ssPath, bundlePath, MAX_PATH_LENGTH);
+            U_sstream_put_str(&ssPath, qPrintable(loc));
+            U_sstream_put_str(&ssPath, "/");
+            U_sstream_put_str(&ssPath, bundleHashStr);
+            U_sstream_put_str(&ssPath, ".ddb");
         }
 
         if (FS_OpenFile(&fp, FS_MODE_R, bundlePath))
