@@ -1083,8 +1083,6 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
 
     if (modelidAtomIndex == 0 || mfnameAtomIndex == 0)
     {
-        U_ASSERT(modelidItem->toString().isEmpty());
-        U_ASSERT(mfnameItem->toString().isEmpty());
         return d->invalidDescription; // happens when called from legacy init code addLightNode() etc.
     }
 
@@ -1121,6 +1119,7 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
                 // nothing found, try to load further DDFs
                 if (loadDDFAndBundlesFromDisc(resource))
                 {
+                    i = d->descriptions.begin();
                     continue; // found DDFs or bundles, try again
                 }
                 break;
