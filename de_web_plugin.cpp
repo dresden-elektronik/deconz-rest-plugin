@@ -300,7 +300,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SINOPE, "WL4200S", sinopeMacPrefix}, // Sinope water sensor with wired remote sensor
     { VENDOR_SINOPE, "WL4200", sinopeMacPrefix}, // Sinope water sensor
     { VENDOR_SINOPE, "TH1300ZB", sinopeMacPrefix }, // Sinope Thermostat
-    { VENDOR_SINOPE, "TH112", sinopeMacPrefix }, // Sinope Thermostat TH1123ZB & TH1124ZB
     { VENDOR_ZEN, "Zen-01", zenMacPrefix }, // Zen Thermostat
     { VENDOR_C2DF, "3157100", emberMacPrefix }, // Centralite Thermostat
     { VENDOR_EMBER, "Super TR", emberMacPrefix }, // Elko Thermostat
@@ -7397,7 +7396,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
             if (sensorNode.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                 sensorNode.modelId() == QLatin1String("SLR1b") ||           // Hive
-                sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD WZB-TRVL TRV") ||
                 R_GetProductId(&sensorNode) == QLatin1String("Tuya_THD Smart radiator TRV") ||
@@ -15525,7 +15523,6 @@ void DeRestPlugin::idleTimerFired()
                                 sensorNode->modelId().startsWith(QLatin1String("SLT3")) ||      // Hive Active Heating Thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("SLR2")) ||      // Hive Active Heating Receiver 2 channel
                                 sensorNode->modelId().startsWith(QLatin1String("SLR1b")) ||     // Hive Active Heating Receiver 1 channel
-                                sensorNode->modelId().startsWith(QLatin1String("TH112")) ||     // Sinope devices
                                 sensorNode->modelId().startsWith(QLatin1String("TH1300ZB")) ||  // Sinope devices
                                 sensorNode->modelId().startsWith(QLatin1String("0x8020")) ||    // Danfoss RT24V Display thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("0x8021")) ||    // Danfoss RT24V Display thermostat with floor sensor

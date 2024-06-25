@@ -4012,7 +4012,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
                 if (sensor.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                     sensor.modelId() == QLatin1String("SLR1b") ||           // Hive
-                    sensor.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
