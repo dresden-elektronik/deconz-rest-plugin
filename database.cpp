@@ -4012,7 +4012,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
                 if (sensor.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                     sensor.modelId() == QLatin1String("SLR1b") ||           // Hive
-                    sensor.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
@@ -4150,13 +4149,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);
                     sensor.addItem(DataTypeString, RConfigFanMode);
-                }
-                else if (sensor.modelId() == QLatin1String("iTRV")) // Drayton Wiser Radiator Thermostat
-                {
-                    sensor.addItem(DataTypeUInt8, RStateValve);
-                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
-                    sensor.addItem(DataTypeString, RConfigMode);
-                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 }
                 else if (sensor.modelId() == QLatin1String("TH1300ZB")) // sinope thermostat
                 {

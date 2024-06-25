@@ -479,10 +479,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                                 }
                             }
                         }
-                        if (manufacturerCode() != VENDOR_IKEA) // IKEA FYRTUR and KADRILJ
-                        {
-                            removeItem(RStateAlert);
-                        }
+                        removeItem(RStateAlert);
                         addItem(DataTypeBool, RStateOpen);
                         // FIXME: removeItem(RStateOn);
                         if (hasLift)
