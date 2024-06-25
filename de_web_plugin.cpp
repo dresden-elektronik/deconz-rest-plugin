@@ -190,8 +190,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_IKEA, "TRADFRI on/off switch", silabs1MacPrefix },
     { VENDOR_IKEA, "TRADFRI SHORTCUT Button", silabs4MacPrefix },
     { VENDOR_IKEA, "TRADFRI open/close remote", silabs1MacPrefix },
-    { VENDOR_IKEA, "KADRILJ", silabs1MacPrefix }, // smart blind
-    { VENDOR_IKEA, "KADRILJ", silabs4MacPrefix }, // smart blind
     { VENDOR_IKEA, "SYMFONISK", ikea2MacPrefix }, // sound controller
     { VENDOR_INSTA, "Remote", instaMacPrefix },
     { VENDOR_INSTA, "HS_4f_GJ_1", instaMacPrefix },
@@ -2344,7 +2342,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) || // Climax Siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_LDS || // Samsung SmartPlug 2019
-        node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA || // IKEA FYRTUR and KADRILJ smart binds
         node->nodeDescriptor().manufacturerCode() == VENDOR_THIRD_REALITY || // Third Reality smart light switch
         node->nodeDescriptor().manufacturerCode() == VENDOR_AXIS || // Axis shade
         node->nodeDescriptor().manufacturerCode() == VENDOR_MMB || // Axis shade
@@ -3258,15 +3255,6 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         lightNode->addItem(DataTypeUInt16, RStateHue);
         lightNode->addItem(DataTypeUInt8, RStateSat);
         lightNode->addItem(DataTypeString, RStateEffect)->setValue(RStateEffectValues[R_EFFECT_NONE]);
-    }
-    else if (modelId.startsWith(QLatin1String("KADRILJ")))
-    {
-        item = lightNode->addItem(DataTypeBool, RCapSleeper);
-        if (item)
-        {
-            item->setValue(false);
-            item->setIsPublic(false);
-        }
     }
 }
 
@@ -5751,10 +5739,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 {
                     fpAirQualitySensor.inClusters.push_back(ci->id());
                     fpAlarmSensor.inClusters.push_back(ci->id());
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA && modelId.startsWith(QLatin1String("KADRILJ")))
-                    {
-                        fpBatterySensor.inClusters.push_back(ci->id());
-                    }
                     if ((node->nodeDescriptor().manufacturerCode() == VENDOR_AXIS || node->nodeDescriptor().manufacturerCode() == VENDOR_MMB) &&
                         (modelId == QLatin1String("Gear")) && (i->endpoint() == 0x01))
                     {

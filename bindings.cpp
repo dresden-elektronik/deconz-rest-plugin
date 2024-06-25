@@ -2470,7 +2470,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("easyCodeTouch_v1") ||
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
-        sensor->modelId().startsWith(QLatin1String("KADRILJ")) ||
         sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         // OSRAM
         sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
