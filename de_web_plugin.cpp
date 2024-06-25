@@ -193,8 +193,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_IKEA, "KADRILJ", silabs1MacPrefix }, // smart blind
     { VENDOR_IKEA, "KADRILJ", silabs4MacPrefix }, // smart blind
     { VENDOR_IKEA, "SYMFONISK", ikea2MacPrefix }, // sound controller
-    { VENDOR_IKEA, "Remote Control N2", silabs4MacPrefix}, // STYRBAR
-    { VENDOR_IKEA, "Remote Control N2", silabs5MacPrefix}, // STYRBAR
     { VENDOR_INSTA, "Remote", instaMacPrefix },
     { VENDOR_INSTA, "HS_4f_GJ_1", instaMacPrefix },
     { VENDOR_INSTA, "WS_4f_J_1", instaMacPrefix },
@@ -6492,7 +6490,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // Add clusters used, but not exposed to sensors
-        if (modelId == QLatin1String("TRADFRI remote control") || modelId == QLatin1String("Remote Control N2"))
+        if (modelId == QLatin1String("TRADFRI remote control"))
         {
             fpSwitch.outClusters.push_back(SCENE_CLUSTER_ID);
         }

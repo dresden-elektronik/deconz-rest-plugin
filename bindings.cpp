@@ -2470,7 +2470,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("easyCodeTouch_v1") ||
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
-        sensor->modelId().startsWith(QLatin1String("Remote Control N2")) || // STYRBAR
         sensor->modelId().startsWith(QLatin1String("KADRILJ")) ||
         sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         // OSRAM
@@ -3208,9 +3207,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     }
     // IKEA
     else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
-             sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
-             // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
-             sensor->modelId().startsWith(QLatin1String("Remote Control N2")))
+             sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);

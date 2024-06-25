@@ -126,7 +126,6 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                 if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
                     sensor.modelId().startsWith(QLatin1String("KADRILJ")) || // IKEA
                     sensor.modelId().startsWith(QLatin1String("SYMFONISK")) || // IKEA
-                    sensor.modelId().startsWith(QLatin1String("Remote Control N2")) || // IKEA
                     sensor.modelId().startsWith(QLatin1String("ICZB-")) || // iCasa keypads and remote
                     sensor.modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
                     sensor.modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
