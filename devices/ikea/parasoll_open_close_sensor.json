@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "9cc2db31-a047-4431-b646-1e72d9a3fd0f",
   "manufacturername": "$MF_IKEA",
   "modelid": "PARASOLL Door/Window Sensor",
   "product": "PARASOLL Door/Window Sensor",
@@ -114,12 +115,28 @@
         },
         {
           "name": "state/open",
-          "awake": true
+          "parse": {
+            "fn": "ias:zonestatus",
+            "mask": "alarm1,alarm2"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0500",
+            "at": "0x0002"
+          },
+          "awake": true,
+          "refresh.interval": 84600
         }
       ]
     }
   ],
   "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0500"
+    },
     {
       "bind": "unicast",
       "src.ep": 1,
@@ -133,11 +150,6 @@
           "change": "0x00000002"
         }
       ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 2,
-      "cl": "0x0500"
     }
   ]
 }

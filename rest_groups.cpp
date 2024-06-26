@@ -258,7 +258,7 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups"), QString("invalid value, %1, for parameter, uniqeid").arg(uniqueid)));
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups"), QString("invalid value, %1, for parameter, uniqueid").arg(uniqueid)));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
@@ -1160,7 +1160,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // hue and saturation
-    if (hasHue && hasSat && (!supportColorModeXyForGroups || (!hasXy && !hasCt)))
+    if (hasHue && hasSat && (!hasXy && !hasCt))
     {
         if (!hasEffectColorLoop && (hue != UINT_MAX) && (sat != UINT_MAX))
         {
@@ -1191,7 +1191,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // xy
-    if (hasXy && supportColorModeXyForGroups)
+    if (hasXy)
     {
         hasXy = false;
         QVariantList ls = map["xy"].toList();

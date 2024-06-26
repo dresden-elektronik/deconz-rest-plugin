@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2024 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -17,9 +17,11 @@
 #endif
 
 #include <array>
-#include <QLibrary>
+#include <QByteArray>
+#include <QString>
 #include "random.h"
 #include "scrypt.h"
+#include "deconz/u_library_ex.h"
 
 
 #ifdef HAS_OPENSSL
@@ -63,32 +65,32 @@ static int wrap_EVP_PKEY_CTX_set_scrypt_p(EVP_PKEY_CTX *ctx, uint64_t p)
  */
 static int scryptDerive(const char *input, size_t inputLength, std::array<unsigned char, 64> &out, int N, int r, int p, const unsigned char *salt, size_t saltlen)
 {
-#ifdef Q_OS_WIN
-    QLibrary libCrypto(QLatin1String("libcrypto-1_1.dll"));
-    QLibrary libSsl(QLatin1String("libssl-1_1.dll"));
-#else
-    QLibrary libCrypto(QLatin1String("crypto"));
-    QLibrary libSsl(QLatin1String("ssl"));
-#endif
+    void *libCrypto = U_library_open_ex("libcrypto");
+    void *libSsl = U_library_open_ex("libssl");
+
+    if (!libCrypto || !libSsl)
+    {
+        return -1;
+    }
 
     unsigned long openSslVersion = 0;
 
-    auto _OpenSSL_version_num = reinterpret_cast<unsigned long (*)(void)>(libCrypto.resolve("OpenSSL_version_num"));
+    auto _OpenSSL_version_num = reinterpret_cast<unsigned long (*)(void)>(U_library_symbol(libCrypto, "OpenSSL_version_num"));
 
-    const auto lib_EVP_PKEY_CTX_new_id = reinterpret_cast<EVP_PKEY_CTX *(*)(int id, ENGINE *e)>(libCrypto.resolve("EVP_PKEY_CTX_new_id"));
-    const auto lib_EVP_PKEY_derive_init = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx)>(libCrypto.resolve("EVP_PKEY_derive_init"));
-    lib_EVP_PKEY_CTX_ctrl = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, int keytype, int optype, int cmd, int p1, void *p2)>(libCrypto.resolve("EVP_PKEY_CTX_ctrl"));
-    lib_EVP_PKEY_CTX_ctrl_uint64 = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, int keytype, int optype, int cmd, uint64_t value)>(libCrypto.resolve("EVP_PKEY_CTX_ctrl_uint64"));
-    const auto lib_EVP_PKEY_derive = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, unsigned char *key, size_t *keylen)>(libCrypto.resolve("EVP_PKEY_derive"));
-    const auto lib_EVP_PKEY_CTX_free = reinterpret_cast<void (*)(EVP_PKEY_CTX *ctx)>(libCrypto.resolve("EVP_PKEY_CTX_free"));
+    const auto lib_EVP_PKEY_CTX_new_id = reinterpret_cast<EVP_PKEY_CTX *(*)(int id, ENGINE *e)>(U_library_symbol(libCrypto, "EVP_PKEY_CTX_new_id"));
+    const auto lib_EVP_PKEY_derive_init = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx)>(U_library_symbol(libCrypto, "EVP_PKEY_derive_init"));
+    lib_EVP_PKEY_CTX_ctrl = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, int keytype, int optype, int cmd, int p1, void *p2)>(U_library_symbol(libCrypto, "EVP_PKEY_CTX_ctrl"));
+    lib_EVP_PKEY_CTX_ctrl_uint64 = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, int keytype, int optype, int cmd, uint64_t value)>(U_library_symbol(libCrypto, "EVP_PKEY_CTX_ctrl_uint64"));
+    const auto lib_EVP_PKEY_derive = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, unsigned char *key, size_t *keylen)>(U_library_symbol(libCrypto, "EVP_PKEY_derive"));
+    const auto lib_EVP_PKEY_CTX_free = reinterpret_cast<void (*)(EVP_PKEY_CTX *ctx)>(U_library_symbol(libCrypto, "EVP_PKEY_CTX_free"));
 
-    auto lib_EVP_PKEY_CTX_set1_pbe_pass = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, const char *pass, int passlen)>(libCrypto.resolve("EVP_PKEY_CTX_set1_pbe_pass"));
+    auto lib_EVP_PKEY_CTX_set1_pbe_pass = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, const char *pass, int passlen)>(U_library_symbol(libCrypto, "EVP_PKEY_CTX_set1_pbe_pass"));
 
-    auto lib_EVP_PKEY_CTX_set1_scrypt_salt = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, const unsigned char *salt, int saltlen)>(libCrypto.resolve("EVP_PKEY_CTX_set1_scrypt_salt"));
+    auto lib_EVP_PKEY_CTX_set1_scrypt_salt = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, const unsigned char *salt, int saltlen)>(U_library_symbol(libCrypto, "EVP_PKEY_CTX_set1_scrypt_salt"));
 
-    auto lib_EVP_PKEY_CTX_set_scrypt_N = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, uint64_t n)>(libCrypto.resolve("EVP_PKEY_CTX_set_scrypt_N"));
-    auto lib_EVP_PKEY_CTX_set_scrypt_r = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, uint64_t r)>(libCrypto.resolve("EVP_PKEY_CTX_set_scrypt_r"));
-    auto lib_EVP_PKEY_CTX_set_scrypt_p = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, uint64_t p)>(libCrypto.resolve("EVP_PKEY_CTX_set_scrypt_p"));
+    auto lib_EVP_PKEY_CTX_set_scrypt_N = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, uint64_t n)>(U_library_symbol(libCrypto, "EVP_PKEY_CTX_set_scrypt_N"));
+    auto lib_EVP_PKEY_CTX_set_scrypt_r = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, uint64_t r)>(U_library_symbol(libCrypto, "EVP_PKEY_CTX_set_scrypt_r"));
+    auto lib_EVP_PKEY_CTX_set_scrypt_p = reinterpret_cast<int (*)(EVP_PKEY_CTX *ctx, uint64_t p)>(U_library_symbol(libCrypto, "EVP_PKEY_CTX_set_scrypt_p"));
 
     if (_OpenSSL_version_num)
     {

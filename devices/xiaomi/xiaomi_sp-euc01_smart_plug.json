@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "711cfee9-6235-4db7-be0e-52b5a976a231",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.plug.maeu01",
   "vendor": "Xiaomi",

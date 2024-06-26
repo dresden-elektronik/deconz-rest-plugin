@@ -338,6 +338,27 @@
                 [1, "0x03", "FC80", "COMMAND_6", "0", "S_BUTTON_7", "S_BUTTON_ACTION_DOUBLE_PRESS", "0x06"]
             ]
         },
+	"ikeaSomrigMap": {
+            "vendor": "IKEA of Sweden",
+            "doc": "IKEA SOMRIG Shortcut Button",
+            "modelids": ["SOMRIG shortcut button"],
+            "buttons": [
+                {"S_BUTTON_1": "One Dot"},
+                {"S_BUTTON_2": "Two Dots"}
+            ],
+            "map": [
+                [1, "0x01", "FC80", "COMMAND_1", "0", "S_BUTTON_1", "S_BUTTON_ACTION_INITIAL_PRESS", "0x01"],
+                [1, "0x01", "FC80", "COMMAND_2", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "0x02"],
+                [1, "0x01", "FC80", "COMMAND_3", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "0x03"],
+                [1, "0x01", "FC80", "COMMAND_4", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "0x04"],
+                [1, "0x01", "FC80", "COMMAND_6", "0", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "0x06"],
+                [1, "0x02", "FC80", "COMMAND_1", "0", "S_BUTTON_2", "S_BUTTON_ACTION_INITIAL_PRESS", "0x01"],
+                [1, "0x02", "FC80", "COMMAND_2", "0", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "0x02"],
+                [1, "0x02", "FC80", "COMMAND_3", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "0x03"],
+                [1, "0x02", "FC80", "COMMAND_4", "0", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "0x04"],
+                [1, "0x02", "FC80", "COMMAND_6", "0", "S_BUTTON_2", "S_BUTTON_ACTION_DOUBLE_PRESS", "0x06"]
+            ]
+        },
         "osramMiniRemoteMap": {
             "vendor": "OSRAM",
             "doc": "Lightify Switch Mini",
@@ -713,11 +734,12 @@
         },
         "xiaomiSwitchB1acn01Map": {
             "vendor": "Xiaomi",
-            "doc": "WXKG11LM 2018 remote",
-            "modelids": ["lumi.remote.b1acn01"],
+            "doc": "WXKG11LM 2018 remote and WB-R02D switch",
+            "modelids": ["lumi.remote.b1acn01", "lumi.remote.b1acn02"],
             "map": [
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
+                [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "3", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Tripple press"],
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"],
                 [1, "0x01", "MULTISTATE_INPUT", "ATTRIBUTE_REPORT", "255", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long released"]
             ]
@@ -1314,7 +1336,7 @@
         "Tuya3gangMap": {
             "vendor": "Tuya",
             "doc": "3-gang remote",
-            "modelids": ["_TZ3000_yw5tvzsk", "_TZ3000_czuyt8lz","_TZ3000_ee8nrt2l", "_TZ3000_ygvf9xzp", "_TZ3000_t8hzpgnd", "_TZ3000_wkai4ga5", "_TZ3000_bi6lpsew", "_TZ3400_keyjhapk", "_TYZB02_key8kk7r", "_TZ3400_keyjqthh", "_TZ3400_key8kk7r", "_TZ3000_vp6clf9d", "_TYZB02_keyjqthh", "_TZ3000_peszejy7", "_TZ3000_qzjcsmar", "_TZ3000_owgcnkrh", "_TZ3000_adkvzooy", "_TZ3000_arfwfgoa", "_TZ3000_a7ouggvs", "_TZ3000_rrjr1q0u", "_TZ3000_abci1hiu", "_TZ3000_dfgbtub0", "_TZ3000_rco1yzb1", "_TZ3000_gbm10jnj", "_TZ3000_5e235jpa", "_TZ3000_sj7jbgks", "_TZ3000_w8jwkczz", "_TZ3000_dziaict4", "_TZ3000_famkxci2", "_TZ3000_itb0omhv", "_TZ3000_tzvbimpq", "_TZ3000_mh9px7cq", "_TZ3000_b7bxojrg", "_TZ3000_ufhtxr59", "_TZ3000_4upl1fcj", "_TZ3000_i3rjdrwu", "_TZ3000_w3c7ouru", "_TZ3000_abci1hiu","_TZ3000_wqcbzbae", "_TZ3000_pkeqinnt", "_TZ3000_uaa99arv", "_TZ3000_wbfgbpxq", "_TZ3000_fa9mlvja", "_TZ3000_tk3s5tyg"],
+            "modelids": ["_TZ3000_yw5tvzsk", "_TZ3000_czuyt8lz","_TZ3000_ee8nrt2l", "_TZ3000_ygvf9xzp", "_TZ3000_t8hzpgnd", "_TZ3000_wkai4ga5", "_TZ3000_bi6lpsew", "_TZ3400_keyjhapk", "_TYZB02_key8kk7r", "_TZ3400_keyjqthh", "_TZ3400_key8kk7r", "_TZ3000_vp6clf9d", "_TYZB02_keyjqthh", "_TZ3000_peszejy7", "_TZ3000_qzjcsmar", "_TZ3000_owgcnkrh", "_TZ3000_adkvzooy", "_TZ3000_arfwfgoa", "_TZ3000_a7ouggvs", "_TZ3000_rrjr1q0u", "_TZ3000_abci1hiu", "_TZ3000_dfgbtub0", "_TZ3000_rco1yzb1", "_TZ3000_gbm10jnj", "_TZ3000_5e235jpa", "_TZ3000_sj7jbgks", "_TZ3000_w8jwkczz", "_TZ3000_dziaict4", "_TZ3000_famkxci2", "_TZ3000_itb0omhv", "_TZ3000_tzvbimpq", "_TZ3000_mh9px7cq", "_TZ3000_b7bxojrg", "_TZ3000_ufhtxr59", "_TZ3000_4upl1fcj", "_TZ3000_i3rjdrwu", "_TZ3000_w3c7ouru", "_TZ3000_abci1hiu","_TZ3000_wqcbzbae", "_TZ3000_pkeqinnt", "_TZ3000_uaa99arv", "_TZ3000_wbfgbpxq", "_TZ3000_fa9mlvja", "_TZ3000_tk3s5tyg", "_TZ3000_mrpevh8p", "_TZ3000_qgwcxxws", "_TZ3000_yj6k7vfo", "_TZ3000_axpdxqgu", "_TZ3000_a4xycprs", "_TZ3000_u3nv1jwk"],
             "map": [
                 [1, "0x01", "ONOFF", "0xfd", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "B1 short"],
                 [1, "0x01", "ONOFF", "0xfd", "1", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "B1 double"],
@@ -1830,6 +1852,21 @@
                 [1, "0x15", "WINDOW_COVERING", "STOP", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"],
                 [1, "0x15", "WINDOW_COVERING", "CLOSE", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Close"],
                 [1, "0x15", "WINDOW_COVERING", "STOP", "1", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"]
+            ]
+        },
+        "boschLightControl2Map": {
+            "vendor": "Bosch",
+            "doc": "Light/shutter control II (BMCT-SLZ)",
+            "modelids": ["RBSH-MMS-ZB-EU"],
+            "buttons": [
+                {"S_BUTTON_1": "Left"},
+                {"S_BUTTON_2": "Right"}
+            ],
+            "map": [
+                [1, "0x02", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x02", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x03", "ONOFF", "ON", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x03", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"]
             ]
         }
     }

@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "8ae9c4d7-d4f9-40cb-924d-fbad9b39d692",
   "manufacturername": "$MF_BOSCH",
   "modelid": "RBSH-WS-ZB-EU",
   "vendor": "Bosch",

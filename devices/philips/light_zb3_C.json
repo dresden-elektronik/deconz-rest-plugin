@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "713ce317-9b1a-41b7-b48b-7519fceac4c0",
   "manufacturername": [
     "$MF_PHILIPS",
     "$MF_PHILIPS",
@@ -25,6 +26,10 @@
     "$MF_PHILIPS",
     "$MF_PHILIPS",
     "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
@@ -57,8 +62,10 @@
     "LCE002",
     "LCG002",
     "LCL003",
+    "LCL006",
     "LCU001",
     "1746447P7",
+    "4080248P9",
     "5063130P7",
     "5063131P7",
     "5063230P7",
@@ -81,8 +88,10 @@
     "LCE002",
     "LCG002",
     "LCL003",
+    "LCL006",
     "LCU001",
     "1746447P7",
+    "4080248P9",
     "5063130P7",
     "5063131P7",
     "5063230P7",
@@ -103,6 +112,7 @@
   "product": "Hue white and color ambiance light",
   "sleeper": false,
   "status": "Gold",
+  "matchexpr": "R.hasCluster(0x0b,0xfc03)",
   "subdevices": [
     {
       "type": "$TYPE_EXTENDED_COLOR_LIGHT",

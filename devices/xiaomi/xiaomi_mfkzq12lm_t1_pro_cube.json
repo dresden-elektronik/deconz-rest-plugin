@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "f601e062-83a5-4ad1-b2e3-e15af0c6fc70",
   "manufacturername": ["$MF_LUMI"],
   "modelid": ["lumi.remote.cagl02"],
   "vendor": "Xiaomi",
@@ -78,6 +79,7 @@
                 {
           "name": "config/devicemode",
           "awake": true,
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0148",
             "cl": "0xfcc0",

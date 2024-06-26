@@ -1,0 +1,141 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "d82a31d8-30b1-4ad4-b9ff-771791baafe7",
+  "manufacturername": "$MF_LUMI",
+  "modelid": "lumi.curtain.agl001",
+  "vendor": "Aqara",
+  "product": "Curtain Driver E1 (ZNCLBL01LM)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_WINDOW_COVERING_DEVICE",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/lift",
+          "refresh.interval": 700,
+          "read": {
+            "at": "0x0008",
+            "cl": "0x0102"
+          },
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0102",
+            "eval": "Item.val = 100 - Attr.val"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/open",
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0102",
+            "eval": "Item.val = Attr.val > 0"
+          }
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_BATTERY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0001"
+      ],
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/battery",
+          "awake": true,
+          "refresh.interval": 86400,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
+}

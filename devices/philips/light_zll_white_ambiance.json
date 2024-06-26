@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "38d455c1-f1d6-43ea-81ec-df46b7a6ddc3",
   "manufacturername": [
     "$MF_PHILIPS",
     "$MF_PHILIPS",
@@ -19,6 +20,7 @@
   "product": "Hue white ambiance light",
   "sleeper": false,
   "status": "Gold",
+  "matchexpr": "R.hasCluster(0x0b,0xfc03)",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
@@ -174,6 +176,29 @@
             ]
           },
           "refresh.interval": 60
+        },
+        {
+          "name": "state/effect",
+          "values": [
+            [
+              "\"none\"",
+              "no effect is active"
+            ],
+            [
+              "\"candle\"",
+              "candlelight dynamic effect"
+            ]
+          ],
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0300",
+            "at": "0x4002",
+            "eval": "if (Item.val === 'none' || Item.val === 'colorloop') Item.val = Attr.val ? 'colorloop' : 'none'"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/reachable"

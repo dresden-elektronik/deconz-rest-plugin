@@ -57,6 +57,12 @@ namespace deCONZ
     Attr.index     -> attribute index (read only), 0 based, tells which attribute in a frame is  currently processed
 
     ### under consideration (not implemented)
+    R.hasCluster(ep,clusterId [,side]) -> bool
+                    ep = Number, clusterId = Number, side: Number (optional)
+                    side: 0 server (default), 1 client
+                    e.g. R.hasCluster(0x01, 0xFC77)
+                         R.hasCluster(0x01, 0xFC77, 0)
+
     R.parent --> get the parent resource object (Device)
     R.subDevice(uniqueId) --> get another sub-device resource object
     Item.lastSet --> timestamp when item was last set

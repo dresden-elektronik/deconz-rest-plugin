@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "5d354301-8bb8-4c5f-9741-edcccc367510",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_natgas",
   "vendor": "Xiaomi",

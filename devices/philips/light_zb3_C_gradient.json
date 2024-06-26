@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "b14ab051-43c3-40d5-97ee-813684f05d09",
   "manufacturername": [
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
@@ -83,6 +84,7 @@
   "product": "Hue white and color ambiance gradient light",
   "sleeper": false,
   "status": "Gold",
+  "matchexpr": "R.hasCluster(0x0b,0xfc03)",
   "subdevices": [
     {
       "type": "$TYPE_EXTENDED_COLOR_LIGHT",

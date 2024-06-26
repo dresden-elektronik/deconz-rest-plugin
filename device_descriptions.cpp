@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2022-2024 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8,6 +8,7 @@
  *
  */
 
+#include <array>
 #include <QDirIterator>
 #include <QFile>
 #include <QJsonArray>
@@ -15,12 +16,28 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QSettings>
+#include <QTimer>
+#include <deconz/atom_table.h>
 #include <deconz/dbg_trace.h>
+#include <deconz/file.h>
+#include <deconz/u_assert.h>
+#include <deconz/u_sstream_ex.h>
+#include <deconz/buffer_pool.h>
+#include <deconz/u_memory.h>
+#include <deconz/u_time.h>
+#include <deconz/u_ecc.h>
+#include "database.h"
+#include "device_ddf_bundle.h"
 #include "device_ddf_init.h"
 #include "device_descriptions.h"
 #include "device_js/device_js.h"
+#include "utils/scratchmem.h"
+#include "json.h"
 #include "event.h"
 #include "resource.h"
+
+#define DDF_MAX_PATH_LENGTH 1024
+#define DDF_MAX_PUBLIC_KEYS 64
 
 #define HND_MIN_LOAD_COUNTER 1
 #define HND_MAX_LOAD_COUNTER 15
@@ -44,17 +61,75 @@ union ItemHandlePack
         unsigned int subDevice: 4;     //! Max: 15, index into description -> subdevices[]
         unsigned int item : 10;        //! Max: 1023, index into subdevice -> items[]
     };
-    quint32 handle;
+    uint32_t handle;
 };
+
+static unsigned atDDFPolicyLatestPreferStable;
+static unsigned atDDFPolicyLatest;
+static unsigned atDDFPolicyPin;
+static unsigned atDDFPolicyRawJson;
 
 static DeviceDescriptions *_instance = nullptr;
 static DeviceDescriptionsPrivate *_priv = nullptr;
+
+class DDF_ParseContext
+{
+public:
+    deCONZ::StorageLocation fileLocation;
+    char filePath[DDF_MAX_PATH_LENGTH];
+    unsigned filePathLength = 0;
+    uint8_t *fileData = nullptr;
+    unsigned fileDataSize = 0;
+    std::array<cj_token, 8192> tokens;
+    DDFB_ExtfChunk *extChunks;
+    int64_t bundleLastModified;
+    uint64_t signatures; // bitmap as index in publicKeys[] array
+
+    uint32_t scratchPos = 0;
+    std::array<unsigned char, 1 << 20> scratchMem; // 1.05 MB
+
+    // stats
+    int n_rawDDF = 0;
+    int n_devIdentifiers = 0;
+};
+
+struct ConstantEntry
+{
+    AT_AtomIndex key;
+    AT_AtomIndex value;
+};
+
+
+/*
+ * Lookup which DDFs already have been queried.
+ *
+ */
+enum DDF_LoadState
+{
+    DDF_LoadStateScheduled,
+    DDF_LoadStateLoaded
+};
+
+enum DDF_ReloadWhat
+{
+    DDF_ReloadIdle,
+    DDF_ReloadBundles,
+    DDF_ReloadAll
+};
+
+struct DDF_LoadRecord
+{
+    AT_AtomIndex modelid;
+    AT_AtomIndex mfname;
+    DDF_LoadState loadState;
+};
 
 class DeviceDescriptionsPrivate
 {
 public:
     uint loadCounter = HND_MIN_LOAD_COUNTER;
-    std::map<QString,QString> constants;
+
+    std::vector<ConstantEntry> constants2;
     std::vector<DeviceDescription::Item> genericItems;
     std::vector<DeviceDescription> descriptions;
 
@@ -69,14 +144,24 @@ public:
     std::vector<DDF_FunctionDescriptor> readFunctions;
     std::vector<DDF_FunctionDescriptor> writeFunctions;
     std::vector<DDF_FunctionDescriptor> parseFunctions;
+
+    std::vector<DDF_LoadRecord> ddfLoadRecords;
+    std::vector<U_ECC_PublicKeySecp256k1> publicKeys;
+
+    DDF_ReloadWhat ddfReloadWhat = DDF_ReloadIdle;
+    QTimer *ddfReloadTimer = nullptr;
 };
 
-static bool DDF_ReadConstantsJson(const QString &path, std::map<QString,QString> *constants);
-static DeviceDescription::Item DDF_ReadItemFile(const QString &path);
-static std::vector<DeviceDescription> DDF_ReadDeviceFile(const QString &path);
-static DDF_SubDeviceDescriptor DDF_ReadSubDeviceFile(const QString &path);
+static int DDF_ReadFileInMemory(DDF_ParseContext *pctx);
+static int DDF_ReadConstantsJson(DDF_ParseContext *pctx, std::vector<ConstantEntry> & constants);
+static DeviceDescription::Item DDF_ReadItemFile(DDF_ParseContext *pctx);
+static DeviceDescription DDF_ReadDeviceFile(DDF_ParseContext *pctx);
+static DDF_SubDeviceDescriptor DDF_ReadSubDeviceFile(DDF_ParseContext *pctx);
 static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescription::Item> &genericItems, const DeviceDescription &ddf);
+static int DDF_MergeGenericBundleItems(DeviceDescription &ddf, DDF_ParseContext *pctx);
+static int DDF_ProcessSignatures(DDF_ParseContext *pctx, std::vector<U_ECC_PublicKeySecp256k1> &publicKeys, U_BStream *bs, uint32_t *bundleHash);
 static DeviceDescription::Item *DDF_GetItemMutable(const ResourceItem *item);
+static void DDF_UpdateItemHandlesForIndex(std::vector<DeviceDescription> &descriptions, uint loadCounter, size_t index);
 static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, uint loadCounter);
 static void DDF_TryCompileAndFixJavascript(QString *expr, const QString &path);
 DeviceDescription DDF_LoadScripts(const DeviceDescription &ddf);
@@ -88,6 +173,53 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
 {
     _instance = this;
     _priv = d_ptr2;
+
+    d_ptr2->ddfReloadTimer = new QTimer(this);
+    d_ptr2->ddfReloadTimer->setSingleShot(true);
+    connect(d_ptr2->ddfReloadTimer, &QTimer::timeout, this, &DeviceDescriptions::ddfReloadTimerFired);
+
+    {
+        // register DDF policy atoms used later on for fast comparisons
+        AT_AtomIndex ati;
+        const char *str;
+
+        str = "latest_prefer_stable";
+        AT_AddAtom(str, U_strlen(str), &ati);
+        atDDFPolicyLatestPreferStable = ati.index;
+
+        str = "latest";
+        AT_AddAtom(str, U_strlen(str), &ati);
+        atDDFPolicyLatest = ati.index;
+
+        str = "pin";
+        AT_AddAtom(str, U_strlen(str), &ati);
+        atDDFPolicyPin = ati.index;
+
+        str = "raw_json";
+        AT_AddAtom(str, U_strlen(str), &ati);
+        atDDFPolicyRawJson = ati.index;
+    }
+
+    {
+        /*
+         * Register offical public keys for beta and stable signed bundles.
+         * These are used to to select bundles according to the attr/ddf_policy
+         */
+        U_ECC_PublicKeySecp256k1 pk;
+        uint8_t stable_key[33] = {
+            0x03, 0x93, 0x2D, 0x60, 0xA3, 0x35, 0x44, 0xFD, 0xB9, 0x20, 0x2B, 0x41, 0xA7, 0x68, 0xCD, 0xD8,
+            0x70, 0x90, 0x82, 0xBD, 0xE8, 0xCD, 0x85, 0x47, 0x21, 0x68, 0xC5, 0x2A, 0xD8, 0xC3, 0xE5, 0x76, 0xF6 };
+
+        uint8_t beta_key[33] = {
+            0x02, 0xAB, 0x93, 0x42, 0x38, 0x60, 0xD3, 0x9D, 0x2C, 0xDC, 0xBC, 0xA0, 0xF9, 0x04, 0x2B, 0xD1,
+            0xA2, 0x45, 0xED, 0xB6, 0xDC, 0xC1, 0x0C, 0x4C, 0xFF, 0x1B, 0x78, 0xE9, 0xF2, 0x43, 0xF5, 0x3F, 0x1E };
+
+        U_memcpy(pk.key, stable_key, sizeof(pk.key));
+        d_ptr2->publicKeys.push_back(pk);
+
+        U_memcpy(pk.key, beta_key, sizeof(pk.key));
+        d_ptr2->publicKeys.push_back(pk);
+    }
 
     {  // Parse function as shown in the DDF editor.
         DDF_FunctionDescriptor fn;
@@ -705,6 +837,37 @@ DeviceDescriptions::DeviceDescriptions(QObject *parent) :
     }
 }
 
+/*! Query the database which mfname/modelid pairs are present.
+    Use these to load only DDFs and bundles which are in use.
+ */
+void DeviceDescriptions::prepare()
+{
+    auto &records = _priv->ddfLoadRecords;
+    const auto res = DB_LoadIdentifierPairs();
+
+    for (size_t i = 0; i < res.size(); i++)
+    {
+        size_t j = 0;
+        for (j = 0; j < records.size(); j++)
+        {
+            if (records[j].mfname.index == res[i].mfnameAtomIndex &&
+                records[j].modelid.index == res[i].modelIdAtomIndex)
+            {
+                break;
+            }
+        }
+
+        if (j == records.size())
+        {
+            DDF_LoadRecord rec;
+            rec.mfname.index = res[i].mfnameAtomIndex;
+            rec.modelid.index = res[i].modelIdAtomIndex;
+            rec.loadState = DDF_LoadStateScheduled;
+            records.push_back(rec);
+        }
+    }
+}
+
 /*! Destructor. */
 DeviceDescriptions::~DeviceDescriptions()
 {
@@ -871,66 +1034,378 @@ void DeviceDescriptions::handleEvent(const Event &event)
     }
     else if (event.what() == REventDDFReload)
     {
-        readAll(); // todo read only device specific files?
+        if (event.num() == 0)
+        {
+        }
     }
 }
 
 /*! Get the DDF object for a \p resource.
     \returns The DDF object, DeviceDescription::isValid() to check for success.
  */
-const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_MatchControl match) const
+const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_MatchControl match)
 {
-    Q_ASSERT(resource);
-    Q_ASSERT(resource->item(RAttrModelId));
-    Q_ASSERT(resource->item(RAttrManufacturerName));
+    U_ASSERT(resource);
 
     Q_D(const DeviceDescriptions);
 
-    const auto modelId = resource->item(RAttrModelId)->toString();
-    const auto manufacturer = resource->item(RAttrManufacturerName)->toString();
-    const auto manufacturerConstant = stringToConstant(manufacturer);
+    const ResourceItem *modelidItem = resource->item(RAttrModelId);
+    const ResourceItem *mfnameItem = resource->item(RAttrManufacturerName);
+    const ResourceItem *typeItem = resource->item(RAttrType);
 
-    auto i = d->descriptions.begin();
+    /*
+     * Collect all matching DDFs.
+     * The result is than sorted and according to the attr/ddf_policy the best candidate
+     * will be selected.
+     */
+    unsigned matchedCount = 0;
+    static std::array<int, 16> matchedIndices;
 
-    for (;;)
+    U_ASSERT(modelidItem);
+    U_ASSERT(mfnameItem);
+
+    if (typeItem)
     {
-        i = std::find_if(i, d->descriptions.end(), [&modelId, &manufacturer, &manufacturerConstant](const DeviceDescription &ddf)
+        const char *type = typeItem->toCString();
+        if (type[0] == 'Z' && type[1] == 'G')
         {
-            // compare manufacturer name case insensitive
-            const auto m = std::find_if(ddf.manufacturerNames.cbegin(), ddf.manufacturerNames.cend(),
-                                       [&](const auto &x){ return x.compare(manufacturer, Qt::CaseInsensitive) == 0; });
-
-            return (ddf.modelIds.contains(modelId) && (m != ddf.manufacturerNames.cend() || ddf.manufacturerNames.contains(manufacturerConstant)));
-        });
-
-        if (i == d->descriptions.end())
-        {
-            break;
+            return d->invalidDescription; // TODO(mpi): For now ZGP devices aren't supported in DDF
         }
 
-        if (!i->matchExpr.isEmpty() && match == DDF_EvalMatchExpr)
+        if (type[0] == 'C' && type[1] == 'o' && type[2] == 'n')
         {
-            DeviceJs *djs = DeviceJs::instance();
-            djs->reset();
-            djs->setResource(resource->parentResource() ? resource->parentResource() : resource);
-            if (djs->evaluate(i->matchExpr) == JsEvalResult::Ok)
+            return d->invalidDescription; // filter "Configuration tool" aka the coordinator
+        }
+    }
+
+    unsigned modelidAtomIndex = modelidItem->atomIndex();
+    unsigned mfnameAtomIndex = mfnameItem->atomIndex();
+
+    if (modelidAtomIndex == 0 || mfnameAtomIndex == 0)
+    {
+        return d->invalidDescription; // happens when called from legacy init code addLightNode() etc.
+    }
+
+    U_ASSERT(modelidAtomIndex != 0);
+    U_ASSERT(mfnameAtomIndex != 0);
+
+    /*
+     * Filter matching DDFs, there can be multiple entries for the same modelid and manufacturer name.
+     * Further sorting for the 'best' match according to attr/ddf_policy is done afterwards.
+     */
+    {
+        auto i = d->descriptions.begin();
+
+        for (;matchedCount < matchedIndices.size();)
+        {
+            i = std::find_if(i, d->descriptions.end(), [modelidAtomIndex, mfnameAtomIndex](const DeviceDescription &ddf)
             {
-                const auto res = djs->result();
-                DBG_Printf(DBG_DDF, "matchexpr: %s --> %s\n", qPrintable(i->matchExpr), qPrintable(res.toString()));
-                if (res.toBool()) // needs to evaluate to true
+                if (ddf.mfnameAtomIndices.size() != ddf.modelidAtomIndices.size())
                 {
-                    return *i;
+                    return false; // should not happen
+                }
+
+                for (size_t j = 0; j < ddf.modelidAtomIndices.size(); j++)
+                {
+                    if (ddf.modelidAtomIndices[j] == modelidAtomIndex && ddf.mfnameAtomIndices[j] == mfnameAtomIndex)
+                        return true;
+                }
+
+                return false;
+            });
+
+            if (i == d->descriptions.end())
+            {
+                // nothing found, try to load further DDFs
+                if (loadDDFAndBundlesFromDisc(resource))
+                {
+                    i = d->descriptions.begin();
+                    continue; // found DDFs or bundles, try again
+                }
+                break;
+            }
+
+            if (!i->matchExpr.isEmpty() && match == DDF_EvalMatchExpr)
+            {
+                DeviceJs *djs = DeviceJs::instance();
+                djs->reset();
+                djs->setResource(resource->parentResource() ? resource->parentResource() : resource);
+                if (djs->evaluate(i->matchExpr) == JsEvalResult::Ok)
+                {
+                    const auto res = djs->result();
+                    DBG_Printf(DBG_DDF, "matchexpr: %s --> %s\n", qPrintable(i->matchExpr), qPrintable(res.toString()));
+                    if (res.toBool()) // needs to evaluate to true
+                    {
+                        matchedIndices[matchedCount] = i->handle;
+                        matchedCount++;
+                    }
+                }
+                else
+                {
+                    DBG_Printf(DBG_DDF, "failed to evaluate matchexpr for %s: %s, err: %s\n", qPrintable(resource->item(RAttrUniqueId)->toString()), qPrintable(i->matchExpr), qPrintable(djs->errorString()));
                 }
             }
             else
             {
-                DBG_Printf(DBG_DDF, "failed to evaluate matchexpr for %s: %s, err: %s\n", qPrintable(resource->item(RAttrUniqueId)->toString()), qPrintable(i->matchExpr), qPrintable(djs->errorString()));
+                matchedIndices[matchedCount] = i->handle;
+                matchedCount++;
             }
+
             i++; // proceed search
         }
-        else
+    }
+
+    if (matchedCount != 0)
+    {
+        /*
+         * Now split the matches up in categories sorted by latest timestamp.
+         */
+        unsigned invalidIndex = 0xFFFFFFFF;
+        unsigned rawJsonIndex = invalidIndex;
+        unsigned latestStableBundleIndex = invalidIndex;
+        unsigned latestBetaBundleIndex = invalidIndex;
+        unsigned latestUserBundleIndex = invalidIndex;
+
+        for (size_t i = 0; i < matchedCount; i++)
         {
-            return *i;
+            const DeviceDescription &ddf1 = d->descriptions[matchedIndices[i]];
+
+            if (ddf1.storageLocation == deCONZ::DdfLocation || ddf1.storageLocation == deCONZ::DdfUserLocation)
+            {
+                if (rawJsonIndex == invalidIndex)
+                {
+                    rawJsonIndex = matchedIndices[i];
+                }
+                else if (d->descriptions[rawJsonIndex].status == QLatin1String("Draft"))
+                {
+                    rawJsonIndex = matchedIndices[i];
+                }
+                continue;
+            }
+
+            if (ddf1.storageLocation == deCONZ::DdfBundleUserLocation || ddf1.storageLocation == deCONZ::DdfBundleLocation)
+            {
+                if (ddf1.signedBy & 1) // has stable signature
+                {
+                    if (latestStableBundleIndex == invalidIndex)
+                    {
+                        latestStableBundleIndex = matchedIndices[i];
+                    }
+                    else
+                    {
+                        const DeviceDescription &ddf0 = d->descriptions[latestStableBundleIndex];
+                        if (ddf0.lastModified < ddf1.lastModified)
+                        {
+                            latestStableBundleIndex = matchedIndices[i]; // newer
+                        }
+                    }
+                }
+
+                if (ddf1.signedBy & 2) // has beta signature
+                {
+                    if (latestBetaBundleIndex == invalidIndex)
+                    {
+                        latestBetaBundleIndex = matchedIndices[i];
+                    }
+                    else
+                    {
+                        const DeviceDescription &ddf0 = d->descriptions[latestBetaBundleIndex];
+                        if (ddf0.lastModified < ddf1.lastModified)
+                        {
+                            latestBetaBundleIndex = matchedIndices[i]; // newer
+                        }
+                    }
+                }
+
+                if ((ddf1.signedBy & 3) == 0) // has neither beta or stable signature
+                {
+                    if (latestUserBundleIndex == invalidIndex)
+                    {
+                        latestUserBundleIndex = matchedIndices[i];
+                    }
+                    else
+                    {
+                        const DeviceDescription &ddf0 = d->descriptions[latestUserBundleIndex];
+                        if (ddf0.lastModified < ddf1.lastModified)
+                        {
+                            latestUserBundleIndex = matchedIndices[i]; // newer
+                        }
+                    }
+                }
+            }
+        }
+
+        unsigned policy = atDDFPolicyLatestPreferStable; // default
+
+        {
+            const Resource *rParent = resource->parentResource() ? resource->parentResource() : resource;
+            const ResourceItem *ddfPolicyItem = rParent->item(RAttrDdfPolicy);
+
+            if (ddfPolicyItem)
+            {
+                policy = ddfPolicyItem->atomIndex();
+            }
+        }
+
+        if (policy == atDDFPolicyRawJson && rawJsonIndex != invalidIndex)
+        {
+            return d->descriptions[rawJsonIndex];
+        }
+
+        if (policy == atDDFPolicyLatestPreferStable)
+        {
+            if (latestStableBundleIndex != invalidIndex)
+                return d->descriptions[latestStableBundleIndex];
+        }
+
+        if (policy == atDDFPolicyLatest || policy == atDDFPolicyLatestPreferStable)
+        {
+            unsigned bundleCount = 0;
+            std::array<unsigned, 3> bundleIndices;
+
+            if (latestStableBundleIndex != invalidIndex)
+                bundleIndices[bundleCount++] = latestStableBundleIndex;
+
+            if (latestBetaBundleIndex != invalidIndex)
+                bundleIndices[bundleCount++] = latestBetaBundleIndex;
+
+            if (latestUserBundleIndex != invalidIndex)
+                bundleIndices[bundleCount++] = latestUserBundleIndex;
+
+            if (bundleCount != 0)
+            {
+                unsigned bestMatch = bundleIndices[0];
+                for (unsigned i = 1; i < bundleCount; i++)
+                {
+                    const DeviceDescription &ddf0 = d->descriptions[bestMatch];
+                    const DeviceDescription &ddf1 = d->descriptions[i];
+
+                    if (ddf0.lastModified < ddf1.lastModified)
+                        bestMatch = i;
+                }
+
+                return d->descriptions[bestMatch];
+            }
+        }
+
+        if (policy == atDDFPolicyPin)
+        {
+            /*
+             * Lookup a matching bundle by its hash. This is finicky but ensures no bugus is matched.
+             */
+            const Resource *rParent = resource->parentResource() ? resource->parentResource() : resource;
+            const ResourceItem *ddfHashItem = rParent->item(RAttrDdfHash);
+
+            if (ddfHashItem)
+            {
+                unsigned len = U_strlen(ddfHashItem->toCString());
+                if (len == 64)
+                {
+                    uint32_t hash[8] = {0};
+
+                    { // convert bundle hash string to binary
+                        U_SStream ss;
+                        uint8_t *byte = reinterpret_cast<uint8_t*>(&hash[0]);
+
+                        U_sstream_init(&ss, (void*)ddfHashItem->toCString(), len);
+
+                        for (int i = 0; i < 32; i++)
+                            byte[i] = U_sstream_get_hex_byte(&ss);
+                    }
+
+                    // The hash must belong to one of the earlier matched bundles.
+                    for (unsigned i = 0; i < matchedCount; i++)
+                    {
+                        const DeviceDescription &ddf = d->descriptions[matchedIndices[i]];
+
+                        int j = 0;
+                        for (; j < 8; j++)
+                        {
+                            if (ddf.sha256Hash[j] != hash[j])
+                                break;
+                        }
+
+                        if (j == 8) // match
+                            return ddf;
+                    }
+                }
+            }
+        }
+
+        /*
+         * Fallback: If none of above matches pick your poison.
+         */
+
+        if (latestStableBundleIndex != invalidIndex)
+            return d->descriptions[latestStableBundleIndex];
+
+        if (latestBetaBundleIndex != invalidIndex)
+            return d->descriptions[latestBetaBundleIndex];
+
+        if (latestUserBundleIndex != invalidIndex)
+            return d->descriptions[latestUserBundleIndex];
+
+        if (rawJsonIndex != invalidIndex)
+            return d->descriptions[rawJsonIndex];
+    }
+
+    return d->invalidDescription;
+}
+
+bool DeviceDescriptions::loadDDFAndBundlesFromDisc(const Resource *resource)
+{
+    Q_D(DeviceDescriptions);
+
+    const ResourceItem *modelidItem = resource->item(RAttrModelId);
+    const ResourceItem *mfnameItem = resource->item(RAttrManufacturerName);
+
+    U_ASSERT(modelidItem);
+    U_ASSERT(mfnameItem);
+
+    unsigned modelidAtomIndex = modelidItem->atomIndex();
+    unsigned mfnameAtomIndex = mfnameItem->atomIndex();
+
+    U_ASSERT(modelidAtomIndex != 0);
+    U_ASSERT(mfnameAtomIndex != 0);
+
+    if (modelidAtomIndex == 0 || mfnameAtomIndex == 0)
+    {
+        return false;
+    }
+
+    for (const DDF_LoadRecord &loadRecord : d->ddfLoadRecords)
+    {
+        if (loadRecord.mfname.index == mfnameAtomIndex && loadRecord.modelid.index == modelidAtomIndex)
+        {
+            return false; // been here before
+        }
+    }
+
+    DBG_Printf(DBG_DDF, "try load DDF from disc for %s -- %s\n", mfnameItem->toCString(), modelidItem->toCString());
+
+    // mark for loading
+    DDF_LoadRecord loadRecord;
+    loadRecord.modelid.index = modelidAtomIndex;
+    loadRecord.mfname.index = mfnameAtomIndex;
+    loadRecord.loadState = DDF_LoadStateScheduled;
+    d->ddfLoadRecords.push_back(loadRecord);
+
+    unsigned countBefore = d->descriptions.size();
+    readAll();
+
+    return countBefore < d->descriptions.size();
+}
+
+const DeviceDescription &DeviceDescriptions::getFromHandle(DeviceDescription::Item::Handle hnd) const
+{
+    Q_D(const DeviceDescriptions);
+    ItemHandlePack h;
+    h.handle = hnd;
+    if (h.handle != DeviceDescription::Item::InvalidItemHandle)
+    {
+        if (h.description < d->descriptions.size())
+        {
+            return d->descriptions[h.description];
         }
     }
 
@@ -955,7 +1430,7 @@ void DeviceDescriptions::put(const DeviceDescription &ddf)
         {
             DBG_Printf(DBG_DDF, "update ddf %s index %d\n", qPrintable(ddf0.modelIds.front()), ddf.handle);
             ddf0 = ddf;
-            DDF_UpdateItemHandles(d->descriptions, d->loadCounter);
+            DDF_UpdateItemHandlesForIndex(d->descriptions, d->loadCounter, static_cast<size_t>(ddf.handle));
             return;
         }
     }
@@ -963,7 +1438,13 @@ void DeviceDescriptions::put(const DeviceDescription &ddf)
 
 const DeviceDescription &DeviceDescriptions::load(const QString &path)
 {
+    Q_UNUSED(path)
+
+    // TODO(mpi) implement
+
     Q_D(DeviceDescriptions);
+
+#if 0
 
     auto i = std::find_if(d->descriptions.begin(), d->descriptions.end(), [&path](const auto &ddf){ return ddf.path == path; });
     if (i != d->descriptions.end())
@@ -1004,6 +1485,8 @@ const DeviceDescription &DeviceDescriptions::load(const QString &path)
         }
     }
 
+#endif
+
     return d->invalidDescription;
 }
 
@@ -1018,7 +1501,7 @@ const DeviceDescription::SubDevice &DeviceDescriptions::getSubDevice(const Resou
         for (int i = 0; i < resource->itemCount(); i++)
         {
             const ResourceItem *item = resource->itemForIndex(size_t(i));
-            assert(item);
+            U_ASSERT(item);
 
             h.handle = item->ddfItemHandle();
             if (h.handle == DeviceDescription::Item::InvalidItemHandle)
@@ -1061,11 +1544,29 @@ QString DeviceDescriptions::constantToString(const QString &constant) const
 
     if (constant.startsWith('$'))
     {
-        const auto i = d->constants.find(constant);
+        char buf[128];
+        AT_AtomIndex key;
 
-        if (i != d->constants.end())
+        int len;
+        for (len = 0; len < constant.size() && len < 127; len++)
         {
-            return i->second;
+            buf[len] = constant.at(len).toLatin1();
+        }
+        buf[len] = '\0';
+
+        if (AT_GetAtomIndex(buf, (unsigned)len, &key))
+        {
+            for (size_t i = 0; i < d->constants2.size(); i++)
+            {
+                if (d->constants2[i].key.index == key.index)
+                {
+                    AT_Atom a = AT_GetAtomByIndex(d->constants2[i].value);
+                    if (a.len)
+                    {
+                        return QString::fromUtf8((const char*)a.data, a.len);
+                    }
+                }
+            }
         }
     }
 
@@ -1081,33 +1582,36 @@ QString DeviceDescriptions::stringToConstant(const QString &str) const
         return str;
     }
 
-    const auto end = d->constants.cend();
-    for (auto p = d->constants.begin(); p != end; ++p)
+    char buf[128];
+    AT_AtomIndex val;
+
+    int len;
+    for (len = 0; len < str.size() && len < 127; len++)
     {
-        if (p->second == str)
+        buf[len] = str.at(len).toLatin1();
+    }
+    buf[len] = '\0';
+
+    if (len)
+    {
+        if (AT_GetAtomIndex(buf, (unsigned)len, &val))
         {
-            return p->first;
+            for (size_t i = 0; i < d->constants2.size(); i++)
+            {
+                if (d->constants2[i].value.index == val.index)
+                {
+                    AT_Atom a = AT_GetAtomByIndex(d->constants2[i].key);
+                    if (a.len)
+                    {
+                        return QString::fromUtf8((const char*)a.data, a.len);
+                    }
+                    break;
+                }
+            }
         }
     }
 
     return str;
-}
-
-QStringList DeviceDescriptions::constants(const QString &prefix) const
-{
-    Q_D(const DeviceDescriptions);
-    QStringList result;
-
-    const auto end = d->constants.cend();
-    for (auto p = d->constants.begin(); p != end; ++p)
-    {
-        if (prefix.isEmpty() || p->first.startsWith(prefix))
-        {
-            result.push_back(p->first);
-        }
-    }
-
-    return result;
 }
 
 static DeviceDescription::Item *DDF_GetItemMutable(const ResourceItem *item)
@@ -1245,41 +1749,83 @@ const std::vector<DDF_SubDeviceDescriptor> &DeviceDescriptions::getSubDevices() 
     return d_ptr2->subDevices;
 }
 
+static void DDF_UpdateItemHandlesForIndex(std::vector<DeviceDescription> &descriptions, uint loadCounter, size_t index)
+{
+    U_ASSERT(index < descriptions.size());
+    if (descriptions.size() <= index)
+    {
+        return; // should not happen
+    }
+
+    U_ASSERT(index < HND_MAX_DESCRIPTIONS);
+    U_ASSERT(loadCounter >= HND_MIN_LOAD_COUNTER);
+    U_ASSERT(loadCounter <= HND_MAX_LOAD_COUNTER);
+
+    ItemHandlePack handle;
+    DeviceDescription &ddf = descriptions[index];
+
+    ddf.handle = static_cast<int>(index);
+
+    handle.description = static_cast<unsigned>(index);
+    handle.loadCounter = loadCounter;
+    handle.subDevice = 0;
+
+    for (DeviceDescription::SubDevice &sub : ddf.subDevices)
+    {
+        handle.item = 0;
+
+        for (DeviceDescription::Item &item : sub.items)
+        {
+            item.handle = handle.handle;
+            U_ASSERT(handle.item < HND_MAX_ITEMS);
+            handle.item++;
+        }
+
+        U_ASSERT(handle.subDevice < HND_MAX_SUB_DEVS);
+        handle.subDevice++;
+    }
+}
+
 /*! Updates all DDF item handles to point to correct location.
     \p loadCounter - the current load counter.
  */
 static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, uint loadCounter)
 {
-    int index = 0;
-    Q_ASSERT(loadCounter >= HND_MIN_LOAD_COUNTER);
-    Q_ASSERT(loadCounter <= HND_MAX_LOAD_COUNTER);
-
-    ItemHandlePack handle;
-    handle.description = 0;
-    handle.loadCounter = loadCounter;
-
-    for (auto &ddf : descriptions)
+    for (size_t index = 0; index < descriptions.size(); index++)
     {
-        ddf.handle = index++;
-        handle.subDevice = 0;
-        for (auto &sub : ddf.subDevices)
-        {
-            handle.item = 0;
-
-            for (auto &item : sub.items)
-            {
-                item.handle = handle.handle;
-                Q_ASSERT(handle.item < HND_MAX_ITEMS);
-                handle.item++;
-            }
-
-            Q_ASSERT(handle.subDevice < HND_MAX_SUB_DEVS);
-            handle.subDevice++;
-        }
-
-        Q_ASSERT(handle.description < HND_MAX_DESCRIPTIONS);
-        handle.description++;
+        DDF_UpdateItemHandlesForIndex(descriptions, loadCounter, index);
     }
+
+    // int index = 0;
+    // U_ASSERT(loadCounter >= HND_MIN_LOAD_COUNTER);
+    // U_ASSERT(loadCounter <= HND_MAX_LOAD_COUNTER);
+
+    // ItemHandlePack handle;
+    // handle.description = 0;
+    // handle.loadCounter = loadCounter;
+
+    // for (DeviceDescription &ddf : descriptions)
+    // {
+    //     ddf.handle = index++;
+    //     handle.subDevice = 0;
+    //     for (auto &sub : ddf.subDevices)
+    //     {
+    //         handle.item = 0;
+
+    //         for (auto &item : sub.items)
+    //         {
+    //             item.handle = handle.handle;
+    //             U_ASSERT(handle.item < HND_MAX_ITEMS);
+    //             handle.item++;
+    //         }
+
+    //         U_ASSERT(handle.subDevice < HND_MAX_SUB_DEVS);
+    //         handle.subDevice++;
+    //     }
+
+    //     U_ASSERT(handle.description < HND_MAX_DESCRIPTIONS);
+    //     handle.description++;
+    // }
 }
 
 /*! Temporary workaround since DuktapeJS doesn't support 'let', try replace it with 'var'.
@@ -1341,9 +1887,95 @@ static void DDF_TryCompileAndFixJavascript(QString *expr, const QString &path)
 #endif
 }
 
+enum JSON_Schema
+{
+    JSON_SCHEMA_UNKNOWN,
+    JSON_SCHEMA_CONSTANTS_1,
+    JSON_SCHEMA_CONSTANTS_2,
+    JSON_SCHEMA_RESOURCE_ITEM_1,
+    JSON_SCHEMA_SUB_DEVICE_1,
+    JSON_SCHEMA_DEV_CAP_1
+};
+
+/*! Returns the JSON schema of a file.
+
+    The function doesn't actually parse the full JSON document
+    but instead just extracts the "schema": "<SCHEMA>" content.
+*/
+JSON_Schema DDF_GetJsonSchema(uint8_t *data, unsigned dataSize)
+{
+    U_SStream ss[1];
+    unsigned beg = 0;
+    unsigned end = 0;
+    unsigned len;
+
+    U_ASSERT(data);
+    U_ASSERT(dataSize > 0);
+
+    if (*data != '{' && *data != '[') // not JSON object or array
+    {
+        return JSON_SCHEMA_UNKNOWN;
+    }
+
+    U_sstream_init(ss, data, dataSize);
+
+    if (U_sstream_find(ss, "\"schema\""))
+    {
+        U_sstream_seek(ss, ss[0].pos + 8);
+
+        if (U_sstream_find(ss, "\""))
+        {
+            U_sstream_seek(ss, ss[0].pos + 1);
+            beg = ss[0].pos;
+
+            if (U_sstream_find(ss, "\""))
+            {
+                end = ss[0].pos;
+            }
+        }
+    }
+
+    if (beg < end)
+    {
+        len = end - beg;
+        U_sstream_init(ss, &data[beg], len);
+
+        if (len == 19 && U_sstream_starts_with(ss, "devcap1.schema.json"))
+        {
+            return JSON_SCHEMA_DEV_CAP_1;
+        }
+        else if (len == 25 && U_sstream_starts_with(ss, "resourceitem1.schema.json"))
+        {
+            return JSON_SCHEMA_RESOURCE_ITEM_1;
+        }
+        else if (len == 22 && U_sstream_starts_with(ss, "constants1.schema.json"))
+        {
+            return JSON_SCHEMA_CONSTANTS_1;
+        }
+        else if (len == 22 && U_sstream_starts_with(ss, "constants2.schema.json"))
+        {
+            return JSON_SCHEMA_CONSTANTS_2;
+        }
+        else if (len == 22 && U_sstream_starts_with(ss, "subdevice1.schema.json"))
+        {
+            return JSON_SCHEMA_SUB_DEVICE_1;
+        }
+    }
+
+    return JSON_SCHEMA_UNKNOWN;
+}
+
 /*! Reads all DDF related files.
  */
 void DeviceDescriptions::readAll()
+{
+    readAllRawJson();
+    readAllBundles();
+}
+
+/*! Reads all scheduled raw JSON DDF files.
+ */
+void DeviceDescriptions::readAllRawJson()
 {
     Q_D(DeviceDescriptions);
 
@@ -1353,31 +1985,84 @@ void DeviceDescriptions::readAll()
         d->loadCounter = HND_MIN_LOAD_COUNTER;
     }
 
-    DBG_MEASURE_START(DDF_ReadAllFiles);
+    ScratchMemWaypoint swp;
+    uint8_t *ctx_mem = SCRATCH_ALLOC(uint8_t*, sizeof(DDF_ParseContext) + 64);
+    U_ASSERT(ctx_mem);
+    if (!ctx_mem)
+    {
+        DBG_Printf(DBG_ERROR, "DDF not enough memory to create DDF_ParseContext\n");
+        return;
+    }
 
-    std::vector<DeviceDescription> descriptions;
-    std::vector<DeviceDescription::Item> genericItems;
+    DBG_Printf(DBG_DDF, "DDF try to find raw JSON DDFs for %u identifier pairs\n", (unsigned)d->ddfLoadRecords.size());
+
+    DDF_ParseContext *pctx = new(ctx_mem)DDF_ParseContext; // placement new into scratch memory, no further cleanup needed
+    U_ASSERT(pctx);
+    pctx->extChunks = nullptr;
+
+    DBG_MEASURE_START(DDF_ReadRawJson);
+
     std::vector<DDF_SubDeviceDescriptor> subDevices;
 
-    QStringList dirs;
-    dirs.push_back(deCONZ::getStorageLocation(deCONZ::DdfUserLocation));
-    dirs.push_back(deCONZ::getStorageLocation(deCONZ::DdfLocation));
+    std::array<deCONZ::StorageLocation, 2> locations = { deCONZ::DdfLocation, deCONZ::DdfUserLocation};
 
-    while (!dirs.isEmpty())
+    bool hasConstants = false;
+
+    // need to resolve constants first
+    for (size_t dit = 0; dit < locations.size(); dit++)
     {
-        QDirIterator it(dirs.takeFirst(), QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
+        const QString filePath = deCONZ::getStorageLocation(locations[dit]) + "/generic/constants.json";
+
+        pctx->filePath[0] = '\0';
+        pctx->filePathLength = 0;
+        pctx->scratchPos = 0;
+
+        {
+            U_SStream ss;
+            U_sstream_init(&ss, pctx->filePath, sizeof(pctx->filePath));
+            U_sstream_put_str(&ss, filePath.toUtf8().data());
+            pctx->filePathLength = ss.pos;
+        }
+
+        if (DDF_ReadFileInMemory(pctx))
+        {
+            if (DDF_ReadConstantsJson(pctx, d->constants2))
+            {
+                DBG_Printf(DBG_DDF, "DDF loaded %d string constants from %s\n", (int)d->constants2.size(), pctx->filePath);
+                hasConstants = true;
+            }
+        }
+    }
+
+    if (d->constants2.empty() || !hasConstants) // should not happen
+    {
+        DBG_Printf(DBG_DDF, "DDF failed to load string constants\n");
+    }
+
+    U_ASSERT(hasConstants);
+
+    for (size_t dit = 0; dit < locations.size(); dit++)
+    {
+        const QString dirpath = deCONZ::getStorageLocation(locations[dit]);
+        QDirIterator it(dirpath, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
 
         while (it.hasNext())
         {
             it.next();
 
+            pctx->filePath[0] = '\0';
+            pctx->filePathLength = 0;
+            pctx->scratchPos = 0;
+            QString filePath = it.filePath();
+            {
+                U_SStream ss;
+                U_sstream_init(&ss, pctx->filePath, sizeof(pctx->filePath));
+                U_sstream_put_str(&ss, filePath.toUtf8().data());
+                pctx->filePathLength = ss.pos;
+            }
+
             if (it.filePath().endsWith(QLatin1String("generic/constants.json")))
             {
-                std::map<QString,QString> constants;
-                if (DDF_ReadConstantsJson(it.filePath(), &constants))
-                {
-                    d->constants = constants;
-                }
             }
             else if (it.fileName() == QLatin1String("button_maps.json"))
             {  }
@@ -1385,36 +2070,196 @@ void DeviceDescriptions::readAll()
             {
                 if (it.filePath().contains(QLatin1String("generic/items/")))
                 {
-                    auto result = DDF_ReadItemFile(it.filePath());
-                    if (result.isValid())
+                    if (DDF_ReadFileInMemory(pctx))
                     {
-                        result.isGenericRead = !result.readParameters.isNull() ? 1 : 0;
-                        result.isGenericWrite = !result.writeParameters.isNull() ? 1 : 0;
-                        result.isGenericParse = !result.parseParameters.isNull() ? 1 : 0;
-                        genericItems.push_back(std::move(result));
+                        DeviceDescription::Item result = DDF_ReadItemFile(pctx);
+                        if (result.isValid())
+                        {
+                            result.isGenericRead = !result.readParameters.isNull() ? 1 : 0;
+                            result.isGenericWrite = !result.writeParameters.isNull() ? 1 : 0;
+                            result.isGenericParse = !result.parseParameters.isNull() ? 1 : 0;
+
+                            size_t j = 0;
+                            for (j = 0; j < d->genericItems.size(); j++)
+                            {
+                                DeviceDescription::Item  &genItem = d->genericItems[j];
+                                if (genItem.name == result.name)
+                                {
+                                    // replace
+                                    genItem = result;
+                                    break;
+                                }
+                            }
+
+                            if (j == d->genericItems.size())
+                            {
+                                d->genericItems.push_back(result);
+                            }
+                        }
                     }
                 }
                 else if (it.filePath().contains(QLatin1String("generic/subdevices/")))
                 {
-                    auto sub = DDF_ReadSubDeviceFile(it.filePath());
-                    if (isValid(sub))
+                    if (DDF_ReadFileInMemory(pctx))
                     {
-                        subDevices.push_back(sub);
+                        DDF_SubDeviceDescriptor result = DDF_ReadSubDeviceFile(pctx);
+                        if (isValid(result))
+                        {
+                            subDevices.push_back(result);
+                        }
                     }
                 }
                 else
                 {
-                    DBG_Printf(DBG_DDF, "read %s\n", qPrintable(it.fileName()));
-                    std::vector<DeviceDescription> result = DDF_ReadDeviceFile(it.filePath());
-                    std::move(result.begin(), result.end(), std::back_inserter(descriptions));
+                    if (DDF_ReadFileInMemory(pctx))
+                    {
+                        DeviceDescription result = DDF_ReadDeviceFile(pctx);
+                        if (result.isValid())
+                        {
+                            result.storageLocation = locations[dit];
+                            if (U_Sha256(pctx->fileData, pctx->fileDataSize, (unsigned char*)&result.sha256Hash[0]) == 0)
+                            {
+                                DBG_Printf(DBG_DDF, "DDF failed to create SHA-256 hash of DDF\n");
+                            }
+
+                            unsigned j = 0;
+                            unsigned k = 0;
+                            bool found = false;
+
+                            /*
+                             * Check if this DDF is already loaded.
+                             */
+                            for (j = 0; j < d->descriptions.size(); j++)
+                            {
+                                const DeviceDescription &ddf = d->descriptions[j];
+
+                                for (k = 0; k < 8; k++)
+                                {
+                                    if (ddf.sha256Hash[k] != result.sha256Hash[k])
+                                    {
+                                        break;
+                                    }
+                                }
+
+                                if (k == 8)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (!found)
+                            {
+                                /*
+                                 * Further check if the DDF is scheduled for loading.
+                                 * That is when an actual possibly matching device exists in the setup.
+                                 */
+                                bool scheduled = false;
+                                if (result.manufacturerNames.size() == result.modelIds.size())
+                                {
+                                    for (j = 0; j < result.manufacturerNames.size(); j++)
+                                    {
+                                        AT_AtomIndex mfnameIndex;
+                                        AT_AtomIndex modelidIndex;
+
+                                        mfnameIndex.index = 0;
+                                        modelidIndex.index = 0;
+
+                                        /*
+                                         * Try to get atoms for the mfname/modelid pair.
+                                         * Note: If they don't exist, this isn't the pair we are looking for!
+                                         * We don't add atoms for all strings found in DDFs to safe memory.
+                                         */
+
+                                        {
+                                            const QByteArray m = constantToString(result.manufacturerNames[j]).toUtf8();
+                                            if (AT_GetAtomIndex(m.constData(), (unsigned)m.size(), &mfnameIndex) != 1)
+                                            {
+                                                if (m.startsWith('$'))
+                                                {
+                                                    DBG_Printf(DBG_DDF, "DDF failed to resolve constant %s\n", m.data());
+                                                    // continue here anyway as long as modelid matches
+                                                }
+                                                else
+                                                {
+                                                    continue;
+                                                }
+                                            }
+                                        }
+
+                                        {
+                                            const QByteArray m = constantToString(result.modelIds[j]).toUtf8();
+                                            if (AT_GetAtomIndex(m.constData(), (unsigned)m.size(), &modelidIndex) != 1)
+                                            {
+                                                continue;
+                                            }
+                                        }
+
+                                        for (k = 0; k < d->ddfLoadRecords.size(); k++)
+                                        {
+                                            if (modelidIndex.index == d->ddfLoadRecords[k].modelid.index)
+                                            {
+                                                if (mfnameIndex.index == 0)
+                                                {
+                                                    // ignore for now, in worst case we load a DDF to memory which isn't used
+                                                    U_ASSERT(0);
+                                                }
+                                                else if (mfnameIndex.index != d->ddfLoadRecords[k].mfname.index)
+                                                {
+                                                    continue;
+                                                }
+                                                scheduled = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (scheduled)
+                                        {
+                                            break;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    DBG_Printf(DBG_DDF, "DDF ignore %s due unequal manufacturername/modelid array sizes\n", pctx->filePath);
+                                }
+
+                                if (scheduled)
+                                {
+                                    /*
+                                     * The DDF is of interest, now register all atoms for faster lookups.
+                                     */
+                                    for (const auto &mfname : result.manufacturerNames)
+                                    {
+                                        const QString m = DeviceDescriptions::instance()->constantToString(mfname);
+
+                                        AT_AtomIndex ati;
+                                        if (AT_AddAtom(m.toUtf8().data(), m.size(), &ati) && ati.index != 0)
+                                        {
+                                            result.mfnameAtomIndices.push_back(ati.index);
+                                        }
+                                    }
+
+                                    for (const auto &modelId : result.modelIds)
+                                    {
+                                        const QString m = DeviceDescriptions::instance()->constantToString(modelId);
+
+                                        AT_AtomIndex ati;
+                                        if (AT_AddAtom(m.toUtf8().data(), m.size(), &ati) && ati.index != 0)
+                                        {
+                                            result.modelidAtomIndices.push_back(ati.index);
+                                        }
+                                    }
+
+                                    DBG_Printf(DBG_DDF, "DDF cache raw JSON DDF %s\n", pctx->filePath);
+                                    d->descriptions.push_back(std::move(result));
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
-    }
-
-    if (!genericItems.empty())
-    {
-        d->genericItems = std::move(genericItems);
     }
 
     if (!subDevices.empty())
@@ -1426,9 +2271,8 @@ void DeviceDescriptions::readAll()
         d->subDevices = std::move(subDevices);
     }
 
-    if (!descriptions.empty())
+    if (!d->descriptions.empty())
     {
-        d->descriptions = std::move(descriptions);
         DDF_UpdateItemHandles(d->descriptions, d->loadCounter);
 
         for (auto &ddf : d->descriptions)
@@ -1436,9 +2280,581 @@ void DeviceDescriptions::readAll()
             ddf = DDF_MergeGenericItems(d->genericItems, ddf);
             ddf = DDF_LoadScripts(ddf);
         }
+
+        DBG_Printf(DBG_DDF, "DDF loaded %d raw JSON DDFs\n", (int)d->descriptions.size());
     }
 
-    DBG_MEASURE_END(DDF_ReadAllFiles);
+    DBG_MEASURE_END(DDF_ReadRawJson);
+}
+
+#if 0
+    {
+        U_ECC_PrivateKeySecp256k1 privkey = {0};
+        U_ECC_PublicKeySecp256k1 pubkey = {0};
+        U_ECC_SignatureSecp256k1 sig = {0};
+        unsigned char hash[U_SHA256_HASH_SIZE] = {0};
+
+        if (U_ECC_CreateKeyPairSecp256k1(&privkey, &pubkey) == 1)
+        {
+            DBG_Printf(DBG_INFO, "created keypair\n");
+
+            U_Sha256(&privkey, sizeof(privkey), hash); // just to have some hash
+
+            if (U_ECC_SignSecp256K1(&privkey, hash, sizeof(hash), &sig))
+            {
+                DBG_Printf(DBG_INFO, "created signature\n");
+
+                if (U_ECC_VerifySignatureSecp256k1(&pubkey, &sig, hash, sizeof(hash)))
+                {
+                    DBG_Printf(DBG_INFO, "verified signature\n");
+                }
+
+                sig.sig[6] = sig.sig[6] + 9; // invalidate
+                if (U_ECC_VerifySignatureSecp256k1(&pubkey, &sig, hash, sizeof(hash)) == 0)
+                {
+                    DBG_Printf(DBG_INFO, "invalid signature [OK]\n");
+                }
+            }
+        }
+    }
+
+    {
+        U_HmacSha256Test();
+    }
+#endif
+
+/*! Trigger REventDDFReload for all present devices which match with device identifier pair of DDF bundle.
+ */
+static int DDF_ReloadBundleDevices(const char *desc, unsigned descSize, std::vector<DDF_LoadRecord> &ddfLoadRecords)
+{
+    cj_ctx cj[1];
+    char buf[96];
+    cj_token_ref ref;
+    cj_token_ref parent_ref;
+    cj_token_ref deviceids_ref;
+    AT_AtomIndex modelid_ati;
+    AT_AtomIndex mfname_ati;
+    cj_token *tokens;
+    unsigned n_tokens = 1024;
+    int n_marked = 0;
+
+    ScratchMemWaypoint swp;
+    tokens = SCRATCH_ALLOC(cj_token*, n_tokens * sizeof(*tokens));
+    U_ASSERT(tokens);
+    if (!tokens)
+        return 0;
+
+    cj_parse_init(cj, desc, descSize, tokens, n_tokens);
+    cj_parse(cj);
+
+    if (cj->status != CJ_OK)
+        return 0;
+
+    parent_ref = 0;
+    deviceids_ref = cj_value_ref(cj, parent_ref, "device_identifiers");
+
+    // array of 2 string element arrays
+    // "device_identifiers":[["LUMI","lumi.sensor_magnet"]]
+
+    if (deviceids_ref == CJ_INVALID_TOKEN_INDEX)
+        return 0;
+
+    if (tokens[deviceids_ref].type != CJ_TOKEN_ARRAY_BEG)
+        return 0;
+
+    // verify flat string array, and equal size for manufacturer names and modelids
+    for (ref = deviceids_ref + 1; tokens[ref].type != CJ_TOKEN_ARRAY_END && ref < cj[0].tokens_pos; )
+    {
+        if (tokens[ref].type == CJ_TOKEN_ITEM_SEP)
+        {
+            ref++;
+            continue;
+        }
+
+        // inner array for each entry
+        if (tokens[ref].type != CJ_TOKEN_ARRAY_BEG)
+            break;
+
+        if (tokens[ref + 1].type != CJ_TOKEN_STRING) // mfname
+            break;
+
+        if (tokens[ref + 2].type != CJ_TOKEN_ITEM_SEP)
+            break;
+
+        if (tokens[ref + 3].type != CJ_TOKEN_STRING) // modelid
+            break;
+
+        if (tokens[ref + 4].type != CJ_TOKEN_ARRAY_END)
+            break;
+
+        /*
+         * Lookup if the manufacturername and modelid pair has registered atoms.
+         * If not this can't be a bundle of interest.
+         */
+        bool foundAtoms = true;
+
+        if (cj_copy_ref_utf8(cj, buf, sizeof(buf), ref + 1) == 0)
+            break; // this has to be a valid string
+
+        if (AT_GetAtomIndex(buf, U_strlen(buf), &mfname_ati) == 0)
+            foundAtoms = false; // unknown, can be ok
+
+        if (cj_copy_ref_utf8(cj, buf, sizeof(buf), ref + 3) == 0)
+            break; // this has to be a valid string
+
+        if (AT_GetAtomIndex(buf, U_strlen(buf), &modelid_ati) == 0)
+            foundAtoms = false; // unknown, can be ok
+
+        ref += 5;
+        if (!foundAtoms)
+            continue;
+
+        for (size_t j = 0; j < ddfLoadRecords.size(); j++)
+        {
+            DDF_LoadRecord &rec = ddfLoadRecords[j];
+
+            if (rec.mfname.index != mfname_ati.index)
+                continue;
+
+            if (rec.modelid.index != modelid_ati.index)
+                continue;
+
+            rec.loadState = DDF_LoadStateScheduled;
+            n_marked++;
+        }
+    }
+
+    return n_marked > 0;
+}
+
+static int DDF_IsBundleScheduled(DDF_ParseContext *pctx, const char *desc, unsigned descSize, const std::vector<DDF_LoadRecord> &ddfLoadRecords)
+{
+    cj_ctx cj[1];
+    char buf[96];
+    cj_token_ref ref;
+    cj_token_ref parent_ref;
+    cj_token_ref deviceids_ref;
+    cj_token_ref last_modified_ref;
+    AT_AtomIndex modelid_ati;
+    AT_AtomIndex mfname_ati;
+    cj_token *tokens = pctx->tokens.data();
+
+    cj_parse_init(cj, desc, descSize, pctx->tokens.data(), (cj_size)pctx->tokens.size());
+    cj_parse(cj);
+
+    if (cj->status != CJ_OK)
+        return 0;
+
+    parent_ref = 0;
+    deviceids_ref = cj_value_ref(cj, parent_ref, "device_identifiers");
+    last_modified_ref = cj_value_ref(cj, parent_ref, "last_modified");
+
+    // array of 2 string element arrays
+    // "device_identifiers":[["LUMI","lumi.sensor_magnet"]]
+
+    if (last_modified_ref == CJ_INVALID_TOKEN_INDEX)
+        return 0;
+
+    if (tokens[last_modified_ref].type != CJ_TOKEN_STRING)
+        return 0;
+
+    {
+        cj_token *tok = &tokens[last_modified_ref];
+        pctx->bundleLastModified = U_TimeFromISO8601(&desc[tok->pos], tok->len);
+    }
+
+    if (deviceids_ref == CJ_INVALID_TOKEN_INDEX)
+        return 0;
+
+    if (tokens[deviceids_ref].type != CJ_TOKEN_ARRAY_BEG)
+        return 0;
+
+    // verify flat string array, and equal size for manufacturer names and modelids
+    for (ref = deviceids_ref + 1; tokens[ref].type != CJ_TOKEN_ARRAY_END && ref < cj[0].tokens_pos; )
+    {
+        if (tokens[ref].type == CJ_TOKEN_ITEM_SEP)
+        {
+            ref++;
+            continue;
+        }
+
+        // inner array for each entry
+        if (tokens[ref].type != CJ_TOKEN_ARRAY_BEG)
+            break;
+
+        if (tokens[ref + 1].type != CJ_TOKEN_STRING) // mfname
+            break;
+
+        if (tokens[ref + 2].type != CJ_TOKEN_ITEM_SEP)
+            break;
+
+        if (tokens[ref + 3].type != CJ_TOKEN_STRING) // modelid
+            break;
+
+        if (tokens[ref + 4].type != CJ_TOKEN_ARRAY_END)
+            break;
+
+        /*
+         * Lookup if the manufacturername and modelid pair has registered atoms.
+         * If not this can't be a bundle of interest.
+         */
+        bool foundAtoms = true;
+
+        if (cj_copy_ref_utf8(cj, buf, sizeof(buf), ref + 1) == 0)
+            break; // this has to be a valid string
+
+        if (AT_GetAtomIndex(buf, U_strlen(buf), &mfname_ati) == 0)
+            foundAtoms = false; // unknown, can be ok
+
+        if (cj_copy_ref_utf8(cj, buf, sizeof(buf), ref + 3) == 0)
+            break; // this has to be a valid string
+
+        if (AT_GetAtomIndex(buf, U_strlen(buf), &modelid_ati) == 0)
+            foundAtoms = false; // unknown, can be ok
+
+        ref += 5;
+        if (!foundAtoms)
+            continue;
+
+        for (size_t j = 0; j < ddfLoadRecords.size(); j++)
+        {
+            const DDF_LoadRecord &rec = ddfLoadRecords[j];
+
+            if (rec.mfname.index != mfname_ati.index)
+                continue;
+
+            if (rec.modelid.index != modelid_ati.index)
+                continue;
+
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+void DEV_DDF_BundleUpdated(unsigned char *data, unsigned dataSize)
+{
+    U_BStream bs;
+    unsigned chunkSize;
+
+    U_bstream_init(&bs, data, dataSize);
+
+    if (DDFB_FindChunk(&bs, "RIFF", &chunkSize) == 0)
+        return;
+
+    if (DDFB_FindChunk(&bs, "DDFB", &chunkSize) == 0)
+        return;
+
+    if (DDFB_FindChunk(&bs, "DESC", &chunkSize) == 0)
+        return;
+
+    if (DDF_ReloadBundleDevices((char*)&bs.data[bs.pos], chunkSize, _priv->ddfLoadRecords) != 0)
+    {
+        _priv->ddfReloadWhat = DDF_ReloadBundles;
+        _priv->ddfReloadTimer->stop();
+        _priv->ddfReloadTimer->start(2000);
+    }
+}
+
+void DeviceDescriptions::reloadAllRawJsonAndBundles(const Resource *resource)
+{
+
+    const ResourceItem *mfnameItem = resource->item(RAttrManufacturerName);
+    const ResourceItem *modelidItem = resource->item(RAttrModelId);
+    unsigned mfnameAtomIndex = mfnameItem->atomIndex();
+    unsigned modelidAtomIndex = modelidItem->atomIndex();
+
+    for (size_t j = 0; j < d_ptr2->ddfLoadRecords.size(); j++)
+    {
+        DDF_LoadRecord &rec = d_ptr2->ddfLoadRecords[j];
+
+        if (rec.mfname.index != mfnameAtomIndex)
+            continue;
+
+        if (rec.modelid.index != modelidAtomIndex)
+            continue;
+
+        if (rec.loadState != DDF_LoadStateScheduled)
+        {
+            rec.loadState = DDF_LoadStateScheduled;
+        }
+    }
+
+    d_ptr2->ddfReloadWhat = DDF_ReloadAll;
+    d_ptr2->ddfReloadTimer->stop();
+    d_ptr2->ddfReloadTimer->start(1000);
+}
+
+void DeviceDescriptions::ddfReloadTimerFired()
+{
+    if (d_ptr2->ddfReloadWhat == DDF_ReloadAll)
+    {
+        readAll();
+    }
+    else if (d_ptr2->ddfReloadWhat == DDF_ReloadBundles)
+    {
+        readAllBundles();
+    }
+
+    d_ptr2->ddfReloadWhat = DDF_ReloadIdle;
+
+     for (DDF_LoadRecord &rec : d_ptr2->ddfLoadRecords)
+     {
+        // trigger DDF reload event for matching devices
+        if (rec.loadState == DDF_LoadStateScheduled)
+        {
+            rec.loadState = DDF_LoadStateLoaded;
+            DEV_ReloadDeviceIdendifier(rec.mfname.index, rec.modelid.index);
+        }
+     }
+}
+
+/*! Reads all scheduled DDF bundles.
+ */
+void DeviceDescriptions::readAllBundles()
+{
+    Q_D(DeviceDescriptions);
+
+    ScratchMemWaypoint swp;
+    uint8_t *ctx_mem = SCRATCH_ALLOC(uint8_t*, sizeof(DDF_ParseContext) + 64);
+    U_ASSERT(ctx_mem);
+    if (!ctx_mem)
+    {
+        DBG_Printf(DBG_ERROR, "DDF not enough memory to create DDF_ParseContext\n");
+        return;
+    }
+
+    DDF_ParseContext *pctx = new(ctx_mem)DDF_ParseContext; // placement new into scratch memory, no further cleanup needed
+    U_ASSERT(pctx);
+
+    DBG_MEASURE_START(DDF_ReadBundles);
+
+    FS_Dir dir;
+    FS_File fp;
+    U_SStream ss;
+    U_BStream bs;
+    unsigned chunkSize;
+    unsigned basePathLength;
+    unsigned scratchPosPerBundle;
+
+    deCONZ::StorageLocation locations[2] = { deCONZ::DdfBundleUserLocation, deCONZ::DdfBundleLocation };
+
+    for (int dit = 0; dit < 2; dit++)
+    {
+        {
+            QByteArray loc = deCONZ::getStorageLocation(locations[dit]).toUtf8();
+            U_sstream_init(&ss, pctx->filePath, sizeof(pctx->filePath));
+            U_sstream_put_str(&ss, loc.data());
+            basePathLength = ss.pos;
+        }
+
+        // during processing of a bundle additional memory might be allocated
+        // restore this point for each bundle to be processeed
+        scratchPosPerBundle = ScratchMemPos();
+
+        if (FS_OpenDir(&dir, pctx->filePath))
+        {
+            for (;FS_ReadDir(&dir);)
+            {
+                if (dir.entry.type != FS_TYPE_FILE)
+                    continue;
+
+                U_sstream_init(&ss, dir.entry.name, strlen(dir.entry.name));
+
+                if (U_sstream_find(&ss, ".ddf") == 0 && U_sstream_find(&ss, ".ddb") == 0)
+                    continue;
+
+                ScratchMemRewind(scratchPosPerBundle);
+
+                U_sstream_init(&ss, pctx->filePath, sizeof(pctx->filePath));
+                ss.pos = basePathLength; // reuse path and append the filename to existing base path
+                U_sstream_put_str(&ss, "/");
+                U_sstream_put_str(&ss, dir.entry.name);
+                pctx->filePathLength = ss.pos;
+                pctx->bundleLastModified = 0;
+                pctx->extChunks = nullptr;
+                pctx->signatures = 0;
+
+                if (DDF_ReadFileInMemory(pctx) == 0)
+                    continue;
+
+                // keep copy here since pcxt vars are adjusted to sub sections during read
+                unsigned ddfbChunkOffset;
+                unsigned ddfbChunkSize;
+                uint32_t ddfbHash[8];
+                unsigned char *fileData;
+                unsigned fileDataSize;
+
+                fileData = pctx->fileData;
+                fileDataSize = pctx->fileDataSize;
+
+                U_bstream_init(&bs, pctx->fileData, pctx->fileDataSize);
+
+                if (DDFB_FindChunk(&bs, "RIFF", &chunkSize) == 0)
+                    continue;
+
+                if (DDFB_FindChunk(&bs, "DDFB", &chunkSize) == 0)
+                    continue;
+
+                ddfbChunkOffset = bs.pos;
+                ddfbChunkSize = chunkSize;
+
+                {   // check if bundle is already loaded
+                    // bundle hash over DDFB chunk (header + data)
+                    U_Sha256(&pctx->fileData[ddfbChunkOffset - 8], ddfbChunkSize + 8, (uint8_t*)&ddfbHash[0]);
+
+                    unsigned i;
+                    unsigned k;
+
+                    for (i = 0; i < d->descriptions.size(); i++)
+                    {
+                        uint32_t *hash0 = d->descriptions[i].sha256Hash;
+
+                        for (k = 0; k < 8; k++)
+                        {
+                            if (hash0[k] != ddfbHash[k])
+                                break;
+                        }
+
+                        if (k == 8)
+                            break; // match
+                    }
+
+                    if (i < d->descriptions.size()) // skip, already known
+                        continue;
+                }
+
+                if (DDFB_FindChunk(&bs, "DESC", &chunkSize) == 0)
+                    continue;
+
+                /*
+                 * Only load bundles into memory for devices which are present.
+                 */
+                if (DDF_IsBundleScheduled(pctx, (char*)&bs.data[bs.pos], chunkSize, d->ddfLoadRecords) == 0)
+                    continue;
+
+                // limit to DDFB content
+                U_bstream_init(&bs, &fileData[ddfbChunkOffset], ddfbChunkSize);
+
+                // read external files first
+                for (;bs.status == U_BSTREAM_OK;)
+                {
+                    if (DDFB_IsChunk(&bs, "EXTF"))
+                    {
+                        DDFB_ExtfChunk *extf = SCRATCH_ALLOC(DDFB_ExtfChunk*, sizeof (*extf));
+                        if (extf && DDFB_ReadExtfChunk(&bs, extf))
+                        {
+                            // collect external chunk descriptors in a temporary list
+                            extf->next = pctx->extChunks;
+                            pctx->extChunks = extf;
+                            continue;
+                        }
+                    }
+
+                    DDFB_SkipChunk(&bs);
+                }
+
+                if (!pctx->extChunks)
+                    continue; // must not be empty
+
+                if (DDF_ReadConstantsJson(pctx, d->constants2))
+                {
+
+                }
+
+                /*
+                 * Now process the actual DDF content which is in ETXF chunk with type DDFC.
+                 */
+
+                DDFB_ExtfChunk *extfDDFC = nullptr;
+
+                for (DDFB_ExtfChunk *extf = pctx->extChunks; extf; extf = extf->next)
+                {
+                    if (extf->fileType[0] != 'D' || extf->fileType[1] != 'D' || extf->fileType[2] != 'F' || extf->fileType[3] != 'C')
+                        continue;
+
+                    JSON_Schema schema = DDF_GetJsonSchema(extf->fileData, extf->fileSize);
+
+                    if (schema == JSON_SCHEMA_DEV_CAP_1)
+                    {
+                        extfDDFC = extf;
+                        break;
+                    }
+                }
+
+                if (!extfDDFC)
+                    continue; // main DDF JSON must be present
+
+                // tmp swap where data points
+                pctx->fileData = extfDDFC->fileData;
+                pctx->fileDataSize = extfDDFC->fileSize;
+
+                DeviceDescription ddf = DDF_ReadDeviceFile(pctx);
+                if (!ddf.isValid())
+                {
+                    continue;
+                }
+
+                // process signatures
+                U_bstream_init(&bs, &fileData[8], fileDataSize - 8); // after RIFF header
+                if (DDFB_FindChunk(&bs, "SIGN", &chunkSize) == 1)
+                {
+                    U_bstream_init(&bs, &bs.data[bs.pos], chunkSize);
+                    DDF_ProcessSignatures(pctx, d->publicKeys, &bs, ddfbHash);
+                }
+
+                ddf.storageLocation = locations[dit];
+                ddf.lastModified = pctx->bundleLastModified;
+                ddf.signedBy = pctx->signatures;
+
+                if (DDF_MergeGenericBundleItems(ddf, pctx) == 0)
+                {
+                    continue;
+                }
+
+                // copy bundle hash generated earlier
+                for (unsigned i = 0; i < 8; i++)
+                    ddf.sha256Hash[i] = ddfbHash[i];
+
+                {
+                    /*
+                     * The DDF is of interest, now register all atoms for faster lookups.
+                     */
+                    for (const auto &mfname : ddf.manufacturerNames)
+                    {
+                        const QString m = constantToString(mfname);
+
+                        AT_AtomIndex ati;
+                        if (AT_AddAtom(m.toUtf8().data(), m.size(), &ati) && ati.index != 0)
+                        {
+                            ddf.mfnameAtomIndices.push_back(ati.index);
+                        }
+                    }
+
+                    for (const auto &modelId : ddf.modelIds)
+                    {
+                        const QString m = constantToString(modelId);
+
+                        AT_AtomIndex ati;
+                        if (AT_AddAtom(m.toUtf8().data(), m.size(), &ati) && ati.index != 0)
+                        {
+                            ddf.modelidAtomIndices.push_back(ati.index);
+                        }
+                    }
+
+                    d->descriptions.push_back(std::move(ddf));
+                    DDF_UpdateItemHandlesForIndex(d->descriptions, d->loadCounter, d->descriptions.size() - 1);
+                }
+
+                DBG_Printf(DBG_DDF, "DDF bundle: %s, size: %u bytes\n", ss.str, pctx->fileDataSize);
+            }
+
+            FS_CloseDir(&dir);
+        }
+    }
+
+    DBG_MEASURE_END(DDF_ReadBundles);
 }
 
 /*! Tries to init a Device from an DDF file.
@@ -1456,7 +2872,7 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
 
     if (resource)
     {
-        const auto ddf = get(resource);
+        const DeviceDescription &ddf = get(resource, DDF_EvalMatchExpr);
 
         if (ddf.isValid())
         {
@@ -1474,31 +2890,60 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
                 {
                     result = 2;
                 }
+                else if (ddf.storageLocation == deCONZ::DdfBundleLocation || ddf.storageLocation == deCONZ::DdfBundleUserLocation)
+                {
+                    result = 3;
+                }
             }
         }
 
         if (result >= 0)
         {
-            DBG_Printf(DBG_INFO, "DEV found DDF for 0x%016llX, path: %s\n", event.deviceKey(), qPrintable(ddf.path));
+            DBG_Printf(DBG_INFO, "DEV found DDF for " FMT_MAC ", path: %s, result: %d\n", FMT_MAC_CAST(event.deviceKey()), qPrintable(ddf.path), result);
         }
 
         if (result == 0)
         {
-            DBG_Printf(DBG_INFO, "DEV init Device from DDF for 0x%016llX failed\n", event.deviceKey());
+            DBG_Printf(DBG_INFO, "DEV init Device from DDF for " FMT_MAC " failed\n", FMT_MAC_CAST(event.deviceKey()));
         }
         else if (result == -1)
         {
-            DBG_Printf(DBG_INFO, "DEV no DDF for 0x%016llX, modelId: %s\n", event.deviceKey(), qPrintable(resource->item(RAttrModelId)->toString()));
-            DBG_Printf(DBG_INFO, "DEV create on-the-fly DDF for 0x%016llX\n", event.deviceKey());
+            DBG_Printf(DBG_INFO, "DEV no DDF for " FMT_MAC ", modelId: %s\n", FMT_MAC_CAST(event.deviceKey()), resource->item(RAttrModelId)->toCString());
+            DBG_Printf(DBG_INFO, "DEV create on-the-fly DDF for " FMT_MAC "\n", FMT_MAC_CAST(event.deviceKey()));
 
             DeviceDescription ddf1;
-
             Device *device = static_cast<Device*>(resource);
 
             if (DEV_InitBaseDescriptionForDevice(device, ddf1))
             {
-                d->descriptions.push_back(ddf1);
-                DDF_UpdateItemHandles(d->descriptions, d->loadCounter);
+                /*
+                 * Register all atoms for faster lookups.
+                 */
+                for (const auto &mfname : ddf1.manufacturerNames)
+                {
+                    const QString m = constantToString(mfname);
+
+                    AT_AtomIndex ati;
+                    if (AT_AddAtom(m.toUtf8().data(), m.size(), &ati) && ati.index != 0)
+                    {
+                        ddf1.mfnameAtomIndices.push_back(ati.index);
+                    }
+                }
+
+                for (const auto &modelId : ddf1.modelIds)
+                {
+                    const QString m = constantToString(modelId);
+
+                    AT_AtomIndex ati;
+                    if (AT_AddAtom(m.toUtf8().data(), m.size(), &ati) && ati.index != 0)
+                    {
+                        ddf1.modelidAtomIndices.push_back(ati.index);
+                    }
+                }
+
+                ddf1.storageLocation = deCONZ::DdfUserLocation;
+                d->descriptions.push_back(std::move(ddf1));
+                DDF_UpdateItemHandlesForIndex(d->descriptions, d->loadCounter, d->descriptions.size() - 1);
             }
         }
     }
@@ -1508,48 +2953,99 @@ void DeviceDescriptions::handleDDFInitRequest(const Event &event)
 
 /*! Reads constants.json file and places them into \p constants map.
  */
-static bool DDF_ReadConstantsJson(const QString &path, std::map<QString,QString> *constants)
+static int DDF_ReadConstantsJson(DDF_ParseContext *pctx, std::vector<ConstantEntry> &constants)
 {
-    Q_ASSERT(constants);
+    cj_ctx ctx;
+    cj_ctx *cj;
+    cj_token *tok;
+    cj_token_ref ref;
+    ConstantEntry constEntry;
 
-    QFile file(path);
+    const char *fileData = (const char*)pctx->fileData;
+    unsigned fileDataSize = pctx->fileDataSize;
 
-    if (!file.exists())
+    // if this is a bundle point to data within the bundle
+    if (pctx->extChunks)
     {
-        return false;
-    }
+        fileData = nullptr;
+        fileDataSize = 0;
 
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        return false;
-    }
-
-    QJsonParseError error;
-    QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
-    file.close();
-
-    if (!doc.isObject())
-    {
-        DBG_Printf(DBG_INFO, "DDF failed to read device constants: %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
-        return false;
-    }
-
-    const auto obj = doc.object();
-    const QStringList categories {"manufacturers", "device-types"};
-
-    for (const auto &cat : categories)
-    {
-        if (obj.contains(cat))
+        for (DDFB_ExtfChunk *extf = pctx->extChunks; extf; extf = extf->next)
         {
-            const auto catobj = obj.value(cat).toObject();
-            for (auto &key : catobj.keys())
+            if (extf->fileType[0] != 'J' || extf->fileType[1] != 'S' || extf->fileType[2] != 'O' || extf->fileType[3] != 'N')
+                continue;
+
+            JSON_Schema schema = DDF_GetJsonSchema(extf->fileData, extf->fileSize);
+
+            if (schema == JSON_SCHEMA_CONSTANTS_2)
             {
-                (*constants)[key] = catobj.value(key).toString();
+                fileData = (const char*)extf->fileData;
+                fileDataSize = extf->fileSize;
+                break;
             }
         }
     }
 
-    return !constants->empty();
+    if (!fileData || fileDataSize == 0)
+    {
+        return 0;
+    }
+
+    auto &tokens = pctx->tokens;
+
+    cj = &ctx;
+
+    cj_parse_init(cj, fileData, fileDataSize, tokens.data(), tokens.size());
+    cj_parse(cj);
+
+    if (cj->status == CJ_OK)
+    {
+        for (ref = 0; ref < cj->tokens_pos; ref++)
+        {
+            tok = &cj->tokens[ref];
+
+            if (tok->type == CJ_TOKEN_STRING && (ref + 2) < cj->tokens_pos)
+            {
+                if (cj->buf[tok->pos] == '$' && tok[1].type == CJ_TOKEN_NAME_SEP && tok[2].type == CJ_TOKEN_STRING)
+                {
+                    if (tok[0].len < 2 || tok[2].len < 2)
+                    {
+                        // min size of strings, should perhaps be longer ...
+                    }
+                    else if (tok[0].len > AT_MAX_ATOM_SIZE || tok[2].len > AT_MAX_ATOM_SIZE)
+                    {
+
+                    }
+                    else if (AT_AddAtom(&cj->buf[tok[0].pos], tok[0].len, &constEntry.key) == 1 &&
+                             AT_AddAtom(&cj->buf[tok[2].pos], tok[2].len, &constEntry.value) == 1)
+                    {
+                        // check already known
+                        for (size_t i = 0; i < constants.size(); i++)
+                        {
+                            if (constants[i].key.index == constEntry.key.index && constants[i].value.index == constEntry.value.index)
+                            {
+                                constEntry.key.index = 0;
+                                constEntry.value.index = 0;
+                                break;
+                            }
+                        }
+
+                        // The code allows to add same keys with different values,
+                        // this might be a problem, but so is replacing a existing key.
+                        // When doing a lookup we can iterate in reverse to yield the newest key-value pair.
+                        if (constEntry.key.index != 0 && constEntry.value.index != 0)
+                        {
+                            constants.push_back(constEntry);
+                        }
+                    }
+                }
+            }
+        }
+
+        return 1;
+    }
+
+    return 0;
 }
 
 ApiDataType API_DataTypeFromString(const QString &str)
@@ -1571,12 +3067,51 @@ ApiDataType API_DataTypeFromString(const QString &str)
     return DataTypeUnknown;
 }
 
+static int DDF_ReadFileInMemory(DDF_ParseContext *pctx)
+{
+    FS_File f;
+    long remaining = (pctx->scratchPos < pctx->scratchMem.size()) ? pctx->scratchMem.size() - pctx->scratchPos : 0;
+
+    pctx->scratchPos = 0;
+    pctx->fileData = nullptr;
+    pctx->fileDataSize = 0;
+    if (FS_OpenFile(&f, FS_MODE_R, pctx->filePath))
+    {
+        long fsize = FS_GetFileSize(&f);
+
+        if (fsize + 1 > remaining)
+        {
+
+        }
+        else if (fsize > 0)
+        {
+            unsigned char *data = pctx->scratchMem.data() + pctx->scratchPos;
+            long n = FS_ReadFile(&f, data, remaining);
+            if (n == fsize)
+            {
+                FS_CloseFile(&f);
+                data[n] = '\0';
+                pctx->scratchPos += (n + 1);
+                pctx->fileData = data;
+                pctx->fileDataSize = n;
+                return 1;
+            }
+        }
+
+        FS_CloseFile(&f);
+    }
+
+
+    return 0;
+}
+
 /*! Parses an item object.
     \returns A parsed item, use DeviceDescription::Item::isValid() to check for success.
  */
-static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
+static DeviceDescription::Item DDF_ParseItem(DDF_ParseContext *pctx, const QJsonObject &obj)
 {
     DeviceDescription::Item result{};
+    bool hasSchema = obj.contains(QLatin1String("schema"));
 
     if (obj.contains(QLatin1String("name")))
     {
@@ -1587,10 +3122,13 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
         result.name = obj.value(QLatin1String("id")).toString().toUtf8().constData();
     }
 
-    // Handle deprecated names/ids
-    if (result.name == RConfigColorCapabilities) { result.name = RCapColorCapabilities; }
-    if (result.name == RConfigCtMax) { result.name = RCapColorCtMax; }
-    if (result.name == RConfigCtMin) { result.name = RCapColorCtMin; }
+    // Handle deprecated names/ids within DDFs, but not in generic/items
+    if (!hasSchema)
+    {
+        if (result.name == RConfigColorCapabilities) { result.name = RCapColorCapabilities; }
+        if (result.name == RConfigCtMax) { result.name = RCapColorCtMax; }
+        if (result.name == RConfigCtMin) { result.name = RCapColorCtMin; }
+    }
 
     if (obj.contains(QLatin1String("description")))
     {
@@ -1606,7 +3144,7 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
     if (!getResourceItemDescriptor(result.name, result.descriptor))
     {
         QString schema;
-        if (obj.contains(QLatin1String("schema")))
+        if (hasSchema)
         {
             schema = obj.value(QLatin1String("schema")).toString();
         }
@@ -1767,7 +3305,10 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
             }
         }
 
-        DBG_Printf(DBG_DDF, "DDF loaded resource item descriptor: %s, public: %u\n", result.descriptor.suffix, (result.isPublic ? 1 : 0));
+        if (DBG_IsEnabled(DBG_INFO_L2))
+        {
+            DBG_Printf(DBG_DDF, "DDF loaded resource item descriptor: %s, public: %u\n", result.descriptor.suffix, (result.isPublic ? 1 : 0));
+        }
     }
     else
     {
@@ -1780,7 +3321,7 @@ static DeviceDescription::Item DDF_ParseItem(const QJsonObject &obj)
 /*! Parses a sub device in a DDF object "subdevices" array.
     \returns The sub device object, use DeviceDescription::SubDevice::isValid() to check for success.
  */
-static DeviceDescription::SubDevice DDF_ParseSubDevice(const QJsonObject &obj)
+static DeviceDescription::SubDevice DDF_ParseSubDevice(DDF_ParseContext *pctx, const QJsonObject &obj)
 {
     DeviceDescription::SubDevice result;
 
@@ -1868,7 +3409,7 @@ static DeviceDescription::SubDevice DDF_ParseSubDevice(const QJsonObject &obj)
         {
             if (i.isObject())
             {
-                const auto item = DDF_ParseItem(i.toObject());
+                const auto item = DDF_ParseItem(pctx, i.toObject());
 
                 if (item.isValid())
                 {
@@ -2096,7 +3637,7 @@ static QStringList DDF_ParseStringOrList(const QJsonObject &obj, QLatin1String k
 /*! Parses an DDF JSON object.
     \returns DDF object, use DeviceDescription::isValid() to check for success.
  */
-static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QString &path)
+static DeviceDescription DDF_ParseDeviceObject(DDF_ParseContext *pctx, const QJsonObject &obj)
 {
     DeviceDescription result;
 
@@ -2113,7 +3654,11 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QSt
         return result;
     }
 
-    result.path = path;
+    U_ASSERT(pctx->filePathLength != 0);
+    U_ASSERT(pctx->filePath[pctx->filePathLength] == '\0');
+    result.path = &pctx->filePath[0];
+
+    // TODO(mpi): get rid of QStringLists and only use atoms
     result.manufacturerNames = DDF_ParseStringOrList(obj, QLatin1String("manufacturername"));
     result.modelIds = DDF_ParseStringOrList(obj, QLatin1String("modelid"));
     result.product = obj.value(QLatin1String("product")).toString();
@@ -2133,6 +3678,11 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QSt
         result.sleeper = obj.value(QLatin1String("sleeper")).toBool() ? 1 : 0;
     }
 
+    if (obj.contains(QLatin1String("supportsMgmtBind")))
+    {
+        result.supportsMgmtBind = obj.value(QLatin1String("supportsMgmtBind")).toBool() ? 1 : 0;
+    }
+
     if (obj.contains(QLatin1String("matchexpr")))
     {
         result.matchExpr = obj.value(QLatin1String("matchexpr")).toString();
@@ -2149,7 +3699,7 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QSt
     {
         if (i.isObject())
         {
-            const auto sub = DDF_ParseSubDevice(i.toObject());
+            const auto sub = DDF_ParseSubDevice(pctx, i.toObject());
             if (sub.isValid())
             {
                 result.subDevices.push_back(sub);
@@ -2180,32 +3730,27 @@ static DeviceDescription DDF_ParseDeviceObject(const QJsonObject &obj, const QSt
 /*! Reads an item file under (generic/items/).
     \returns A parsed item, use DeviceDescription::Item::isValid() to check for success.
  */
-static DeviceDescription::Item DDF_ReadItemFile(const QString &path)
+static DeviceDescription::Item DDF_ReadItemFile(DDF_ParseContext *pctx)
 {
-    QFile file(path);
-    if (!file.exists())
+    if (!pctx->fileData || pctx->fileDataSize < 16)
     {
         return { };
     }
 
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        return { };
-    }
+    const QByteArray data = QByteArray::fromRawData((const char*)pctx->fileData, pctx->fileDataSize);
 
     QJsonParseError error;
-    QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
-    file.close();
+    QJsonDocument doc = QJsonDocument::fromJson(data, &error);
 
     if (error.error != QJsonParseError::NoError)
     {
-        DBG_Printf(DBG_DDF, "DDF failed to read %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
+        DBG_Printf(DBG_DDF, "DDF failed to read %s, err: %s, offset: %d\n", pctx->filePath, qPrintable(error.errorString()), error.offset);
         return { };
     }
 
     if (doc.isObject())
     {
-        return DDF_ParseItem(doc.object());
+        return DDF_ParseItem(pctx, doc.object());
     }
 
     return { };
@@ -2214,28 +3759,23 @@ static DeviceDescription::Item DDF_ReadItemFile(const QString &path)
 /*! Reads an subdevice file under (generic/subdevices/).
     \returns A parsed subdevice, use isValid(DDF_SubDeviceDescriptor) to check for success.
  */
-static DDF_SubDeviceDescriptor DDF_ReadSubDeviceFile(const QString &path)
+static DDF_SubDeviceDescriptor DDF_ReadSubDeviceFile(DDF_ParseContext *pctx)
 {
-    DDF_SubDeviceDescriptor result;
+    DDF_SubDeviceDescriptor result = { };
 
-    QFile file(path);
-    if (!file.exists())
+    if (!pctx->fileData || pctx->fileDataSize < 16)
     {
         return result;
     }
 
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        return result;
-    }
+    const QByteArray data = QByteArray::fromRawData((const char*)pctx->fileData, pctx->fileDataSize);
 
     QJsonParseError error;
-    QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
-    file.close();
+    QJsonDocument doc = QJsonDocument::fromJson(data, &error);
 
     if (error.error != QJsonParseError::NoError)
     {
-        DBG_Printf(DBG_DDF, "DDF failed to read %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
+        DBG_Printf(DBG_DDF, "DDF failed to read %s, err: %s, offset: %d\n", pctx->filePath, qPrintable(error.errorString()), error.offset);
         return result;
     }
 
@@ -2303,7 +3843,7 @@ static DDF_SubDeviceDescriptor DDF_ReadSubDeviceFile(const QString &path)
     return result;
 }
 
-QVariant DDF_ResolveParamScript(const QVariant &param, const QString &path)
+static QVariant DDF_ResolveParamScript(const QVariant &param, const QString &path)
 {
     auto result = param;
 
@@ -2346,6 +3886,75 @@ QVariant DDF_ResolveParamScript(const QVariant &param, const QString &path)
     return result;
 }
 
+static QVariant DDF_ResolveBundleParamScript(const QVariant &param, DDF_ParseContext *pctx)
+{
+    auto result = param;
+
+    if (param.type() != QVariant::Map)
+    {
+        return result;
+    }
+
+    auto map = param.toMap();
+    unsigned fnameStart;
+
+    if (map.contains(QLatin1String("script")))
+    {
+        const std::string script = map["script"].toString().toStdString();
+
+        for (DDFB_ExtfChunk *extf = pctx->extChunks; extf; extf = extf->next)
+        {
+            if (extf->fileType[0] != 'S' || extf->fileType[1] != 'C' || extf->fileType[2] != 'J' || extf->fileType[3] != 'S')
+                continue;
+
+            if (extf->pathLength < 4) // should not happen: a.js
+                continue;
+
+            /*
+             * Lookup just the filename of the Javascript file in the bundle.
+             * While this could be wrong in theory it's unlikely.
+             * If needed we can resolve relative paths later on to be more strict.
+             */
+            fnameStart = extf->pathLength;
+            for (;fnameStart; fnameStart--)
+            {
+                if (extf->path[fnameStart] == '/')
+                    break;
+            }
+
+            unsigned fnameLength = extf->pathLength - fnameStart;
+            if (script.size() < fnameLength)
+                continue;
+
+            if (U_memcmp(script.c_str() + (script.size() - fnameLength), &extf->path[fnameStart], fnameLength) != 0)
+                continue;
+
+            QString content = QString::fromUtf8((const char*)extf->fileData, extf->fileSize);
+
+            if (!content.isEmpty())
+            {
+                map["eval"] = content;
+            }
+
+            break;
+        }
+    }
+
+    if (map.contains(QLatin1String("eval")))
+    {
+        QString content = map[QLatin1String("eval")].toString();
+        if (!content.isEmpty())
+        {
+            QString path; // dummy
+            DDF_TryCompileAndFixJavascript(&content, path);
+            map[QLatin1String("eval")] = content;
+            result = std::move(map);
+        }
+    }
+
+    return result;
+}
+
 DeviceDescription DDF_LoadScripts(const DeviceDescription &ddf)
 {
     auto result = ddf;
@@ -2366,56 +3975,93 @@ DeviceDescription DDF_LoadScripts(const DeviceDescription &ddf)
 /*! Reads a DDF file which may contain one or more device descriptions.
     \returns Vector of parsed DDF objects.
  */
-static std::vector<DeviceDescription> DDF_ReadDeviceFile(const QString &path)
+static DeviceDescription DDF_ReadDeviceFile(DDF_ParseContext *pctx)
 {
-    std::vector<DeviceDescription> result;
+    U_ASSERT(pctx->fileData);
+    U_ASSERT(pctx->fileDataSize > 64);
 
-    QFile file(path);
-    if (!file.exists())
-    {
-        return result;
-    }
-
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        return result;
-    }
-
+    const QByteArray data = QByteArray::fromRawData((const char*)pctx->fileData, pctx->fileDataSize);
     QJsonParseError error;
-    QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
-    file.close();
+    QJsonDocument doc = QJsonDocument::fromJson(data, &error);
 
     if (error.error != QJsonParseError::NoError)
     {
-        DBG_Printf(DBG_DDF, "DDF failed to read %s, err: %s, offset: %d\n", qPrintable(path), qPrintable(error.errorString()), error.offset);
-        return result;
+        DBG_Printf(DBG_DDF, "DDF failed to read %s, err: %s, offset: %d\n", pctx->filePath, qPrintable(error.errorString()), error.offset);
+        return { };
     }
 
     if (doc.isObject())
     {
-        const auto ddf = DDF_ParseDeviceObject(doc.object(), path);
+        DeviceDescription ddf = DDF_ParseDeviceObject(pctx, doc.object());
         if (ddf.isValid())
         {
-            result.push_back(ddf);
-        }
-    }
-    else if (doc.isArray())
-    {
-        const auto arr = doc.array();
-        for (const auto &i : arr)
-        {
-            if (i.isObject())
-            {
-                const auto ddf = DDF_ParseDeviceObject(i.toObject(), path);
-                if (ddf.isValid())
-                {
-                    result.push_back(ddf);
-                }
-            }
+            return ddf;
         }
     }
 
-    return result;
+    return { };
+}
+
+static int DDF_ProcessSignatures(DDF_ParseContext *pctx, std::vector<U_ECC_PublicKeySecp256k1> &publicKeys, U_BStream *bs, uint32_t *bundleHash)
+{
+    unsigned i;
+    unsigned count;
+    uint16_t pubkeyLen;
+    uint16_t sigLen;
+
+    U_ECC_PublicKeySecp256k1 pubkey;
+    U_ECC_SignatureSecp256k1 sig;
+
+    count = 0;
+
+    for (;bs->status == U_BSTREAM_OK && bs->pos < bs->size;)
+    {
+        pubkeyLen = U_bstream_get_u16_le(bs);
+        if (sizeof(pubkey.key) < pubkeyLen)
+        {
+            return 0;
+        }
+
+        for (i = 0; i < pubkeyLen; i++)
+        {
+            pubkey.key[i] = U_bstream_get_u8(bs);
+        }
+
+        sigLen = U_bstream_get_u16_le(bs);
+        if (sizeof(sig.sig) < sigLen)
+        {
+            return 0;
+        }
+
+        for (i = 0; i < sigLen; i++)
+        {
+            sig.sig[i] = U_bstream_get_u8(bs);
+        }
+
+        if (U_ECC_VerifySignatureSecp256k1(&pubkey, &sig, (uint8_t*)bundleHash, U_SHA256_HASH_SIZE))
+        {
+            for (i = 0; i < publicKeys.size(); i++)
+            {
+                U_ECC_PublicKeySecp256k1 &pk = publicKeys[i];
+
+                if (U_memcmp(pk.key, pubkey.key, sizeof(pk.key)) == 0)
+                    break; // already known
+            }
+
+            if (i == publicKeys.size() && publicKeys.size() < DDF_MAX_PUBLIC_KEYS)
+            {
+                publicKeys.push_back(pubkey);
+            }
+
+            pctx->signatures |= (1 << i);
+            count++;
+        }
+    }
+
+    if (count)
+        return 1;
+
+    return 0;
 }
 
 /*! Merge common properties like "read", "parse" and "write" functions from generic items into DDF items.
@@ -2475,6 +4121,99 @@ static DeviceDescription DDF_MergeGenericItems(const std::vector<DeviceDescripti
     }
 
     return result;
+}
+
+static int DDF_MergeGenericBundleItems(DeviceDescription &ddf, DDF_ParseContext *pctx)
+{
+    std::vector<DeviceDescription::Item> genericItems;
+
+    {
+        // preserve parse context
+        uint8_t *fileData = pctx->fileData;
+        unsigned fileDataSize = pctx->fileDataSize;
+
+        /*
+         * Load generic items from bundle.
+         */
+
+        for (DDFB_ExtfChunk *extf = pctx->extChunks; extf; extf = extf->next)
+        {
+            U_SStream ss;
+            U_sstream_init(&ss, (void*)extf->path, extf->pathLength);
+            if (U_sstream_starts_with(&ss, "generic/items") == 0)
+                continue;
+
+            // temp. change where data points
+            pctx->fileData = extf->fileData;
+            pctx->fileDataSize = extf->fileSize;
+
+            DeviceDescription::Item item = DDF_ReadItemFile(pctx);
+            if (item.isValid())
+            {
+                genericItems.push_back(std::move(item));
+            }
+            else
+            {
+                U_ASSERT(0 && "failed to read bundle item file");
+            }
+        }
+
+        // restore parse context
+        pctx->fileData = fileData;
+        pctx->fileDataSize = fileDataSize;
+    }
+
+
+    for (DeviceDescription::SubDevice &sub : ddf.subDevices)
+    {
+        for (DeviceDescription::Item &item : sub.items)
+        {
+            const auto genItem = std::find_if(genericItems.cbegin(), genericItems.cend(),
+                                              [&item](const DeviceDescription::Item &i){ return i.descriptor.suffix == item.descriptor.suffix; });
+            if (genItem == genericItems.cend())
+            {
+                continue;
+            }
+
+            item.isImplicit = genItem->isImplicit;
+            item.isManaged = genItem->isManaged;
+            item.isGenericRead = 0;
+            item.isGenericWrite = 0;
+            item.isGenericParse = 0;
+
+            if (!item.isStatic)
+            {
+                if (item.readParameters.isNull()) { item.readParameters = genItem->readParameters; item.isGenericRead = 1; }
+                if (item.writeParameters.isNull()) { item.writeParameters = genItem->writeParameters; item.isGenericWrite = 1; }
+                if (item.parseParameters.isNull()) { item.parseParameters = genItem->parseParameters; item.isGenericParse = 1; }
+                if (item.refreshInterval == DeviceDescription::Item::NoRefreshInterval && genItem->refreshInterval != item.refreshInterval)
+                {
+                    item.refreshInterval = genItem->refreshInterval;
+                }
+
+                item.parseParameters = DDF_ResolveBundleParamScript(item.parseParameters, pctx);
+                item.readParameters = DDF_ResolveBundleParamScript(item.readParameters, pctx);
+                item.writeParameters = DDF_ResolveBundleParamScript(item.writeParameters, pctx);
+            }
+
+            if (item.descriptor.access == ResourceItemDescriptor::Access::Unknown)
+            {
+                item.descriptor.access = genItem->descriptor.access;
+            }
+
+            if (!item.hasIsPublic)
+            {
+                item.isPublic = genItem->isPublic;
+            }
+
+            if (!item.defaultValue.isValid() && genItem->defaultValue.isValid())
+            {
+                item.defaultValue = genItem->defaultValue;
+            }
+        }
+    }
+
+    return 1;
 }
 
 uint8_t DDF_GetSubDeviceOrder(const QString &type)

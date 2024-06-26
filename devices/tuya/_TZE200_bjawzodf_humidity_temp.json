@@ -1,7 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZE200_bjawzodf",
-  "modelid": "TS0601",
+  "uuid": "c7017086-082a-4c0b-baae-5a55171f3733",
+  "manufacturername": ["_TZE200_bjawzodf", "_TZE200_zl1kmjqx"],
+  "modelid": ["TS0601", "TS0601"],
   "product": "Tuya multi sensor",
   "sleeper": true,
   "status": "Gold",
