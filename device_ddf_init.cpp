@@ -152,7 +152,7 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
         }
     }
 
-    assert(ddfItem.handle != DeviceDescription::Item::InvalidItemHandle);
+    U_ASSERT(ddfItem.handle != DeviceDescription::Item::InvalidItemHandle);
     item->setDdfItemHandle(ddfItem.handle);
 
     // check updates

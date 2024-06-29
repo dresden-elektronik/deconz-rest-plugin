@@ -11,7 +11,7 @@ on:
     - 'devices/**'
 
   pull_request:
-    types: [opened, synchronize, closed]
+    types: [opened, synchronize]
     branches: [ master ]
     paths:
       - 'devices/**'
