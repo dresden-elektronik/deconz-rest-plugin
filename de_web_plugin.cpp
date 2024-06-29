@@ -34,6 +34,7 @@
 #include <cmath>
 #include "alarm_system_device_table.h"
 #include "database.h"
+#include "deconz/u_assert.h"
 #include "device_ddf_init.h"
 #include "device_descriptions.h"
 #include "device_tick.h"
@@ -16547,11 +16548,11 @@ Resource *DEV_AddResource(const LightNode &lightNode)
  */
 void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
 {
-    assert(device);
-    assert(rsub);
-    assert(rsub->item(RAttrId));
-    assert(item);
-    assert(item->descriptor().suffix == RConfigGroup);
+    U_ASSERT(device);
+    U_ASSERT(rsub);
+    U_ASSERT(rsub->item(RAttrId));
+    U_ASSERT(item);
+    U_ASSERT(item->descriptor().suffix == RConfigGroup);
 
     if (!device || !rsub || !rsub->item(RAttrId) || !item || item->descriptor().suffix != RConfigGroup)
     {

@@ -1083,8 +1083,6 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
 
     if (modelidAtomIndex == 0 || mfnameAtomIndex == 0)
     {
-        U_ASSERT(modelidItem->toString().isEmpty());
-        U_ASSERT(mfnameItem->toString().isEmpty());
         return d->invalidDescription; // happens when called from legacy init code addLightNode() etc.
     }
 
@@ -1121,6 +1119,7 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
                 // nothing found, try to load further DDFs
                 if (loadDDFAndBundlesFromDisc(resource))
                 {
+                    i = d->descriptions.begin();
                     continue; // found DDFs or bundles, try again
                 }
                 break;
@@ -1502,7 +1501,7 @@ const DeviceDescription::SubDevice &DeviceDescriptions::getSubDevice(const Resou
         for (int i = 0; i < resource->itemCount(); i++)
         {
             const ResourceItem *item = resource->itemForIndex(size_t(i));
-            assert(item);
+            U_ASSERT(item);
 
             h.handle = item->ddfItemHandle();
             if (h.handle == DeviceDescription::Item::InvalidItemHandle)
@@ -2663,7 +2662,7 @@ void DeviceDescriptions::readAllBundles()
 
                 U_sstream_init(&ss, dir.entry.name, strlen(dir.entry.name));
 
-                if (U_sstream_find(&ss, ".ddf") == 0)
+                if (U_sstream_find(&ss, ".ddf") == 0 && U_sstream_find(&ss, ".ddb") == 0)
                     continue;
 
                 ScratchMemRewind(scratchPosPerBundle);

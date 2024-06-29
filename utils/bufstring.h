@@ -14,7 +14,7 @@
 #include <QString>
 #include <cstddef>
 #include <cstring>
-#include <cassert>
+#include "deconz/u_assert.h"
 
 bool startsWith(QLatin1String str, QLatin1String needle);
 
@@ -65,17 +65,17 @@ public:
 
     constexpr bool setString(const char *str)
     {
-        assert(str);
+        U_ASSERT(str);
         return setString(str, strlen(str));
     }
 
     constexpr bool setString(const char *str, const size_t len)
     {
-#ifdef QT_DEBUG
-        assert(str);
-        assert(str != c_str());
-        assert(len <= maxSize());
-        assert(1 + len < Size);
+#ifdef DECONZ_DEBUG_BUILD
+        U_ASSERT(str);
+        U_ASSERT(str != c_str());
+        U_ASSERT(len <= maxSize());
+        U_ASSERT(1 + len < Size);
 #endif
         if (str == c_str())
         {
@@ -93,7 +93,7 @@ public:
             memmove(&buf[1], str, len);
         }
         buf[1 + len] = '\0';
-        assert(buf[1 + size()] == '\0');
+        U_ASSERT(buf[1 + size()] == '\0');
         return true;
     }
 
@@ -105,8 +105,8 @@ public:
 
     constexpr const char *c_str() const
     {
-        assert(size() < Size);
-        assert(buf[1 + size()] == '\0');
+        U_ASSERT(size() < Size);
+        U_ASSERT(buf[1 + size()] == '\0');
         return &buf[1];
     };
     constexpr bool empty() const { return size() == 0; }
@@ -141,8 +141,8 @@ public:
 
     BufString &operator=(const BufString &rhs)
     {
-        assert(this != &rhs);
-        assert(rhs.size() <= maxSize());
+        U_ASSERT(this != &rhs);
+        U_ASSERT(rhs.size() <= maxSize());
         if (rhs.size() <= maxSize())
         {
             setString(rhs.c_str(), rhs.size());
@@ -287,8 +287,8 @@ public:
             }
         }
 
-#ifdef QT_DEBUG
-        assert(m_size < NElements);
+#ifdef DECONZ_DEBUG_BUILD
+        U_ASSERT(m_size < NElements);
 #endif
         if (m_size < NElements)
         {
@@ -303,9 +303,9 @@ public:
 
     constexpr const BufString<Size> &get(BufStringCacheHandle hnd) const
     {
-#ifdef QT_DEBUG
-        assert(hnd.cacheId == cacheId());
-        assert(hnd.index < NElements);
+#ifdef DECONZ_DEBUG_BUILD
+        U_ASSERT(hnd.cacheId == cacheId());
+        U_ASSERT(hnd.index < NElements);
 #endif
         if (hnd.index < NElements)
         {
