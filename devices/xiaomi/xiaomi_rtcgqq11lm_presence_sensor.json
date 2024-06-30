@@ -4,7 +4,7 @@
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_motion.aq2",
   "vendor": "Xiaomi",
-  "product": "Aqara motion sensor RTCGQ11LM",
+  "product": "Aqara motion sensor (RTCGQ11LM)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -46,20 +46,17 @@
         },
         {
           "name": "attr/swversion",
+          "awake": true,
           "parse": {
-            "fn": "zcl:attr",
-            "ep": "0x01",
-            "cl": "0x0000",
-            "at": "0x0001",
-            "eval": "Item.val = '0.0.0_' + ('0000' + Attr.val.toString()).slice(-4)"
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0xFF01",
+            "idx": "0x08",
+            "eval": "Item.val = '0.0.0_' + ('0000' + (Attr.val & 0xFF).toString()).slice(-4)"
           },
           "read": {
-            "fn": "zcl:attr",
-            "ep": "0x01",
-            "cl": "0x0000",
-            "at": "0x0001"
-          },
-          "refresh.interval": 86400
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -71,9 +68,9 @@
           "name": "config/battery",
           "awake": true,
           "parse": {
-            "at": "0xff01",
-            "ep": 1,
             "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0xFF01",
             "idx": "0x01",
             "script": "xiaomi_battery.js"
           }
@@ -140,20 +137,17 @@
         },
         {
           "name": "attr/swversion",
+          "awake": true,
           "parse": {
-            "fn": "zcl:attr",
-            "ep": "0x01",
-            "cl": "0x0000",
-            "at": "0x0001",
-            "eval": "Item.val = '0.0.0_' + ('0000' + Attr.val.toString()).slice(-4)"
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0xFF01",
+            "idx": "0x08",
+            "eval": "Item.val = '0.0.0_' + ('0000' + (Attr.val & 0xFF).toString()).slice(-4)"
           },
           "read": {
-            "fn": "zcl:attr",
-            "ep": "0x01",
-            "cl": "0x0000",
-            "at": "0x0001"
-          },
-          "refresh.interval": 86400
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -165,9 +159,9 @@
           "name": "config/battery",
           "awake": true,
           "parse": {
-            "at": "0xff01",
-            "ep": 1,
             "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0xFF01",
             "idx": "0x01",
             "script": "xiaomi_battery.js"
           }
