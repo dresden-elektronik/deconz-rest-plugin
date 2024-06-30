@@ -222,16 +222,6 @@
           "static": 2
         },
         {
-          "name": "config/temperature",
-          "awake": true,
-          "parse": {
-            "fn": "xiaomi:special",
-            "at": "0x00F7",
-            "idx": "0x03",
-            "eval": "Item.val = Attr.val * 100"
-          }
-        },
-        {
           "name": "config/triggerdistance",
           "parse": {
             "fn": "zcl:attr",
