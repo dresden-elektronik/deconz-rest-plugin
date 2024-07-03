@@ -3,7 +3,7 @@
   "manufacturername": "eWeLink",
   "modelid": "SNZB-03P",
   "vendor": "SONOFF",
-  "product": "SNZB-03P",
+  "product": "Motion sensor",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -23,7 +23,6 @@
           "0x0000",
           "0x0001",
           "0x0406",
-          "0x0500",
           "0xFC11"
         ]
       },
@@ -57,7 +56,6 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "refresh.interval": 7265,
           "read": {
             "at": "0x0021",
@@ -182,9 +180,9 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-			"min": 3600,
-			"max": 7200,
-			"change": "0x00000002"
+          "min": 3600,
+          "max": 7200,
+          "change": "0x00000002"
         }
       ]
     }
