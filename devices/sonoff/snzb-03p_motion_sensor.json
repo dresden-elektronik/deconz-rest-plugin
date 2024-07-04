@@ -4,7 +4,7 @@
   "modelid": "SNZB-03P",
   "vendor": "SONOFF",
   "product": "Motion sensor",
-  "sleeper": false,
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
