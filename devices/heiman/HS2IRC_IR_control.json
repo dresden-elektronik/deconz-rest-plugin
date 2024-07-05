@@ -1,0 +1,72 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "HEIMAN",
+  "modelid": "IRControl-EM",
+  "vendor": "HEIMAN",
+  "product": "HS2IRC",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xFC82"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/sendkey",
+          "write": {
+            "fn": "zcl:cmd",
+            "ep": "0x01",
+            "cl": "0xfc82",
+            "cmd": "0xf0",
+            "eval": "('0'+parseInt(Item.val.split(',')[0]).toString(16)).slice(-2) + ('0'+parseInt(Item.val.split(',')[1]).toString(16)).slice(-2);"
+          }
+        },
+        {
+          "name": "config/learnkey",
+          "write": {
+            "fn": "zcl:cmd",
+            "ep": "0x01",
+            "cl": "0xfc82",
+            "cmd": "0xf1",
+            "eval": "('0'+parseInt(Item.val.split(',')[0]).toString(16)).slice(-2) + ('0'+parseInt(Item.val.split(',')[1]).toString(16)).slice(-2);"
+          }
+        },
+        {
+          "name": "config/reachable"
+        }
+      ]
+    }
+  ]
+}
