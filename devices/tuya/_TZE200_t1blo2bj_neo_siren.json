@@ -10,7 +10,7 @@
     "TS0601"
   ],
   "product": "Neo (Tuya) smart siren",
-  "sleeper": true,
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -97,8 +97,7 @@
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x01",
-        "0x0500"
+        "0x01"
       ],
       "fingerprint": {
         "profile": "0x0104",
@@ -164,7 +163,6 @@
         },
         {
           "name": "config/duration",
-          "description": "Alarm duration in seconds",
           "write": {
             "dpid": 7,
             "dt": "0x2b",
@@ -179,7 +177,6 @@
         },
         {
           "name": "config/melody",
-          "description": "Melody used by siren (between 1 to 18)",
           "write": {
             "dpid": 21,
             "dt": "0x30",
@@ -198,7 +195,6 @@
         },
         {
           "name": "config/volume",
-          "description": "Volume of the siren, 0:low, 1:medium, 2:High",
           "write": {
             "dpid": 5,
             "dt": "0x30",
