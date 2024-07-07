@@ -101,7 +101,7 @@
       ],
       "fingerprint": {
         "profile": "0x0104",
-        "device": "0x0403",
+        "device": "0x0051",
         "endpoint": "0x01",
         "in": [
           "0x0000",
