@@ -18,7 +18,8 @@
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
-        "0x01"
+        "0x01",
+		"0xEF00"
       ],
       "items": [
         {
