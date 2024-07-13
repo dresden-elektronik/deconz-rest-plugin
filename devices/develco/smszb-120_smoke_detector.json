@@ -250,7 +250,18 @@
                     "name": "attr/uniqueid"
                 },
                 {
-                    "name": "state/alert"
+                    "name": "state/alert",
+                    "read": {
+                        "fn": "none"
+                    },
+                    "write": {
+                        "cl": "0x0502",
+                        "cmd": "0x00",
+                        "description": "Payload has 5 Bytes. Byte 1: Warning mode 1 (burglar), Strobe, Very high sound. Byte 2-3: Duration, Byte 4: Strobe duty cycle, Byte 5: Strobe level",
+                        "ep": "0x01",
+                        "eval": "if (Item.val=='select') { '1701000000' } else if (Item.val=='none') { '0000000000' }",
+                        "fn": "zcl:cmd"
+                    }
                 },
                 {
                     "name": "state/reachable"
