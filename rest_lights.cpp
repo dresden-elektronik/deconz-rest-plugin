@@ -2677,7 +2677,101 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }
+    
+    Device *device = static_cast<Device*>(taskRef.lightNode->parentResource());
 
+    if (device && device->managed())
+    {
+        if (!hasLiftInc)
+        {
+            bool hasWriteFunction = false;
+            QString param;
+            QVariant val;
+            StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, taskRef.req.dstEndpoint());
+
+            if (hasLift)
+            {
+                ResourceItem *item = taskRef.lightNode->item(RStateLift);
+                const auto ddfItem = DDF_GetItem(item);
+
+                if (!ddfItem.writeParameters.isNull())
+                {
+                    change.addTargetValue(RStateLift, targetLiftZigBee);
+                    val = targetLiftZigBee;
+                    param = "lift";
+                    hasWriteFunction = true;
+                }
+            }
+            else if (hasTilt)
+            {
+                ResourceItem *item = taskRef.lightNode->item(RStateTilt);
+                const auto ddfItem = DDF_GetItem(item);
+
+                if (!ddfItem.writeParameters.isNull())
+                {
+                    change.addTargetValue(RStateTilt, targetTilt);
+                    val = targetTilt;
+                    param = "tilt";
+                    hasWriteFunction = true;
+                }
+            }
+            else if (hasOpen)
+            {
+                ResourceItem *item = taskRef.lightNode->item(RStateOpen);
+                const auto ddfItem = DDF_GetItem(item);
+
+                if (!ddfItem.writeParameters.isNull())
+                {
+                    change.addTargetValue(RStateOpen, targetOpen);
+                    val = targetOpen;
+                    param = "open";
+                    hasWriteFunction = true;
+                }
+            }
+            else if (hasSpeed)
+            {
+                ResourceItem *item = taskRef.lightNode->item(RStateSpeed);
+                const auto ddfItem = DDF_GetItem(item);
+
+                if (!ddfItem.writeParameters.isNull())
+                {
+                    change.addTargetValue(RStateSpeed, targetSpeed);
+                    val = targetSpeed;
+                    param = "speed";
+                    hasWriteFunction = true;
+                }
+            }
+            else if (hasStop)
+            {
+                ResourceItem *item = taskRef.lightNode->item(RStateOpen);
+                const auto ddfItem = DDF_GetItem(item);
+
+                if (!ddfItem.writeParameters.isNull())
+                {
+                    change.addTargetValue(RStateOpen, "stop");
+                    val = "stop";
+                    param = "stop";
+                    hasWriteFunction = true;
+                }
+            }
+
+            if (hasWriteFunction)
+            {
+                taskRef.lightNode->addStateChange(change);
+
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = val;
+                rspItem[QLatin1String("success")] = rspItemState;
+                rsp.list.append(rspItem);
+                // Don't update write-only state.alert.
+
+                rsp.etag = taskRef.lightNode->etag;
+                return REQ_READY_SEND;
+            }
+        }
+    }
+    
     // Some devices invert LiftPct.
     if (hasLift)
     {
