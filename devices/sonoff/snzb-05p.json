@@ -75,7 +75,6 @@
         },
         {
           "name": "state/water",
-          "refresh.interval": 1,
           "read": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -105,7 +104,7 @@
           "at": "0x0021",
           "dt": "0x20",
           "min": 3600,
-          "max": 43200,
+          "max": 7200,
           "change": "0x00000002"
         }
       ]
