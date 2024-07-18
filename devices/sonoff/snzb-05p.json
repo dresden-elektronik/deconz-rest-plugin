@@ -77,7 +77,10 @@
           "name": "state/water",
           "refresh.interval": 1,
           "read": {
-            "fn": "zcl:attr"
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0500",
+            "at": "0x0002"
           },
           "parse": {
             "fn": "ias:zonestatus",
