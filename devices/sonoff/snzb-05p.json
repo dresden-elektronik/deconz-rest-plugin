@@ -5,8 +5,8 @@
   "modelid": "SNZB-05P",
   "vendor": "Sonoff",
   "product": "SNZB-05P",
-  "sleeper": false,
-  "status": "Bronze",
+  "sleeper": true,
+  "status": "Gold",
   "path": "/devices/snzb-05p.json",
   "subdevices": [
     {
@@ -83,6 +83,27 @@
             "fn": "ias:zonestatus",
             "mask": "alarm1,alarm2"
           }
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 3600,
+          "max": 43200,
+          "change": "0x00000002"
         }
       ]
     }
