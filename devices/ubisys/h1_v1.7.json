@@ -173,20 +173,24 @@
         {
           "name": "config/windowopendetectionenabled",
           "read": {
+            "fn": "zcl:attr",
             "at": "0x0015",
             "cl": "0x0201",
             "ep": 1,
             "mf": "0x10f2"
           },
           "write": {
+            "fn": "zcl:attr",
             "at": "0x0015",
             "cl": "0x0201",
             "dt": "0x10",
             "ep": 1,
-            "eval": "Item.val",
+            "eval": "if (Item.val) { 1 } else { 0 }",
+            "fn": "zcl:attr",
             "mf": "0x10f2"
           },
           "parse": {
+            "fn": "zcl:attr",
             "at": "0x0015",
             "cl": "0x0201",
             "ep": 1,
@@ -236,6 +240,7 @@
         {
           "name": "state/windowopen",
           "read": {
+            "fn": "zcl:attr",
             "at": "0x0016",
             "cl": "0x0201",
             "ep": 1,
@@ -245,6 +250,7 @@
             "fn": "None"
           },
           "parse": {
+            "fn": "zcl:attr",
             "at": "0x0016",
             "cl": "0x0201",
             "ep": 1,
