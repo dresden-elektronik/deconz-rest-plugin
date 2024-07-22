@@ -1180,6 +1180,11 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
                 {
                     rawJsonIndex = matchedIndices[i];
                 }
+                else if (ddf1.storageLocation == deCONZ::DdfUserLocation && d->descriptions[rawJsonIndex].storageLocation == deCONZ::DdfLocation)
+                {
+                    // already had a match but user location has more precedence than system location
+                    rawJsonIndex = matchedIndices[i];
+                }
                 continue;
             }
 
