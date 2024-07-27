@@ -82,17 +82,6 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/temperature",
-          "awake": true,
-          "parse": {
-            "fn": "xiaomi:special",
-            "mf": "0x115F",
-            "at": "0xFF01",
-            "idx": "0x03",
-            "eval": "Item.val = Attr.val * 100"
-          }
-        },
-        {
           "name": "state/lastupdated"
         },
         {
