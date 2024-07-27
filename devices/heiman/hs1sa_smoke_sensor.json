@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "2787627b-76fe-43d4-97d4-9e93236ef963",
-  "manufacturername": "Heiman",
+  "manufacturername": "HEIMAN",
   "modelid": "SmokeSensor-EF-3.0",
-  "vendor": "Heiman",
+  "vendor": "HEIMAN",
   "product": "HS1SA",
   "sleeper": true,
   "status": "Gold",
