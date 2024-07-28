@@ -8,7 +8,7 @@
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_SWITCH",
+      "type": "$ZHAControl",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
