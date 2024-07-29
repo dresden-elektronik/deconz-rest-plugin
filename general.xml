@@ -5271,7 +5271,14 @@ These devices can operate on either battery or mains power, and can have a wide 
           </payload>
         </command>
         <command id="0xf0" dir="recv" name="Send key" required="m">
-          <description>Send a code</description>
+          <description>Send a key</description>
+          <payload>
+             <attribute id="0x0000" name="Id" type="u8" default="0" required="m"></attribute>
+             <attribute id="0x0001" name="Keycode" type="u8" default="0" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0xf3" dir="recv" name="Delete key" required="m">
+          <description>Delete a key</description>
           <payload>
              <attribute id="0x0000" name="Id" type="u8" default="0" required="m"></attribute>
              <attribute id="0x0001" name="Keycode" type="u8" default="0" required="m"></attribute>
