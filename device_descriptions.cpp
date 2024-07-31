@@ -121,6 +121,7 @@ struct DDF_LoadRecord
 {
     AT_AtomIndex modelid;
     AT_AtomIndex mfname;
+    uint32_t mfnameLowerCaseHash;
     DDF_LoadState loadState;
 };
 
@@ -165,6 +166,66 @@ static void DDF_UpdateItemHandlesForIndex(std::vector<DeviceDescription> &descri
 static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, uint loadCounter);
 static void DDF_TryCompileAndFixJavascript(QString *expr, const QString &path);
 DeviceDescription DDF_LoadScripts(const DeviceDescription &ddf);
+
+/*
+ * https://maskray.me/blog/2023-04-12-elf-hash-function
+ *
+ * PJW hash adapted from musl libc.
+ *
+ * TODO(mpi): make this a own module U_StringHash()
+ */
+static uint32_t DDF_StringHash(const void *s0, unsigned size)
+{
+    uint32_t h;
+    const unsigned char *s;
+
+    h = 0;
+    s = (const unsigned char*)s0;
+
+    while (size--)
+    {
+        h = 16 * h + *s++;
+        h ^= h >> 24 & 0xF0;
+    }
+    return h & 0xfffffff;
+}
+
+/*! Helper to create a 32-bit string hash from an atom string.
+
+    This is mainly used to get a unique number to compare case insensitive manufacturer names.
+    For example for "HEIMAN", "heiman" and "Heiman" atoms this function returns the same hash.
+ */
+static uint32_t DDF_AtomLowerCaseStringHash(AT_AtomIndex ati)
+{
+    unsigned len;
+    AT_Atom atom;
+    char str[192];
+
+    str[0] = '\0';
+    atom = AT_GetAtomByIndex(ati);
+
+    if (atom.len == 0)
+        return 0;
+
+    if (sizeof(str) <= atom.len) // should not happen
+        return DDF_StringHash(atom.data, atom.len);
+
+    for (len = 0; len < atom.len; len++)
+    {
+        uint8_t ch = atom.data[len];
+
+        if (ch & 0x80) // non ASCII UTF-8 string, don't bother
+            return DDF_StringHash(atom.data, atom.len);
+
+        if (ch >= 'A' && ch <= 'Z')
+            ch += (unsigned char)('a' - 'A');
+
+        str[len] = (char)ch;
+    }
+
+    str[len] = '\0';
+    return DDF_StringHash(str, len);
+}
 
 /*! Constructor. */
 DeviceDescriptions::DeviceDescriptions(QObject *parent) :
@@ -861,6 +922,7 @@ void DeviceDescriptions::prepare()
         {
             DDF_LoadRecord rec;
             rec.mfname.index = res[i].mfnameAtomIndex;
+            rec.mfnameLowerCaseHash = DDF_AtomLowerCaseStringHash(rec.mfname);
             rec.modelid.index = res[i].modelIdAtomIndex;
             rec.loadState = DDF_LoadStateScheduled;
             records.push_back(rec);
@@ -1089,6 +1151,8 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
     U_ASSERT(modelidAtomIndex != 0);
     U_ASSERT(mfnameAtomIndex != 0);
 
+    uint32_t mfnameLowerCaseHash = DDF_AtomLowerCaseStringHash(AT_AtomIndex{mfnameAtomIndex});
+
     /*
      * Filter matching DDFs, there can be multiple entries for the same modelid and manufacturer name.
      * Further sorting for the 'best' match according to attr/ddf_policy is done afterwards.
@@ -1098,7 +1162,7 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
 
         for (;matchedCount < matchedIndices.size();)
         {
-            i = std::find_if(i, d->descriptions.end(), [modelidAtomIndex, mfnameAtomIndex](const DeviceDescription &ddf)
+            i = std::find_if(i, d->descriptions.end(), [modelidAtomIndex, mfnameAtomIndex, mfnameLowerCaseHash](const DeviceDescription &ddf)
             {
                 if (ddf.mfnameAtomIndices.size() != ddf.modelidAtomIndices.size())
                 {
@@ -1107,8 +1171,16 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
 
                 for (size_t j = 0; j < ddf.modelidAtomIndices.size(); j++)
                 {
-                    if (ddf.modelidAtomIndices[j] == modelidAtomIndex && ddf.mfnameAtomIndices[j] == mfnameAtomIndex)
-                        return true;
+                    if (ddf.modelidAtomIndices[j] == modelidAtomIndex)
+                    {
+                        if (ddf.mfnameAtomIndices[j] == mfnameAtomIndex) // exact manufacturer name match
+                            return true;
+
+                        // tolower() manufacturer name match
+                        uint32_t mfnameLowerCaseHash2 = DDF_AtomLowerCaseStringHash(AT_AtomIndex{ddf.mfnameAtomIndices[j]});
+                        if (mfnameLowerCaseHash == mfnameLowerCaseHash2)
+                            return true;
+                    }
                 }
 
                 return false;
@@ -1378,11 +1450,18 @@ bool DeviceDescriptions::loadDDFAndBundlesFromDisc(const Resource *resource)
         return false;
     }
 
+    uint32_t mfnameLowerCaseHash = DDF_AtomLowerCaseStringHash(AT_AtomIndex{mfnameAtomIndex});
+
     for (const DDF_LoadRecord &loadRecord : d->ddfLoadRecords)
     {
-        if (loadRecord.mfname.index == mfnameAtomIndex && loadRecord.modelid.index == modelidAtomIndex)
+        if (loadRecord.mfnameLowerCaseHash == mfnameLowerCaseHash && loadRecord.modelid.index == modelidAtomIndex)
         {
             return false; // been here before
+        }
+
+        if (loadRecord.mfname.index == mfnameAtomIndex && loadRecord.modelid.index == modelidAtomIndex)
+        {
+            return false; // been here before, note this check can likely be removed due the lower case check already been hit
         }
     }
 
@@ -1392,6 +1471,7 @@ bool DeviceDescriptions::loadDDFAndBundlesFromDisc(const Resource *resource)
     DDF_LoadRecord loadRecord;
     loadRecord.modelid.index = modelidAtomIndex;
     loadRecord.mfname.index = mfnameAtomIndex;
+    loadRecord.mfnameLowerCaseHash = mfnameLowerCaseHash;
     loadRecord.loadState = DDF_LoadStateScheduled;
     d->ddfLoadRecords.push_back(loadRecord);
 
@@ -2166,6 +2246,7 @@ void DeviceDescriptions::readAllRawJson()
                                     {
                                         AT_AtomIndex mfnameIndex;
                                         AT_AtomIndex modelidIndex;
+                                        uint32_t mfnameLowerCaseHash = 0;
 
                                         mfnameIndex.index = 0;
                                         modelidIndex.index = 0;
@@ -2190,6 +2271,10 @@ void DeviceDescriptions::readAllRawJson()
                                                     continue;
                                                 }
                                             }
+                                            else
+                                            {
+                                                mfnameLowerCaseHash = DDF_AtomLowerCaseStringHash(mfnameIndex);
+                                            }
                                         }
 
                                         {
@@ -2204,12 +2289,12 @@ void DeviceDescriptions::readAllRawJson()
                                         {
                                             if (modelidIndex.index == d->ddfLoadRecords[k].modelid.index)
                                             {
-                                                if (mfnameIndex.index == 0)
+                                                if (mfnameLowerCaseHash == 0)
                                                 {
                                                     // ignore for now, in worst case we load a DDF to memory which isn't used
                                                     U_ASSERT(0);
                                                 }
-                                                else if (mfnameIndex.index != d->ddfLoadRecords[k].mfname.index)
+                                                else if (mfnameLowerCaseHash != d->ddfLoadRecords[k].mfnameLowerCaseHash)
                                                 {
                                                     continue;
                                                 }
@@ -2521,14 +2606,16 @@ static int DDF_IsBundleScheduled(DDF_ParseContext *pctx, const char *desc, unsig
         if (!foundAtoms)
             continue;
 
+        uint32_t mfnameLowerCaseHash = DDF_AtomLowerCaseStringHash(mfname_ati);
+
         for (size_t j = 0; j < ddfLoadRecords.size(); j++)
         {
             const DDF_LoadRecord &rec = ddfLoadRecords[j];
 
-            if (rec.mfname.index != mfname_ati.index)
+            if (rec.modelid.index != modelid_ati.index)
                 continue;
 
-            if (rec.modelid.index != modelid_ati.index)
+            if (rec.mfnameLowerCaseHash != mfnameLowerCaseHash)
                 continue;
 
             return 1;
@@ -2569,12 +2656,13 @@ void DeviceDescriptions::reloadAllRawJsonAndBundles(const Resource *resource)
     const ResourceItem *modelidItem = resource->item(RAttrModelId);
     unsigned mfnameAtomIndex = mfnameItem->atomIndex();
     unsigned modelidAtomIndex = modelidItem->atomIndex();
+    uint32_t mfnameLowerCaseHash = DDF_AtomLowerCaseStringHash(AT_AtomIndex{mfnameAtomIndex});
 
     for (size_t j = 0; j < d_ptr2->ddfLoadRecords.size(); j++)
     {
         DDF_LoadRecord &rec = d_ptr2->ddfLoadRecords[j];
 
-        if (rec.mfname.index != mfnameAtomIndex)
+        if (rec.mfnameLowerCaseHash != mfnameLowerCaseHash)
             continue;
 
         if (rec.modelid.index != modelidAtomIndex)
