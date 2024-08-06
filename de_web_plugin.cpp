@@ -3690,7 +3690,10 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     {
                         if (RStateEffectValuesMueller.indexOf(lightNode->toString(RStateEffect), 0) <= 1)
                         {
-                            lightNode->setValue(RStateEffect, RStateEffectValues[ia->numericValue().u8]);
+                            if ((int)ia->numericValue().u8 < RStateEffectValues.size())
+                            {
+                                lightNode->setValue(RStateEffect, RStateEffectValues[ia->numericValue().u8]);
+                            }
                         }
                     }
                     else if (ia->id() == 0x4004) // color loop time
