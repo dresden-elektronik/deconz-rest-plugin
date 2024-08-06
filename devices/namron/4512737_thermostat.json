@@ -3,7 +3,8 @@
   "uuid": "1d156ff9-89d3-4441-ad0f-f7b8fe96cfe8",
   "manufacturername": ["NAMRON AS", "NAMRON AS"],
   "modelid": ["4512737", "4512738"],
-  "product": "Thermostat Touch Zigbee 16A",
+  "vendor": "Namron",
+  "product": "Thermostat touch zigbee 16A (4512737/4512738)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

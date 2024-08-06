@@ -17,7 +17,8 @@
     "TS011F",
     "TS011F"
   ],
-  "product": "NEO NAS-WR01B Smart Plug",
+  "vendor": "Neo",
+  "product": "Smart plug 16A with power monitoring EU (NAS-WR01B)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

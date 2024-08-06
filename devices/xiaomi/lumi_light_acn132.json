@@ -9,7 +9,8 @@
     "lumi.light.acn132",
     "lumi.light.acn132"
   ],
-  "product": "Aqara LED Strip T1",
+  "vendor": "Xiaomi Aqara",
+  "product": "LED strip T1 (LGYCDD01LM)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

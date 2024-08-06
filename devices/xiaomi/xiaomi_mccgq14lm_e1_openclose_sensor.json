@@ -3,8 +3,8 @@
   "uuid": "790755f4-7320-42ee-8334-f9fa8c80cdc3",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.magnet.acn001",
-  "vendor": "Xiaomi",
-  "product": "Aqara E1 open/close sensor MCCGQ14LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "E1 open/close sensor (MCCGQ14LM)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

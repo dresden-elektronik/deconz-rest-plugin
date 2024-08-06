@@ -4,8 +4,8 @@
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.remote.acn004",
   "matchexpr": "R.endpoints.length === 3",
-  "vendor": "Xiaomi",
-  "product": "Aqara E1 dual rocker wireless switch WXKG17LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "E1 dual rocker wireless switch (WXKG17LM)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

@@ -3,8 +3,8 @@
   "uuid": "72b706a6-2bc0-4a52-ac56-619f7c20ce71",
   "manufacturername": "aqara",
   "modelid": "lumi.motion.ac01",
-  "vendor": "Xiaomi",
-  "product": "Aqara FP1 Human Presence Sensor RTCZCGQ11LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "FP1 human presence sensor (RTCZCGQ11LM)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

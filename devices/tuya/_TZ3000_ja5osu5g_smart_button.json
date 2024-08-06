@@ -4,7 +4,7 @@
   "manufacturername": ["_TZ3000_ja5osu5g", "_TZ3000_fa9mlvja"],
   "modelid": ["TS004F", "TS0041"],
   "vendor": "Tuya",
-  "product": "Wireless Smart Button",
+  "product": "Wireless smart button (TS004)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

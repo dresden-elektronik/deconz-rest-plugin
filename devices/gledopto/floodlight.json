@@ -10,7 +10,8 @@
         "RGBW"
     ],
     "matchexpr": "R.endpoints.indexOf(0x0a) !== -1 && R.endpoints.indexOf(0x0b) !== -1",
-    "product": "GLEDOPTO floodlight",
+    "vendor": "Gledopto",
+    "product": "Floodlight",
     "sleeper": false,
     "status": "Gold",
     "subdevices": [
