@@ -3,8 +3,8 @@
   "uuid": "55fea19c-d877-45da-b7e1-13ebaafc8050",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.motion.agl04",
-  "vendor": "Xiaomi",
-  "product": "Aqara high precision motion sensor RTCGQ13LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "High precision motion sensor (RTCGQ13LM)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
