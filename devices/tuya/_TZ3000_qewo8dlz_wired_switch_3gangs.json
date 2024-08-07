@@ -3,7 +3,8 @@
    "uuid":"15e1102b-831e-431b-bb8c-c1d53c4f5490",
    "manufacturername":"_TZ3000_qewo8dlz",
    "modelid":"TS0013",
-   "product":"Wired Switch 3 gangs",
+   "vendor": "Tuya",
+   "product":"Wired Switch 3 gangs (TS0013)",
    "sleeper":false,
    "status":"Gold",
    "subdevices":[

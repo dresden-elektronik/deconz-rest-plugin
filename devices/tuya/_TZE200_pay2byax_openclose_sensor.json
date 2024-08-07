@@ -3,7 +3,8 @@
   "uuid": "fc4a79fe-ccd4-4973-b167-ceba1e0d8db2",
   "manufacturername": ["_TZE200_pay2byax", "_TZE200_kltffuzl", "_TZE200_fwoorn8y"],
   "modelid": ["TS0601", "TS0601", "TS0601"],
-  "product": "ZG-102Z or TM001-ZA or TM081 open/close sensor",
+  "vendor": "Tuya",
+  "product": "Open/close sensor (ZG-102Z/TM001-ZA/TM081)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

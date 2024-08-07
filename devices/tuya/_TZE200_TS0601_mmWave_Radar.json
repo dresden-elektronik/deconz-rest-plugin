@@ -3,7 +3,8 @@
   "uuid": "eadb2b6f-aeb8-4695-923d-ba0eb42fd003",
   "manufacturername": ["_TZE200_v6ossqfy","_TZE200_mx6u6l4y","_TZE200_0u3bj3rc"],
   "modelid": ["TS0601","TS0601","TS0601"],
-  "product": "2.4GHz mmWave radar w/LED",
+  "vendor": "Tuya",
+  "product": "2.4GHz mmWave radar with LED (TS0601)",
   "sleeper": false,
   "status": "Silver",
     "subdevices": [

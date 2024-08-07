@@ -4,7 +4,7 @@
   "manufacturername": ["ubisys", "ubisys"],
   "modelid": ["S1 (5501)", "S1-R (5601)"],
   "vendor": "ubisys",
-  "product": "S1 (5501) / S1-R (5601) power switch",
+  "product": "Power switch (S1 (5501)/S1-R (5601))",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -9,7 +9,8 @@
     "STARKVIND Air purifier",
     "STARKVIND Air purifier table"
   ],
-  "product": "STARKVIND Air purifier",
+  "vendor": "IKEA",
+  "product": "Starkvind Air purifier (E2006/E2007)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

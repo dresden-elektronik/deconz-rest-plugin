@@ -3,7 +3,8 @@
   "uuid": "7d0ca1ce-a7c9-4d3c-a26f-bae789a5a4bd",
   "manufacturername": "Schneider Electric",
   "modelid": "1GANG/DIMMER/1",
-  "product": "Merten - Schneider Dimmer 2 GANG",
+  "vendor": "Schneider Electric",
+  "product": "Merten Wiser 2 gang dimmer",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
