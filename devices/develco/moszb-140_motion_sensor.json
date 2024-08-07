@@ -4,7 +4,7 @@
   "manufacturername": ["Develco Products A/S", "Develco Products A/S"],
   "modelid": ["MOSZB-130", "MOSZB-140"],
   "vendor": "Develco Products",
-  "product": "MOSZB-130/140 motion sensor pro",
+  "product": "Motion sensor (MOSZB-130/MOSZB-140)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

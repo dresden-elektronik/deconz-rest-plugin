@@ -25,7 +25,8 @@
     "TS0044",
     "TS0044"
   ],
-  "product": "Tuya 4-gang remote",
+  "vendor": "Tuya",
+  "product": "Tuya 4-gang remote (TS0044)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
