@@ -1,8 +1,10 @@
 {
     "schema": "devcap1.schema.json",
+    "uuid": "651042bb-371c-4964-abaa-f4277f4ea9d5",
     "manufacturername": ["ubisys", "ubisys"],
     "modelid": ["D1 (5503)", "D1-R (5603)"],
-    "product": "D1 (5503)/D1-R (5603)",
+    "vendor": "ubisys",
+    "product": "Universal dimmer (D1 (5503)/D1-R (5603))",
     "sleeper": false,
     "status": "Gold",
     "subdevices": [

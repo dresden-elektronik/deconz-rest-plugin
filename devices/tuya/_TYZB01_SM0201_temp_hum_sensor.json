@@ -1,8 +1,10 @@
 {
    "schema":"devcap1.schema.json",
+   "uuid":"08dc1145-5065-4dbd-a0dc-3433984f7088",
    "manufacturername":["_TYZB01_cbiezpds", "_TYZB01_zqvwka4k"],
    "modelid":["SM0201","SM0201"],
-   "product":"SM0201 Temperature and Humidity Sensor with LCD Display",
+   "vendor": "Tuya",
+   "product":"Temperature and humidity sensor with LCD display (SM0201)",
    "sleeper":true,
    "status":"Gold",
    "subdevices":[

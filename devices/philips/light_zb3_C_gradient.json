@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "b14ab051-43c3-40d5-97ee-813684f05d09",
   "manufacturername": [
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
@@ -19,7 +20,26 @@
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
-    "$MF_SIGNIFY"
+    "$MF_SIGNIFY",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS"
   ],
   "modelid": [
     "LCX001",
@@ -40,11 +60,32 @@
     "915005988101",
     "915005988201",
     "915005988501",
+    "915005988601",
+    "LCX001",
+    "LCX002",
+    "LCX003",
+    "LCX004",
+    "915005986901",
+    "915005987001",
+    "915005987101",
+    "915005987201",
+    "915005987401",
+    "915005987501",
+    "915005987601",
+    "915005987701",
+    "915005987801",
+    "915005987901",
+    "915005988001",
+    "915005988101",
+    "915005988201",
+    "915005988501",
     "915005988601"
   ],
+  "vendor": "Philips",
   "product": "Hue white and color ambiance gradient light",
   "sleeper": false,
   "status": "Gold",
+  "matchexpr": "R.hasCluster(0x0b,0xfc03)",
   "subdevices": [
     {
       "type": "$TYPE_EXTENDED_COLOR_LIGHT",
@@ -94,7 +135,8 @@
             "ep": "0x0b",
             "cl": "0x0000",
             "at": "0x0005"
-          }
+          },
+          "refresh.interval": 86400
         },
         {
           "name": "attr/name"
@@ -195,7 +237,13 @@
           "name": "cap/on/off_with_effect"
         },
         {
+          "name": "config/bri/couple_ct"
+        },
+        {
           "name": "config/bri/execute_if_off"
+        },
+        {
+          "name": "config/bri/options"
         },
         {
           "name": "config/bri/startup"

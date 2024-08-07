@@ -1,10 +1,12 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "724fdfb6-6e4b-4247-9d91-d3a92bf41622",
   "manufacturername": "3A Smart Home DE",
   "modelid": "LXN59-1S7LX1.0",
-  "product": "Another Smart socket plug",
+  "vendor": "Zemismart",
+  "product": "1 gang inline switch (ZW-EU-01)",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",

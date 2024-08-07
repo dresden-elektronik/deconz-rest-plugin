@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "4fe1326d-8697-45ab-aa72-2a8a0e8d8c83",
   "manufacturername": "Konke",
   "modelid": "3AFE280100510001",
-  "product": "Konke Kit Pro Multi Function Button",
+  "vendor": "Konke",
+  "product": "Kit pro multi function button (KPKEY)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "330ac513-ca70-4a25-8a28-9ae251e7107e",
   "manufacturername": ["dresden elektronik", "dresden elektronik"],
   "modelid": ["FLS-PP3", "FLS-PP3 White"],
-  "product": "FLS-PP lp",
+  "vendor": "dresden elektronik",
+  "product": "Wireless electronic ballast power-PWM (FLS-PP)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

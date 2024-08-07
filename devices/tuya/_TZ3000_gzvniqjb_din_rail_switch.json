@@ -1,11 +1,12 @@
 {
 	"schema": "devcap1.schema.json",
+	"uuid": "f66ebd4f-7da9-40a0-b06b-eb6327b73abb",
 	"manufacturername": "_TZ3000_gzvniqjb",
 	"modelid": "TS0011",
-	"product": "TO-Q-SY1-ZT",
-	"vendor": "TONGOU",
+	"vendor": "Tongou",
+	"product": "DIN rail circuit breaker 63A (TO-Q-SY1-ZT)",
 	"sleeper": true,
-	"status": "Silver",
+	"status": "Gold",
 	"subdevices": [{
 		"type": "$TYPE_ON_OFF_OUTPUT",
 		"restapi": "/lights",

@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "f821d929-ee1a-44e0-97d8-ef5d68dc281b",
   "manufacturername": "Immax",
   "modelid": "Plug-230V-ZB3.0",
-  "vendor": "Immax Neo",
-  "product": "Smart plug 07048L",
+  "vendor": "Immax",
+  "product": "Neo smart plug (07048L)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

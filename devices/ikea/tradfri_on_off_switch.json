@@ -1,10 +1,14 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "e950d4c7-56ba-4de3-81f4-99a5619b942b",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI on/off switch",
-  "product": "TRADFRI on/off switch - E1743",
+  "vendor": "IKEA",
+  "product": "Tradfri on/off switch (E1743)",
+  "comment": "Required firmware version 0x23079631 or later",
   "sleeper": true,
   "status": "Gold",
+  "matchexpr": "var v = R.item('attr/otaversion').val; (v == 0 || v >= 0x23079631);",
   "subdevices": [
     {
       "type": "$TYPE_SWITCH",
@@ -65,6 +69,9 @@
           "refresh.interval": 86400
         },
         {
+          "name": "attr/otaversion"
+        },
+        {
           "name": "attr/swversion"
         },
         {
@@ -74,7 +81,21 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/alert"
+          "name": "config/alert",
+          "description": "helper to emit awake when button is pressed",
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0x0006",
+            "cmd": "0x01",
+            "eval": "Item.val = 0"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "values": [],
+          "public": false,
+          "awake": true
         },
         {
           "name": "config/battery",
@@ -102,8 +123,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/buttonevent",
-          "awake": true
+          "name": "state/buttonevent"
         },
         {
           "name": "state/lastupdated"

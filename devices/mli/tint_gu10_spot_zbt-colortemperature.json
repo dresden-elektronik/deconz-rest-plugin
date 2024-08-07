@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "be9f99a8-0c76-41cb-ad2b-37405b0f968c",
   "manufacturername": "MLI",
   "modelid": "ZBT-ColorTemperature",
   "vendor": "Müller Licht",
-  "product": "Tint GU10 Spot ZBT-ColorTemperature",
+  "product": "Tint GU10 spot ZBT-ColorTemperature",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

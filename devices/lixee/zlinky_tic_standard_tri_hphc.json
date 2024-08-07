@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "275cc5bb-0708-4a8b-a46e-4f271e122d24",
   "manufacturername": "LiXee",
   "modelid": "ZLinky_TIC",
   "vendor": "LiXee",
-  "product": "ZLinky_TIC standard+HPHC+triphase",
+  "product": "ZLinky_TIC mode standard HPHC triphase",
   "sleeper": false,
   "status": "Draft",
   "subdevices": [

@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "61757e9c-92d5-431f-a28f-22b2f30116dc",
   "manufacturername": ["_TZE200_h4cgnbzg", "_TZE200_exfrnlow", "_TZE200_9m4kmbfu", "_TZE200_3yp57tby", "_TZE200_9gvruqf5", "_TZE200_zr9c0day", "_TZE200_0dvm9mva"],
   "modelid": ["TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601"],
   "vendor": "Tuya",
-  "product": "Saswell TRVs",
+  "product": "Saswell TRVs (TS0601)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

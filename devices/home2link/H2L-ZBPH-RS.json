@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "d9ed5ba0-4957-47b5-9e75-d7f7bf1fa153",
   "manufacturername": "H2L-ZBPH-RS",
   "modelid": "H2L-ZBPH-RS",
-  "product": "H2L-ZBPH-RS",
+  "vendor": "Home2Link",
+  "product": "Hue Curtain Motor controller (H2L-ZBPH-RS)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

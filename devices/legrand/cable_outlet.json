@@ -1,8 +1,11 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "505e4a2f-5bde-46b2-a149-2fc536d7c2f7",
+  "ddfvalidate": false,
   "manufacturername": "Legrand",
   "modelid": "Cable outlet",
-  "product": "Cable outlet",
+  "vendor": "Legrand",
+  "product": "Cable outlet 3000W (064879)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

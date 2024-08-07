@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "076dc726-f9b8-4ffd-bb9e-1f9c48556416",
   "manufacturername": "_TZ3000_llfaquvp",
   "modelid": "TS0012",
-  "vendor": "NEO",
-  "product": "Immax NEO Smart controller",
+  "vendor": "Neo",
+  "product": "Immax Smart controller (TS0012)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

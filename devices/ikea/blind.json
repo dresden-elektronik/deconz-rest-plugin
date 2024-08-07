@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "b6e5fb8d-50ee-4c6a-9526-01ef58219853",
   "manufacturername": [
     "$MF_IKEA",
     "$MF_IKEA",
@@ -12,6 +13,8 @@
     "PRAKTLYSING cellular blind",
     "TREDANSEN block-out cellul blind"
   ],
+  "vendor": "IKEA",
+  "product": "Blinds (FYRTUR/KADRILJ/PRAKTLYSING/TREDANSEN)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -71,6 +74,9 @@
           "name": "cap/groups/not_supported"
         },
         {
+          "name": "state/alert"
+        },
+        {
           "name": "state/lift"
         },
         {
@@ -80,7 +86,7 @@
             "ep": 1,
             "cl": "0x0102",
             "at": "0x0008",
-            "eval": "Item.val = Attr.val === 0"
+            "eval": "Item.val = Attr.val < 100"
           },
           "read": {
             "fn": "none"
@@ -161,6 +167,9 @@
         },
         {
           "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/alert"
         },
         {
           "name": "config/on"

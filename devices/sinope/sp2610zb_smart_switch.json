@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "34ba6cbd-2798-4ac2-b5d4-9918b3bd89c5",
   "manufacturername": "Sinope Technologies",
   "modelid": "SP2610ZB",
-  "product": "SP2610ZB",
+  "vendor": "Sinope",
+  "product": "Smart in-wall outlet US (SP2610ZB)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

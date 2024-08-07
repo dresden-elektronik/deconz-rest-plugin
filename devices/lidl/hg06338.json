@@ -1,5 +1,6 @@
 {
     "schema": "devcap1.schema.json",
+    "uuid": "a417ba23-2ea6-417e-9093-8110edb20413",
     "manufacturername": [
         "LIDL Silvercrest",
         "_TZ3000_1obwwnmq"
@@ -8,7 +9,8 @@
         "HG06338",
         "TS011F"
     ],
-    "product": "LIDL Silvercrest Smart USB Extension Lead",
+    "vendor": "Lidl",
+    "product": "SilverCrest power strip 3 AC (16A) with 4 USB (HG06338)",
     "sleeper": false,
     "status": "Gold",
     "subdevices": [

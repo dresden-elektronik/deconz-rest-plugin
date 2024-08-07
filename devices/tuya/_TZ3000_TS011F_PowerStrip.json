@@ -1,8 +1,22 @@
 {
    "schema":"devcap1.schema.json",
-   "manufacturername":["_TZ3000_cfnprab5","_TZ3000_o005nuxx","TZ3000_air9m6af","_TZ3000_9djocypn","_TZ3000_bppxj3sf","_TZ3000_bppxj3sf"],
-   "modelid":["TS011F","TS011F","TS011F","TS011F","TS011F","TS011F"],
-   "product":"Tuya Powerstrip w/USB",
+   "uuid":"692c7676-9365-4ec4-9549-9d7c114986f2",
+   "manufacturername": [
+      "_TZ3000_cfnprab5",
+      "_TZ3000_o005nuxx",
+      "TZ3000_air9m6af",
+      "_TZ3000_9djocypn",
+      "_TZ3000_bppxj3sf"
+   ],
+   "modelid": [
+      "TS011F",
+      "TS011F",
+      "TS011F",
+      "TS011F",
+      "TS011F"
+   ],
+   "vendor": "Tuya",
+   "product":"Powerstrip with USB (TS011F)",
    "sleeper":false,
    "status":"Gold",
    "subdevices":[

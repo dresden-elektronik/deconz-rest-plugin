@@ -1,9 +1,10 @@
 {
    "schema":"devcap1.schema.json",
-   "manufacturername":"_TZ3000_0zrccfgx",
-   "modelid":"TS0215A",
+   "uuid":"8f5efd13-fd87-4f67-acdf-fe02bde82d3d",
+   "manufacturername":["_TZ3000_0zrccfgx", "_TZ3000_p6ju8myv"],
+   "modelid":["TS0215A", "TS0215A"],
    "vendor":"Woox",
-   "product":"R7054 4 gang",
+   "product":"4 gang switch (R7054)",
    "sleeper":true,
    "status":"Gold",
    "subdevices":[
@@ -73,7 +74,8 @@
                "name":"state/lastupdated"
             },
             {
-               "name":"state/lowbattery"
+               "name": "state/lowbattery",
+               "default": false
             }
          ]
       }

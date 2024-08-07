@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "b0f2c040-b837-4b4e-baa6-4f112e3f0d68",
   "manufacturername": "lk",
   "modelid": "ZBT-CCTLight-M3500107",
-  "product": "Linkind 4.8W GU10 Bulb Dimmable & Tunable",
+  "vendor": "AiDot Linkind",
+  "product": "4.8W GU10 Bulb Dimmable & Tunable (M3500107)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

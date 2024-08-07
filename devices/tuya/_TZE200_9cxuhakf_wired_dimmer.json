@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "2762e581-9e0c-4586-9cab-d636b7c3e5aa",
   "manufacturername": "_TZE200_9cxuhakf",
   "modelid": "TS0601",
   "vendor": "Mercator",
-  "product": "Mercator SSWM-DIMZ",
+  "product": "Switch Mechanism (SSWM-DIMZ)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

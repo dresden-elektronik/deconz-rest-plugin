@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "7dbd20aa-7b02-4f0f-bb48-b9aaaf8122cb",
   "manufacturername": "Heiman",
   "modelid": "SMOK_YDLV10",
   "vendor": "Schwaiger",
-  "product": "Smoke detector ZHS20",
+  "product": "Smoke detector (ZHS20)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

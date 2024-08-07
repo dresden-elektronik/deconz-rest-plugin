@@ -1,8 +1,10 @@
 {
     "schema": "devcap1.schema.json",
+    "uuid": "37f521f8-bcb4-41ca-a865-961258d96ca9",
     "manufacturername": "_TZ3000_cehuw1lw",
     "modelid": "TS011F",
-    "product": "Random tuya plug",
+    "vendor": "Tuya",
+    "product": "Standard plug (TS011F)",
     "sleeper": false,
     "status": "Gold",
     "subdevices": [

@@ -13,6 +13,7 @@
 #include <QTcpSocket>
 #include <QUrlQuery>
 #include <QVariantMap>
+#include <math.h>
 #include "database.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
@@ -20,6 +21,7 @@
 #include "json.h"
 #include "colorspace.h"
 #include "product_match.h"
+#include "tuya.h"
 
 /*! Lights REST API broker.
     \param req - request data
@@ -310,6 +312,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RCapGroupsNotSupported) { groups = false; }
         else if (rid.suffix == RCapSleeper) { capabilities["sleeper"] = true; }
         else if (rid.suffix == RCapTransitionBlock) { capabilities["transition_block"] = true; }
+        else if (rid.suffix == RConfigBriCoupleCt) { configBri["couple_ct"] = item->toBool(); }
         else if (rid.suffix == RConfigBriExecuteIfOff) { configBri["execute_if_off"] = item->toBool(); }
         else if (rid.suffix == RConfigBriMax) { configBri["max"] = item->toNumber(); }
         else if (rid.suffix == RConfigBriMin) { configBri["min"] = item->toNumber(); }
@@ -1731,7 +1734,22 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
                     QString path1 = QString("%1/%2").arg(path).arg(key);
                     value = map1[key];
 
-                    if (key == "execute_if_off")
+                    if (key == "couple_ct")
+                    {
+                        ResourceItem *item = lightNode->item(RConfigBriCoupleCt);
+                        if (item)
+                        {
+                            paramOk = true;
+                            if (value.type() == QVariant::Bool)
+                            {
+                                valueOk = true;
+                                change.addTargetValue(RConfigBriCoupleCt, value.toBool());
+                                lightNode->setValue(RConfigBriCoupleCt, value.toBool());
+                                DB_StoreSubDeviceItem(lightNode, item);
+                            }
+                        }
+                    }
+                    else if (key == "execute_if_off")
                     {
                         ResourceItem *item = lightNode->item(RConfigBriExecuteIfOff);
                         if (item)
@@ -2325,7 +2343,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     QString id = req.path[3];
     quint16 cluster = WINDOW_COVERING_CLUSTER_ID;
     // if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain"))) // FIXME - for testing only.
-    if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.")))
+    if (taskRef.lightNode->modelId() != QLatin1String("lumi.curtain.agl001") &&
+        taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.")))
     {
         cluster = ANALOG_OUTPUT_CLUSTER_ID;
         supportsLiftInc = taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.acn002"));
@@ -2552,9 +2571,14 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             {
                 targetLiftZigBee = targetLift == 0 ? 100 : 0;
             }
-            else
+            else if (bStatus && nHex < 44)
             {
                 targetLiftZigBee = targetLift == 100 ? 100 : 0;
+            }
+            else
+            {
+                // New devices no need thoses previous hack
+                targetLiftZigBee = targetLift;
             }
         }
         else
@@ -3897,6 +3921,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     else if (rid.suffix == RCapColorGradientStyles) { capabilitiesColorGradient["styles"] = getHueGradientStyleNames(item->toNumber()); }
                     else if (rid.suffix == RCapSleeper) { capabilities["sleeper"] = true; }
                     else if (rid.suffix == RCapTransitionBlock) { capabilities["transition_block"] = true; }
+                    else if (rid.suffix == RConfigBriCoupleCt) { configBri["couple_ct"] = item->toBool(); }
                     else if (rid.suffix == RConfigBriExecuteIfOff) { configBri["execute_if_off"] = item->toBool(); }
                     else if (rid.suffix == RConfigBriMax) { configBri["max"] = item->toNumber(); }
                     else if (rid.suffix == RConfigBriMin) { configBri["min"] = item->toNumber(); }

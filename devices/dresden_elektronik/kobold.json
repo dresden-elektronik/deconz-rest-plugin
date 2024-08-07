@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "563992e6-fe20-416b-a7ba-b9ebfe362b90",
   "manufacturername": "dresden elektronik",
   "modelid": "Kobold",
-  "product": "Kobold",
+  "vendor": "dresden elektronik",
+  "product": "Smart dimmer switch (Kobold)",
   "sleeper": false,
   "supportsMgmtBind": true,
   "status": "Gold",

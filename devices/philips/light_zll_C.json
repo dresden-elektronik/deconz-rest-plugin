@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "793888d6-2257-45e3-b4c5-9c792a5bc47f",
   "manufacturername": [
     "$MF_PHILIPS",
     "$MF_PHILIPS",
@@ -36,9 +37,11 @@
     "LST002",
     "LCT012"
   ],
+  "vendor": "Philips",
   "product": "Hue white and color ambiance light",
   "sleeper": false,
   "status": "Gold",
+  "matchexpr": "R.hasCluster(0x0b,0xfc03)",
   "subdevices": [
     {
       "type": "$TYPE_EXTENDED_COLOR_LIGHT",
@@ -88,7 +91,8 @@
             "ep": "0x0b",
             "cl": "0x0000",
             "at": "0x0005"
-          }
+          },
+          "refresh.interval": 86400
         },
         {
           "name": "attr/name"

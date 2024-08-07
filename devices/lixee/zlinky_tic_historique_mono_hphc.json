@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "71da8cd7-eea9-4798-8a63-a527469354cf",
   "manufacturername": "LiXee",
   "modelid": "ZLinky_TIC",
   "vendor": "LiXee",
-  "product": "ZLinky_TIC historique+HPHC",
+  "product": "ZLinky_TIC mode historique HPHC",
   "sleeper": false,
   "status": "Draft",
   "subdevices": [

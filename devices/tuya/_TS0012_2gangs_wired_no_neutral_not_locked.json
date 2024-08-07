@@ -1,0 +1,126 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "dae97704-62d0-42d6-8652-d8ea6020a0de",
+  "manufacturername": "_TZ3000_lupfd8zu",
+  "modelid": "TS0012",
+  "vendor": "Tuya",
+  "product": "Tuya 2 gangs wired without neutral (TS0012)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_ON_OFF_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x02"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
+}

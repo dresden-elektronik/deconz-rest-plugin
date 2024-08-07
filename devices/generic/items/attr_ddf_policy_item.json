@@ -1,0 +1,28 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "attr/ddf_policy",
+  "datatype": "String",
+  "access": "RW",
+  "public": true,
+  "implicit": true,
+  "description": "Determines how DDF bundle is selected.",
+  "default": "latest_prefer_stable",
+  "values": [
+    [
+      "latest_prefer_stable",
+      "Use latest DDF bundle: Beta signed one if no stable available."
+    ],
+    [
+      "latest",
+      "Use latest DDF bundle either Beta or Stable signed."
+    ],
+    [
+      "pin",
+      "Stay on the pinned version (DDF bundle hash)."
+    ],
+    [
+      "raw_json",
+      "For development just use raw .json DDF."
+    ]
+  ]
+}

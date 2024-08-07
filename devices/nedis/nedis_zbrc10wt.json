@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "be72689b-cfc6-4968-a146-d9f92da3a225",
   "manufacturername": "_TZ3000_fsiepnrh",
   "modelid": "TS0215A",
   "vendor": "Nedis",
-  "product": "4 button remote",
+  "product": "4 button remote (ZBRC10WT)",
   "sleeper": true,
   "status": "Gold",
   "path": "/devices/nedis/nedis_zbrc10wt.json",

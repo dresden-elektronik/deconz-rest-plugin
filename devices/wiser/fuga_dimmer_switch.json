@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "de597758-80a6-4f63-84b4-c8497821f6e1",
   "manufacturername": "Schneider Electric",
   "modelid": "LK Dimmer",
-  "product": "LK Fuga Dimmer Switch",
+  "vendor": "Schneider Electric",
+  "product": "LK Fuga Wiser Wireless Dimmer (545D6102)",
   "sleeper": false,
   "status": "Gold",
   "path": "/devices/wiser/fuga_dimmer_switch.json",

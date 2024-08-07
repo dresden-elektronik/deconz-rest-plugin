@@ -1,0 +1,410 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "f5a8ab8c-fdf8-4e38-a933-c78e6bd2003b",
+  "manufacturername": [
+    "$MF_IKEA",
+    "$MF_IKEA"
+  ],
+  "modelid": [
+    "TRADFRI bulb E27 CWS 806lm",
+    "TRADFRI bulb GU10 CWS 345lm"
+  ],
+  "vendor": "IKEA",
+  "product": "Tradfri LED bulb E27 806 lumen CWS and GU10 345 lumen CWS (LED2004G8/LED2110R3)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_EXTENDED_COLOR_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/bri/move_with_onoff"
+        },
+        {
+          "name": "cap/color/capabilities",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": [
+              "0x400A",
+              "0x400B",
+              "0x400C",
+              "0x4010"
+            ]
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "cap/color/ct/max",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "cap/color/ct/min",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "cap/color/ct/computes_xy"
+        },
+        {
+          "name": "cap/color/xy/blue_x",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x0019",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "cap/color/xy/blue_y",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x001A",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "cap/color/xy/green_x",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x0015",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "cap/color/xy/green_y",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x0016",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "cap/color/xy/red_x",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x0011",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": [
+              "0x0011",
+              "0x0012",
+              "0x0015",
+              "0x0016",
+              "0x0019",
+              "0x001A"
+            ]
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "cap/color/xy/red_y",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x0012",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "cap/on/off_with_effect"
+        },
+        {
+          "name": "config/bri/couple_ct"
+        },
+        {
+          "name": "config/bri/execute_if_off"
+        },
+        {
+          "name": "config/bri/on_level",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/bri/options",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0008",
+            "at": [
+              "0x000F",
+              "0x0011",
+              "0x4000"
+            ]
+          },
+          "refresh.interval": 3600
+        },
+        {
+          "name": "config/bri/startup",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/color/ct/startup"
+        },
+        {
+          "name": "config/color/execute_if_off"
+        },
+        {
+          "name": "config/on/startup"
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/bri",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/colormode",
+          "values": [
+            [
+              "\"ct\"",
+              "color temperature"
+            ],
+            [
+              "\"hs\"",
+              "hue and saturation"
+            ],
+            [
+              "\"xy\"",
+              "CIE xy color space coordinates"
+            ]
+          ],
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x4001",
+            "eval": "Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": [
+              "0x4001",
+              "0x0003",
+              "0x0004",
+              "0x0007",
+              "0x4002",
+              "0x4000",
+              "0x0001"
+            ]
+          },
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/x",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/y",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/ct",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/effect",
+          "values": [
+            [
+              "\"none\"",
+              "no effect is active"
+            ],
+            [
+              "\"colorloop\"",
+              "colorloop through hue values"
+            ]
+          ],
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/hue",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/sat",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0008",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x01"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0300",
+      "report": [
+        {
+          "at": "0x0003",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0001"
+        },
+        {
+          "at": "0x0004",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0001"
+        },
+        {
+          "at": "0x0007",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0001"
+        },
+        {
+          "at": "0x4001",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300
+        },
+        {
+          "at": "0x4000",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0001"
+        },
+        {
+          "at": "0x0001",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x01"
+        },
+        {
+          "at": "0x4002",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x01"
+        }
+      ]
+    }
+  ]
+}

@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "e35a7968-ef48-4c5f-9a7c-1c63aaf7e74a",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI control outlet",
-  "product": "TRADFRI control outlet",
+  "vendor": "IKEA",
+  "product": "Tradfri Control Outlet (E1603)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -64,7 +66,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -76,14 +78,15 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0000"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0006"
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
     }
   ]
 }

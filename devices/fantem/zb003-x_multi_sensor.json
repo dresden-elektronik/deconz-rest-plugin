@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "69a81d7b-0fcf-41a7-96f0-15a8216c0e24",
   "manufacturername": "_TZ3210_wuhzzfqg",
   "modelid": "TS0202",
   "vendor": "Fantem",
-  "product": "Multi sensor ZB003-X",
+  "product": "Multi sensor 4 in 1 (ZB003-X)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -47,7 +48,7 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
           "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
@@ -198,7 +199,7 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
           "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
@@ -283,7 +284,7 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
           "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
@@ -368,7 +369,7 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
           "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {

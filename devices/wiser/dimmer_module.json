@@ -1,0 +1,91 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "91302945-48e9-448e-94c9-4aa1286441dc",
+  "manufacturername": "Schneider Electric",
+  "modelid": "CH/DIMMER/1",
+  "vendor": "Schneider Electric",
+  "product": "Wiser 40/300-series module dimmer (41EPBDWCLMZ/354PBDMBTZ)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_DIMMABLE_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x03"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/bri"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 600
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "cl": "0x0008",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x01"
+        }
+      ]
+    }
+  ]
+}

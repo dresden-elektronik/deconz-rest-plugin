@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "ac5adf59-1be3-47a3-9de2-4657d0583331",
   "manufacturername": "$MF_IKEA",
   "modelid": "VINDSTYRKA",
-  "product": "Vindstyrka Air Quality Sensor",
+  "vendor": "IKEA",
+  "product": "Vindstyrka air quality sensor (E2112)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -135,7 +137,7 @@
             "ep": 1,
             "cl": "0x0402",
             "at": "0x0000",
-            "eval": "Item.val = (Attr.val - R.item('config/offset').val) / 100"
+            "eval": "Item.val = (Attr.val + R.item('config/offset').val) / 100"
           },
           "read": {
             "fn": "zcl:attr",
@@ -280,7 +282,7 @@
             "ep": 1,
             "cl": "0x0405",
             "at": "0x0000",
-            "eval": "Item.val = (Attr.val - R.item('config/offset').val) / 100"
+            "eval": "Item.val = (Attr.val + R.item('config/offset').val) / 100"
           },
           "read": {
             "fn": "zcl:attr",
@@ -534,36 +536,11 @@
         },
         {
           "name": "cap/measured_value/max",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0xFC7E",
-            "mf": "0x117C",
-            "at": "0x0002",
-            "eval": "Item.val = Attr.val"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x042A",
-            "mf": "0x117C",
-            "at": [
-              "0x0001",
-              "0x0002"
-            ]
-          },
-          "refresh.interval": 86400
+          "static": 5500
         },
         {
           "name": "cap/measured_value/min",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0xFC7E",
-            "mf": "0x117C",
-            "at": "0x0001",
-            "eval": "Item.val = Attr.val"
-          }
+          "static": 0
         },
         {
           "name": "cap/measured_value/quantity",
@@ -591,7 +568,7 @@
             "cl": "0xFC7E",
             "mf": "0x117C",
             "at": "0x0000",
-            "eval": "Item.val = Attr.val"
+            "script": "fc7e_tvoc_level.js"
           },
           "default": 0,
           "read": {
@@ -605,15 +582,7 @@
         },
         {
           "name": "state/airqualityppb",
-          "deprecated": "2023-09-17",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0xFC7E",
-            "mf": "0x117C",
-            "at": "0x0000",
-            "eval": "Item.val = Attr.val"
-          }
+          "deprecated": "2023-09-17"
         },
         {
           "name": "state/airquality",

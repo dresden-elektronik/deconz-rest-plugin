@@ -155,7 +155,6 @@ public:
 private:
     DeletedState m_deletedstate;
     SensorFingerprint m_fingerPrint;
-    SensorMode m_mode;
     uint8_t m_resetRetryCount;
     uint8_t m_zdpResetSeq;
     ButtonMapRef m_buttonMapRef{};

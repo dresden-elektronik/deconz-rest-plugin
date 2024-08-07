@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "02e93675-afbe-435c-b071-399c4d53a643",
   "manufacturername": "Home Control AS",
   "modelid": "HC-SLM-1",
-  "vendor": "Wattle",
-  "product": "Wattle Door Lock SPL Smart",
+  "vendor": "Heimgard",
+  "product": "Door lock SPL smart (HC-SLM-1)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "cf578c9a-7c8c-4bf1-b176-d4ec69c0c0b7",
   "manufacturername": "$MF_PHILIPS",
   "modelid": "SML002",
   "vendor": "Philips",
@@ -34,37 +35,10 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0000",
-            "at": "0x0004",
-            "eval": "Item.val = Attr.val"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0000",
-            "at": "0x0004"
-          },
-          "refresh.interval": 86400
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0000",
-            "at": "0x0005",
-            "eval": "Item.val = Attr.val"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0000",
-            "at": "0x0005"
-          }
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
@@ -490,7 +464,7 @@
             "ep": 2,
             "cl": "0x0402",
             "at": "0x0000",
-            "eval": "Item.val = (Attr.val - R.item('config/offset').val) / 100"
+            "eval": "Item.val = (Attr.val + R.item('config/offset').val) / 100"
           },
           "read": {
             "fn": "zcl:attr",

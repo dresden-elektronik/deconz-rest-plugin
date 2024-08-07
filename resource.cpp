@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2024 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -10,6 +10,7 @@
 
 #include <QString>
 
+#include <deconz/u_assert.h>
 #include <deconz/dbg_trace.h>
 #include <utils/stringcache.h>
 #include "resource.h"
@@ -50,13 +51,17 @@ const char *REventTimerFired = "event/timerfired";
 const char *REventValidGroup = "event/validgroup";
 const char *REventZclReadReportConfigResponse = "event/zcl.read.report.config.response";
 const char *REventZclResponse = "event/zcl.response";
+const char *REventZdpReload = "event/zdp.reload";
 const char *REventZdpMgmtBindResponse = "event/zdp.mgmt.bind.response";
 const char *REventZdpResponse = "event/zdp.response";
 
 const char *RInvalidSuffix = "invalid/suffix";
 
+const char *RAttrAppVersion = "attr/appversion";
 const char *RAttrClass = "attr/class";
 const char *RAttrConfigId = "attr/configid";
+const char *RAttrDdfHash = "attr/ddf_hash";
+const char *RAttrDdfPolicy = "attr/ddf_policy";
 const char *RAttrExtAddress = "attr/extaddress";
 const char *RAttrGroupAddress = "attr/groupaddress";
 const char *RAttrId = "attr/id";
@@ -64,9 +69,11 @@ const char *RAttrLastAnnounced = "attr/lastannounced";
 const char *RAttrLastSeen = "attr/lastseen";
 const char *RAttrLevelMin = "attr/levelmin";
 const char *RAttrManufacturerName = "attr/manufacturername";
+const char *RAttrMode = "attr/mode";
 const char *RAttrModelId = "attr/modelid";
 const char *RAttrName = "attr/name";
 const char *RAttrNwkAddress = "attr/nwkaddress";
+const char *RAttrOtaVersion = "attr/otaversion";
 const char *RAttrPowerOnCt = "attr/poweronct";
 const char *RAttrPowerOnLevel = "attr/poweronlevel";
 const char *RAttrPowerup = "attr/powerup";
@@ -240,11 +247,13 @@ const char *RConfigArmedStayExitDelay = "config/armed_stay_exit_delay";
 const char *RConfigArmedStayTriggerDuration = "config/armed_stay_trigger_duration";
 const char *RConfigBattery = "config/battery";
 const char *RConfigBatteryBis = "config/battery_bis";
+const char *RConfigBriCoupleCt = "config/bri/couple_ct";
 const char *RConfigBriExecuteIfOff = "config/bri/execute_if_off";
 const char *RConfigBriMax = "config/bri/max";
 const char *RConfigBriMin = "config/bri/min";
 const char *RConfigBriOnLevel = "config/bri/on_level";
 const char *RConfigBriOnOffTransitiontime = "config/bri/onoff_transitiontime";
+const char *RConfigBriOptions = "config/bri/options";
 const char *RConfigBriStartup = "config/bri/startup";
 const char *RConfigCheckin = "config/checkin";
 const char *RConfigClickMode = "config/clickmode";
@@ -286,6 +295,7 @@ const char *RConfigLastChangeSource = "config/lastchange_source";
 const char *RConfigLastChangeTime = "config/lastchange_time";
 const char *RConfigLat = "config/lat";
 const char *RConfigLedIndication = "config/ledindication";
+const char *RConfigLoadBalancing = "config/loadbalancing";
 const char *RConfigLocalTime = "config/localtime";
 const char *RConfigLock = "config/lock";
 const char *RConfigLocked = "config/locked";
@@ -299,6 +309,7 @@ const char *RConfigOnStartup = "config/on/startup";
 const char *RConfigPending = "config/pending";
 const char *RConfigPreset = "config/preset";
 const char *RConfigPulseConfiguration = "config/pulseconfiguration";
+const char *RConfigRadiatorCovered = "config/radiatorcovered";
 const char *RConfigReachable = "config/reachable";
 const char *RConfigReportGrid = "config/reportgrid";
 const char *RConfigResetPresence = "config/resetpresence";
@@ -343,6 +354,7 @@ const char *RConfigUsertest = "config/usertest";
 const char *RConfigVolume = "config/volume";
 const char *RConfigWindowCoveringType = "config/windowcoveringtype";
 const char *RConfigWindowOpen = "config/windowopen_set";
+const char *RConfigWindowOpenDetectionEnabled = "config/windowopendetectionenabled";
 
 const QStringList RConfigDeviceModeValues({
     "singlerocker", "singlepushbutton", "dualrocker", "dualpushbutton"
@@ -365,8 +377,11 @@ void initResourceDescriptors()
     rItemDescriptors.clear();
 
     // init resource lookup
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrAppVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrClass));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrConfigId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrDdfHash));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrDdfPolicy));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RAttrExtAddress));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RAttrGroupAddress));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrId));
@@ -374,9 +389,11 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RAttrLastSeen));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RAttrLevelMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrManufacturerName));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrModelId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrName));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RAttrNwkAddress));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrOtaVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RAttrPowerOnCt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RAttrPowerOnLevel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrPowerup));
@@ -438,7 +455,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateLastCheckin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateLastSet));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateLastUpdated));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateLift, 0, 100));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateLift));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateLightLevel, 0, 0xfffe));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateLocaltime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStateLockState));
@@ -479,7 +496,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateTemperature, -27315, 32767));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStateTemperatureBis, -27315, 32767));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateTest));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateTilt, 0, 100));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateTilt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStateTiltAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RStateUtc));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateValve));
@@ -537,11 +554,13 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigArmedStayTriggerDuration, 0, 255));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBatteryBis, 0, 100));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool,  QVariant::Bool, RConfigBriCoupleCt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool,  QVariant::Bool, RConfigBriExecuteIfOff));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBriMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBriMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBriOnLevel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigBriOnOffTransitiontime));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBriOptions));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigBriStartup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RConfigCheckin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigClickMode));
@@ -584,6 +603,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RConfigLastChangeTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigLat));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigLedIndication));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigLoadBalancing));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, QVariant::String, RConfigLocalTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigLock));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigLocked));
@@ -597,6 +617,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigPending));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigPreset));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigPulseConfiguration));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigRadiatorCovered));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigReportGrid));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigResetPresence));
@@ -640,6 +661,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigVolume));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigWindowCoveringType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigWindowOpen));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigWindowOpenDetectionEnabled));
 }
 
 const char *getResourcePrefix(const QString &str)
@@ -754,18 +776,24 @@ ResourceItem::ResourceItem(const ResourceItem &other)
 
 bool ResourceItem::setItemString(const QString &str)
 {
+    if (!(m_rid->type == DataTypeString ||
+          m_rid->type == DataTypeTimePattern))
+    {
+        return false;
+    }
+
     const auto utf8 = str.toUtf8();
 
-    if (utf8.size() <= int(m_istr.maxSize()))
+    // for now keep all attr/* items also as atoms
+    if (utf8.size() <= int(m_istr.maxSize()) && m_rid->suffix[0] != 'a' && m_rid->suffix[1] != 't')
     {
         m_istr.setString(utf8.constData());
-        m_strHandle = {};
+        m_strHandle = STRING_CACHE_INVALID_HANDLE;
         return true;
     }
 
-    m_strHandle =  GlobalStringCache()->put(utf8.constData(), size_t(utf8.size()), StringCache::Immutable);
-
-    return isValid(m_strHandle);
+    m_strHandle = StringCacheAdd(utf8.constData(), (unsigned)utf8.size(), StringCacheImmutable);
+    return m_strHandle != STRING_CACHE_INVALID_HANDLE;
 }
 
 /*! Move constructor. */
@@ -803,6 +831,25 @@ bool ResourceItem::needPushChange() const
 void ResourceItem::clearNeedPush()
 {
     m_flags &= ~static_cast<quint16>(FlagNeedPushSet | FlagNeedPushChange);
+}
+
+/*! Returns true when a value needs to be stored to database.
+ */
+bool ResourceItem::needStore() const
+{
+    return (m_flags & FlagNeedStore) > 0;
+}
+
+/*! Sets need store flag. */
+void ResourceItem::setNeedStore()
+{
+    m_flags |= static_cast<quint16>(FlagNeedStore);
+}
+
+/*! Clears need store flag. */
+void ResourceItem::clearNeedStore()
+{
+    m_flags &= ~static_cast<quint16>(FlagNeedStore);
 }
 
 bool ResourceItem::pushOnSet() const
@@ -873,6 +920,15 @@ void ResourceItem::setImplicit(bool implicit)
     }
 }
 
+void ResourceItem::setZclUnsupportedAttribute()
+{
+    m_flags |= static_cast<uint16_t>(FlagZclUnsupportedAttr);
+}
+
+bool ResourceItem::zclUnsupportedAttribute() const
+{
+    return (m_flags & FlagZclUnsupportedAttr) > 0;
+}
 
 /*! Copy assignment. */
 ResourceItem &ResourceItem::operator=(const ResourceItem &other)
@@ -889,6 +945,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_parseFunction = other.m_parseFunction;
     m_refreshInterval = other.m_refreshInterval;
     m_zclParam = other.m_zclParam;
+    m_readEndpoint = other.m_readEndpoint;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_lastZclReport = other.m_lastZclReport;
@@ -940,6 +997,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
     m_lastChanged = std::move(other.m_lastChanged);
     m_rulesInvolved = std::move(other.m_rulesInvolved);
     m_zclParam = other.m_zclParam;
+    m_readEndpoint = other.m_readEndpoint;
     m_parseFunction = other.m_parseFunction;
     m_refreshInterval = other.m_refreshInterval;
     m_ddfItemHandle = other.m_ddfItemHandle;
@@ -1034,13 +1092,19 @@ const QString &ResourceItem::toString() const
 
 QLatin1String ResourceItem::toLatin1String() const
 {
-    if (!isValid(m_strHandle))
+    if (m_strHandle == STRING_CACHE_INVALID_HANDLE)
     {
         return m_istr;
     }
-    else if (m_strHandle.base->length > 0)
+    else
     {
-        return QLatin1String(&m_strHandle.base->buf[0], m_strHandle.base->length);
+        const char *str;
+        unsigned length;
+
+        if (StringCacheGet(m_strHandle, &str, &length))
+        {
+            return QLatin1String(str, length);
+        }
     }
 
     return QLatin1String("");
@@ -1048,9 +1112,16 @@ QLatin1String ResourceItem::toLatin1String() const
 
 const char *ResourceItem::toCString() const
 {
-    if (isValid(m_strHandle))
+    if (m_strHandle != STRING_CACHE_INVALID_HANDLE)
     {
-        return &m_strHandle.base->buf[0];
+        const char *str;
+        unsigned length;
+
+        if (StringCacheGet(m_strHandle, &str, &length))
+        {
+            U_ASSERT(str[length] == '\0');
+            return str;
+        }
     }
 
     return m_istr.c_str();
@@ -1070,6 +1141,27 @@ qint64 ResourceItem::toNumberPrevious() const
 bool ResourceItem::toBool() const
 {
     return m_num != 0;
+}
+
+/*! Sets the item string to \p str.
+
+    \param str - utf8 string, \0 terminated
+    \param length - the length of str excluding \0 (aka strlen(str))
+                    can be -1 to let the length be determined automatically
+ */
+bool ResourceItem::setValue(const char *str, int length, ValueSource source)
+{
+    U_ASSERT(str);
+    U_ASSERT(length >= -1);
+
+    if (length == -1) // strlen
+    {
+        for (length = 0; str[length]; length++)
+        {}
+    }
+
+    const QVariant val(QLatin1String(str, length));
+    return setValue(val, source);
 }
 
 bool ResourceItem::setValue(const QString &val, ValueSource source)
@@ -1092,6 +1184,7 @@ bool ResourceItem::setValue(qint64 val, ValueSource source)
     m_numPrev = m_num;
     m_valueSource = source;
     m_flags |= FlagNeedPushSet;
+    m_flags |= FlagNeedStore;
 
     if (m_num != val)
     {
@@ -1132,6 +1225,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
                 *m_str = str;
                 m_lastChanged = m_lastSet;
                 m_flags |= FlagNeedPushChange;
+                m_flags |= FlagNeedStore;
             }
             return true;
         }
@@ -1141,6 +1235,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
         m_lastSet = now;
         m_numPrev = m_num;
         m_flags |= FlagNeedPushSet;
+        m_flags |= FlagNeedStore;
 
         if (m_num != val.toBool())
         {
@@ -1171,6 +1266,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
                     m_num = dt.toMSecsSinceEpoch();
                     m_lastChanged = m_lastSet;
                     m_flags |= FlagNeedPushChange;
+                    m_flags |= FlagNeedStore;
                 }
                 return true;
             }
@@ -1186,6 +1282,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
                 m_num = val.toDateTime().toMSecsSinceEpoch();
                 m_lastChanged = m_lastSet;
                 m_flags |= FlagNeedPushChange;
+                m_flags |= FlagNeedStore;
             }
             return true;
         }
@@ -1206,6 +1303,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
                 m_double = d;
                 m_lastChanged = m_lastSet;
                 m_flags |= FlagNeedPushChange;
+                m_flags |= FlagNeedStore;
             }
             return true;
         }
@@ -1229,6 +1327,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
             m_lastSet = now;
             m_numPrev = m_num;
             m_flags |= FlagNeedPushSet;
+            m_flags |= FlagNeedStore;
 
             if (m_num != n)
             {
@@ -1241,6 +1340,69 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
     }
 
     m_valueSource = SourceUnknown;
+    return false;
+}
+
+/*! Returns true if the items string exactls equals \p str.
+
+    This helps to get rid of some Qt specific checks.
+    So instead of
+
+         if (item->toString() == QLatin1String("some string")) {}
+
+    write
+
+         if (item->equalsString("some string")) {}
+
+    \param str - utf8 string
+    \param length - optional length of str aka strlen(str)
+                    the default value of -1 means the length is determined automatically
+ */
+bool ResourceItem::equalsString(const char *str, int length) const
+{
+    U_ASSERT(str);
+    U_ASSERT(length >= -1);
+    if (!str)
+    {
+        return false;
+    }
+
+    if (length == -1) // strlen
+    {
+        for (length = 0; str[length]; length++)
+        {}
+    }
+
+    if (m_strHandle != STRING_CACHE_INVALID_HANDLE && length > 0)
+    {
+        const char *istr;
+        unsigned ilen;
+        if (StringCacheGet(m_strHandle, &istr, &ilen))
+        {
+            if (ilen != length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < length; i++)
+            {
+                if (str[i] != istr[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    if (m_istr.size() == (size_t)length)
+    {
+        return m_istr == str;
+    }
+
     return false;
 }
 

@@ -4,5 +4,28 @@
   "datatype": "UInt32",
   "access": "RW",
   "public": true,
-  "description": "Operational mode."
+  "description": "Operational mode.",
+  "default": 1,
+  "values": [
+    [
+      0,
+      "none"
+    ],
+    [
+      1,
+      "scenes"
+    ],
+    [
+      2,
+      "two_groups"
+    ],
+    [
+      3,
+      "color_temperature"
+    ],
+    [
+      4,
+      "dimmer"
+    ]
+  ]
 }

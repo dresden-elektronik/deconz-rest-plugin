@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "7f423a6d-8c5d-4995-8b74-30588ae6184f",
   "manufacturername": "_TZE204_qasjif9e",
   "modelid": "TS0601",
-  "product": "Tuya MmwRadar Mini human breathe sensor",
+  "vendor": "Tuya",
+  "product": "Human presence detector ceiling (TS0601)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

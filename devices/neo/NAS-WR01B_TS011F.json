@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "da98ceeb-581b-4e7f-ac9b-8bc4a6eb9975",
   "manufacturername": [
     "_TZ3000_gjnozsaz",
     "_TZ3000_w0qqde0g",
@@ -16,7 +17,8 @@
     "TS011F",
     "TS011F"
   ],
-  "product": "NEO NAS-WR01B Smart Plug",
+  "vendor": "Neo",
+  "product": "Smart plug 16A with power monitoring EU (NAS-WR01B)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

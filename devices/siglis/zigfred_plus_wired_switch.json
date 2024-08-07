@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "14fd6af8-b8bd-4b11-8eee-135341040fdb",
   "manufacturername": "Siglis",
   "modelid": "zigfred plus",
-  "product": "zigfred plus",
+  "vendor": "Siglis",
+  "product": "4x dimmer switch (zigfred plus)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

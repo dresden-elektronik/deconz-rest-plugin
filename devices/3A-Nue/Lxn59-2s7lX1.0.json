@@ -1,8 +1,10 @@
 {
   "schema":"devcap1.schema.json",
+  "uuid":"417af879-4d80-4816-ba08-b1b74aeead77",
   "manufacturername":"3A Smart Home DE",
   "modelid":"LXN59-2S7LX1.0",
-  "product":"2 gang switch",
+  "vendor": "Zemismart",
+  "product":"2 gang inline switch (ZW-EU-02)",
   "sleeper":false,
   "status":"Gold",
   "subdevices":[

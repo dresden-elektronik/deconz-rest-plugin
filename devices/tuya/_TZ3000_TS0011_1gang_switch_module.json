@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZ3000_txpirhfq","_TZ3000_qmi1cfuq", "_TZ3000_ji4araar","_TZ3000_v7sopte0","_TYZB01_qeqvmvti"],
-  "modelid": ["TS0011", "TS0011", "TS0011","TS0011","TS0011"],
-  "product": "1 gang switch module",
+  "uuid": "dff3219b-6a94-454f-a71c-00b8391b15e7",
+  "manufacturername": ["_TZ3000_txpirhfq","_TZ3000_qmi1cfuq", "_TZ3000_ji4araar","_TZ3000_v7sopte0","_TYZB01_qeqvmvti","_TZ3000_7jsk6lxz", "_TZ3000_hhiodade"],
+  "modelid": ["TS0011", "TS0011", "TS0011","TS0011","TS0011","TS0011", "TS0011"],
+  "vendor": "Tuya",
+  "product": "1 gang switch module (TS0011)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

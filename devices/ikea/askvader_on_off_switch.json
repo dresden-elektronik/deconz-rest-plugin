@@ -1,0 +1,92 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "31959321-1591-4893-9bd0-e46f80201afa",
+  "manufacturername": "$MF_IKEA",
+  "modelid": "ASKVADER on/off switch",
+  "vendor": "IKEA",
+  "product": "Askvader On/off switch (E1836)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    }
+  ]
+}

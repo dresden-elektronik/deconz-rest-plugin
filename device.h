@@ -99,11 +99,14 @@ public:
     Device(const Device &) = delete;
     explicit Device(DeviceKey key, deCONZ::ApsController*apsCtrl, QObject *parent = nullptr);
     ~Device();
+    void setDeviceId(int id);
+    int deviceId() const;
     void addSubDevice(Resource *sub);
     DeviceKey key() const;
     const deCONZ::Node *node() const;
     bool managed() const;
     void setManaged(bool managed);
+    void setSupportsMgmtBind(bool supported);
     void handleEvent(const Event &event, DEV_StateLevel level = StateLevel0);
     void timerEvent(QTimerEvent *event) override;
     qint64 lastAwakeMs() const;

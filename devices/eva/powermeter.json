@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "dab331b6-f764-46f3-87df-ce99a70f0972",
   "manufacturername": "Eva",
   "modelid": "Meter Reader",
   "vendor": "Eva",
-  "product": "Powermeter",
+  "product": "Meter Reader",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

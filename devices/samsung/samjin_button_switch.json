@@ -1,10 +1,12 @@
 {
     "schema": "devcap1.schema.json",
+    "uuid": "23740b64-7f71-4edb-9141-69307741fe75",
     "doc:path": "samsung/samjin_button_switch.md",
     "doc:hdr": "Samsung Button",
     "manufacturername": "$MF_SAMJIN",
     "modelid": "button",
-    "product": "Samsung Button (IM6001-BTP01)",
+    "vendor": "Samsung",
+    "product": "Button (IM6001-BTP01)",
     "status": "Silver",
     "md:known_issues": [ ],
     "subdevices": [

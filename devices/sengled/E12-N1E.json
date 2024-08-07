@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "3df1f61f-b3e7-40f0-ac8c-2578bc2e235d",
   "manufacturername": "sengled",
   "modelid": "E12-N1E",
-  "vendor": "sengled",
-  "product": "E12-N1E",
+  "vendor": "Sengled",
+  "product": "Soft white BR30 bulb (E12-N1E)",
   "sleeper": false,
   "status": "Bronze",
   "subdevices": [

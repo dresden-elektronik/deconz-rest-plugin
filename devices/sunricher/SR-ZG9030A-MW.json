@@ -1,0 +1,329 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "74a1179a-a69a-4219-9196-fa6e5fdc5d1d",
+  "manufacturername": "Sunricher",
+  "modelid": "HK-DIM",
+  "vendor": "Sunricher",
+  "product": "Ceiling mount microwave occupancy sensor (SR-ZG9030A-MW)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_DIMMABLE_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/bri"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x02",
+        "0x0406"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0107",
+        "endpoint": "0x02",
+        "in": [
+          "0x0406"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/delay",
+          "refresh.interval": 3600,
+          "read": {
+            "at": "0x0020",
+            "cl": "0x0406",
+            "ep": 2,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0020",
+            "cl": "0x0406",
+            "ep": 2,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x0020",
+            "cl": "0x0406",
+            "dt": "0x21",
+            "ep": 2,
+            "eval": "Item.val",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/sensitivity",
+          "refresh.interval": 86400,
+          "parse": {
+            "at": "0x8905",
+            "cl": "0x0000",
+            "ep": 2,
+            "eval": "Item.val = (Attr.val >= 0 && Attr.val <= 15) ? 15 - Attr.val : 14",
+            "fn": "zcl:attr",
+            "mf": "0x1224"
+          },
+          "read": {
+            "at": "0x8905",
+            "cl": "0x0000",
+            "ep": 2,
+            "fn": "zcl:attr",
+            "mf": "0x1224"
+          },
+          "write": {
+            "at": "0x8905",
+            "cl": "0x0000",
+            "dt": "0x20",
+            "ep": 2,
+            "eval": "if (Item.val >= 0 && Item.val <= 15) { 15 - Item.val }",
+            "fn": "zcl:attr",
+            "mf": "0x1224"
+          },
+          "default": 14,
+          "range": [
+            0,
+            15
+          ]
+        },
+        {
+          "name": "config/sensitivitymax",
+          "static": 15
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/presence",
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0406",
+            "ep": 2,
+            "eval": "Item.val = Attr.val;"
+          }
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_LIGHT_LEVEL_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x02",
+        "0x0400"
+      ],
+      "fingerprint": {
+        "endpoint": "0x02",
+        "profile": "0x0104",
+        "device": "0x0107",
+        "in": [
+          "0x0400"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/tholddark"
+        },
+        {
+          "name": "config/tholdoffset"
+        },
+        {
+          "name": "state/dark"
+        },
+        {
+          "name": "state/daylight"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lightlevel",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 3,
+            "cl": "0x0400",
+            "at": "0x0000",
+            "script": "../philips/0400_lightlevel.js"
+          }
+        },
+        {
+          "name": "state/lux"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0008",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0406",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x18",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "cl": "0x0400",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 5,
+          "max": 300,
+          "change": "0x07d0"
+        }
+      ]
+    }
+  ]
+}

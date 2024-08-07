@@ -1,10 +1,11 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "7113fa6e-cf32-43a2-a9ba-8836ef9c226e",
   "manufacturername": "ADEO",
   "modelid": "LDSENK09",
-  "product": "LDSENK09",
-  "status": "Gold",
   "vendor": "Adeo",
+  "product": "Lexman smart compact keyfob (LDSENK09)",
+  "status": "Gold",
   "sleeper": true,
   "subdevices": [
     {

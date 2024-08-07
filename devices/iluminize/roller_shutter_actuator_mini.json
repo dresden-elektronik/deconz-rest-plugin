@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "243652d7-2e83-4241-a7b9-cd8ae2d9f7aa",
   "manufacturername": "iluminize",
   "modelid": "5128.10",
-  "vendor": "iluminize",
-  "product": "Zigbee 3.0 roller shutter actuator",
+  "vendor": "Iluminize",
+  "product": "Curtain controller (5128.10)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -81,7 +82,7 @@
             "at": "0x0008",
             "cl": "0x0102",
             "ep": 1,
-            "eval": "Item.val = Attr.val === 100",
+            "eval": "Item.val = Attr.val < 100",
             "fn": "zcl:attr"
           }
         },

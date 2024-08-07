@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "ad397c3b-9008-48d9-942c-8e41d4cbae16",
   "manufacturername": "_TZE200_thbr5z34",
   "modelid": "TS0601",
-  "vendor": "Tuya",
-  "product": "Awow TRV",
+  "vendor": "Awow",
+  "product": "Thermostat TRV (MS-C-4)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

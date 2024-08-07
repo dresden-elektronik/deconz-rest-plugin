@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "c8ed8ec9-cab9-4b7f-a917-a94282887a07",
   "manufacturername": "Schneider Electric",
   "modelid": "SMARTPLUG/1",
-  "product": "SMARTPLUG/1",
+  "vendor": "Schneider Electric",
+  "product": "Wiser smart plug 16A (CCT711119)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

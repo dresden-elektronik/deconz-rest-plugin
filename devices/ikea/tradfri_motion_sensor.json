@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "3b5a1753-f33f-468b-85d0-73eb8d7e5606",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI motion sensor",
-  "product": "TRADFRI motion sensor - E1525, E1745",
+  "vendor": "IKEA",
+  "product": "Tradfri motion sensor (E1525/E1745)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

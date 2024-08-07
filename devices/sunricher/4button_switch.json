@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "d835ceb3-dc5c-4f8a-80cc-84f5d3900319",
   "manufacturername": [
     "EcoDim",
     "EcoDim",
@@ -19,7 +20,8 @@
     "ROB_200-008-0"
   ],
   "matchexpr": "R.endpoints.length === 2",
-  "product": "4 Button Wall Switch",
+  "vendor": "Sunricher",
+  "product": "4 button wall switch",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

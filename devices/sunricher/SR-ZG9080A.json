@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "7a66015b-448c-422a-8b00-cc6eed60447b",
   "manufacturername": "Sunricher",
   "modelid": "Motor Controller",
-  "product": "SR-ZG9080A",
+  "vendor": "Sunricher",
+  "product": "Curtain motor controller (SR-ZG9080A)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

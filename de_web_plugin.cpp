@@ -1,5 +1,5 @@
  /*
- * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2023 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -31,11 +31,10 @@
 #include <QJsonArray>
 #include <QJsonValue>
 #include <QJsonParseError>
-#include <queue>
 #include <cmath>
-#include "air_quality.h"
 #include "alarm_system_device_table.h"
 #include "database.h"
+#include "deconz/u_assert.h"
 #include "device_ddf_init.h"
 #include "device_descriptions.h"
 #include "device_tick.h"
@@ -50,10 +49,13 @@
 #include "poll_control.h"
 #include "poll_manager.h"
 #include "product_match.h"
+#include "rest_ddf.h"
 #include "rest_devices.h"
 #include "rest_alarmsystems.h"
 #include "read_files.h"
+#include "tuya.h"
 #include "utils/utils.h"
+#include "utils/scratchmem.h"
 #include "xiaomi.h"
 #include "zcl/zcl.h"
 #include "zdp/zdp.h"
@@ -66,23 +68,6 @@
 #endif
 
 DeRestPluginPrivate *plugin = nullptr;
-
-const char *HttpStatusOk           = "200 OK"; // OK
-const char *HttpStatusAccepted     = "202 Accepted"; // Accepted but not complete
-const char *HttpStatusNotModified  = "304 Not Modified"; // For ETag / If-None-Match
-const char *HttpStatusBadRequest   = "400 Bad Request"; // Malformed request
-const char *HttpStatusUnauthorized = "401 Unauthorized"; // Unauthorized
-const char *HttpStatusForbidden    = "403 Forbidden"; // Understand request but no permission
-const char *HttpStatusNotFound     = "404 Not Found"; // Requested uri not found
-const char *HttpStatusServiceUnavailable = "503 Service Unavailable";
-const char *HttpStatusNotImplemented = "501 Not Implemented";
-const char *HttpContentHtml        = "text/html; charset=utf-8";
-const char *HttpContentCss         = "text/css";
-const char *HttpContentJson        = "application/json; charset=utf-8";
-const char *HttpContentJS          = "text/javascript";
-const char *HttpContentPNG         = "image/png";
-const char *HttpContentJPG         = "image/jpg";
-const char *HttpContentSVG         = "image/svg+xml";
 
 static int checkZclAttributesDelay = 750;
 static uint MaxGroupTasks = 4;
@@ -197,8 +182,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "SPW35Z", tiMacPrefix }, // RT-RK OBLO SPW35ZD0 smart plug
     { VENDOR_NONE, "SWO-MOS1PA", tiMacPrefix }, // Swann One Motion Sensor
     { VENDOR_BITRON, "902010/32", emberMacPrefix }, // Bitron: thermostat
-    { VENDOR_DDEL, "Lighting Switch", deMacPrefix },
-    { VENDOR_DDEL, "Scene Switch", deMacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", silabs1MacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", silabsMacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", silabs2MacPrefix },
@@ -263,7 +246,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.switch.b1naus01", xiaomiMacPrefix }, // Xiaomi Aqara ZB3.0 Smart Wall Switch Single Rocker WS-USC03
     // { VENDOR_XIAOMI, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
     { VENDOR_XIAOMI, "lumi.curtain.hagl04", xiaomiMacPrefix}, // Xiaomi B1 curtain controller
-    { VENDOR_XIAOMI, "lumi.sensor_magnet.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
     { VENDOR_XIAOMI, "lumi.motion.agl04", lumiMacPrefix}, // Xiaomi Aqara RTCGQ13LM high precision motion sensor
     { VENDOR_XIAOMI, "lumi.flood.agl02", xiaomiMacPrefix}, // Xiaomi Aqara T1 water leak sensor SJCGQ12LM
     { VENDOR_XIAOMI, "lumi.switch.n0agl1", lumiMacPrefix}, // Xiaomi Aqara Single Switch Module T1 (With Neutral)
@@ -456,7 +438,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ALERTME, "SLR2b", computimeMacPrefix }, // Hive   Heating Receiver 2 channel second version
     { VENDOR_ALERTME, "SLT2", computimeMacPrefix }, // Hive thermostat
     { VENDOR_ALERTME, "SLT3", computimeMacPrefix }, // Hive thermostat
-    { VENDOR_DANFOSS, "TRV001", silabs2MacPrefix }, // Hive thermostat (From Danfoss)
     { VENDOR_SUNRICHER, "4512705", silabs2MacPrefix }, // Namron remote control
     { VENDOR_SUNRICHER, "4512726", silabs2MacPrefix }, // Namron rotary switch
     { VENDOR_SUNRICHER, "S57003", silabs2MacPrefix }, // SLC 4-ch remote controller
@@ -489,7 +470,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SCHNEIDER, "iTRV", silabs3MacPrefix }, // Drayton Wiser Radiator Thermostat
     { VENDOR_SCHNEIDER, "CCT593011_AS", emberMacPrefix }, // LK Wiser Temperature and Humidity Sensor
     { VENDOR_SCHNEIDER, "CCT595011_AS", emberMacPrefix }, // LK Wiser Motion Sensor
-    { VENDOR_DANFOSS, "eT093WRO", silabs5MacPrefix }, // POPP Smart Thermostat
     { VENDOR_DANFOSS, "0x8020", silabs6MacPrefix }, // Danfoss RT24V Display thermostat
     { VENDOR_DANFOSS, "0x8021", silabs6MacPrefix }, // Danfoss RT24V Display thermostat with floor sensor
     { VENDOR_DANFOSS, "0x8030", silabs6MacPrefix }, // Danfoss RTbattery Display thermostat
@@ -617,6 +597,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     apsCtrlWrapper(deCONZ::ApsController::instance())
 {
     plugin = this;
+    ScratchMemInit();
 
     DEV_SetTestManaged(deCONZ::appArgumentNumeric("--dev-test-managed", 0));
 
@@ -670,8 +651,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
         deviceDescriptions->setEnabledStatusFilter(filter);
     }
 
-    deviceDescriptions->readAll();
-
     connect(databaseTimer, SIGNAL(timeout()),
             this, SLOT(saveDatabaseTimerFired()));
 
@@ -697,7 +676,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     udpSock = 0;
     haEndpoint = 0;
     gwGroupSendDelay = deCONZ::appArgumentNumeric("--group-delay", GROUP_SEND_DELAY);
-    supportColorModeXyForGroups = true;
     gwLinkButton = false;
     gwWebSocketNotifyAll = true;
     gwdisablePermitJoinAutoOff = false;
@@ -746,6 +724,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     ttlDataBaseConnection = 0;
     openDb();
     initDb();
+
+    deviceDescriptions->prepare();
+    deviceDescriptions->readAll();
+
     readDb();
 
     DB_LoadAlarmSystemDevices(alarmSystemDeviceTable.get());
@@ -968,6 +950,7 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
     delete deviceJs;
     deviceJs = nullptr;
     eventEmitter = nullptr;
+    ScratchMemDestroy();
 }
 
 DeRestPluginPrivate *DeRestPluginPrivate::instance()
@@ -1157,6 +1140,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         {
             for (ResourceItem *i : DeviceJs::instance()->itemsSet())
             {
+                i->setNeedStore();
                 if (i->awake())
                 {
                     awake++;
@@ -1167,7 +1151,30 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 enqueueEvent(Event(r->prefix(), i->descriptor().suffix, idItem->toString(), i, device->key()));
                 if (push && i->lastChanged() == i->lastSet())
                 {
-                    DB_StoreSubDeviceItem(r, i);
+                    const char *itemSuffix = i->descriptor().suffix;
+                    if (itemSuffix[0] == 's') // state/*
+                    {
+                        // don't store state items within APS indication handler as this can block for >1 sec on slow systems
+                    }
+                    else if (r->prefix() != RDevices)
+                    {
+                        DBG_MEASURE_START(DB_StoreSubDeviceItem);
+                        DB_StoreSubDeviceItem(r, i);
+                        DBG_MEASURE_END(DB_StoreSubDeviceItem);
+                    }
+                    else if (r->prefix() == RDevices && ind.clusterId() == BASIC_CLUSTER_ID)
+                    {
+                        if (itemSuffix == RAttrAppVersion)
+                        {
+                            DB_ZclValue dbVal;
+                            dbVal.deviceId = device->deviceId();
+                            dbVal.endpoint = ind.srcEndpoint();
+                            dbVal.clusterId = ind.clusterId();
+                            dbVal.attrId = 0x0001;
+                            dbVal.data = i->toNumber();
+                            DB_StoreZclValue(&dbVal);
+                        }
+                    }
                 }
 
                 if (!eventLastUpdatedEmitted && i->descriptor().suffix[0] == 's') // state/*
@@ -1246,7 +1253,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case OTAU_CLUSTER_ID:
-            otauDataIndication(ind, zclFrame);
+            otauDataIndication(ind, zclFrame, device);
             break;
 
         case COMMISSIONING_CLUSTER_ID:
@@ -1316,10 +1323,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID:
             if (!DEV_TestStrict() && !devManaged) { handleThermostatUiConfigurationClusterIndication(ind, zclFrame); }
-            break;
-
-        case DIAGNOSTICS_CLUSTER_ID:
-            if (!DEV_TestStrict() && !devManaged) { handleDiagnosticsClusterIndication(ind, zclFrame); }
             break;
 
         case IDENTIFY_CLUSTER_ID:
@@ -1490,10 +1493,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         default:
             break;
         }
-    }
-    else if (ind.profileId() == DE_PROFILE_ID)
-    {
-        otauDataIndication(ind, deCONZ::ZclFrame());
     }
 
     eventEmitter->process();
@@ -1832,7 +1831,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     sensor->setNeedSaveDatabase(true);
     sensor->updateStateTimestamp();
     item->setValue(btn);
-    DBG_Printf(DBG_ZGP, "ZGP button %u %s\n", item->toNumber(), qPrintable(sensor->modelId()));
+    DBG_Printf(DBG_ZGP, "ZGP 0x%08X button %u %s\n", ind.gpdSrcId(), item->toNumber(), qPrintable(sensor->modelId()));
     Event e(RSensors, RStateButtonEvent, sensor->id(), item);
     enqueueEvent(e);
     enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
@@ -1971,6 +1970,8 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
         quint32 gpdOutgoingCounter = 0;
         deCONZ::GPCommissioningOptions options;
         deCONZ::GpExtCommissioningOptions extOptions;
+        uint8_t applicationInformationField = 0;
+        uint8_t numberOfGPDCommands = 0;
         options.byte = 0;
         extOptions.byte = 0;
 
@@ -2025,6 +2026,18 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             stream >> gpdOutgoingCounter;
         }
 
+        if (options.bits.reserved & 1) // applications ID present (TODO flag not yet in deCONZ lib)
+        {
+            if (stream.atEnd()) { return; }
+            stream >> applicationInformationField;
+
+            if (applicationInformationField & 0x04)
+            {
+                if (stream.atEnd()) { return; }
+                stream >> numberOfGPDCommands;
+            }
+        }
+
         SensorFingerprint fp;
         fp.endpoint = GREEN_POWER_ENDPOINT;
         fp.deviceId = gpdDeviceId;
@@ -2071,8 +2084,16 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 sensorNode.setManufacturer("Philips");
                 sensorNode.setSwVersion("1.0");
             }
+            else if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0xc5 && extOptions.byte == 0xF2 && numberOfGPDCommands == 17)
+            {
+                // FoH Outdoor switch
+                sensorNode.setModelId("FOHSWITCH");
+                sensorNode.setManufacturer("PhilipsFoH");
+                sensorNode.setSwVersion("1.0");
+            }
             else if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0xc5 && ind.payload().size() == 46)
             {
+                // Note following can likely be removed in favor of the previous else if ()
                 sensorNode.setModelId("FOHSWITCH");
                 sensorNode.setManufacturer("PhilipsFoH");
                 sensorNode.setSwVersion("1.0");
@@ -2099,7 +2120,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             }
             else
             {
-                DBG_Printf(DBG_INFO, "unsupported green power device 0x%02X\n", gpdDeviceId);
+                DBG_Printf(DBG_INFO, "ZGP srcId: 0x%08X unsupported green power device gpdDeviceId 0x%02X, options.byte: 0x%02X, extOptions.byte: 0x%02X, numGPDCommands: %u, ind.payload: 0x%s\n", ind.gpdSrcId(), gpdDeviceId, options.byte, extOptions.byte, numberOfGPDCommands, qPrintable(ind.payload().toHex()));
                 return;
             }
 
@@ -2211,26 +2232,6 @@ bool DeRestPluginPrivate::isInNetwork()
         return (apsCtrl->networkState() == deCONZ::InNetwork);
     }
     return false;
-}
-
-/*! Creates a error map used in JSON response.
-    \param id - error id
-    \param ressource example: "/lights/2"
-    \param description example: "resource, /lights/2, not available"
-    \return the map
- */
-QVariantMap errorToMap(int id, const QString &ressource, const QString &description)
-{
-    QVariantMap map;
-    QVariantMap error;
-    error["type"] = (double)id;
-    error["address"] = ressource.toHtmlEscaped();
-    error["description"] = description.toHtmlEscaped();
-    map["error"] = error;
-
-    DBG_Printf(DBG_INFO_L2, "API error %d, %s, %s\n", id, qPrintable(ressource), qPrintable(description));
-
-    return map;
 }
 
 /*! Creates a new unique ETag for a resource.
@@ -2367,7 +2368,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, node->address().ext());
     Q_ASSERT(device);
 
-    if (permitJoinFlag)
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_PROFALUX)
+    {
+        //Profalux device don't have manufactureName and ModelID so can't wait for RAttrManufacturerName or RAttrModelId
+    }
+    else if (permitJoinFlag)
     {
         // during pairing only proceed when device code has finished query Basic Cluster
         if (device->item(RAttrManufacturerName)->toString().isEmpty() ||
@@ -2899,6 +2904,23 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         if (ddf.isValid() && DDF_IsStatusEnabled(ddf.status))
         {
             DBG_Printf(DBG_INFO, "skip legacy loading %s / %s \n", qPrintable(lightNode.uniqueId()), qPrintable(lightNode.modelId()));
+
+            // To speed loading DDF up the first time after it was run as legacy before,
+            // assign manufacturer name and modelid to parent device. That way we don't have to wait until the
+            // data is queried again via Zigbee.
+            // Note: Due the deviceDescriptions->get(&lightNode); matching we can be sure the legacy strings aren't made up.
+            ResourceItem *item = device->item(RAttrManufacturerName);
+            if (item->toString().isEmpty())
+            {
+                item->setValue(lightNode.item(RAttrManufacturerName)->toString());
+            }
+
+            item = device->item(RAttrModelId);
+            if (item->toString().isEmpty())
+            {
+                item->setValue(lightNode.item(RAttrModelId)->toString());
+            }
+
             return;
         }
 
@@ -3253,6 +3275,8 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
 
 /*! Force polling if the node has updated simple descriptors in setup phase.
     \param node - the base for the LightNode
+
+    TODO(mpi): This function can likely be removed entirely, after testing.
  */
 void DeRestPluginPrivate::updatedLightNodeEndpoint(const deCONZ::NodeEvent &event)
 {
@@ -3266,14 +3290,14 @@ void DeRestPluginPrivate::updatedLightNodeEndpoint(const deCONZ::NodeEvent &even
         return;
     }
 
+    if (event.clusterId() != ZDP_SIMPLE_DESCRIPTOR_RSP_CLID)
+    {
+        return;
+    }
+
     for (LightNode &lightNode : nodes)
     {
         if (lightNode.address().ext() != event.node()->address().ext())
-        {
-            continue;
-        }
-
-        if (event.clusterId() != ZDP_SIMPLE_DESCRIPTOR_RSP_CLID)
         {
             continue;
         }
@@ -3666,7 +3690,10 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     {
                         if (RStateEffectValuesMueller.indexOf(lightNode->toString(RStateEffect), 0) <= 1)
                         {
-                            lightNode->setValue(RStateEffect, RStateEffectValues[ia->numericValue().u8]);
+                            if ((int)ia->numericValue().u8 < RStateEffectValues.size())
+                            {
+                                lightNode->setValue(RStateEffect, RStateEffectValues[ia->numericValue().u8]);
+                            }
                         }
                     }
                     else if (ia->id() == 0x4004) // color loop time
@@ -4486,47 +4513,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     {
         // DDF managed devices handle this in another place
     }
-    // DE Lighting Switch: probe for mode changes
-    else if (sensor->modelId() == QLatin1String("Lighting Switch") && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
-    {
-        Sensor::SensorMode mode = sensor->mode();
-
-        if (ind.srcEndpoint() == 2 && mode != Sensor::ModeTwoGroups)
-        {
-            mode = Sensor::ModeTwoGroups;
-        }
-        else if (ind.clusterId() == SCENE_CLUSTER_ID && mode != Sensor::ModeScenes)
-        {
-            mode = Sensor::ModeScenes;
-        }
-        else if (ind.clusterId() == COLOR_CLUSTER_ID && mode != Sensor::ModeColorTemperature)
-        {
-            mode = Sensor::ModeColorTemperature;
-        }
-
-        Sensor *other = getSensorNodeForAddressAndEndpoint(sensor->address(), (sensor->fingerPrint().endpoint == 2) ? 1 : 2);
-
-        if (mode != sensor->mode())
-        {
-            sensor->setMode(mode);
-            updateSensorEtag(sensor);
-            sensor->setNeedSaveDatabase(true);
-            queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-
-            // set changed mode for sensor endpoints 1 and 2
-            if (other)
-            {
-                other->setMode(mode);
-                other->setNeedSaveDatabase(true);
-                updateSensorEtag(other);
-            }
-        }
-
-        if (other && ind.srcEndpoint() == 2 && other->fingerPrint().endpoint == 1)
-        {   // forward button events 300x and 400x to first endpoint sensor
-            checkSensorButtonEvent(other, ind, zclFrame);
-        }
-    }
     // Busch-Jaeger
     else if (sensor->modelId() == QLatin1String("RM01") || sensor->modelId() == QLatin1String("RB01"))
     {
@@ -4647,11 +4633,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
     else if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
-        if (sensor->mode() == Sensor::ModeTwoGroups) // only supported for DE Lighting Switch
-        {
-            sensor->setMode(Sensor::ModeScenes);
-            updateSensorEtag(sensor);
-        }
     }
     else if (sensor->modelId().endsWith(QLatin1String("86opcn01"))) // Aqara Opple
     {
@@ -4710,21 +4691,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         ResourceItem *item = sensor->addItem(DataTypeString, RConfigGroup);
 
         quint16 groupId = ind.dstAddress().group();
-
-        if (sensor->modelId() == QLatin1String("Lighting Switch"))
-        {
-            // adjust groupId for endpoints
-            // ep 1: <gid>
-            // ep 2: <gid> + 1
-            if (sensor->fingerPrint().endpoint == 2 && ind.srcEndpoint() == 1)
-            {
-                groupId++;
-            }
-            else if (sensor->fingerPrint().endpoint == 1 && ind.srcEndpoint() == 2)
-            {
-                groupId--;
-            }
-        }
 
         QStringList gids;
         const QString gid = QString::number(groupId);
@@ -5936,7 +5902,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("4655BC0")) ||                    // Ecolink contact sensor
                              modelId.startsWith(QLatin1String("3300")) ||                       // Centralite contact sensor
                              modelId == QLatin1String("CCT591011_AS") ||                        // LK Wiser Door / Window Sensor
-                             modelId == QLatin1String("lumi.sensor_magnet.agl02") ||            // Xiaomi Aqara T1 open/close sensor MCCGQ12LM
                              modelId == QLatin1String("E1D-G73") ||                             // Sengled contact sensor
                              modelId == QLatin1String("DS01") ||                                // Sonoff SNZB-04
                              modelId == QLatin1String("ZB-DoorSensor-D0003") ||                 // Linkind Door/Window Sensor
@@ -6344,8 +6309,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case TIME_CLUSTER_ID:
                 {
                     // Many Xiaomi devices advertise non-functional Time cluster, so better use whitelist.
-                    if (modelId == QLatin1String("Thermostat") || // eCozy
-                        modelId == QLatin1String("eT093WRO"))     // POPP smart thermostat
+                    if (modelId == QLatin1String("Thermostat")) // eCozy
                     {
                         fpTimeSensor.inClusters.push_back(ci->id());
                     }
@@ -7591,22 +7555,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeString, RConfigMode);
                 sensorNode.addItem(DataTypeString, RConfigFanMode);
             }
-            else if (modelId == QLatin1String("TRV001") ||   // Hive TRV
-                     modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
-            {
-                sensorNode.addItem(DataTypeUInt8, RStateValve);
-                sensorNode.addItem(DataTypeString, RStateWindowOpen);
-                sensorNode.addItem(DataTypeBool, RStateMountingModeActive)->setValue(false);
-                sensorNode.addItem(DataTypeString, RStateErrorCode);
-                sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
-                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
-                sensorNode.addItem(DataTypeBool, RConfigMountingMode)->setValue(false);
-                // Supported with Danfoss firmware version 1.08
-                sensorNode.addItem(DataTypeBool, RConfigScheduleOn)->setValue(false);
-                sensorNode.addItem(DataTypeString, RConfigSchedule);
-                sensorNode.addItem(DataTypeInt16, RConfigExternalTemperatureSensor)->setValue(0);
-                sensorNode.addItem(DataTypeBool, RConfigExternalWindowOpen)->setValue(false);
-            }
             else if (modelId == QLatin1String("PR412C")) // OWON PCT502 Thermostat
             {
                 sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
@@ -7702,12 +7650,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
     {
-        sensorNode.setManufacturer("dresden elektronik");
-
-        if (modelId == QLatin1String("Lighting Switch"))
-        {
-            sensorNode.setMode(Sensor::ModeTwoGroups); // inital
-        }
     }
     else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM_STACK) || (node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM))
     {
@@ -7799,7 +7741,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         checkInstaModelId(&sensorNode);
     }
     // Skip legacy Xiaomi items
-    else if (sensorNode.modelId() == QLatin1String("lumi.sensor_magnet.agl02") || sensorNode.modelId() == QLatin1String("lumi.flood.agl02") ||
+    else if (sensorNode.modelId() == QLatin1String("lumi.flood.agl02") ||
              sensorNode.modelId() == QLatin1String("lumi.motion.agl04") || sensorNode.modelId() == QLatin1String("lumi.switch.b1nacn02") ||
              sensorNode.modelId() == QLatin1String("lumi.switch.b2nacn02") ||
              sensorNode.modelId() == QLatin1String("lumi.switch.b1naus01") || sensorNode.modelId() == QLatin1String("lumi.switch.n0agl1") ||
@@ -9980,61 +9922,57 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
 
     QTime tNow = QTime::currentTime();
 
-    if (lightNode->mustRead(READ_BINDING_TABLE) && tNow > lightNode->nextReadTime(READ_BINDING_TABLE))
-    {
-        if (readBindingTable(lightNode, 0))
-        {
-            // only read binding table once per node even if multiple devices/sensors are implemented
-            std::vector<LightNode>::iterator i = nodes.begin();
-            std::vector<LightNode>::iterator end = nodes.end();
+    const Device *device = static_cast<Device*>(lightNode->parentResource());
+    const bool devManaged = device && device->managed();
 
-            for (; i != end; ++i)
+    if (!devManaged)
+    {
+        if (lightNode->mustRead(READ_BINDING_TABLE) && tNow > lightNode->nextReadTime(READ_BINDING_TABLE))
+        {
+            if (readBindingTable(lightNode, 0))
             {
-                if (i->address().ext() == lightNode->address().ext())
-                {
-                    i->clearRead(READ_BINDING_TABLE);
-                }
+                lightNode->clearRead(READ_BINDING_TABLE);
+                processed++;
             }
-            processed++;
         }
-    }
 
-    if (lightNode->mustRead(READ_VENDOR_NAME) && tNow > lightNode->nextReadTime(READ_VENDOR_NAME))
-    {
-        if (!lightNode->manufacturer().isEmpty())
+        if (lightNode->mustRead(READ_VENDOR_NAME) && tNow > lightNode->nextReadTime(READ_VENDOR_NAME))
         {
-            lightNode->clearRead(READ_VENDOR_NAME);
-            processed++;
-        }
-        else
-        {
-            std::vector<uint16_t> attributes;
-            attributes.push_back(0x0004); // Manufacturer name
-
-            if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
+            if (!lightNode->manufacturer().isEmpty())
             {
                 lightNode->clearRead(READ_VENDOR_NAME);
                 processed++;
             }
-        }
-    }
+            else
+            {
+                std::vector<uint16_t> attributes;
+                attributes.push_back(0x0004); // Manufacturer name
 
-    if ((processed < 2) && lightNode->mustRead(READ_MODEL_ID) && tNow > lightNode->nextReadTime(READ_MODEL_ID))
-    {
-        if (!lightNode->modelId().isEmpty())
-        {
-            lightNode->clearRead(READ_MODEL_ID);
-            processed++;
+                if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
+                {
+                    lightNode->clearRead(READ_VENDOR_NAME);
+                    processed++;
+                }
+            }
         }
-        else
-        {
-            std::vector<uint16_t> attributes;
-            attributes.push_back(0x0005); // Model identifier
 
-            if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
+        if ((processed < 2) && lightNode->mustRead(READ_MODEL_ID) && tNow > lightNode->nextReadTime(READ_MODEL_ID))
+        {
+            if (!lightNode->modelId().isEmpty())
             {
                 lightNode->clearRead(READ_MODEL_ID);
                 processed++;
+            }
+            else
+            {
+                std::vector<uint16_t> attributes;
+                attributes.push_back(0x0005); // Model identifier
+
+                if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
+                {
+                    lightNode->clearRead(READ_MODEL_ID);
+                    processed++;
+                }
             }
         }
     }
@@ -10078,6 +10016,11 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
 
     if (!sensorNode->node())
     {
+        if (sensorNode->type().startsWith(QLatin1String("ZGP"))) // ZGP nothing to be done here
+        {
+            return false;
+        }
+
         deCONZ::Node *node = getNodeForAddress(sensorNode->address().ext());
         if (node)
         {
@@ -10117,187 +10060,193 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
 
     QTime tNow = QTime::currentTime();
 
-    // FIXME: Need check that end device is awake.
+    const Device *device = static_cast<Device*>(sensorNode->parentResource());
+    const bool devManaged = device && device->managed();
 
-    if (sensorNode->mustRead(READ_BINDING_TABLE) && tNow > sensorNode->nextReadTime(READ_BINDING_TABLE))
+    if (!devManaged)
     {
-        bool ok = false;
-        // only read binding table of chosen sensors
-        // whitelist by Model ID
-        if (sensorNode->manufacturer().startsWith(QLatin1String("BEGA")))
+        if (sensorNode->mustRead(READ_BINDING_TABLE) && tNow > sensorNode->nextReadTime(READ_BINDING_TABLE))
         {
-            ok = true;
-        }
-
-        if (!ok)
-        {
-            sensorNode->clearRead(READ_BINDING_TABLE);
-        }
-
-        if (ok && readBindingTable(sensorNode, 0))
-        {
-            // only read binding table once per node even if multiple devices/sensors are implemented
-            std::vector<Sensor>::iterator i = sensors.begin();
-            std::vector<Sensor>::iterator end = sensors.end();
-
-            for (; i != end; ++i)
+            bool ok = false;
+            // only read binding table of chosen sensors
+            // whitelist by Model ID
+            if (sensorNode->manufacturer().startsWith(QLatin1String("BEGA")))
             {
-                if (i->address().ext() == sensorNode->address().ext())
-                {
-                    i->clearRead(READ_BINDING_TABLE);
-                }
+                ok = true;
             }
-            processed++;
+
+            if (!ok)
+            {
+                sensorNode->clearRead(READ_BINDING_TABLE);
+            }
+
+            if (ok && readBindingTable(sensorNode, 0))
+            {
+                // only read binding table once per node even if multiple devices/sensors are implemented
+                std::vector<Sensor>::iterator i = sensors.begin();
+                std::vector<Sensor>::iterator end = sensors.end();
+
+                for (; i != end; ++i)
+                {
+                    if (i->address().ext() == sensorNode->address().ext())
+                    {
+                        i->clearRead(READ_BINDING_TABLE);
+                    }
+                }
+                processed++;
+            }
         }
-    }
 
-    if (sensorNode->mustRead(READ_VENDOR_NAME) && tNow > sensorNode->nextReadTime(READ_VENDOR_NAME))
-    {
-        std::vector<uint16_t> attributes;
-        attributes.push_back(0x0004); // Manufacturer name
-
-        if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes))
-        {
-            sensorNode->clearRead(READ_VENDOR_NAME);
-            processed++;
-        }
-    }
-
-    if (sensorNode->mustRead(READ_MODEL_ID) && tNow > sensorNode->nextReadTime(READ_MODEL_ID))
-    {
-        std::vector<uint16_t> attributes;
-        attributes.push_back(0x0005); // Model identifier
-
-        if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes))
-        {
-            sensorNode->clearRead(READ_MODEL_ID);
-            processed++;
-        }
-    }
-
-    if (sensorNode->mustRead(READ_SWBUILD_ID) && tNow > sensorNode->nextReadTime(READ_SWBUILD_ID))
-    {
-        std::vector<uint16_t> attributes;
-        attributes.push_back(0x4000); // Software build identifier
-
-        if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes))
-        {
-            sensorNode->clearRead(READ_SWBUILD_ID);
-            processed++;
-        }
-    }
-
-
-    if (sensorNode->mustRead(READ_OCCUPANCY_CONFIG) && tNow > sensorNode->nextReadTime(READ_OCCUPANCY_CONFIG))
-    {
-        if (sensorNode->modelId().startsWith(QLatin1String("lumi.sensor_motion")))
-        {
-            sensorNode->clearRead(READ_OCCUPANCY_CONFIG);
-        }
-        else
+        if (sensorNode->mustRead(READ_VENDOR_NAME) && tNow > sensorNode->nextReadTime(READ_VENDOR_NAME))
         {
             std::vector<uint16_t> attributes;
-            attributes.push_back(0x0010); // occupied to unoccupied delay
+            attributes.push_back(0x0004); // Manufacturer name
 
-            if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes))
+            if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes))
+            {
+                sensorNode->clearRead(READ_VENDOR_NAME);
+                processed++;
+            }
+        }
+
+        if (sensorNode->mustRead(READ_MODEL_ID) && tNow > sensorNode->nextReadTime(READ_MODEL_ID))
+        {
+            std::vector<uint16_t> attributes;
+            attributes.push_back(0x0005); // Model identifier
+
+            if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes))
+            {
+                sensorNode->clearRead(READ_MODEL_ID);
+                processed++;
+            }
+        }
+
+        if (sensorNode->mustRead(READ_SWBUILD_ID) && tNow > sensorNode->nextReadTime(READ_SWBUILD_ID))
+        {
+            std::vector<uint16_t> attributes;
+            attributes.push_back(0x4000); // Software build identifier
+
+            if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes))
+            {
+                sensorNode->clearRead(READ_SWBUILD_ID);
+                processed++;
+            }
+        }
+
+        if (sensorNode->mustRead(READ_OCCUPANCY_CONFIG) && tNow > sensorNode->nextReadTime(READ_OCCUPANCY_CONFIG))
+        {
+            if (sensorNode->modelId().startsWith(QLatin1String("lumi.sensor_motion")))
             {
                 sensorNode->clearRead(READ_OCCUPANCY_CONFIG);
-                processed++;
+            }
+            else
+            {
+                std::vector<uint16_t> attributes;
+                attributes.push_back(0x0010); // occupied to unoccupied delay
+
+                if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes))
+                {
+                    sensorNode->clearRead(READ_OCCUPANCY_CONFIG);
+                    processed++;
+                }
             }
         }
-    }
 
-    if (sensorNode->mustRead(WRITE_OCCUPANCY_CONFIG) && tNow > sensorNode->nextReadTime(READ_OCCUPANCY_CONFIG))
-    {
-        // only valid bounds
-        int duration = sensorNode->item(RConfigDuration)->toNumber();
-
-        if (duration >= 0 && duration <= 65535)
+        if (sensorNode->mustRead(WRITE_OCCUPANCY_CONFIG) && tNow > sensorNode->nextReadTime(READ_OCCUPANCY_CONFIG))
         {
-            // occupied to unoccupied delay
-            deCONZ::ZclAttribute attr(0x0010, deCONZ::Zcl16BitUint, "occ", deCONZ::ZclReadWrite, true);
-            attr.setValue((quint64)duration);
+            // only valid bounds
+            int duration = sensorNode->item(RConfigDuration)->toNumber();
 
-            if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr))
+            if (duration >= 0 && duration <= 65535)
+            {
+                // occupied to unoccupied delay
+                deCONZ::ZclAttribute attr(0x0010, deCONZ::Zcl16BitUint, "occ", deCONZ::ZclReadWrite, true);
+                attr.setValue((quint64)duration);
+
+                if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr))
+                {
+                    sensorNode->clearRead(WRITE_OCCUPANCY_CONFIG);
+                    processed++;
+                }
+            }
+            else
             {
                 sensorNode->clearRead(WRITE_OCCUPANCY_CONFIG);
-                processed++;
             }
         }
-        else
+
+        if (sensorNode->mustRead(WRITE_DELAY) && tNow > sensorNode->nextReadTime(WRITE_DELAY))
         {
-            sensorNode->clearRead(WRITE_OCCUPANCY_CONFIG);
-        }
-    }
+            ResourceItem *item = sensorNode->item(RConfigDelay);
 
-    if (sensorNode->mustRead(WRITE_DELAY) && tNow > sensorNode->nextReadTime(WRITE_DELAY))
-    {
-        ResourceItem *item = sensorNode->item(RConfigDelay);
-
-        DBG_Printf(DBG_INFO_L2, "handle pending delay for 0x%016llX\n", sensorNode->address().ext());
-        if (item)
-        {
-            quint64 delay = item->toNumber();
-            // occupied to unoccupied delay
-            deCONZ::ZclAttribute attr(0x0010, deCONZ::Zcl16BitUint, "occ", deCONZ::ZclReadWrite, true);
-            attr.setValue(delay);
-
-            if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr))
+            DBG_Printf(DBG_INFO_L2, "handle pending delay for 0x%016llX\n", sensorNode->address().ext());
+            if (item)
             {
-                // FIXME: The Write Attributes command will not reach deep sleepers.
-                //        Unfortuneately, Occupied to Unoccupied Delay is not reportable.
-                //        Fortunately, the Hue motion sensor is a light sleeper.
-                ResourceItem *item = sensorNode->item(RConfigPending);
-                quint16 mask = item->toNumber();
-                mask &= ~R_PENDING_DELAY;
-                item->setValue(mask);
+                quint64 delay = item->toNumber();
+                // occupied to unoccupied delay
+                deCONZ::ZclAttribute attr(0x0010, deCONZ::Zcl16BitUint, "occ", deCONZ::ZclReadWrite, true);
+                attr.setValue(delay);
+
+                if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr))
+                {
+                    // FIXME: The Write Attributes command will not reach deep sleepers.
+                    //        Unfortuneately, Occupied to Unoccupied Delay is not reportable.
+                    //        Fortunately, the Hue motion sensor is a light sleeper.
+                    ResourceItem *item = sensorNode->item(RConfigPending);
+                    quint16 mask = item->toNumber();
+                    mask &= ~R_PENDING_DELAY;
+                    item->setValue(mask);
+                    sensorNode->clearRead(WRITE_DELAY);
+                    processed++;
+                }
+            }
+            else
+            {
                 sensorNode->clearRead(WRITE_DELAY);
-                processed++;
             }
         }
-        else
+
+        if (sensorNode->mustRead(WRITE_SENSITIVITY) && tNow > sensorNode->nextReadTime(WRITE_SENSITIVITY))
         {
-            sensorNode->clearRead(WRITE_DELAY);
+            ResourceItem *item = sensorNode->item(RConfigSensitivity);
+
+            DBG_Printf(DBG_INFO_L2, "handle pending sensitivity for 0x%016llX\n", sensorNode->address().ext());
+            if (item)
+            {
+                quint64 sensitivity = item->toNumber();
+
+                if (nd.manufacturerCode() == VENDOR_PHILIPS)
+                {
+                    deCONZ::ZclAttribute attr(0x0030, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
+                    attr.setValue(sensitivity);
+
+                    if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr, VENDOR_PHILIPS))
+                    {
+                        sensorNode->setNextReadTime(WRITE_SENSITIVITY, tNow.addSecs(7200));
+                        processed++;
+                    }
+                }
+                else if (nd.manufacturerCode() == VENDOR_XIAOMI)
+                {
+                    deCONZ::ZclAttribute attr(XIAOMI_ATTRID_MOTION_SENSITIVITY, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
+                    attr.setValue(sensitivity);
+
+                    if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI))
+                    {
+                        sensorNode->setNextReadTime(WRITE_SENSITIVITY, tNow.addSecs(3300)); // Default special reporting intervall
+                        processed++;
+                    }
+                }
+            }
+            else
+            {
+                sensorNode->clearRead(WRITE_SENSITIVITY);
+            }
         }
     }
 
-    if (sensorNode->mustRead(WRITE_SENSITIVITY) && tNow > sensorNode->nextReadTime(WRITE_SENSITIVITY))
-    {
-        ResourceItem *item = sensorNode->item(RConfigSensitivity);
+    // TODO(mpi): is following code already handled by DDF, so we can skip if devManaged?
 
-        DBG_Printf(DBG_INFO_L2, "handle pending sensitivity for 0x%016llX\n", sensorNode->address().ext());
-        if (item)
-        {
-            quint64 sensitivity = item->toNumber();
-
-            if (nd.manufacturerCode() == VENDOR_PHILIPS)
-            {
-                deCONZ::ZclAttribute attr(0x0030, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
-                attr.setValue(sensitivity);
-
-                if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr, VENDOR_PHILIPS))
-                {
-                    sensorNode->setNextReadTime(WRITE_SENSITIVITY, tNow.addSecs(7200));
-                    processed++;
-                }
-            }
-            else if (nd.manufacturerCode() == VENDOR_XIAOMI)
-            {
-                deCONZ::ZclAttribute attr(XIAOMI_ATTRID_MOTION_SENSITIVITY, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
-                attr.setValue(sensitivity);
-
-                if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, XIAOMI_CLUSTER_ID, attr, VENDOR_XIAOMI))
-                {
-                    sensorNode->setNextReadTime(WRITE_SENSITIVITY, tNow.addSecs(3300)); // Default special reporting intervall
-                    processed++;
-                }
-            }
-        }
-        else
-        {
-            sensorNode->clearRead(WRITE_SENSITIVITY);
-        }
-    }
 
     if (sensorNode->mustRead(READ_THERMOSTAT_STATE) && tNow > sensorNode->nextReadTime(READ_THERMOSTAT_STATE))
     {
@@ -10348,7 +10297,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         }
     }
 
-    if (sensorNode->mustRead(READ_BATTERY) && tNow > sensorNode->nextReadTime(READ_BATTERY))
+    if (!devManaged && sensorNode->mustRead(READ_BATTERY) && tNow > sensorNode->nextReadTime(READ_BATTERY))
     {
         std::vector<uint16_t> attributes;
         attributes.push_back(0x0020); // battery level
@@ -10358,9 +10307,6 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
             processed++;
         }
     }
-
-    auto *device = DEV_GetDevice(m_devices, sensorNode->address().ext());
-    const bool devManaged = device && device->managed();
 
     if (!DEV_TestStrict() && !devManaged)
     {
@@ -11082,7 +11028,7 @@ void DeRestPluginPrivate::foundScene(LightNode *lightNode, Group *group, uint8_t
     closeDb();
     if (scene.name.isEmpty())
     {
-        scene.name = tr("Scene %u").arg(sceneId);
+        scene.name = tr("Scene %1").arg(sceneId);
     }
     group->scenes.push_back(scene);
     updateGroupEtag(group);
@@ -11954,6 +11900,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
 
     case deCONZ::NodeEvent::NodeAdded:
     {
+        int deviceId = -1;
         QTime now = QTime::currentTime();
         if (queryTime.secsTo(now) < 20)
         {
@@ -11961,14 +11908,17 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         }
         if (event.node())
         {
-            refreshDeviceDb(event.node()->address());
+            deviceId = DB_StoreDevice(event.node()->address());
         }
 
         auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, event.node()->address().ext());
-        Q_ASSERT(device);
-        if (device && DEV_InitDeviceBasic(device))
+        if (device)
         {
-            enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
+            device->setDeviceId(deviceId);
+            if (DEV_InitDeviceBasic(device))
+            {
+                enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
+            }
         }
 
         addLightNode(event.node());
@@ -11994,7 +11944,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     {
         if (event.node())
         {
-            refreshDeviceDb(event.node()->address());
+            DB_StoreDevice(event.node()->address());
         }
         break;
     }
@@ -13216,7 +13166,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(const deCONZ::ApsDataIndi
                 s.groupAddress = groupId;
                 s.id = sceneId;
                 s.externalMaster = true;
-                s.name = tr("Scene %u").arg(sceneId);
+                s.name = tr("Scene %1").arg(sceneId);
                 group->scenes.push_back(s);
                 updateGroupEtag(group);
                 queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
@@ -15187,7 +15137,6 @@ void DeRestPlugin::idleTimerFired()
     // fire in < 1 sec. intervals (after database write?).
     if (d->idleTimer.elapsed() < (IDLE_TIMER_INTERVAL - 50)) // -50 : don't be too strict
     {
-        DBG_Printf(DBG_INFO, "Skip idle timer callback, too early: elapsed %lld msec\n", d->idleTimer.elapsed());
         return;
     }
     d->idleTimer.start();
@@ -15323,8 +15272,6 @@ void DeRestPlugin::idleTimerFired()
         QDateTime now = QDateTime::currentDateTime();
         d->queryTime = t;
 
-        DBG_Printf(DBG_INFO_L2, "Idle timer triggered\n");
-
         if (!d->nodes.empty())
         {
             if (d->lightIter >= d->nodes.size())
@@ -15332,17 +15279,21 @@ void DeRestPlugin::idleTimerFired()
                 d->lightIter = 0;
             }
 
-            while (d->lightIter < d->nodes.size())
+            int count = 0;
+            while (d->lightIter < d->nodes.size() && count < 5)
             {
                 if (DEV_TestStrict())
                 {
                     break;
                 }
 
+                count++;
+
                 LightNode *lightNode = &d->nodes[d->lightIter];
+                Device *device = static_cast<Device*>(lightNode->parentResource());
                 d->lightIter++;
 
-                if (!lightNode->isAvailable() || !lightNode->lastRx().isValid() || !lightNode->node() || lightNode->state() != LightNode::StateNormal)
+                if (!device || !lightNode->isAvailable() || !lightNode->lastRx().isValid() || !lightNode->node() || lightNode->state() != LightNode::StateNormal)
                 {
                     continue;
                 }
@@ -15356,48 +15307,39 @@ void DeRestPlugin::idleTimerFired()
                     }
                 }
 
-                // workaround for lights and smart plugs with multiple endpoints but only one basic cluster
-                if ((lightNode->manufacturerCode() == VENDOR_JENNIC || // mostly Xiaomi
-                     lightNode->manufacturerCode() == VENDOR_XIAOMI || // Xiaomi
-                     lightNode->manufacturerCode() == VENDOR_EMBER ||  // Tuya (Lidl)
-                     lightNode->manufacturerCode() == VENDOR_TUYA ||  // Tuya
-                     (lightNode->address().ext() & macPrefixMask) == tiMacPrefix) // GLEDOPTO
-                    && (lightNode->modelId().isEmpty() || lightNode->manufacturer().isEmpty() || lightNode->item(RAttrSwVersion)->toString().isEmpty()))
+                if (!device->managed())
                 {
-                    for (const auto &l : d->nodes)
+                    // workaround for lights and smart plugs with multiple endpoints but only one basic cluster
+                    if ((lightNode->manufacturerCode() == VENDOR_JENNIC || // mostly Xiaomi
+                         lightNode->manufacturerCode() == VENDOR_XIAOMI || // Xiaomi
+                         lightNode->manufacturerCode() == VENDOR_EMBER ||  // Tuya (Lidl)
+                         lightNode->manufacturerCode() == VENDOR_TUYA ||  // Tuya
+                         (lightNode->address().ext() & macPrefixMask) == tiMacPrefix) // GLEDOPTO
+                            && (lightNode->modelId().isEmpty() || lightNode->manufacturer().isEmpty()))
                     {
-                        if (l.address().ext() != lightNode->address().ext() || (l.haEndpoint().endpoint() == lightNode->haEndpoint().endpoint()))
+                        if (lightNode->modelId().isEmpty() && !device->item(RAttrModelId)->toString().isEmpty())
                         {
-                            continue;
-                        }
-
-                        if (lightNode->modelId().isEmpty() && !l.modelId().isEmpty())
-                        {
-                            lightNode->setModelId(l.modelId());
+                            lightNode->setModelId(device->item(RAttrModelId)->toString());
                             lightNode->setNeedSaveDatabase(true);
                             d->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
                         }
 
-                        if (lightNode->manufacturer().isEmpty() && !l.manufacturer().isEmpty())
+                        if (lightNode->manufacturer().isEmpty() && !device->item(RAttrManufacturerName)->toString().isEmpty())
                         {
-                            lightNode->setManufacturerName(l.manufacturer());
+                            lightNode->setManufacturerName(device->item(RAttrManufacturerName)->toString());
                             lightNode->setNeedSaveDatabase(true);
                             d->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
                         }
-
-                        if (lightNode->item(RAttrSwVersion)->toString().isEmpty() && !l.item(RAttrSwVersion)->toString().isEmpty())
-                        {
-                            lightNode->item(RAttrSwVersion)->setValue(l.item(RAttrSwVersion)->toString());
-                            lightNode->setNeedSaveDatabase(true);
-                            d->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
-                        }
-                        break;
                     }
-                }
 
-                if (d->gwPermitJoinDuration == 0)
-                {
-                    d->queuePollNode(lightNode);
+                    if (lightNode->manufacturer().isEmpty())
+                    {
+                        lightNode->setLastRead(READ_VENDOR_NAME, d->idleTotalCounter);
+                        lightNode->enableRead(READ_VENDOR_NAME);
+                        lightNode->setNextReadTime(READ_VENDOR_NAME, d->queryTime);
+                        d->queryTime = d->queryTime.addSecs(tSpacing);
+                        processLights = true;
+                    }
                 }
 
                 if (lightNode->lastRx().secsTo(now) > (5 * 60))
@@ -15440,22 +15382,8 @@ void DeRestPlugin::idleTimerFired()
                     }
                 }
 
-                if (lightNode->manufacturer().isEmpty())
-                {
-                    lightNode->setLastRead(READ_VENDOR_NAME, d->idleTotalCounter);
-                    lightNode->enableRead(READ_VENDOR_NAME);
-                    lightNode->setNextReadTime(READ_VENDOR_NAME, d->queryTime);
-                    d->queryTime = d->queryTime.addSecs(tSpacing);
-                    processLights = true;
-                }
-
-                if (processLights)
-                {
-                    DBG_Printf(DBG_INFO_L2, "Force read attributes for node %s\n", qPrintable(lightNode->name()));
-                }
-
                 // don't query low priority items when OTA is busy or sensor search is active
-                if (d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME && !d->permitJoinFlag)
+                if (!device->managed() && d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME && !d->permitJoinFlag)
                 {
                     if (lightNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT) || lightNode->lastAttributeReportBind() == 0)
                     {
@@ -15483,19 +15411,18 @@ void DeRestPlugin::idleTimerFired()
                 d->sensorIter = 0;
             }
 
-            while (d->sensorIter < d->sensors.size())
+            int count = 0;
+            while (d->sensorIter < d->sensors.size() && count < 5)
             {
                 Sensor *sensorNode = &d->sensors[d->sensorIter];
+                Device *device = static_cast<Device*>(sensorNode->parentResource());
                 d->sensorIter++;
+                count++;
 
-                if (!sensorNode->node())
+                if (!sensorNode->node() && device && device->node())
                 {
-                    deCONZ::Node *node = d->getNodeForAddress(sensorNode->address().ext());
-                    if (node)
-                    {
-                        sensorNode->setNode(node);
-                        sensorNode->fingerPrint().checkCounter = SENSOR_CHECK_COUNTER_INIT; // force check
-                    }
+                    sensorNode->setNode((deCONZ::Node*)device->node());
+                    sensorNode->fingerPrint().checkCounter = SENSOR_CHECK_COUNTER_INIT; // force check
                 }
 
                 if (sensorNode->fingerPrint().profileId == GP_PROFILE_ID && d->searchSensorsState != DeRestPluginPrivate::SearchSensorsActive)
@@ -15506,6 +15433,11 @@ void DeRestPlugin::idleTimerFired()
                         d->zclSeq++;
                         break;
                     }
+                }
+
+                if (!device)
+                {
+                    continue;
                 }
 
                 if (sensorNode->node())
@@ -15533,18 +15465,14 @@ void DeRestPlugin::idleTimerFired()
                     break;
                 }
 
-                if (sensorNode->modelId().isEmpty())
+                if (sensorNode->modelId().isEmpty() && !device->item(RAttrModelId)->toString().isEmpty())
                 {
-                    LightNode *lightNode = d->getLightNodeForAddress(sensorNode->address());
-                    if (lightNode && !lightNode->modelId().isEmpty())
-                    {
-                        sensorNode->setModelId(lightNode->modelId());
-                    }
+                    sensorNode->setModelId(device->item(RAttrModelId)->toString());
                 }
 
-                if (d->gwPermitJoinDuration == 0)
+                if (sensorNode->manufacturer().isEmpty() && !device->item(RAttrManufacturerName)->toString().isEmpty())
                 {
-                    d->queuePollNode(sensorNode);
+                    sensorNode->setManufacturer(device->item(RAttrManufacturerName)->toString());
                 }
 
                 if (sensorNode->lastRx().secsTo(now) > (5 * 60))
@@ -15558,67 +15486,54 @@ void DeRestPlugin::idleTimerFired()
                     break;
                 }
 
-                if (!sensorNode->mustRead(READ_VENDOR_NAME) && sensorNode->manufacturer().isEmpty())
-                {
-                    sensorNode->setLastRead(READ_VENDOR_NAME, d->idleTotalCounter);
-                    sensorNode->setNextReadTime(READ_VENDOR_NAME, d->queryTime);
-                    sensorNode->enableRead(READ_VENDOR_NAME);
-                    d->queryTime = d->queryTime.addSecs(tSpacing);
-                    processSensors = true;
-                }
-
-                if (processSensors)
-                {
-                    DBG_Printf(DBG_INFO_L2, "Force read attributes for node %s\n", qPrintable(sensorNode->name()));
-                }
-
+                const bool devManaged = device && device->managed();
                 if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastRead(READ_BINDING_TABLE) < (d->idleTotalCounter - IDLE_READ_LIMIT)))
                 {
-                    Device *device = sensorNode->parentResource() ? static_cast<Device*>(sensorNode->parentResource()) : nullptr;
-                    const bool devManaged = device && device->managed();
-
-                    std::vector<quint16>::const_iterator ci = sensorNode->fingerPrint().inClusters.begin();
-                    std::vector<quint16>::const_iterator cend = sensorNode->fingerPrint().inClusters.end();
+                    auto ci = sensorNode->fingerPrint().inClusters.begin();
+                    const auto cend = sensorNode->fingerPrint().inClusters.end();
                     for (;ci != cend; ++ci)
                     {
                         NodeValue val;
 
-                        if (*ci == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
+                        if (!devManaged)
                         {
-                            val = sensorNode->getZclValue(*ci, 0x0000); // measured value
-                        }
-                        else if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
-                        {
-                            val = sensorNode->getZclValue(*ci, 0x0000); // occupied state
-                        }
-
-                        if (val.timestampLastReport.isValid() &&
-                            val.timestampLastReport.secsTo(now) < (60 * 45)) // got update in timely manner
-                        {
-                            DBG_Printf(DBG_INFO_L2, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
-                        }
-                        else if (!sensorNode->mustRead(READ_BINDING_TABLE))
-                        {
-                            sensorNode->enableRead(READ_BINDING_TABLE);
-                            sensorNode->setLastRead(READ_BINDING_TABLE, d->idleTotalCounter);
-                            sensorNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
-                            d->queryTime = d->queryTime.addSecs(tSpacing);
-                            processSensors = true;
-                        }
-
-                        if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
-                        {
-                            if (!sensorNode->mustRead(READ_OCCUPANCY_CONFIG))
+                            if (*ci == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
                             {
-                                val = sensorNode->getZclValue(*ci, 0x0010); // PIR occupied to unoccupied delay
+                                val = sensorNode->getZclValue(*ci, 0x0000); // measured value
+                            }
+                            else if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
+                            {
+                                val = sensorNode->getZclValue(*ci, 0x0000); // occupied state
+                            }
 
-                                if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 1800)
+                            if (val.timestampLastReport.isValid() &&
+                                    val.timestampLastReport.secsTo(now) < (60 * 45)) // got update in timely manner
+                            {
+                                DBG_Printf(DBG_INFO_L2, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
+                            }
+                            else if (!sensorNode->mustRead(READ_BINDING_TABLE))
+                            {
+                                sensorNode->enableRead(READ_BINDING_TABLE);
+                                sensorNode->setLastRead(READ_BINDING_TABLE, d->idleTotalCounter);
+                                sensorNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
+                                d->queryTime = d->queryTime.addSecs(tSpacing);
+                                processSensors = true;
+                            }
+
+                            if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
+                            {
+                                if (!sensorNode->mustRead(READ_OCCUPANCY_CONFIG))
                                 {
-                                    sensorNode->enableRead(READ_OCCUPANCY_CONFIG);
-                                    sensorNode->setLastRead(READ_OCCUPANCY_CONFIG, d->idleTotalCounter);
-                                    sensorNode->setNextReadTime(READ_OCCUPANCY_CONFIG, d->queryTime);
-                                    d->queryTime = d->queryTime.addSecs(tSpacing);
-                                    processSensors = true;
+                                    val = sensorNode->getZclValue(*ci, 0x0010); // PIR occupied to unoccupied delay
+
+                                    if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 1800)
+                                    {
+                                        sensorNode->enableRead(READ_OCCUPANCY_CONFIG);
+                                        sensorNode->setLastRead(READ_OCCUPANCY_CONFIG, d->idleTotalCounter);
+                                        sensorNode->setNextReadTime(READ_OCCUPANCY_CONFIG, d->queryTime);
+                                        d->queryTime = d->queryTime.addSecs(tSpacing);
+                                        processSensors = true;
+                                    }
                                 }
                             }
                         }
@@ -15639,10 +15554,8 @@ void DeRestPlugin::idleTimerFired()
                                 sensorNode->modelId().startsWith(QLatin1String("SLT3")) ||      // Hive Active Heating Thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("SLR2")) ||      // Hive Active Heating Receiver 2 channel
                                 sensorNode->modelId().startsWith(QLatin1String("SLR1b")) ||     // Hive Active Heating Receiver 1 channel
-                                sensorNode->modelId().startsWith(QLatin1String("TRV001")) ||    // Hive TRV
                                 sensorNode->modelId().startsWith(QLatin1String("TH112")) ||     // Sinope devices
                                 sensorNode->modelId().startsWith(QLatin1String("TH1300ZB")) ||  // Sinope devices
-                                sensorNode->modelId().startsWith(QLatin1String("eT093WRO")) ||  // POPP smart thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("0x8020")) ||    // Danfoss RT24V Display thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("0x8021")) ||    // Danfoss RT24V Display thermostat with floor sensor
                                 sensorNode->modelId().startsWith(QLatin1String("0x8030")) ||    // Danfoss RTbattery Display thermostat
@@ -15696,11 +15609,14 @@ void DeRestPlugin::idleTimerFired()
                         }
                     }
 
-                    DBG_Printf(DBG_INFO_L2, "Force read attributes for %s SensorNode %s\n", qPrintable(sensorNode->type()), qPrintable(sensorNode->name()));
+                    if (processSensors)
+                    {
+                        DBG_Printf(DBG_INFO_L2, "Force read attributes for %s SensorNode %s\n", qPrintable(sensorNode->type()), qPrintable(sensorNode->name()));
+                    }
                     //break;
                 }
 
-                if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT)))
+                if (!devManaged && (d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT)))
                 {
                     if (d->checkSensorBindingsForAttributeReporting(sensorNode))
                     {
@@ -15715,38 +15631,6 @@ void DeRestPlugin::idleTimerFired()
                     DBG_Printf(DBG_INFO_L2, "Force binding of attribute reporting for node %s\n", qPrintable(sensorNode->name()));
                     processSensors = true;
                 }
-            }
-        }
-
-        if (!DEV_TestManaged())
-        {
-            std::vector<LightNode>::iterator i = d->nodes.begin();
-            std::vector<LightNode>::iterator end = d->nodes.end();
-
-            int countNoColorXySupport = 0;
-
-            for (; i != end; ++i)
-            {
-                // older FLS which do not have correct support for color mode xy has atmel vendor id
-                if (i->isAvailable() && i->manufacturerCode() == VENDOR_ATMEL && i->modelId().startsWith("FLS")) // old FLS devices
-                {
-                    countNoColorXySupport++;
-                }
-            }
-
-            if ((countNoColorXySupport > 0) && d->supportColorModeXyForGroups)
-            {
-                DBG_Printf(DBG_INFO_L2, "disable support for CIE 1931 XY color mode for groups\n");
-                d->supportColorModeXyForGroups = false;
-            }
-            else if ((countNoColorXySupport == 0) && !d->supportColorModeXyForGroups)
-            {
-                DBG_Printf(DBG_INFO_L2, "enable support for CIE 1931 XY color mode for groups\n");
-                d->supportColorModeXyForGroups = true;
-            }
-            else
-            {
-    //            DBG_Printf(DBG_INFO_L2, "support for CIE 1931 XY color mode for groups %u\n", d->supportColorModeXyForGroups);
             }
         }
 
@@ -15824,6 +15708,8 @@ void DeRestPlugin::checkZclAttributeTimerFired()
         return;
     }
 
+    int count = 0;
+
     if (d->lightAttrIter >= d->nodes.size())
     {
         d->lightAttrIter = 0;
@@ -15833,10 +15719,12 @@ void DeRestPlugin::checkZclAttributeTimerFired()
     {
         LightNode *lightNode = &d->nodes[d->lightAttrIter];
         d->lightAttrIter++;
+        count++;
 
         if (d->getUptime() < WARMUP_TIME)
         {
             // warmup phase
+            break;
         }
         else if (d->processZclAttributes(lightNode))
         {
@@ -15845,6 +15733,9 @@ void DeRestPlugin::checkZclAttributeTimerFired()
             d->processTasks();
             break;
         }
+
+        if (count > 5)
+            break;
     }
 
     if (d->sensorAttrIter >= d->sensors.size())
@@ -15852,6 +15743,7 @@ void DeRestPlugin::checkZclAttributeTimerFired()
         d->sensorAttrIter = 0;
     }
 
+    count = 0;
     while (d->sensorAttrIter < d->sensors.size())
     {
         Sensor *sensorNode = &d->sensors[d->sensorAttrIter];
@@ -15864,6 +15756,9 @@ void DeRestPlugin::checkZclAttributeTimerFired()
             d->processTasks();
             break;
         }
+
+        if (count > 5)
+            break;
     }
 
     startZclAttributeTimer(checkZclAttributesDelay);
@@ -15881,14 +15776,12 @@ void DeRestPlugin::appAboutToQuit()
         d->openDb();
         d->saveDb();
 
-        // TODO(mpi): Following is really heavy and already done previously
-        //            storing items needs to get more explicit with dirty flags
-#if 0
-        for (const auto &dev : d->m_devices)
+#if 1
+        for (auto &dev : d->m_devices)
         {
             if (dev->managed())
             {
-                for (const auto *sub : dev->subDevices())
+                for (Resource *sub : dev->subDevices())
                 {
                     DB_StoreSubDeviceItems(sub);
                 }
@@ -16008,6 +15901,9 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 {
     QString content;
     QTextStream stream(sock);
+
+    ScratchMemRewind(0);
+    ScratchMemWaypoint swp;
 
     stream.setCodec(QTextCodec::codecForName("UTF-8"));
     d->pushClientForClose(sock, 60);
@@ -16180,6 +16076,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
                 {
                     ret = d->restDevices->handleApi(req, rsp);
                 }
+                else if (apiModule == QLatin1String("ddf"))
+                {
+                    ret = REST_DDF_HandleApi(req, rsp);
+                }
                 else if (apiModule == QLatin1String("lights"))
                 {
                     ret = d->handleLightsApi(req, rsp);
@@ -16318,17 +16218,18 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     stream << "HTTP/1.1 " << rsp.httpStatus << "\r\n";
     stream << "Access-Control-Allow-Origin: *\r\n";
     stream << "Content-Type: " << rsp.contentType << "\r\n";
-    stream << "Content-Length: " << str.size() << "\r\n";
-
-    if (!rsp.hdrFields.empty())
+    if (rsp.contentLength)
     {
-        auto i = rsp.hdrFields.cbegin();
-        const auto end = rsp.hdrFields.cend();
+        stream << "Content-Length: " << rsp.contentLength << "\r\n";
+    }
+    else if (str.size())
+    {
+        stream << "Content-Length: " << str.size() << "\r\n";
+    }
 
-        for (; i != end; ++i)
-        {
-            stream << i->first << ": " <<  i->second << "\r\n";
-        }
+    if (rsp.fileName)
+    {
+        stream << "Content-Disposition: attachment; filename=\"" << rsp.fileName << "\"\r\n";
     }
 
     if (!rsp.etag.isEmpty())
@@ -16337,14 +16238,16 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     }
     stream << "\r\n";
 
-    if (!str.isEmpty())
+    if (rsp.bin && rsp.contentLength)
+    {
+        stream.flush();
+        sock->write(rsp.bin, rsp.contentLength);
+        sock->flush();
+    }
+    else if (!str.isEmpty())
     {
         stream << str;
-    }
-
-    stream.flush();
-    if (!str.isEmpty())
-    {
+        stream.flush();
         DBG_Printf(DBG_HTTP, "%s\n", qPrintable(str));
     }
 
@@ -16648,11 +16551,11 @@ Resource *DEV_AddResource(const LightNode &lightNode)
  */
 void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
 {
-    assert(device);
-    assert(rsub);
-    assert(rsub->item(RAttrId));
-    assert(item);
-    assert(item->descriptor().suffix == RConfigGroup);
+    U_ASSERT(device);
+    U_ASSERT(rsub);
+    U_ASSERT(rsub->item(RAttrId));
+    U_ASSERT(item);
+    U_ASSERT(item->descriptor().suffix == RConfigGroup);
 
     if (!device || !rsub || !rsub->item(RAttrId) || !item || item->descriptor().suffix != RConfigGroup)
     {
@@ -16715,10 +16618,24 @@ void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
         if (groupList[i] != QLatin1String("auto") && groupList[i] != QLatin1String("null"))
         {
             // verify group exists
-            auto g = std::find_if(groups.begin(), groups.end(), [&](const Group &x)
-                                 { return x.state() == Group::StateNormal && x.id() == groupList[i]; });
+            auto g = std::find_if(groups.begin(), groups.end(), [&](const Group &x) {
+                const ResourceItem *itemUniqueId = x.item(RAttrUniqueId);
+                if (x.state() == Group::StateNormal)
+                {
+                    if (x.id() == groupList[i])
+                    {
+                        return true;
+                    }
 
-            if (g == groups.cend())
+                    if (itemUniqueId && itemUniqueId->toString() == gUniqueId)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            });
+
+            if (g == groups.end())
             {
                 bool ok;
                 uint gid = groupList[i].toUInt(&ok, 0);
@@ -16827,6 +16744,33 @@ void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
                 plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
             }
         }
+    }
+}
+
+/*! Callback when new DDF bundle is uploaded.
+    For each matching device trigger a DDF reload event.
+ */
+void DEV_ReloadDeviceIdendifier(unsigned atomIndexMfname, unsigned atomIndexModelid)
+{
+    (void)atomIndexMfname;
+
+    for (auto &dev : plugin->m_devices)
+    {
+        {
+            const ResourceItem *modelid = dev->item(RAttrModelId);
+            if (!modelid || modelid->atomIndex() != atomIndexModelid)
+                continue;
+        }
+
+#if 0 // ignore for now since manufacturer name might have case sensitive variations
+        {
+            const ResourceItem *mfname = dev->item(RAttrManufacturerName);
+            if (!mfname || mfname->atomIndex() != atomIndexMfname)
+                continue;
+        }
+#endif
+
+        enqueueEvent(Event(RDevices, REventDDFReload, 0, dev->key()));
     }
 }
 
@@ -16975,6 +16919,18 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
     }
 }
 
+void DEV_PollLegacy(Device *device)
+{
+    for (Resource *r : device->subDevices())
+    {
+        RestNodeBase *restNode = dynamic_cast<RestNodeBase*>(r);
+        if (restNode)
+        {
+            plugin->queuePollNode(restNode);
+        }
+    }
+}
+
 /*! Selects the next device to poll.
  */
 void DeRestPluginPrivate::pollNextDevice()
@@ -17018,45 +16974,6 @@ void DeRestPluginPrivate::pollNextDevice()
             break;
         }
         restNode = nullptr;
-    }
-
-    if (pollNodes.empty()) // TODO iter based
-    {
-        for (LightNode &l : nodes)
-        {
-            if (l.isAvailable() && l.address().ext() != gwDeviceAddress.ext() && l.state() == LightNode::StateNormal)
-            {
-                if (l.parentResource())
-                {
-                    Device *device = static_cast<Device*>(l.parentResource());
-                    if (device && device->managed())
-                    {
-                        continue;
-                    }
-                }
-
-                const PollNodeItem pollItem(l.uniqueId(), RLights);
-                pollNodes.push_back(pollItem);
-            }
-        }
-
-        for (Sensor &s : sensors)
-        {
-            if (s.isAvailable() && s.node() && s.node()->nodeDescriptor().receiverOnWhenIdle() && s.deletedState() == Sensor::StateNormal)
-            {
-                if (s.parentResource())
-                {
-                    Device *device = static_cast<Device*>(s.parentResource());
-                    if (device && device->managed())
-                    {
-                        continue;
-                    }
-                }
-
-                const PollNodeItem pollItem(s.uniqueId(), RSensors);
-                pollNodes.push_back(pollItem);
-            }
-        }
     }
 
     if (restNode && restNode->isAvailable())

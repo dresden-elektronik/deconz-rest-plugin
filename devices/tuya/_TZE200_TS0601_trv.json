@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["_TZE200_bvu2wnxz", "_TZE200_6rdj8dzm", "_TZE200_gd4rvykv"],
-  "modelid": ["TS0601", "TS0601", "TS0601"],
+  "uuid": "88f07be9-48ca-454c-b764-d0587138d094",
+  "manufacturername": ["_TZE200_bvu2wnxz", "_TZE200_6rdj8dzm", "_TZE200_gd4rvykv", "_TZE200_rxntag7i", "_TZE200_p3dbf6qs"],
+  "modelid": ["TS0601", "TS0601", "TS0601", "TS0601", "TS0601"],
   "vendor": "Tuya",
-  "product": "Tuya TRV",
+  "product": "Thermostat TRV (TS0601)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -58,6 +59,12 @@
           "parse": {"fn": "tuya", "dpid": 4, "eval": "Item.val = Attr.val * 10;"},
           "write": {"fn": "tuya", "dpid": 4, "dt": "0x2b", "eval": "Item.val / 10;"},
           "read": {"fn": "tuya"}
+        },
+        {
+          "name": "config/offset",
+          "parse": {"fn": "tuya", "dpid": 47, "eval": "Item.val = Attr.val * 100;"},
+          "write": {"fn": "tuya", "dpid": 47, "dt": "0x2b", "eval": "Item.val / 100;"},
+          "read": {"fn": "none"}
         },
         {
           "name": "config/locked",

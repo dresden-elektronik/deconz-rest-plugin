@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["eWeLink","SONOFF"],
-  "modelid": ["TH01","SNZB-02D"],
-  "vendor": "SONOFF",
-  "product": "SNZB-02 multisensor",
+  "uuid": "52815a37-6180-4ab8-83ef-021d75496a7b",
+  "manufacturername": ["eWeLink","SONOFF","SONOFF"],
+  "modelid": ["TH01","SNZB-02D","SNZB-02P"],
+  "vendor": "Sonoff",
+  "product": "Temperature And Humidity Sensor (SNZB-02)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -224,8 +225,8 @@
 		"report": [{
 			"at": "0x0000",
 			"dt": "0x21",
-			"min": 5,
-			"max": 1800,
+			"min": 60,
+			"max": 600,
 			"change": "0x00000064"
 		}]
 	}, {
@@ -235,9 +236,9 @@
 		"report": [{
 			"at": "0x0000",
 			"dt": "0x29",
-			"min": 5,
-			"max": 1800,
-			"change": "0x0000000A"
+			"min": 60,
+			"max": 600,
+			"change": "0x0000001E"
 		}]
 	}]
 }

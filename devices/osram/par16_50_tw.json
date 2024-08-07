@@ -1,0 +1,95 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "a179c62e-6765-43e4-b24d-9cc849dd499e",
+  "manufacturername": "OSRAM",
+  "modelid": "PAR16 50 TW",
+  "vendor": "Osram",
+  "product": "Lightify PAR16 50 TW",
+  "sleeper": false,
+  "supportsMgmtBind": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x03"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/bri/move_with_onoff",
+          "static": true
+        },
+        {
+          "name": "cap/color/capabilities",
+          "refresh.interval": 86400
+        },
+        {
+          "name": "cap/color/ct/max",
+          "refresh.interval": 86400,
+          "default": 370
+        },
+        {
+          "name": "cap/color/ct/min",
+          "refresh.interval": 86400,
+          "default": 153
+        },
+        {
+          "name": "cap/on/off_with_effect",
+          "static": true
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/bri",
+          "refresh.interval": 20
+        },
+        {
+          "name": "state/colormode",
+          "refresh.interval": 20
+        },
+        {
+          "name": "state/ct",
+          "refresh.interval": 20
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 20
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
+}

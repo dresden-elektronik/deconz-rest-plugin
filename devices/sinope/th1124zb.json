@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "955538c2-6cb3-4e73-8a48-248c94aab6a1",
   "manufacturername": "Sinope Technologies",
   "modelid": "TH1124ZB",
-  "product": "TH1124ZB",
+  "vendor": "Sinope",
+  "product": "Smart thermostat for electric heating (TH1124ZB)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -57,7 +59,7 @@
           "name": "config/heatsetpoint",
           "default": 0
         },
-	{
+        {
           "name": "config/resetpresence",
           "refresh.interval": 300,
           "description": "Use it to address Occupancy specific attribute.\nfalse = Unoccupied\ntrue = Occupied",
@@ -124,7 +126,7 @@
             "mf": "0x119c"
           },
             "write": {
-	    "at": "0x0014",
+            "at": "0x0014",
             "cl": "0x0201",
             "dt": "0x29",
             "ep": 1,

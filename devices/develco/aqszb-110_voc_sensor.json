@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "bf113ff9-a8c5-4e1e-9088-33cc0d5f4daf",
   "manufacturername": "Develco Products A/S",
   "modelid": "AQSZB-110",
   "vendor": "Develco Products",
-  "product": "AQSZB-110 TVOC sensor",
+  "product": "Air quality sensor (AQSZB-110)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

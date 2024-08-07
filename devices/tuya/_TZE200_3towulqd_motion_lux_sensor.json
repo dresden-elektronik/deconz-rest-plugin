@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "6d1725ae-df24-4918-a858-be58c4c3e6f5",
   "manufacturername": "_TZE200_3towulqd",
   "modelid": "TS0601",
   "vendor": "Tuya",
-  "product": "ZG-204ZL Luminance Motion Sensor",
+  "product": "PIR motion detector and light sensor (ZG-204ZL)",
   "status": "Gold",
   "sleeper": true,
   "subdevices": [

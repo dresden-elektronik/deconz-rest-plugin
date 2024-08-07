@@ -1,14 +1,19 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "e7de8f0e-bf48-4ea0-b655-7e04fb6bdfa9",
   "manufacturername": [
-    "$MF_SIGNIFY"
+    "$MF_SIGNIFY",
+    "$MF_PHILIPS"
   ],
   "modelid": [
+    "LCX012",
     "LCX012"
   ],
-  "product": "Hue Festavia",
+  "vendor": "Philips",
+  "product": "Hue festavia string lights",
   "sleeper": false,
   "status": "Gold",
+  "matchexpr": "R.hasCluster(0x0b,0xfc03)",
   "subdevices": [
     {
       "type": "$TYPE_EXTENDED_COLOR_LIGHT",
@@ -160,7 +165,13 @@
           "name": "cap/on/off_with_effect"
         },
         {
+          "name": "config/bri/couple_ct"
+        },
+        {
           "name": "config/bri/execute_if_off"
+        },
+        {
+          "name": "config/bri/options"
         },
         {
           "name": "config/bri/startup"

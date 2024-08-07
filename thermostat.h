@@ -17,11 +17,7 @@
 #define THERM_ATTRID_DEVICE_ON                               0x0406 // ELKO specific
 #define THERM_ATTRID_CHILD_LOCK                              0x0413 // ELKO specific
 #define THERM_ATTRID_CURRENT_TEMPERATURE_SETPOINT            0x4003 // Eurotronic specific
-#define THERM_ATTRID_EXTERNAL_OPEN_WINDOW_DETECTED           0x4003 // Danfoss specific
 #define THERM_ATTRID_HOST_FLAGS                              0x4008 // Eurotronic specific
-#define THERM_ATTRID_MOUNTING_MODE_CONTROL                   0x4013 // Danfoss specific
-#define THERM_ATTRID_EXTERNAL_MEASUREMENT                    0x4015 // Danfoss specific
-#define THERM_ATTRID_REGULATION_SETPOINT_OFFSET              0x404B // Danfoss specific
 
 // Values for attribute Control Sequence of Operation (0x001B)
 #define COOLING_ONLY                            0x00
@@ -44,6 +40,5 @@ extern const std::array<KeyValMap, 3> RConfigTemperatureMeasurementValues;
 extern const std::array<KeyValMap, 5> RConfigSwingModeValues;
 extern const std::array<KeyValMapInt, 6> RConfigControlSequenceValues;
 extern const std::array<KeyMap, 3> RConfigModeValuesEurotronic;
-extern const std::array<KeyValMap, 5> RStateWindowOpenValuesDanfoss;
 
 #endif // THERMOSTAT_H

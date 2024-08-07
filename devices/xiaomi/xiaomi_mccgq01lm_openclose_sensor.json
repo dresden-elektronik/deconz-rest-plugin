@@ -1,12 +1,16 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "17905b83-4763-44bd-bed5-a7c898601c6d",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_magnet",
-  "vendor": "Xiaomi",
-  "product": "Mijia open/close sensor MCCGQ01LM",
+  "vendor": "Xiaomi Mi",
+  "product": "Open/close sensor (MCCGQ01LM)",
   "sleeper": true,
   "status": "Gold",
-  "md:known_issues": [ "xiaomi_known_issues1.md", "xiaomi_known_issues_mccqg01lm.md" ],
+  "md:known_issues": [
+    "xiaomi_known_issues_sticky_parents.md",
+    "xiaomi_known_issues_difficult_pairing.md"
+  ],
   "subdevices": [
     {
       "type": "$TYPE_OPEN_CLOSE_SENSOR",

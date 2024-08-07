@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "8bcc2fce-08f5-44df-a094-77c60a2c7180",
   "manufacturername": "innr",
   "modelid": "RC 250",
-  "product": "Battery switch",
+  "vendor": "Innr",
+  "product": "5-key wireless remote control (RC 250)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

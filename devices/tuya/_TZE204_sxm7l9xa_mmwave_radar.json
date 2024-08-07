@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "63378e16-6840-4b37-9e9e-ac17c8462e08",
   "manufacturername": "_TZE204_sxm7l9xa",
   "modelid": "TS0601",
-  "product": "Tuya Human Presence Detector",
+  "vendor": "Tuya",
+  "product": "Tuya human presence detector (TS0601)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "cc8da80e-f922-45ab-b94c-954c64f1d045",
   "manufacturername": "BOSCH",
   "modelid": "RBSH-SP-ZB-EU",
   "vendor": "Bosch",
-  "product": "Plug compact EU BSP-FZ2",
+  "product": "Plug compact EU (BSP-FZ2)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

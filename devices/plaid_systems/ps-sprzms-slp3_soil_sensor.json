@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "7bb7c15c-9129-40f4-9c8a-617d847f5ed9",
   "manufacturername": "PLAID SYSTEMS",
   "modelid": "PS-SPRZMS-SLP3",
   "vendor": "Plaid Systems",
-  "product": "Spruce Soil sensor",
+  "product": "Spruce Soil sensor (PS-SPRZMS-SLP3)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

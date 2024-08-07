@@ -1,9 +1,10 @@
 {
     "schema": "devcap1.schema.json",
+    "uuid": "216c300b-5bef-4788-ac87-1261829af0ea",
     "manufacturername": "Develco Products A/S",
     "modelid": "SMSZB-120",
     "vendor": "Develco Products",
-    "product": "SMSZB-120 smoke sensor",
+    "product": "Intelligent smoke alarm (SMSZB-120)",
     "sleeper": false,
     "status": "Gold",
     "subdevices": [
@@ -198,7 +199,7 @@
             ]
         },
         {
-            "type": "Warning device",
+            "type": "$TYPE_WARNING_DEVICE",
             "restapi": "/lights",
             "uuid": [
                 "$address.ext",

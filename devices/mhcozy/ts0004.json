@@ -1,0 +1,373 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "bfd918c6-53f3-44b8-97fd-b5c00100cab8",
+  "manufacturername": "_TZ3000_u3oupgdy",
+  "modelid": "TS0004",
+  "vendor": "MHCozy",
+  "product": "4-channel dry contact smart wireless zigbee switch relay module (TS0004)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_OUTPUT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "static": "ZG-005-RF"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = ((Attr.val & 0xC0) >> 6) + '.' + ((Attr.val & 0x30) >> 4) + '.' + (Attr.val & 0x0F)"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/devicemode",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0xE001",
+            "at": "0xD030",
+            "eval": "Item.val = ['toggle', 'state', 'momentary'][Attr.val]"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0xE001",
+            "at": "0xD030"
+          },
+          "refresh.interval": 3660,
+          "write": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0xE001",
+            "at": "0xD030",
+            "dt": "0x30",
+            "eval": "Item.val === 'toggle' ?  0 : Item.val === 'state' ? 1 : 2"
+          }
+        },
+        {
+          "name": "config/on/startup",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0xE001",
+            "at": "0xD010",
+            "eval": "Item.val = Attr.val === 2 ? 0xFF : Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0xE001",
+            "at": "0xD010"
+          },
+          "refresh.interval": 3660,
+          "write": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0xE001",
+            "at": "0xD010",
+            "dt": "0x30",
+            "eval": "Item.val === 0xFF ? 2 : Item.val"
+          }
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_ON_OFF_OUTPUT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x02"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "static": "ZG-005-RF"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = ((Attr.val & 0xC0) >> 6) + '.' + ((Attr.val & 0x30) >> 4) + '.' + (Attr.val & 0x0F)"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on/startup",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0xE001",
+            "at": "0xD010",
+            "eval": "Item.val = Attr.val === 2 ? 0xFF : Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0xE001",
+            "at": "0xD010"
+          },
+          "refresh.interval": 3660,
+          "write": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0xE001",
+            "at": "0xD010",
+            "dt": "0x30",
+            "eval": "Item.val === 0xFF ? 2 : Item.val"
+          }
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_ON_OFF_OUTPUT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x03"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "static": "ZG-005-RF"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = ((Attr.val & 0xC0) >> 6) + '.' + ((Attr.val & 0x30) >> 4) + '.' + (Attr.val & 0x0F)"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on/startup",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x03",
+            "cl": "0xE001",
+            "at": "0xD010",
+            "eval": "Item.val = Attr.val === 2 ? 0xFF : Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x03",
+            "cl": "0xE001",
+            "at": "0xD010"
+          },
+          "refresh.interval": 3660,
+          "write": {
+            "fn": "zcl:attr",
+            "ep": "0x03",
+            "cl": "0xE001",
+            "at": "0xD010",
+            "dt": "0x30",
+            "eval": "Item.val === 0xFF ? 2 : Item.val"
+          }
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_ON_OFF_OUTPUT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "static": "ZG-005-RF"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = ((Attr.val & 0xC0) >> 6) + '.' + ((Attr.val & 0x30) >> 4) + '.' + (Attr.val & 0x0F)"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on/startup",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x04",
+            "cl": "0xE001",
+            "at": "0xD010",
+            "eval": "Item.val = Attr.val === 2 ? 0xFF : Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x04",
+            "cl": "0xE001",
+            "at": "0xD010"
+          },
+          "refresh.interval": 3660,
+          "write": {
+            "fn": "zcl:attr",
+            "ep": "0x04",
+            "cl": "0xE001",
+            "at": "0xD010",
+            "dt": "0x30",
+            "eval": "Item.val === 0xFF ? 2 : Item.val"
+          }
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
+}

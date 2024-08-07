@@ -1,13 +1,19 @@
-var arr = [];
-var hex;
-let str = Attr.val;
+var error = [];
 
-for (var i = 0; i < str.length; i++)
+if (Attr.val == 0)
 {
-    hex = str.charCodeAt(i).toString(16);
-    if (hex.length < 2) { hex = "0" + hex.toUpperCase(); }
-    arr.push(hex);
+    error.push("none");
+}
+else
+{
+    for (i = 0; i < 15; i++)
+    {
+        if (Attr.val >> i & 0x01)
+        {
+            error.push("E" + (i + 1));
+        }
+    }
 }
 
-var res = arr.join("");
+var res = error.join(",");
 Item.val = res.toString(16);
