@@ -3,8 +3,8 @@
   "uuid": "cd25fbd8-9b9b-4051-9c01-1c08a9d65203",
   "manufacturername": ["eWeLink", "zbeacon"],
   "modelid": ["DS01", "DS01"],
-  "vendor": "SONOFF",
-  "product": "DS01 open/close sensor",
+  "vendor": "eWeLink",
+  "product": "Open/close sensor (DS01)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

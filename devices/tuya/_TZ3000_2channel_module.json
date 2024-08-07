@@ -13,7 +13,8 @@
    "TS0002",
    "TS0002"
   ],
-  "product": "Tuya 2 output module",
+  "vendor": "Tuya",
+  "product": "2 output module (TS0002)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

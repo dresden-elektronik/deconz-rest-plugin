@@ -5,7 +5,8 @@
     "doc:hdr": "Samsung Button",
     "manufacturername": "$MF_SAMJIN",
     "modelid": "button",
-    "product": "Samsung Button (IM6001-BTP01)",
+    "vendor": "Samsung",
+    "product": "Button (IM6001-BTP01)",
     "status": "Silver",
     "md:known_issues": [ ],
     "subdevices": [

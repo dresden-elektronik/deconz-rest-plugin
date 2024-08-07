@@ -3690,7 +3690,10 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     {
                         if (RStateEffectValuesMueller.indexOf(lightNode->toString(RStateEffect), 0) <= 1)
                         {
-                            lightNode->setValue(RStateEffect, RStateEffectValues[ia->numericValue().u8]);
+                            if ((int)ia->numericValue().u8 < RStateEffectValues.size())
+                            {
+                                lightNode->setValue(RStateEffect, RStateEffectValues[ia->numericValue().u8]);
+                            }
                         }
                     }
                     else if (ia->id() == 0x4004) // color loop time
@@ -16749,19 +16752,23 @@ void DEV_AllocateGroup(const Device *device, Resource *rsub, ResourceItem *item)
  */
 void DEV_ReloadDeviceIdendifier(unsigned atomIndexMfname, unsigned atomIndexModelid)
 {
+    (void)atomIndexMfname;
+
     for (auto &dev : plugin->m_devices)
     {
-        {
-            const ResourceItem *mfname = dev->item(RAttrManufacturerName);
-            if (!mfname || mfname->atomIndex() != atomIndexMfname)
-                continue;
-        }
-
         {
             const ResourceItem *modelid = dev->item(RAttrModelId);
             if (!modelid || modelid->atomIndex() != atomIndexModelid)
                 continue;
         }
+
+#if 0 // ignore for now since manufacturer name might have case sensitive variations
+        {
+            const ResourceItem *mfname = dev->item(RAttrManufacturerName);
+            if (!mfname || mfname->atomIndex() != atomIndexMfname)
+                continue;
+        }
+#endif
 
         enqueueEvent(Event(RDevices, REventDDFReload, 0, dev->key()));
     }

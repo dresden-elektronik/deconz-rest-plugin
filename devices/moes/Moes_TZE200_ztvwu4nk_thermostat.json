@@ -3,8 +3,8 @@
   "uuid": "90e437ea-e697-4490-8944-e0d8ef0dc1d0",
   "manufacturername": ["_TZE200_ztvwu4nk", "_TZE204_5toc8efa", "_TZE200_5toc8efa", "_TZE200_ye5jkfsb", "_TZE204_aoclfnxz", "_TZE200_u9bfwha0"],
   "modelid": ["TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601"],
-  "vendor": "Tuya",
-  "product": "Moes Thermostat",
+  "vendor": "Moes",
+  "product": "Thermostat for Water/Gas Boiler (BHT-002)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -43,7 +43,7 @@
         {
           "name": "attr/swversion",                   
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
           "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
@@ -82,8 +82,8 @@
         },
         {
           "name": "config/preset",
-          "parse": {"fn": "tuya", "dpid": 2, "script": "tuya_trv_preset.js"},
-          "write": {"fn": "tuya", "dpid": 2, "dt": "0x30", "script": "tuya_trv_preset_set.js"},
+          "parse": {"fn": "tuya", "dpid": 2, "script": "../tuya/tuya_trv_preset.js"},
+          "write": {"fn": "tuya", "dpid": 2, "dt": "0x30", "script": "../tuya/tuya_trv_preset_set.js"},
           "read": {"fn": "none"}
         },
         {

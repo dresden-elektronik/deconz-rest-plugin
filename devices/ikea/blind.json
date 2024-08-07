@@ -13,6 +13,8 @@
     "PRAKTLYSING cellular blind",
     "TREDANSEN block-out cellul blind"
   ],
+  "vendor": "IKEA",
+  "product": "Blinds (FYRTUR/KADRILJ/PRAKTLYSING/TREDANSEN)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

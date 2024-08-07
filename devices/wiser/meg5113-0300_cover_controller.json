@@ -3,8 +3,8 @@
   "uuid": "cc3b7ff9-2867-4f6a-af90-fd40441a0304",
   "manufacturername": "Schneider Electric",
   "modelid": "1GANG/SHUTTER/1",
-  "vendor": "Merten Wiser",
-  "product": "MEG5113-0300 cover controller",
+  "vendor": "Schneider Electric",
+  "product": "Merten Wiser cover controller (MEG5113-0300)",
   "sleeper": false,
   "status": "Silver",
   "subdevices": [

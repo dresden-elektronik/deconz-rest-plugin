@@ -3,7 +3,8 @@
   "uuid": "e8018b76-1282-4299-b796-c0028638a213",
   "manufacturername": "GREEBLE",
   "modelid": "JZ-RGBW-Z01",
-  "product": "JZ-RGBW-Z01",
+  "vendor": "Greeble",
+  "product": "Extended color light (JZ-RGBW-Z01)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
