@@ -68,11 +68,7 @@
           "default": false
         },
         {
-          "name": "config/mode",
-          "options": [
-            "off",
-            "heat"
-          ]
+          "name": "config/mode"
         },
         {
           "name": "config/offset",
