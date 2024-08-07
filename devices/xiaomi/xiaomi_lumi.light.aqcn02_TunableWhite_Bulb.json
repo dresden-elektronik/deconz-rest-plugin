@@ -3,6 +3,7 @@
   "uuid": "ebd6369b-7956-4d64-b0d3-57c70d2002ad",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.light.aqcn02",
+  "vendor": "Xiaomi",
   "product": "Aqara Tunable White LED Bulb (ZNLDP12LM)",
   "sleeper": false,
   "status": "Gold",
