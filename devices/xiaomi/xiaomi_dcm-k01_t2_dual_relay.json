@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "4e1f6035-23c1-4538-8454-68eb6f28b9e5",
   "manufacturername": "$MF_AQARA",
   "modelid": "lumi.switch.acn047",
   "vendor": "Xiaomi",
