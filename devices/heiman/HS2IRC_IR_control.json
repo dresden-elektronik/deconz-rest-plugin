@@ -45,7 +45,7 @@
         },
         {
           "name": "state/lastupdated"
-        }
+        },
         {
           "name": "config/sendkey",
           "write": {
@@ -65,6 +65,9 @@
             "cmd": "0xf1",
             "eval": "('0'+parseInt(Item.val.split(',')[0]).toString(16)).slice(-2) + ('0'+parseInt(Item.val.split(',')[1]).toString(16)).slice(-2);"
           }
+        },
+        {
+          "name": "config/reachable"
         },
         {
           "name": "config/on"
