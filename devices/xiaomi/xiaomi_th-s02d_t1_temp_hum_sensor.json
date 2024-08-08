@@ -4,7 +4,7 @@
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_ht.agl02",
   "vendor": "Xiaomi Aqara",
-  "product": "T1 temperature and humidity sensor (WSDCGQ12LM)",
+  "product": "T1 Temperature and Humidity Sensor (TH-S02D)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
