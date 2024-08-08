@@ -15,7 +15,8 @@
       "TS011F",
       "TS011F"
    ],
-   "product":"Tuya Powerstrip w/USB",
+   "vendor": "Tuya",
+   "product":"Powerstrip with USB (TS011F)",
    "sleeper":false,
    "status":"Gold",
    "subdevices":[

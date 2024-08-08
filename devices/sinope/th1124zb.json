@@ -3,7 +3,7 @@
   "uuid": "955538c2-6cb3-4e73-8a48-248c94aab6a1",
   "manufacturername": ["Sinope Technologies", "Sinope Technologies"],
   "modelid": ["TH1123ZB", "TH1124ZB"],
-  "product": "Electric heating thermostat TH1123ZB/TH1124ZB",
+  "product": "Smart thermostat for electric heating (TH1123ZB/TH1124ZB)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -59,7 +59,7 @@
           "refresh.interval": 360,
           "default": 0
         },
-	{
+        {
           "name": "config/resetpresence",
           "refresh.interval": 300,
           "description": "Use it to address Occupancy specific attribute.\nfalse = Unoccupied\ntrue = Occupied",

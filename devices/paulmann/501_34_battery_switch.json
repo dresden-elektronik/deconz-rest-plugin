@@ -3,7 +3,8 @@
   "uuid": "e8f0ae5b-e1c5-4a7b-bebc-2e91becb6f81",
   "manufacturername": "Paulmann LichtGmbH",
   "modelid": "501.34",
-  "product": "Paulmann Battery Switch",
+  "vendor": "Paulmann",
+  "product": "Wall switch on/off/dimm (501.35)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

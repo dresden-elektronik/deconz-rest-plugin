@@ -3,8 +3,8 @@
   "uuid": "8dd6bec7-40c0-4da3-bf26-e875f4d35b17",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.vibration.aq1",
-  "vendor": "Xiaomi",
-  "product": "Aqara Vibration Sensor DJT11LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "Vibration sensor (DJT11LM)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

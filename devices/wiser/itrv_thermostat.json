@@ -3,7 +3,8 @@
   "uuid": "64571d77-15ed-48e7-8f2b-cb74f9b3b35f",
   "manufacturername": "Schneider Electric",
   "modelid": "iTRV",
-  "product": "iTRV thermostat",
+  "vendor": "Schneider Electric",
+  "product": "Wiser radiator thermostat (WV704R0A0902)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
