@@ -1,0 +1,9 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/setvalve",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "description": "Enable or disable the valve control.",
+  "default": false
+}
