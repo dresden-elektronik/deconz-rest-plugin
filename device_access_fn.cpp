@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2024 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -9,6 +9,7 @@
  */
 
 #include <QTimeZone>
+#include "deconz/u_assert.h"
 #include "device_access_fn.h"
 #include "device_descriptions.h"
 #include "device_js/device_js.h"
@@ -280,15 +281,25 @@ quint8 resolveAutoEndpoint(const Resource *r)
 {
     quint8 result = AutoEndpoint;
 
-    // hack to get endpoint. todo find better solution
-    const auto ls = r->item(RAttrUniqueId)->toString().split('-', SKIP_EMPTY_PARTS);
-    if (ls.size() >= 2)
+    U_ASSERT(r);
+    if (r)
     {
-        bool ok = false;
-        uint ep = ls[1].toUInt(&ok, 16);
-        if (ok && ep < BroadcastEndpoint)
+        const ResourceItem *itemUniqueId = r->item(RAttrUniqueId);
+
+        U_ASSERT(itemUniqueId);
+        if (itemUniqueId)
         {
-            result = ep;
+            // hack to get endpoint. todo find better solution
+            const auto ls = itemUniqueId->toString().split('-', SKIP_EMPTY_PARTS);
+            if (ls.size() >= 2)
+            {
+                bool ok = false;
+                uint ep = ls[1].toUInt(&ok, 16);
+                if (ok && ep < BroadcastEndpoint)
+                {
+                    result = ep;
+                }
+            }
         }
     }
 

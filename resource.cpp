@@ -1049,7 +1049,8 @@ const QString &ResourceItem::toString() const
     }
     else if (m_rid->type == DataTypeTime)
     {
-        if (m_num > 0)
+        U_ASSERT(m_str);
+        if (m_num > 0 && m_str)
         {
             QDateTime dt;
 
