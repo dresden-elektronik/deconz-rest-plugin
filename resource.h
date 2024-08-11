@@ -433,8 +433,6 @@ class ResourceItem;
 
 using ItemString = BufString<16>;
 
-extern const ResourceItemDescriptor rInvalidItemDescriptor;
-
 class ResourceItem
 {
 public:
@@ -536,6 +534,7 @@ private:
     ValueSource m_valueSource = SourceUnknown;
     bool m_isPublic = true;
     uint16_t m_flags = 0; // bitmap of ResourceItem::ItemFlags
+    uint16_t m_ridIndex = 0; // index into rItemDescriptors[]
     union
     {
         struct {
@@ -553,7 +552,6 @@ private:
     ItemString m_istr; // internal embedded small string
     deCONZ::TimeSeconds m_refreshInterval;
     QString *m_str = nullptr;
-    const ResourceItemDescriptor *m_rid = &rInvalidItemDescriptor;
     QDateTime m_lastSet;
     QDateTime m_lastChanged;
     std::vector<int> m_rulesInvolved; // the rules a resource item is trigger

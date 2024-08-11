@@ -1210,6 +1210,12 @@ JsEvalResult DeviceJs::testCompile(const QString &expr)
     d->errFatal = 0;
     d->isReset = false;
 
+    ResourceItemDescriptor rInvalidItemDescriptor;
+
+    if (!getResourceItemDescriptor(RInvalidSuffix, rInvalidItemDescriptor))
+    {
+        return result;
+    }
     ResourceItem dummyItem(rInvalidItemDescriptor);
     d->ritem = &dummyItem;
 
