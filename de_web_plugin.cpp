@@ -16189,13 +16189,15 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     stream << "Access-Control-Allow-Origin: *\r\n";
     stream << "Content-Type: " << rsp.contentType << "\r\n";
     if (rsp.contentLength)
-    {
-        stream << "Content-Length: " << rsp.contentLength << "\r\n";
-    }
+    { }
     else if (str.size())
     {
-        stream << "Content-Length: " << str.size() << "\r\n";
+        rsp.contentLength = static_cast<unsigned>(str.size());
     }
+
+    // Always return content length header, even if it is 0. Some clients like curl
+    // might hang overwise, waiting for data until the connection timeout hits.
+    stream << "Content-Length: " << rsp.contentLength << "\r\n";
 
     if (rsp.fileName)
     {
