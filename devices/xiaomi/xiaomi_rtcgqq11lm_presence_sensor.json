@@ -3,8 +3,8 @@
   "uuid": "85676803-9d00-47fe-838f-ce76dfafc276",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_motion.aq2",
-  "vendor": "Xiaomi",
-  "product": "Aqara motion sensor (RTCGQ11LM)",
+  "vendor": "Xiaomi Aqara",
+  "product": "Motion sensor (RTCGQ11LM)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
