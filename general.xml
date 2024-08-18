@@ -5302,8 +5302,7 @@ These devices can operate on either battery or mains power, and can have a wide 
           <payload>
             <attribute id="0x0000" type="u8" name="Total" required="m" default="0x00"></attribute>
             <attribute id="0x0001" type="u8" name="Number" required="m" default="0x00"></attribute>
-            <attribute id="0x0002" type="u8" name="Length" required="m" default="0x00"></attribute>
-            <attribute id="0x0003" type="ostring" name="Payload" required="m"></attribute>
+            <attribute id="0x0002" type="ostring" name="Payload" required="m" showas="hex"></attribute>
           </payload>
         </command>
         <command id="0xf5" dir="recv" name="Create model response" required="m">
