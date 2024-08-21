@@ -88,6 +88,36 @@
           "name": "cap/color/ct/min"
         },
         {
+          "name": "cap/color/xy/blue_x",
+          "public": false,
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/blue_y",
+          "public": false,
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_x",
+          "public": false,
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_y",
+          "public": false,
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_x",
+          "public": false,
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_y",
+          "public": false,
+          "static": 0
+        },
+        {
           "name": "config/bri/execute_if_off",
           "read": {
             "fn": "zcl:attr",
@@ -200,6 +230,9 @@
             "dt": "0x20",
             "eval": "Item.val === 1 ? 0 : Item.val === 0 ? 2 : 1"
           }
+        },
+        {
+          "name": "state/alert"
         },
         {
           "name": "state/on",
