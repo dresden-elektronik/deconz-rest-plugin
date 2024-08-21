@@ -95,7 +95,7 @@
         {
           "name": "cap/color/xy/blue_y",
           "public": false,
-          "static": 0
+          "static": 1000
         },
         {
           "name": "cap/color/xy/green_x",
@@ -115,7 +115,7 @@
         {
           "name": "cap/color/xy/red_y",
           "public": false,
-          "static": 0
+          "static": 2000
         },
         {
           "name": "config/bri/execute_if_off",
@@ -236,10 +236,24 @@
         },
         {
           "name": "state/on",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0006",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
           "refresh.interval": 360
         },
         {
           "name": "state/bri",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0008",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
           "refresh.interval": 360
         },
         {
@@ -265,6 +279,13 @@
         {
           "name": "state/x",
           "public": false,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x0003",
+            "eval": "Item.val = Attr.val"
+          },
           "read": {
             "fn": "none"
           }
@@ -272,12 +293,26 @@
         {
           "name": "state/y",
           "public": false,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x0004",
+            "eval": "Item.val = Attr.val"
+          },
           "read": {
             "fn": "none"
           }
         },
         {
           "name": "state/ct",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x0007",
+            "eval": "Item.val = Attr.val"
+          },
           "read": {
             "fn": "none"
           }
@@ -365,7 +400,7 @@
         },
         {
           "name": "cap/color/xy/blue_y",
-          "static": 0
+          "static": 1000
         },
         {
           "name": "cap/color/xy/green_x",
@@ -381,7 +416,7 @@
         },
         {
           "name": "cap/color/xy/red_y",
-          "static": 0
+          "static": 2000
         },
         {
           "name": "config/bri/execute_if_off",
@@ -533,9 +568,23 @@
         },
         {
           "name": "state/on",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0x0006",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
           "refresh.interval": 360
         },
         {
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0x0008",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
           "name": "state/bri",
           "refresh.interval": 360
         },
@@ -563,18 +612,39 @@
         },
         {
           "name": "state/x",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0x0300",
+            "at": "0x0003",
+            "eval": "Item.val = Attr.val"
+          },
           "read": {
             "fn": "none"
           }
         },
         {
           "name": "state/y",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0x0300",
+            "at": "0x0004",
+            "eval": "Item.val = Attr.val"
+          },
           "read": {
             "fn": "none"
           }
         },
         {
           "name": "state/ct",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0x0300",
+            "at": "0x0007",
+            "eval": "Item.val = Attr.val"
+          },
           "read": {
             "fn": "none"
           }
