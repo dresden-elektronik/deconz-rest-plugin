@@ -230,6 +230,20 @@
           "refresh.interval": 360
         },
         {
+          "name": "state/x",
+          "public": false,
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/y",
+          "public": false,
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
           "name": "state/ct",
           "read": {
             "fn": "none"
