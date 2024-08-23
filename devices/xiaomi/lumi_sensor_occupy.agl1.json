@@ -102,13 +102,6 @@
         },
         {
           "name": "config/resetpresence",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0xFCC0",
-            "at": "0x0143",
-            "eval": "if (Attr.val) { Item.val = false }"
-          },
           "read": {
             "fn": "none"
           },
@@ -119,7 +112,8 @@
             "at": "0x0157",
             "dt": "0x20",
             "eval": "Item.val ? 1 : 0"
-          }
+          },
+          "default": false
         },
         {
           "name": "state/lastupdated"
@@ -131,7 +125,7 @@
             "ep": 1,
             "cl": "0xFCC0",
             "at": "0x0142",
-            "eval": "Item.val = (Attr.val !== 0)"
+            "eval": "Item.val = (Attr.val !== 0); R.item('config/resetpresence').val = false"
           },
           "read": {
             "fn": "none"
