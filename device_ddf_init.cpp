@@ -267,6 +267,11 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                 item->clearNeedStore();
             }
 
+            if (item->descriptor().suffix == RConfigGroup)
+            {
+                DEV_AllocateGroup(device, rsub, item);
+            }
+
             if (!ddfItem.defaultValue.isNull() && !ddfItem.writeParameters.isNull())
             {
                 QString writeFunction;
@@ -313,11 +318,6 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                 {
                     item->setValue(type);
                 }
-            }
-
-            if (item->descriptor().suffix == RConfigGroup)
-            {
-                DEV_AllocateGroup(device, rsub, item);
             }
 
             if (item->descriptor().suffix == RConfigBattery || item->descriptor().suffix == RStateBattery)
