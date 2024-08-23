@@ -49,7 +49,7 @@ if (cmd === 0x01) { // ON
 }
 
 if (btnev !== undefined) {
-    R.item('state/buttonevent').val = btnev;
     R.item('state/angle').val = angle;
     R.item('state/eventduration').val = eventduration;
+    R.item('state/buttonevent').val = btnev;
 }

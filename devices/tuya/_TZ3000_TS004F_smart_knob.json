@@ -100,6 +100,7 @@
         "0x1000"
       ],
       "meta": {
+        "group.endpoints": [1],
         "values": {
           "config/mode": {"command": 0, "event": 1}
         }
@@ -166,6 +167,14 @@
           "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0006", "at": "0x8004", "eval": "Item.val = ['command', 'event'][Attr.val]"},
           "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0006", "at": "0x8004"},
           "default": "command"
+        },
+        {
+          "name": "config/group",
+          "default": "auto",
+          "parse": {"fn": "zcl:cmd", "ep": 1, "cl": "0x0004", "cmd": "0x02", "script": "_TZ3000_TS004F_smart_knob_group_view.js"},
+          "read": {"fn": "zcl:cmd", "ep": 1, "cl": "0x0004", "cmd": "0x02", "eval": "'00'"},
+          "write": {"fn": "zcl:cmd", "ep": 1, "cl": "0x0004", "cmd": "0x00", "script": "_TZ3000_TS004F_smart_knob_group_add.js"},
+          "refresh.interval": 86400
         },
         {
           "name": "config/on"
