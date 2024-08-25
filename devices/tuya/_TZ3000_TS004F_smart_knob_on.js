@@ -34,18 +34,6 @@ if (cmd === 0x01) { // ON
     } else if (pl0 === 2) {
         btnev = 3003; // Button 3, long release
     }
-} else if (cmd === 0x0A) { // Report attributes
-    if (Attr.id == 0x8004) {
-        // Triple click, changing operation mode
-        const opmode = Attr.val;
-        if (opmode === 0) {
-            // Changed to control mode, so coming from event mode (button 3)
-            btnev = 3005;
-        } else if (opmode === 1) {
-            // Changed to event mode, so coming from control mode (button 1)
-            btnev = 1005;
-        }
-    }
 }
 
 if (btnev !== undefined) {

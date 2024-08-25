@@ -45,10 +45,6 @@
       "action": "LONG_RELEASE",
       "button": 1
     },
-    "1005": {
-      "action": "TREBLE_PRESS",
-      "button": 1
-    },
     "1030": {
       "action": "ROTATE_CLOCKWISE",
       "button": 1
@@ -75,10 +71,6 @@
     },
     "3004": {
       "action": "DOUBLE_PRESS",
-      "button": 3
-    },
-    "3005": {
-      "action": "TREBLE_PRESS",
       "button": 3
     },
     "3030": {
