@@ -124,6 +124,10 @@
           "name": "config/reachable"
         },
         {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
           "name": "state/lastupdated"
         },
         {
