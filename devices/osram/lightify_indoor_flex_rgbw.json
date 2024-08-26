@@ -5,7 +5,6 @@
   "product": "LIGHTIFY Indoor Flex RGBW",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/lightify_indoor_flex_rgbw.json",
   "subdevices": [
     {
       "type": "$TYPE_EXTENDED_COLOR_LIGHT",
