@@ -144,9 +144,8 @@
         },
         {
             "name": "config/battery",
-            "parse": {"ep": 1, "cl": "0x0001", "at": "0x0021"," eval": "Item.val = Attr.val / 2"},
-            "read": {"ep": 1, "cl": "0x0001", "at": "0x0021"},
-            "refresh.interval": 7300
+            "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
+            "read": {"fn": "none"}
         },
         {
           "name": "config/mode",
@@ -216,12 +215,6 @@
     }
   ],
   "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0000"
-    },
     {
       "bind": "unicast",
       "src.ep": 1,
