@@ -143,6 +143,18 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "cap/color/ct/max",
+          "public": false,
+          "read": {"fn": "none"},
+          "default": 500
+        },
+        {
+          "name": "cap/color/ct/min",
+          "public": false,
+          "read": {"fn": "none"},
+          "default": 153
+        },
+        {
             "name": "config/battery",
             "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
             "read": {"fn": "none"}
