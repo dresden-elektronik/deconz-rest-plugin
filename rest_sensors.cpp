@@ -2598,7 +2598,7 @@ int DeRestPluginPrivate::searchNewSensors(const ApiRequest &req, ApiResponse &rs
     }
 
     permitJoinApiKey = req.apikey();
-    startSearchSensors();
+    startSearchSensors(gwNetworkOpenDuration);
     {
         QVariantMap rspItem;
         QVariantMap rspItemState;
@@ -3386,7 +3386,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
 /*! Starts the search for new sensors.
  */
-void DeRestPluginPrivate::startSearchSensors()
+void DeRestPluginPrivate::startSearchSensors(int duration)
 {
     if (searchSensorsState == SearchSensorsIdle || searchSensorsState == SearchSensorsDone)
     {
@@ -3405,7 +3405,7 @@ void DeRestPluginPrivate::startSearchSensors()
         Q_ASSERT(searchSensorsState == SearchSensorsActive);
     }
 
-    searchSensorsTimeout = gwNetworkOpenDuration;
+    searchSensorsTimeout = duration;
     setPermitJoinDuration(searchSensorsTimeout);
 }
 
