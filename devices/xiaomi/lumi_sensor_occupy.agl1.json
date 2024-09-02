@@ -81,7 +81,10 @@
             "eval": "Item.val = Attr.val"
           },
           "read": {
-            "fn": "none"
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x015B"
           },
           "refresh.interval": 360,
           "write": {
@@ -140,8 +143,12 @@
             "at": "0x015F",
             "eval": "Item.val = Attr.val"
           },
+          "refresh.interval": 360,
           "read": {
-            "fn": "none"
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x015F"
           }
         }
       ]
