@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/distance",
+  "datatype": "UInt32",
+  "access": "R",
+  "public": true,
+  "description": "Distance at which occupancy was detected."
+}

@@ -271,6 +271,7 @@ const char *RConfigCoolSetpoint = "config/coolsetpoint";
 const char *RConfigCtMax = "config/ctmax";
 const char *RConfigCtMin = "config/ctmin";
 const char *RConfigDelay = "config/delay";
+const char *RConfigDetectionRange = "config/detectionrange";
 const char *RConfigDeviceMode = "config/devicemode";
 const char *RConfigDeviceModeBis = "config/devicemode_bis";
 const char *RConfigDisarmedEntryDelay = "config/disarmed_entry_delay";
@@ -577,6 +578,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigCtMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigCtMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigDelay));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RConfigDetectionRange));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigDeviceMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigDeviceModeBis));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigDisarmedEntryDelay, 0, 255));

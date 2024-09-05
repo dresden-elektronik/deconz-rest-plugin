@@ -5875,7 +5875,9 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x000C" name="Unknown" type="ostring" access="rw" required="m"></attribute>
           <attribute id="0x000D" name="Unknown" type="u8" access="rw" required="m"></attribute>
           <attribute id="0x00E4" name="Unknown" type="u32" access="rw" required="m"></attribute>
-          <attribute id="0x00E8" name="Unknown" type="bool" access="rw" required="m"></attribute>
+          <attribute id="0x00E8" name="Device Running" type="bool" access="rw" required="m">
+            <description>Set to false to reboot the device.</description>
+          </attribute>
           <attribute id="0x00E9" name="Unknown" type="u8" access="rw" required="m"></attribute>
           <attribute id="0x00EA" name="Unknown" type="ostring" access="rw" required="m"></attribute>
           <attribute id="0x00EB" name="Unknown" type="u16" access="rw" required="m"></attribute>
@@ -5935,6 +5937,20 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x0155" name="Report Grid" type="u8" access="rw" required="m"></attribute>
           <attribute id="0x0156" name="Set Edge" type="u32" access="rw" required="m"></attribute>
           <attribute id="0x0157" name="Reset Presence" type="u8" access="w" required="m"></attribute>
+          <attribute id="0x0159" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015A" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015B" name="Detection Range" type="u32" access="rw" required="m">
+            <description>Detection Range in cm, from 0 to 600, in increments of 30.</description>
+          </attribute>
+          <attribute id="0x015C" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015D" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015E" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015F" name="Position" type="u32" access="r" required="m">
+            <description>Distance to detected person, in cm.</description>
+          </attribute>
+          <attribute id="0x0160" name="Occupancy" type="u8" access="r" required="m">
+            <description>4 = Occupancy; 2 = No occupancy.</description>
+          </attribute>
           <attribute id="0x0200" name="Child lock off" type="u8" access="rw" required="m">
             <description>Child lock off: 0 - false, 1 - true</description>
           </attribute>
