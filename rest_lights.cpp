@@ -262,6 +262,10 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     {
         const ResourceItem *item = lightNode->itemForIndex(static_cast<size_t>(i));
         DBG_Assert(item);
+        if (!item->isPublic())
+        {
+            continue;
+        }
         const ResourceItemDescriptor &rid = item->descriptor();
 
         if      (rid.suffix == RAttrConfigId) { attr["configid"] = item->toNumber(); }

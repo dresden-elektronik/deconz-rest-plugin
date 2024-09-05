@@ -1,0 +1,157 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "5b6d8ae5-c2d8-4947-ae2b-6470183aa1e8",
+  "manufacturername": "aqara",
+  "modelid": "lumi.sensor_occupy.agl1",
+  "vendor": "Xiaomi Aqara",
+  "product": "Presence Sensor FP1E (PS-SE03)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0406"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = '0.0.0_' + ('0000' + Attr.val.toString()).slice(-4)"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/swversion_bis",
+          "awake": true,
+          "parse": {
+            "fn": "xiaomi:special",
+            "at": "0x00F7",
+            "idx": "0x08",
+            "eval": "Item.val = '0.0.0_' + ('0000' + (Attr.val & 0xFF).toString()).slice(-4)"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/detectionrange",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x015B",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x015B"
+          },
+          "refresh.interval": 360,
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x015B",
+            "dt": "0x23",
+            "eval": "Item.val"
+          },
+          "default": 600
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/resetpresence",
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x0157",
+            "dt": "0x20",
+            "eval": "Item.val ? 1 : 0"
+          },
+          "default": false
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/presence",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x0142",
+            "eval": "Item.val = (Attr.val !== 0); R.item('config/resetpresence').val = false"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/distance",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x015F",
+            "eval": "Item.val = Attr.val"
+          },
+          "refresh.interval": 360,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x015F"
+          }
+        }
+      ]
+    }
+  ]
+}

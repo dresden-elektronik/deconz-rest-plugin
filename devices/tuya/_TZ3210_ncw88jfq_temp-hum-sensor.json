@@ -1,10 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "d20fd95e-3343-4898-adc3-59111f4812af",
-  "manufacturername": ["_TZ3000_yd2e749y", "_TZ3000_fllyghyj", "_TZ3000_fie1dpkm", "_TZ3000_lbtpiody", "_TZ3000_5nrcorgu", "_TZ3000_ena8vgqb", "_TZ3000_xr3htd96", "_TZ3000_0s1izerx", "_TZ3000_saiqcn0y", "_TZ3000_utwgoauk", "_TZ3000_bjawzodf"],
-  "modelid": ["TS0201", "TS0201", "TS0201", "TS0201", "TS0201", "TS0201", "TS0201", "TS0201", "TS0201", "TS0201", "TS0201"],
+  "uuid": "f490468c-83c1-4367-9168-4043f59e23cc",
+  "manufacturername": "_TZ3210_ncw88jfq",
+  "modelid": "TS0201",
   "vendor": "Tuya",
-  "product": "Temperature and humidity sensor (TS0201)",
+  "product": "Temperature and humidity sensor",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -36,7 +36,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",                   
+          "name": "attr/swversion",
           "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
           "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
@@ -47,18 +47,11 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/battery",
-          "awake": true,
-          "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
-            "fn": "zcl:attr"
-          }
+          "name": "config/battery"
         },
         {
-          "name": "config/offset"
+          "name": "config/offset",
+          "default": 0
         },
         {
           "name": "config/on"
@@ -67,11 +60,15 @@
           "name": "config/reachable"
         },
         {
+          "name": "config/tuya_unlock"
+        },
+        {
           "name": "state/lastupdated"
         },
         {
           "name": "state/temperature",
-          "awake": true
+          "awake": true,
+          "default": 0
         }
       ]
     },
@@ -103,7 +100,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",                   
+          "name": "attr/swversion",
           "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
           "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
@@ -114,18 +111,11 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/battery",
-          "awake": true,
-          "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
-            "fn": "zcl:attr"
-          }
+          "name": "config/battery"
         },
         {
-          "name": "config/offset"
+          "name": "config/offset",
+          "default": 0
         },
         {
           "name": "config/on"
@@ -135,7 +125,15 @@
         },
         {
           "name": "state/humidity",
-          "awake": true
+          "awake": true,
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0405",
+            "ep": 1,
+            "eval": "Item.val = Attr.val * 10 + R.item('config/offset').val",
+            "fn": "zcl:attr"
+          },
+          "default": 0
         },
         {
           "name": "state/lastupdated"
@@ -153,7 +151,7 @@
           "at": "0x0021",
           "dt": "0x20",
           "min": 3600,
-          "max": 84600,
+          "max": 43200,
           "change": "0x00000002"
         }
       ]

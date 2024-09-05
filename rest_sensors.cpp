@@ -962,6 +962,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
+                else if (rid.suffix == RConfigDetectionRange) // uint32
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.uinteger);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
                 else if (rid.suffix == RConfigSelfTest) // Boolean
                 {
                     if (devManaged && rsub)

@@ -284,6 +284,7 @@ extern const char *RConfigCoolSetpoint;
 extern const char *RConfigCtMax; // Deprecated
 extern const char *RConfigCtMin; // Deprecated
 extern const char *RConfigDelay;
+extern const char *RConfigDetectionRange;
 extern const char *RConfigDeviceMode;
 extern const char *RConfigDeviceModeBis;
 extern const char *RConfigDisarmedEntryDelay;
