@@ -304,7 +304,7 @@
           "parse": {
             "at": "0x00F7",
             "ep": "0x01",
-            "eval": "Item.val = Math.round(Attr.val * 1000);",
+            "eval": "Item.val = Math.round(Attr.val);",
             "fn": "xiaomi:special",
             "idx": "0x95",
             "mf": "0x115F"
