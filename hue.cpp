@@ -22,6 +22,7 @@ code effects[] = {
     { 0x0a, QLatin1String("sparkle") },
     { 0x0b, QLatin1String("opal") },
     { 0x0c, QLatin1String("glisten") }
+    { 0x0d, QLatin1String("sunset") }
 };
 
 quint8 effectNameToValue(QString &effectName)
