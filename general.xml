@@ -5143,9 +5143,12 @@ These devices can operate on either battery or mains power, and can have a wide 
               <value name="None" value="0x00"/>
               <value name="Candle" value="0x01"/>
               <value name="Fireplace" value="0x02"/>
-              <value name="Loop" value="0x03"/>
+              <value name="Prism" value="0x03"/>
               <value name="Sunrise" value="0x09"/>
               <value name="Sparkle" value="0x0a"/>
+              <value name="Opal" value="0x0b"/>
+              <value name="Glisten" value="0x0c"/>
+              <value name="Sunset" value="0x0d"/>
             </attribute>
           </payload>
         </command>
@@ -5162,9 +5165,12 @@ These devices can operate on either battery or mains power, and can have a wide 
         <attribute id="0x0011" name="Effects" type="bmp64" mfcode="0x100b" access="r" required="o">
           <value name="Candle" value="0x01"/>
           <value name="Fireplace" value="0x02"/>
-          <value name="Loop" value="0x03"/>
+          <value name="Prism" value="0x03"/>
           <value name="Sunrise" value="0x09"/>
           <value name="Sparkle" value="0x0a"/>
+          <value name="Opal" value="0x0b"/>
+          <value name="Glisten" value="0x0c"/>
+          <value name="Sunset" value="0x0d"/>
         </attribute>
         <attribute id="0x0012" name="Gradient Unknown 12" type="bmp32" mfcode="0x100b" access="r" required="o">
           <value name="Unknown 00" value="0x00"/>
