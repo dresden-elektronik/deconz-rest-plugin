@@ -3,7 +3,8 @@
   "uuid": "ac5adf59-1be3-47a3-9de2-4657d0583331",
   "manufacturername": "$MF_IKEA",
   "modelid": "VINDSTYRKA",
-  "product": "Vindstyrka Air Quality Sensor",
+  "vendor": "IKEA",
+  "product": "Vindstyrka air quality sensor (E2112)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

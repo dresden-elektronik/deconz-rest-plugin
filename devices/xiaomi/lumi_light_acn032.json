@@ -1,0 +1,694 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "54714159-03d4-45dc-93f9-11e30a4da772",
+  "manufacturername": [
+    "$MF_AQARA",
+    "$MF_LUMI"
+  ],
+  "modelid": [
+    "lumi.light.acn032",
+    "lumi.light.acn032"
+  ],
+  "vendor": "Xiaomi Aqara",
+  "product": "Ceiling Light T1M (CL-L02D)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = '0.0.0_' + ('0000' + Attr.val.toString()).slice(-4)"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/bri/move_with_onoff"
+        },
+        {
+          "name": "cap/color/capabilities",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": [
+              "0x400a",
+              "0x400b",
+              "0x400c",
+              "0x000f"
+            ]
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "cap/color/ct/max"
+        },
+        {
+          "name": "cap/color/ct/min"
+        },
+        {
+          "name": "cap/color/xy/blue_x",
+          "public": false,
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/blue_y",
+          "public": false,
+          "static": 1000
+        },
+        {
+          "name": "cap/color/xy/green_x",
+          "public": false,
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_y",
+          "public": false,
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_x",
+          "public": false,
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_y",
+          "public": false,
+          "static": 2000
+        },
+        {
+          "name": "config/bri/execute_if_off",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0008",
+            "at": [
+              "0x000f",
+              "0x0010"
+            ]
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/bri/max",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x0516",
+            "eval": "Item.val = Math.round(Attr.val * 2.54)"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": [
+              "0x0516",
+              "0x0515"
+            ]
+          },
+          "refresh.interval": 3600,
+          "write": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x0516",
+            "dt": "0x20",
+            "eval": "Math.round(Item.val / 2.54)"
+          }
+        },
+        {
+          "name": "config/bri/min",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x0515",
+            "eval": "Item.val = Math.round(Attr.val * 2.54)"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x0515",
+            "dt": "0x20",
+            "eval": "Math.round(Item.val / 2.54)"
+          }
+        },
+        {
+          "name": "config/bri/on_level",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/bri/onoff_transitiontime",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/color/execute_if_off",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/on/startup",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x0517",
+            "eval": "Item.val = [1, 255, 0][Attr.val]"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": [
+              "0x0517"
+            ]
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x0517",
+            "dt": "0x20",
+            "eval": "Item.val === 1 ? 0 : Item.val === 0 ? 2 : 1"
+          }
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/on",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0006",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/bri",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0008",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/colormode",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x0008",
+            "eval": "Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": [
+              "0x0008",
+              "0x0007"
+            ]
+          },
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/x",
+          "public": false,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x0003",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/y",
+          "public": false,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x0004",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/ct",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x0007",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_EXTENDED_COLOR_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x02"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = '0.0.0_' + ('0000' + Attr.val.toString()).slice(-4)"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/bri/move_with_onoff"
+        },
+        {
+          "name": "cap/color/capabilities",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0x0300",
+            "at": [
+              "0x400a",
+              "0x400b",
+              "0x400c",
+              "0x000f"
+            ]
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "cap/color/ct/max"
+        },
+        {
+          "name": "cap/color/ct/min"
+        },
+        {
+          "name": "cap/color/ct/computes_xy"
+        },
+        {
+          "name": "cap/color/xy/blue_x",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/blue_y",
+          "static": 1000
+        },
+        {
+          "name": "cap/color/xy/green_x",
+          "static": 0
+        },
+        {
+          "name": "cap/color/xy/green_y",
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_x",
+          "static": 65279
+        },
+        {
+          "name": "cap/color/xy/red_y",
+          "static": 2000
+        },
+        {
+          "name": "config/bri/execute_if_off",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0x0008",
+            "at": [
+              "0x000f",
+              "0x0010",
+              "0x0011"
+            ]
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/bri/max",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x0516",
+            "eval": "Item.val = Math.round(Attr.val * 2.54)"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": [
+              "0x0516",
+              "0x0515"
+            ]
+          },
+          "refresh.interval": 3600,
+          "write": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x0516",
+            "dt": "0x20",
+            "eval": "Math.round(Item.val / 2.54)"
+          }
+        },
+        {
+          "name": "config/bri/min",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x0515",
+            "eval": "Item.val = Math.round(Attr.val * 2.54)"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x0515",
+            "dt": "0x20",
+            "eval": "Math.round(Item.val / 2.54)"
+          }
+        },
+        {
+          "name": "config/bri/on_level",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/bri/onoff_transitiontime",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/color/execute_if_off",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/color/gradient/pixel_count",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x051B",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": [
+              "0x051B"
+            ]
+          },
+          "refresh.interval": 86400,
+          "write": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x051B",
+            "dt": "0x20",
+            "eval": "Math.max(5, Math.min(Item.val, 50))"
+          }
+        },
+        {
+          "name": "config/on/startup",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x0517",
+            "eval": "Item.val = [1, 255, 0][Attr.val]"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": [
+              "0x0517"
+            ]
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0xFCC0",
+            "mf": "0x115F",
+            "at": "0x0517",
+            "dt": "0x20",
+            "eval": "Item.val === 1 ? 0 : Item.val === 0 ? 2 : 1"
+          }
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/on",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0x0006",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
+          "refresh.interval": 360
+        },
+        {
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0x0008",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
+          "name": "state/bri",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/colormode",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0x0300",
+            "at": "0x0008",
+            "eval": "Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0x0300",
+            "at": [
+              "0x0008",
+              "0x0003",
+              "0x0004",
+              "0x0007"
+            ]
+          },
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/x",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0x0300",
+            "at": "0x0003",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/y",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0x0300",
+            "at": "0x0004",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/ct",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x02",
+            "cl": "0x0300",
+            "at": "0x0007",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0300",
+      "report": [
+        {
+          "at": "0x0003",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0001"
+        },
+        {
+          "at": "0x0004",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0001"
+        },
+        {
+          "at": "0x0007",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0001"
+        },
+        {
+          "at": "0x0008",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    }
+  ]
+}

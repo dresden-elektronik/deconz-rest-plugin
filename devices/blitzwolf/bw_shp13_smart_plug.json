@@ -1,10 +1,10 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "0ba557b8-580f-43a0-b0e3-ce76f4f71b96",
-  "manufacturername": ["_TZ3000_g5xawfcq", "_TZ3000_amdymr7l"],
-  "modelid": ["TS0121", "TS011F"],
-  "product": "BW-SHP13",
-  "vendor": "Blitzwolf",
+  "manufacturername": ["_TZ3000_3ooaz3ng", "_TZ3000_g5xawfcq", "_TZ3000_amdymr7l"],
+  "modelid": ["TS0121", "TS0121", "TS011F"],
+  "vendor": "BlitzWolf",
+  "product": "Electricity metering 16A EU plug (BW-SHP13)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

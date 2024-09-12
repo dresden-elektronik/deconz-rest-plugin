@@ -7,7 +7,8 @@
     "_TZ3000_zloso4jk",
     "_TZ3000_rdfh8cfs",
     "_TZ3000_fgwhjm9j",
-    "_TZ3000_waho4jtj"
+    "_TZ3000_waho4jtj",
+    "_TZ3000_xzhnra8x"
   ],
   "modelid": [
     "TS011F",
@@ -15,9 +16,11 @@
     "TS011F",
     "TS011F",
     "TS011F",
+    "TS011F",
     "TS011F"
   ],
-  "product": "NEO NAS-WR01B Smart Plug",
+  "vendor": "Neo",
+  "product": "Smart plug 16A with power monitoring EU (NAS-WR01B)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -2402,9 +2402,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0000" name="Unknown" type="u16" access="rw" required="m" mfcode="0x10f2"></attribute>
           <attribute id="0x0001" name="Unknown" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x0002" name="Unknown" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0003" name="Offset" type="s8" access="rw" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x0004" name="Unknown" type="s16" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0005" name="Vacation" type="bool" access="rw" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x0009" name="Unknown" type="u16" access="r" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x000a" name="Unknown" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x000b" name="Unknown" type="s8" access="r" required="m" mfcode="0x10f2"></attribute>
@@ -2412,12 +2410,27 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x000d" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x000e" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x000f" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0010" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0011" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0012" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0013" name="Unknown" type="s16" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0014" name="Unknown" type="s8" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0015" name="Unknown" type="s16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0010" name="TemperatureOffset" type="s8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0011" name="DefaultOccupiedHeatingSetpoint" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0012" name="VacationMode" type="bool" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0013" name="RemoteTemperature" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0014" name="RemoteTemperatureValidDuration" type="88" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0015" name="DetectOpenWindow" type="bmp8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0016" name="OpenWindowState" type="bmp8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0017" name="OpenWindowSensitivity" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0018" name="OpenWindowDetectionPeriod" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0019" name="OpenWindowTimeout" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001a" name="HeatingDemandLowerBound" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001b" name="HeatingDemandUpperBound" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001c" name="Season" type="enum8" access="rw" required="m" mfcode="0x10f2">
+              <value name="winter" value="0x00"></value>
+              <value name="summer" value="0x01"></value>
+          </attribute>
+          <attribute id="0x001d" name="BackupHeatingDemand" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001e" name="AlternateBackupHeatingDemand" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0020" name="ProportionalGain" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0021" name="ProportionalShift" type="s8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0022" name="IntegralFactor" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
         </attribute-set>
         <!-- Sinope manufacturer specific -->
         <attribute-set id="0x0400" description="Sinope specific" mfcode="0x119c">
@@ -5862,7 +5875,9 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x000C" name="Unknown" type="ostring" access="rw" required="m"></attribute>
           <attribute id="0x000D" name="Unknown" type="u8" access="rw" required="m"></attribute>
           <attribute id="0x00E4" name="Unknown" type="u32" access="rw" required="m"></attribute>
-          <attribute id="0x00E8" name="Unknown" type="bool" access="rw" required="m"></attribute>
+          <attribute id="0x00E8" name="Device Running" type="bool" access="rw" required="m">
+            <description>Set to false to reboot the device.</description>
+          </attribute>
           <attribute id="0x00E9" name="Unknown" type="u8" access="rw" required="m"></attribute>
           <attribute id="0x00EA" name="Unknown" type="ostring" access="rw" required="m"></attribute>
           <attribute id="0x00EB" name="Unknown" type="u16" access="rw" required="m"></attribute>
@@ -5922,6 +5937,20 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x0155" name="Report Grid" type="u8" access="rw" required="m"></attribute>
           <attribute id="0x0156" name="Set Edge" type="u32" access="rw" required="m"></attribute>
           <attribute id="0x0157" name="Reset Presence" type="u8" access="w" required="m"></attribute>
+          <attribute id="0x0159" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015A" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015B" name="Detection Range" type="u32" access="rw" required="m">
+            <description>Detection Range in cm, from 0 to 600, in increments of 30.</description>
+          </attribute>
+          <attribute id="0x015C" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015D" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015E" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015F" name="Position" type="u32" access="r" required="m">
+            <description>Distance to detected person, in cm.</description>
+          </attribute>
+          <attribute id="0x0160" name="Occupancy" type="u8" access="r" required="m">
+            <description>4 = Occupancy; 2 = No occupancy.</description>
+          </attribute>
           <attribute id="0x0200" name="Child lock off" type="u8" access="rw" required="m">
             <description>Child lock off: 0 - false, 1 - true</description>
           </attribute>

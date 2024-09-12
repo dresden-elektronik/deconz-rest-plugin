@@ -271,6 +271,7 @@ const char *RConfigCoolSetpoint = "config/coolsetpoint";
 const char *RConfigCtMax = "config/ctmax";
 const char *RConfigCtMin = "config/ctmin";
 const char *RConfigDelay = "config/delay";
+const char *RConfigDetectionRange = "config/detectionrange";
 const char *RConfigDeviceMode = "config/devicemode";
 const char *RConfigDeviceModeBis = "config/devicemode_bis";
 const char *RConfigDisarmedEntryDelay = "config/disarmed_entry_delay";
@@ -364,17 +365,16 @@ const QStringList RConfigLastChangeSourceValues({
     "manual", "schedule", "zigbee"
 });
 
-static std::vector<const char*> rPrefixes;
 static std::vector<ResourceItemDescriptor> rItemDescriptors;
 static const QString rInvalidString; // is returned when string is asked but not available
-const ResourceItemDescriptor rInvalidItemDescriptor(DataTypeUnknown, QVariant::Invalid, RInvalidSuffix);
 
 R_Stats rStats;
 
 void initResourceDescriptors()
 {
-    rPrefixes.clear();
     rItemDescriptors.clear();
+
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUnknown, QVariant::Invalid, RInvalidSuffix));
 
     // init resource lookup
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrAppVersion));
@@ -578,6 +578,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigCtMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigCtMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigDelay));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RConfigDetectionRange));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigDeviceMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigDeviceModeBis));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigDisarmedEntryDelay, 0, 255));
@@ -776,8 +777,9 @@ ResourceItem::ResourceItem(const ResourceItem &other)
 
 bool ResourceItem::setItemString(const QString &str)
 {
-    if (!(m_rid->type == DataTypeString ||
-          m_rid->type == DataTypeTimePattern))
+    const ResourceItemDescriptor *rid = &descriptor();
+    if (!(rid->type == DataTypeString ||
+          rid->type == DataTypeTimePattern))
     {
         return false;
     }
@@ -785,7 +787,7 @@ bool ResourceItem::setItemString(const QString &str)
     const auto utf8 = str.toUtf8();
 
     // for now keep all attr/* items also as atoms
-    if (utf8.size() <= int(m_istr.maxSize()) && m_rid->suffix[0] != 'a' && m_rid->suffix[1] != 't')
+    if (utf8.size() <= int(m_istr.maxSize()) && rid->suffix[0] != 'a' && rid->suffix[1] != 't')
     {
         m_istr.setString(utf8.constData());
         m_strHandle = STRING_CACHE_INVALID_HANDLE;
@@ -810,7 +812,8 @@ ResourceItem::~ResourceItem() noexcept
         delete m_str;
         m_str = nullptr;
     }
-    m_rid = &rInvalidItemDescriptor;
+
+    m_ridIndex = 0;
 }
 
 /*! Returns true when a value has been set but not pushed upstream. */
@@ -949,7 +952,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_lastZclReport = other.m_lastZclReport;
-    m_rid = other.m_rid;
+    m_ridIndex = other.m_ridIndex;
     m_lastSet = other.m_lastSet;
     m_lastChanged = other.m_lastChanged;
     m_rulesInvolved = other.m_rulesInvolved;
@@ -992,7 +995,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_lastZclReport = other.m_lastZclReport;
-    m_rid = other.m_rid;
+    m_ridIndex = other.m_ridIndex;
     m_lastSet = std::move(other.m_lastSet);
     m_lastChanged = std::move(other.m_lastChanged);
     m_rulesInvolved = std::move(other.m_rulesInvolved);
@@ -1003,7 +1006,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
     m_ddfItemHandle = other.m_ddfItemHandle;
     m_istr = other.m_istr;
     m_strHandle = other.m_strHandle;
-    other.m_rid = &rInvalidItemDescriptor;
+    other.m_ridIndex = 0;
 
     if (m_str)
     {
@@ -1021,12 +1024,22 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
 }
 
 /*! Initial main constructor to create a valid ResourceItem. */
-ResourceItem::ResourceItem(const ResourceItemDescriptor &rid) :
-    m_rid(&rid)
+ResourceItem::ResourceItem(const ResourceItemDescriptor &rid)
 {
-    if (m_rid->type == DataTypeString ||
-        m_rid->type == DataTypeTime ||
-        m_rid->type == DataTypeTimePattern)
+    m_ridIndex = 0;
+
+    for (size_t i = 0; i < rItemDescriptors.size(); i++)
+    {
+        if (rItemDescriptors[i].suffix == rid.suffix)
+        {
+            m_ridIndex = static_cast<uint16_t>(i);
+            break;
+        }
+    }
+
+    if (rid.type == DataTypeString ||
+        rid.type == DataTypeTime ||
+        rid.type == DataTypeTimePattern)
     {
         m_str = new QString;
     }
@@ -1039,42 +1052,45 @@ const QString &ResourceItem::toString() const
 {
     rStats.toString++;
 
-    if (m_rid->type == DataTypeString ||
-        m_rid->type == DataTypeTimePattern)
+    const ResourceItemDescriptor *rid = &descriptor();
+
+    if (rid->type == DataTypeString ||
+        rid->type == DataTypeTimePattern)
     {
         if (m_str)
         {
             return *m_str;
         }
     }
-    else if (m_rid->type == DataTypeTime)
+    else if (rid->type == DataTypeTime)
     {
-        if (m_num > 0)
+        U_ASSERT(m_str);
+        if (m_num > 0 && m_str)
         {
             QDateTime dt;
 
             // default: local time in sec resolution
             QString format = QLatin1String("yyyy-MM-ddTHH:mm:ss");
 
-            if (m_rid->suffix == RStateLastUpdated || m_rid->suffix == RStateLastCheckin)
+            if (rid->suffix == RStateLastUpdated || rid->suffix == RStateLastCheckin)
             {
                 // UTC in msec resolution
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz"); // TODO add Z
                 dt.setOffsetFromUtc(0);
             }
-            else if (m_rid->suffix == RAttrLastAnnounced || m_rid->suffix == RStateLastSet || m_rid->suffix == RStateUtc || m_rid->suffix == RConfigLastChangeTime)
+            else if (rid->suffix == RAttrLastAnnounced || rid->suffix == RStateLastSet || rid->suffix == RStateUtc || rid->suffix == RConfigLastChangeTime)
             {
                 // UTC in sec resolution
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
                 dt.setOffsetFromUtc(0);
             }
-            else if (m_rid->suffix == RAttrLastSeen)
+            else if (rid->suffix == RAttrLastSeen)
             {
                 // UTC in min resolution
                 format = QLatin1String("yyyy-MM-ddTHH:mmZ");
                 dt.setOffsetFromUtc(0);
             }
-            else if (m_rid->suffix == RStateSunrise || m_rid->suffix == RStateSunset)
+            else if (rid->suffix == RStateSunrise || rid->suffix == RStateSunset)
             {
                 // UTC in sec resulution
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ss"); // TODO add Z
@@ -1171,10 +1187,12 @@ bool ResourceItem::setValue(const QString &val, ValueSource source)
 
 bool ResourceItem::setValue(qint64 val, ValueSource source)
 {
-    if (m_rid->validMin != 0 || m_rid->validMax != 0)
+    const ResourceItemDescriptor *rid = &descriptor();
+
+    if (rid->validMin != 0 || rid->validMax != 0)
     {
         // range check
-        if (val < m_rid->validMin || val > m_rid->validMax)
+        if (val < rid->validMin || val > rid->validMax)
         {
             return false;
         }
@@ -1209,9 +1227,10 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
     const auto now = QDateTime::currentDateTime();
     m_valueSource = source;
 
+    const ResourceItemDescriptor *rid = &descriptor();
 
-    if (m_rid->type == DataTypeString ||
-        m_rid->type == DataTypeTimePattern)
+    if (rid->type == DataTypeString ||
+        rid->type == DataTypeTimePattern)
     {
         // TODO validate time pattern
         if (m_str)
@@ -1230,7 +1249,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
             return true;
         }
     }
-    else if (m_rid->type == DataTypeBool)
+    else if (rid->type == DataTypeBool)
     {
         m_lastSet = now;
         m_numPrev = m_num;
@@ -1245,7 +1264,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
         }
         return true;
     }
-    else if (m_rid->type == DataTypeTime)
+    else if (rid->type == DataTypeTime)
     {
         if (val.type() == QVariant::String)
         {
@@ -1287,7 +1306,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
             return true;
         }
     }
-    else if (m_rid->type == DataTypeReal)
+    else if (rid->type == DataTypeReal)
     {
         bool ok = false;
         double d = val.toDouble(&ok);
@@ -1315,9 +1334,9 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
 
         if (ok)
         {
-            if (m_rid->validMin == 0 && m_rid->validMax == 0)
+            if (rid->validMin == 0 && rid->validMax == 0)
             { /* no range check */ }
-            else if (n >= m_rid->validMin && n <= m_rid->validMax)
+            else if (n >= rid->validMin && n <= rid->validMax)
             {   /* range check: ok*/ }
             else {
                 m_valueSource = SourceUnknown;
@@ -1408,8 +1427,13 @@ bool ResourceItem::equalsString(const char *str, int length) const
 
 const ResourceItemDescriptor &ResourceItem::descriptor() const
 {
-    Q_ASSERT(m_rid);
-    return *m_rid;
+    U_ASSERT(m_ridIndex < rItemDescriptors.size());
+    if (rItemDescriptors.size() <= m_ridIndex)
+    {
+        // invalid descriptor, note if this triggers there is likely a bug lurking somewhere
+        return rItemDescriptors[0];
+    }
+    return rItemDescriptors[m_ridIndex];
 }
 
 const QDateTime &ResourceItem::lastSet() const
@@ -1435,8 +1459,10 @@ QVariant ResourceItem::toVariant() const
         return QVariant();
     }
 
-    if (m_rid->type == DataTypeString ||
-        m_rid->type == DataTypeTimePattern)
+    const ResourceItemDescriptor *rid = &descriptor();
+
+    if (rid->type == DataTypeString ||
+        rid->type == DataTypeTimePattern)
     {
         if (m_str)
         {
@@ -1444,15 +1470,15 @@ QVariant ResourceItem::toVariant() const
         }
         return QString();
     }
-    else if (m_rid->type == DataTypeBool)
+    else if (rid->type == DataTypeBool)
     {
         return (bool)m_num;
     }
-    else if (m_rid->type == DataTypeTime)
+    else if (rid->type == DataTypeTime)
     {
         return toString();
     }
-    else if (m_rid->type == DataTypeReal)
+    else if (rid->type == DataTypeReal)
     {
         return (double)m_double;
     }

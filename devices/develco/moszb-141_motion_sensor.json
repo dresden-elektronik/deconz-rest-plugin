@@ -4,7 +4,7 @@
   "manufacturername": ["Develco Products A/S", "frient A/S"],
   "modelid": ["MOSZB-141", "MOSZB-141"],
   "vendor": "Develco Products",
-  "product": "MOSZB-141 motion sensor",
+  "product": "Motion sensor (MOSZB-141)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

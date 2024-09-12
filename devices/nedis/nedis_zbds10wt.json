@@ -1,14 +1,15 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "eb971e80-0096-4734-9d37-63a360b8c860",
-  "manufacturername": ["_TZ1800_ladpngdx", "LIDL Silvercrest", "LIDL Silvercrest"],
-  "modelid": ["TS0211", "TS0211", "HG06668"],
-  "product": "Silvercrest Doorbell",
-  "sleeper": true,
+  "uuid": "8efbe479-64af-4781-9a85-dfd0176c0335",
+  "manufacturername": "_TYZB01_wqcac7lo",
+  "modelid": "TS0205",
+  "vendor": "Tuya",
+  "product": "Smoke Sensor",
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_SWITCH",
+      "type": "$TYPE_FIRE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -45,7 +46,9 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
+          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
           "name": "attr/type"
@@ -55,7 +58,13 @@
         },
         {
           "name": "config/battery",
-          "default": 0
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "config/enrolled"
@@ -70,10 +79,16 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/buttonevent"
+          "name": "state/fire"
         },
         {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery"
+        },
+        {
+          "name": "state/test"
         }
       ]
     }
@@ -82,14 +97,13 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
       "cl": "0x0001",
       "report": [
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
+          "min": 600,
+          "max": 43200,
           "change": "0x00000001"
         }
       ]
@@ -97,7 +111,6 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
       "cl": "0x0500"
     }
   ]

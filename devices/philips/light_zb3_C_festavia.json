@@ -9,7 +9,8 @@
     "LCX012",
     "LCX012"
   ],
-  "product": "Hue Festavia",
+  "vendor": "Philips",
+  "product": "Hue festavia string lights",
   "sleeper": false,
   "status": "Gold",
   "matchexpr": "R.hasCluster(0x0b,0xfc03)",

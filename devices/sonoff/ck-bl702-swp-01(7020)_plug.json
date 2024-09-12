@@ -3,8 +3,8 @@
   "uuid": "53f3ec54-fa3f-4479-8312-aecdf3c52ac2",
   "manufacturername": "eWeLink",
   "modelid": "CK-BL702-SWP-01(7020)",
-  "vendor": "WOOLLEY ",
-  "product": "Zigbee Smart Plug",
+  "vendor": "eWeLink",
+  "product": "Smart Plug (eWeLink)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -262,6 +262,10 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     {
         const ResourceItem *item = lightNode->itemForIndex(static_cast<size_t>(i));
         DBG_Assert(item);
+        if (!item->isPublic())
+        {
+            continue;
+        }
         const ResourceItemDescriptor &rid = item->descriptor();
 
         if      (rid.suffix == RAttrConfigId) { attr["configid"] = item->toNumber(); }
@@ -3147,6 +3151,34 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
 
     if (!alert.isEmpty())
     {
+        Device *device = static_cast<Device*>(task.lightNode->parentResource());
+        
+        if (device && device->managed())
+        {
+            if (alert == "none" || alert == "select")
+            {
+                ResourceItem *item = task.lightNode->item(RStateAlert);
+                const auto ddfItem = DDF_GetItem(item);
+
+                if (!ddfItem.writeParameters.isNull())
+                {
+                    StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, task.req.dstEndpoint());
+                    change.addTargetValue(RStateAlert, alert);
+                    task.lightNode->addStateChange(change);
+                    
+                    QVariantMap rspItem;
+                    QVariantMap rspItemState;
+                    rspItemState[QString("/lights/%1/state/alert").arg(id)] = alert;
+                    rspItem["success"] = rspItemState;
+                    rsp.list.append(rspItem);
+                    // Don't update write-only state.alert.
+                    
+                    rsp.etag = taskRef.lightNode->etag;
+                    return REQ_READY_SEND;
+                }
+            }
+        }
+        
         if (alert == "none")
         {
             task.options = 0x00; // Warning mode 0 (no warning), No strobe, Low sound
@@ -3164,10 +3196,10 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             {
                 task.options = 0xC1;    // Warning mode 1 (burglar), no Strobe, Very high sound, Develco uses inversed bit order
             }
-	    else if (taskRef.lightNode->modelId() == QLatin1String("TS0219"))
-	    {
-	        task.options = 0x24;    // Only supported combination
-	    }
+            else if (taskRef.lightNode->modelId() == QLatin1String("TS0219"))
+            {
+                task.options = 0x24;    // Only supported combination
+            }
             task.duration = 1;
         }
         else if (alert == "lselect")
