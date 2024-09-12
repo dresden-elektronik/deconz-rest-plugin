@@ -122,6 +122,9 @@
           "name": "cap/bri/move_with_onoff"
         },
         {
+          "name": "cap/color/effects"
+        },
+        {
           "name": "cap/on/off_with_effect"
         },
         {
@@ -163,16 +166,6 @@
         },
         {
           "name": "state/effect",
-          "values": [
-            [
-              "\"none\"",
-              "no effect is active"
-            ],
-            [
-              "\"candle\"",
-              "candlelight dynamic effect"
-            ]
-          ],
           "read": {
             "fn": "none"
           }
