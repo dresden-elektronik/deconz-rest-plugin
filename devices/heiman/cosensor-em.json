@@ -5,7 +5,6 @@
   "product": "COSensor-EM",
   "sleeper": true,
   "status": "Gold",
-  "path": "/devices/cosensor-em.json",
   "subdevices": [
     {
       "type": "$TYPE_CARBONMONOXIDE_SENSOR",
