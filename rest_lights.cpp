@@ -750,14 +750,17 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     const QStringList *alertList = &RStateAlertValuesTriggerEffect; // TODO: check RCapAlertTriggerEffect
     QStringList effectList = RStateEffectValues;
-    if (taskRef.lightNode->item(RCapColorEffects))
+    bool colorloop;
     {
         ResourceItem *icc = taskRef.lightNode->item(RCapColorCapabilities);
         int cc = icc ? 0 : icc->toNumber();
-        bool colorloop = (cc & 0x04) != 0;
+        colorloop = (cc & 0x04) != 0;
+    }
+    if (taskRef.lightNode->item(RCapColorEffects) && taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS)
+    {
         effectList = getHueEffectNames(taskRef.lightNode->item(RCapColorEffects)->toNumber(), colorloop);
     }
-    if (taskRef.lightNode->manufacturerCode() == VENDOR_MUELLER)
+    else if (taskRef.lightNode->manufacturerCode() == VENDOR_MUELLER)
     {
         effectList = RStateEffectValuesMueller;
     }
@@ -939,9 +942,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             hasCmd = true;
             if (map[param].type() == QVariant::String)
             {
-
-                effect = map[param].toString();
-                valueOk = effectList.indexOf(effect) >= 0;
+                QString e = map[param].toString();
+                if (effectList.indexOf(e) >= 0)
+                {
+                    valueOk = true;
+                    effect = e;
+                }
             }
         }
         else if (param == "music_sync" && taskRef.lightNode->item(RStateMusicSync))
@@ -1221,27 +1227,40 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state/effect").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
         }
-        else if (addTaskSetColorLoop(task, false, colorloopSpeed))
+        else 
         {
-            if (taskRef.lightNode->manufacturerCode() == VENDOR_MUELLER)
+            bool ok = true;
+            
+            if (colorloop)
+            {
+                ok = addTaskSetColorLoop(task, false, colorloopSpeed);
+            }
+            if (ok && taskRef.lightNode->item(RCapColorEffects)  && taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS)
+            {
+                ok = addTaskHueEffect(taskRef, effect);
+            }
+            else if (ok && taskRef.lightNode->manufacturerCode() == VENDOR_MUELLER)
             {
                 quint64 value = 0;
                 deCONZ::ZclAttribute attr(0x4005, deCONZ::Zcl8BitUint, "scene", deCONZ::ZclReadWrite, true);
                 attr.setValue(value);
-                writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attr, VENDOR_MUELLER);
+                ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attr, VENDOR_MUELLER);
             }
 
-            QVariantMap rspItem;
-            QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/effect").arg(id)] = effect;
-            rspItem["success"] = rspItemState;
-            rsp.list.append(rspItem);
+            if (ok)
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/lights/%1/state/effect").arg(id)] = effect;
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, effect);
-        }
-        else
-        {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/effect").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+                taskRef.lightNode->setValue(RStateEffect, effect);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/effect").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
         }
     }
 
@@ -1457,7 +1476,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state/effect").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
         }
-        else if (taskRef.lightNode->item(RCapColorEffects))
+        else if (taskRef.lightNode->item(RCapColorEffects) && taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS)
         {
             ok = addTaskHueEffect(taskRef, effect);
         }
