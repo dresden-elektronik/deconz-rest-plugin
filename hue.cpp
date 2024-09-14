@@ -42,11 +42,13 @@ quint8 effectNameToValue(QString &effectName)
    \param effectBitmap - the bitmap with supported effects (from 0x0011)
    \return QStringList of effect names
  */
-QStringList DeRestPluginPrivate::getHueEffectNames(quint64 effectBitmap)
+QStringList DeRestPluginPrivate::getHueEffectNames(quint64 effectBitmap, bool colorloop)
 {
-    QStringList names = {
-        "none", "colorloop"
-    };
+    QStringList names = { QLatin1String("none") };
+    if (colorloop)
+    {
+        names.append(QLatin1String("colorloop"));
+    }
     for (auto &e: effects) {
         if (effectBitmap & (0x01 << e.value))
         {

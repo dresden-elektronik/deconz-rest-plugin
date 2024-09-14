@@ -230,6 +230,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     QVariantMap capabilitiesBri;
     QVariantMap capabilitiesColor;
     const ResourceItem *icc = nullptr;
+    const ResourceItem *icce = nullptr;
     QVariantMap capabilitiesColorCt;
     QVariantMap capabilitiesColorGradient;
     QVariantMap capabilitiesColorXy;
@@ -239,7 +240,6 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     const ResourceItem *igreeny = nullptr;
     const ResourceItem *iredx = nullptr;
     const ResourceItem *iredy = nullptr;
-    QStringList effectList = RStateEffectValues;
 
     QVariantMap config;
     bool groups = true;
@@ -301,7 +301,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
             }
             capabilitiesColorCt["min"] = item->toNumber();
         }
-        else if (rid.suffix == RCapColorEffects) { effectList = getHueEffectNames(item->toNumber()); }
+        else if (rid.suffix == RCapColorEffects) { icce = item; }
         else if (rid.suffix == RCapColorGamutType) { capabilitiesColor["gamut_type"] = item->toString(); }
         else if (rid.suffix == RCapColorGradientMaxSegments) { capabilitiesColorGradient["max_segments"] = item->toNumber(); }
         else if (rid.suffix == RCapColorGradientPixelCount) { capabilitiesColorGradient["pixel_count"] = item->toNumber(); }
@@ -377,20 +377,33 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         config["groups"] = groups;
     }
 
-    if (icc)
+    if (icc) // colormode
     {
         const int cc = icc->toNumber();
         QStringList colorModes;
 
         if (cc & 0x10) colorModes.push_back(QLatin1String("ct"));
-        if (cc & 0x04)
+        if (cc & 0x04) // colorloop
+        {
+            if (icce && lightNode->manufacturerCode() == VENDOR_PHILIPS) // Hue special effects
+            {
+                colorModes.push_back(QLatin1String("effect"));
+                capabilitiesColor["effects"] = getHueEffectNames(icce->toNumber(), true);
+            }
+            else if (lightNode->manufacturerCode() == VENDOR_MUELLER)
+            {
+                colorModes.push_back(QLatin1String("effect"));
+                capabilitiesColor["effects"] = RStateEffectValuesMueller;
+            }
+            else
+            {
+                capabilitiesColor["effects"] = RStateEffectValues;
+            }
+        }
+        else if (iccs && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no colorloop, but Hue special effects
         {
             colorModes.push_back(QLatin1String("effect"));
-            if (lightNode->manufacturerCode() == VENDOR_MUELLER)
-            {
-                effectList = RStateEffectValuesMueller;
-            }
-            capabilitiesColor["effects"] = effectList;
+            capabilitiesColor["effects"] = getHueEffectNames(icce->toNumber(), false);
         }
         else if (isXmasLightStrip(lightNode))
         {
@@ -410,6 +423,10 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
             attr["colorcapabilities"] = colorModes;
         }
         capabilitiesColor["modes"] = colorModes;
+    }
+    else if (icce && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no colormode, but Hue special effects
+    {
+        capabilitiesColor["effects"] = getHueEffectNames(icce->toNumber(), false);
     }
 
     if (ibluex && ibluey && igreenx && igreeny && iredx && iredy)
@@ -735,7 +752,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     QStringList effectList = RStateEffectValues;
     if (taskRef.lightNode->item(RCapColorEffects))
     {
-        effectList = getHueEffectNames(taskRef.lightNode->item(RCapColorEffects)->toNumber());
+        ResourceItem *icc = taskRef.lightNode->item(RCapColorCapabilities);
+        int cc = icc ? 0 ? icc->toNumber();
+        bool colorloop = (cc & 0x04) != 0;
+        effectList = getHueEffectNames(taskRef.lightNode->item(RCapColorEffects)->toNumber(), colorloop);
     }
     if (taskRef.lightNode->manufacturerCode() == VENDOR_MUELLER)
     {
@@ -763,7 +783,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     quint16 targetHue = 0;
     bool hasSat = false;
     quint8 targetSat = 0;
-    int effect = -1;
+    QString effect;
     bool hasColorloopSpeed = false;
     quint16 colorloopSpeed = 25;
     bool hasGradient = false;
@@ -919,8 +939,9 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             hasCmd = true;
             if (map[param].type() == QVariant::String)
             {
-                effect = effectList.indexOf(map[param].toString());
-                valueOk = effect >= 0;
+
+                effect = map[param].toString();
+                valueOk = effectList.indexOf(effect) >= 0;
             }
         }
         else if (param == "music_sync" && taskRef.lightNode->item(RStateMusicSync))
@@ -1045,7 +1066,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter, bri_inc, for parameter, wrap")));
     }
-    if (hasColorloopSpeed && effect != R_EFFECT_COLORLOOP)
+    if (hasColorloopSpeed && effect != "colorloop")
     {
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter, effect, for parameter, colorloopspeed")));
     }
@@ -1191,7 +1212,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // state.effect: "none"
-    if (effect == R_EFFECT_NONE)
+    if (effect == "none")
     {
         TaskItem task;
         copyTaskReq(taskRef, task);
@@ -1212,11 +1233,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/effect").arg(id)] = effectList[effect];
+            rspItemState[QString("/lights/%1/state/effect").arg(id)] = effect;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, effectList[effect]);
+            taskRef.lightNode->setValue(RStateEffect, effect);
         }
         else
         {
@@ -1397,7 +1418,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // state.effect: "colorloop"
-    if (effect == R_EFFECT_COLORLOOP)
+    if (effect == "colorloop")
     {
         TaskItem task;
         copyTaskReq(taskRef, task);
@@ -1418,11 +1439,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/effect").arg(id)] = effectList[effect];
+            rspItemState[QString("/lights/%1/state/effect").arg(id)] = effect;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, effectList[effect]);
+            taskRef.lightNode->setValue(RStateEffect, effect);
             taskRef.lightNode->setValue(RStateColorMode, QString("hs"));
         }
         else
@@ -1438,7 +1459,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (taskRef.lightNode->item(RCapColorEffects))
         {
-            ok = addTaskHueEffect(taskRef, effectList[effect]);
+            ok = addTaskHueEffect(taskRef, effect);
         }
         else if (taskRef.lightNode->manufacturerCode() == VENDOR_MUELLER)
         {
@@ -1451,11 +1472,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/effect").arg(id)] = effectList[effect];
+            rspItemState[QString("/lights/%1/state/effect").arg(id)] = effect;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateEffect, effectList[effect]);
+            taskRef.lightNode->setValue(RStateEffect, effect);
             taskRef.lightNode->setValue(RStateColorMode, QString("effect"));
         }
         else
@@ -3856,6 +3877,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             QVariantMap capabilitiesBri;
             QVariantMap capabilitiesColor;
             ResourceItem *icc = nullptr;
+            ResourceItem *icce = nullptr;
             QVariantMap capabilitiesColorCt;
             QVariantMap capabilitiesColorGradient;
             QVariantMap capabilitiesColorXy;
@@ -3945,7 +3967,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                         if (item->needPushChange()) { pushAttr = true; }
                         capabilitiesColorCt["min"] = item->toNumber();
                     }
-                    else if (rid.suffix == RCapColorEffects) { effectList = getHueEffectNames(item->toNumber()); }
+                    else if (rid.suffix == RCapColorEffects) { icce = item; }
                     else if (rid.suffix == RCapColorGamutType) { capabilitiesColor["gamut_type"] = item->toString(); }
                     else if (rid.suffix == RCapColorGradientMaxSegments) { capabilitiesColorGradient["max_segments"] = item->toNumber(); }
                     else if (rid.suffix == RCapColorGradientPixelCount) { capabilitiesColorGradient["pixel_count"] = item->toNumber(); }
@@ -4015,8 +4037,8 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     item->clearNeedPush();
                 }
             }
-
-            if (icc)
+// @@@
+            if (icc) // colormode
             {
                 if (gwWebSocketNotifyAll || icc->needPushChange())
                 {
@@ -4024,14 +4046,27 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     QStringList colorModes;
 
                     if (cc & 0x10) colorModes.push_back(QLatin1String("ct"));
-                    if (cc & 0x04)
+                    if (cc & 0x04) // colorloop
+                    {
+                        if (icce && lightNode->manufacturerCode() == VENDOR_PHILIPS) // Hue special effects
+                        {
+                            colorModes.push_back(QLatin1String("effect"));
+                            capabilitiesColor["effects"] = getHueEffectNames(icce->toNumber(), true);
+                        }
+                        else if (lightNode->manufacturerCode() == VENDOR_MUELLER)
+                        {
+                            colorModes.push_back(QLatin1String("effect"));
+                            capabilitiesColor["effects"] = RStateEffectValuesMueller;
+                        }
+                        else
+                        {
+                            capabilitiesColor["effects"] = RStateEffectValues;
+                        }
+                    }
+                    else if (icce && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no colorloop, but Hue special effects
                     {
                         colorModes.push_back(QLatin1String("effect"));
-                        if (lightNode->manufacturerCode() == VENDOR_MUELLER)
-                        {
-                            effectList = RStateEffectValuesMueller;
-                        }
-                        capabilitiesColor["effects"] = effectList;
+                        capabilitiesColor["effects"] = getHueEffectNames(icce->toNumber(), false);
                     }
                     else if (isXmasLightStrip(lightNode))
                     {
@@ -4047,6 +4082,10 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     capabilitiesColor["modes"] = colorModes;
                     icc->clearNeedPush();
                 }
+            }
+            else if (icce && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no colormode, but Hue special effects
+            {
+                capabilitiesColor["effects"] = getHueEffectNames(icce->toNumber(), false);
             }
 
             if (ibluex && ibluey && igreenx && igreeny && iredx && iredy)
