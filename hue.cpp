@@ -122,12 +122,14 @@ bool DeRestPluginPrivate::addTaskHueEffect(TaskItem &task, QString &effectName)
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        if (effectName == "none") {
-            stream << (quint16) 0x0020; // clear effect
-            stream << (quint8) 0; // off
-        } else {
-            stream << (quint16) 0x0021; // set effect (with on/off)
-            stream << (quint8) 1; // on
+        stream << (quint16) 0x0021; // set effect (with on/off)
+        stream << (quint8) 1; // on
+        if (effectName == "none")
+        {
+            stream << (quint8) 0; // none
+        }
+        else
+        {
             stream << effectNameToValue(effectName);
         }
     }
