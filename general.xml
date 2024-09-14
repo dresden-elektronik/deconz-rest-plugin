@@ -2970,10 +2970,8 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0002" name="Remaining Time" type="u16" access="r" range="0x0000,0xfffe" default="0x0000" required="o"></attribute>
           <attribute id="0x0003" name="Current X" type="u16" access="r" range="0x0000,0xfeff" default="0x61eb" required="m"></attribute>
           <attribute id="0x0004" name="Current Y" type="u16" access="r" range="0x0000,0xfeff" default="0x607b" required="m"></attribute>
-          <!--
           <attribute id="0x0003" mfcode="0x100b" name="Hue StartUp Current X" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
           <attribute id="0x0004" mfcode="0x100b" name="Hue StartUp Current Y" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
-          -->
           <!-- Haven't yet seen any lights supporting these
           <attribute id="0x0005" name="Drift Compensation" type="enum8" access="r" required="o">
             <value name="None" value="0x00"></value>
