@@ -400,7 +400,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
                 capabilitiesColor["effects"] = RStateEffectValues;
             }
         }
-        else if (iccs && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no colorloop, but Hue special effects
+        else if (icce && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no colorloop, but Hue special effects
         {
             colorModes.push_back(QLatin1String("effect"));
             capabilitiesColor["effects"] = getHueEffectNames(icce->toNumber(), false);
@@ -753,7 +753,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     if (taskRef.lightNode->item(RCapColorEffects))
     {
         ResourceItem *icc = taskRef.lightNode->item(RCapColorCapabilities);
-        int cc = icc ? 0 ? icc->toNumber();
+        int cc = icc ? 0 : icc->toNumber();
         bool colorloop = (cc & 0x04) != 0;
         effectList = getHueEffectNames(taskRef.lightNode->item(RCapColorEffects)->toNumber(), colorloop);
     }
@@ -1463,7 +1463,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (taskRef.lightNode->manufacturerCode() == VENDOR_MUELLER)
         {
-            const quint64 value = effect - 1;
+            const quint64 value = effectList.indexOf(effect) - 1;
             deCONZ::ZclAttribute attr(0x4005, deCONZ::Zcl8BitUint, "scene", deCONZ::ZclReadWrite, true);
             attr.setValue(value);
             ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attr, VENDOR_MUELLER);
