@@ -2202,7 +2202,32 @@
               101-254: Tilt position before movement is restored.</description>
           </attribute>
         </attribute-set>
-        <attribute-set id="0x1000" description="Ubisys specific" mfcode="0x10f2">
+        <attribute-set id="0x0000" description="Ubisys specific" mfcode="0x10f2">
+          <attribute id="0x0000" name="Window Covering Type" type="enum8" default="0x00" access="rw" required="m" mfcode="0x10f2">
+            <value name="Rollershade" value="0"></value>
+            <value name="Rollershade - 2 Motor" value="1"></value>
+            <value name="Rollershade – Exterior" value="2"></value>
+            <value name="Rollershade - Exterior - 2 Motor" value="3"></value>
+            <value name="Drapery" value="4"></value>
+            <value name="Awning" value="5"></value>
+            <value name="Shutter" value="6"></value>
+            <value name="Tilt Blind - Tilt Only" value="7"></value>
+            <value name="Tilt Blind - Lift and Tilt" value="8"></value>
+            <value name="Projector Screen" value="9"></value>
+          </attribute>
+          <attribute id="0x0007" name="Config and Status" type="bmp8" default="0x03" access="rw" required="m" mfcode="0x10f2">
+            <value name="Operational" value="0"></value>
+            <value name="Online" value="1"></value>
+            <value name="Commands Reversed" value="2"></value>
+            <value name="Lift control is Closed Loop" value="3"></value>
+            <value name="Tilt control is Closed Loop" value="4"></value>
+            <value name="Lift: Encoder Controlled" value="5"></value>
+            <value name="Tilt: Encoder Controlled" value="6"></value>
+          </attribute>
+          <attribute id="0x0010" name="Installed Open Limit – Lift" type="u16" default="0x0000" access="rw" required="m" mfcode="0x10f2"></attribute>
+          <attribute id="0x0011" name="Installed Closed Limit – Lift" type="u16" default="0xffff" access="rw" required="m" mfcode="0x10f2"></attribute>
+          <attribute id="0x0012" name="Installed Open Limit – Tilt" type="u16" default="0x0000" access="rw" required="m" mfcode="0x10f2"></attribute>
+          <attribute id="0x0013" name="Installed Open Limit – Tilt" type="u16" default="0xffff" access="rw" required="m" mfcode="0x10f2"></attribute>
           <attribute id="0x1000" name="Turnaround Guard Time" type="u8" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
           <attribute id="0x1001" name="Lift to Tilt Transition Steps" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
           <attribute id="0x1002" name="Total Steps" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
@@ -3486,10 +3511,10 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0030" name="Sensitivity" type="u8" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
           <attribute id="0x0031" name="Sensitivity max." type="u8" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
         </attribute-set>
-        <attribute-set id="0xfc00" description="Develco Specific" mfcode="0x1015">
-          <attribute id="0xfc00" name="ArmThreshold_MinTemperature" type="s16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
-          <attribute id="0xfc01" name="ArmThreshold_MaxTemperature" type="s16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
-          <attribute id="0xfc02" name="Target Level" type="u16" access="rw" range="0x0002,0xfffd" required="m" mfcode="0x1015"></attribute>
+        <attribute-set id="0x0000" description="Develco Specific" mfcode="0x1015">
+          <attribute id="0x0000" name="ArmThreshold_MinTemperature" type="s16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
+          <attribute id="0x0001" name="ArmThreshold_MaxTemperature" type="s16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
+          <attribute id="0x0002" name="Target Level" type="u16" access="rw" range="0x0002,0xfffd" required="m" mfcode="0x1015"></attribute>
         </attribute-set>
       </server>
       <client>
