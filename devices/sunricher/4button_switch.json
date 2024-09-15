@@ -5,10 +5,11 @@
     "EcoDim",
     "EcoDim",
     "Sunricher",
-    "NAMRON  AS",
+    "NAMRON AS",
     "NAMRON AS",
     "ROBB smarrt",
-    "ROBB smarrt"
+    "ROBB smarrt",
+    "NAMRON  AS"
   ],
   "modelid": [
     "ED-10012",
@@ -17,7 +18,8 @@
     "4512719",
     "4512729",
     "ROB_200-008",
-    "ROB_200-008-0"
+    "ROB_200-008-0",
+    "4512719"
   ],
   "matchexpr": "R.endpoints.length === 2",
   "vendor": "Sunricher",
