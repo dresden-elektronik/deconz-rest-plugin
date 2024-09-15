@@ -750,10 +750,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     const QStringList *alertList = &RStateAlertValuesTriggerEffect; // TODO: check RCapAlertTriggerEffect
     QStringList effectList = RStateEffectValues;
-    bool colorloop;
+    bool colorloop = false;
     {
         ResourceItem *icc = taskRef.lightNode->item(RCapColorCapabilities);
-        int cc = icc ? 0 : icc->toNumber();
+        int cc = icc ? icc->toNumber() : 0;
         colorloop = (cc & 0x04) != 0;
     }
     if (taskRef.lightNode->item(RCapColorEffects) && taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS)
@@ -1229,19 +1229,17 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else 
         {
-            bool ok = true;
-            
             if (colorloop)
             {
                 ok = addTaskSetColorLoop(task, false, colorloopSpeed);
             }
-            if (ok && taskRef.lightNode->item(RCapColorEffects)  && taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS)
+            if (ok && taskRef.lightNode->item(RCapColorEffects) && taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS)
             {
                 ok = addTaskHueEffect(taskRef, effect);
             }
             else if (ok && taskRef.lightNode->manufacturerCode() == VENDOR_MUELLER)
             {
-                quint64 value = 0;
+                const quint64 value = 0;
                 deCONZ::ZclAttribute attr(0x4005, deCONZ::Zcl8BitUint, "scene", deCONZ::ZclReadWrite, true);
                 attr.setValue(value);
                 ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attr, VENDOR_MUELLER);
@@ -1470,7 +1468,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/effect").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-    else if (effect > 0)
+    else if (effect != "none")
     {
         if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
@@ -4056,7 +4054,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     item->clearNeedPush();
                 }
             }
-// @@@
+            
             if (icc) // colormode
             {
                 if (gwWebSocketNotifyAll || icc->needPushChange())
