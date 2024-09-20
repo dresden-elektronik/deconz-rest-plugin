@@ -1468,7 +1468,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/effect").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-    else if (effect != "none")
+    else if (effect != nullptr && effect != "none")
     {
         if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
