@@ -45,7 +45,11 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "read": {
+            "fn": "none"
+          },
+          "static": "none"
         },
         {
           "name": "attr/type"
@@ -129,7 +133,11 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "read": {
+            "fn": "none"
+          },
+          "static": "none"
         },
         {
           "name": "attr/type"
@@ -221,7 +229,11 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "read": {
+            "fn": "none"
+          },
+          "static": "none"
         },
         {
           "name": "attr/type"
