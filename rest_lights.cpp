@@ -23,6 +23,12 @@
 #include "product_match.h"
 #include "tuya.h"
 
+#define COLOR_CAPABILITIES_HS 0x01
+#define COLOR_CAPABILITIES_ENHANCED_HS 0x02
+#define COLOR_CAPABILITIES_COLORLOOP 0x04
+#define COLOR_CAPABILITIES_XY 0x08
+#define COLOR_CAPABILITIES_CT 0x10
+
 /*! Lights REST API broker.
     \param req - request data
     \param rsp - response data
@@ -229,8 +235,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     QVariantMap capabilities;
     QVariantMap capabilitiesBri;
     QVariantMap capabilitiesColor;
-    const ResourceItem *icc = nullptr;
-    const ResourceItem *icce = nullptr;
+    const ResourceItem *itemColorCapabilties = nullptr;
+    const ResourceItem *itemCapColorEffects = nullptr;
     QVariantMap capabilitiesColorCt;
     QVariantMap capabilitiesColorGradient;
     QVariantMap capabilitiesColorXy;
@@ -283,7 +289,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RAttrUniqueId) { attr["uniqueid"] = item->toString(); }
         else if (rid.suffix == RCapAlertTriggerEffect) { capabilitiesAlerts = &RStateAlertValuesTriggerEffect; }
         else if (rid.suffix == RCapBriMinDimLevel) { capabilitiesBri["min_dim_level"] = round(item->toNumber() / 10.0) / 100.0; }
-        else if (rid.suffix == RCapColorCapabilities) { icc = item; }
+        else if (rid.suffix == RCapColorCapabilities) { itemColorCapabilties = item; }
         else if (rid.suffix == RCapColorCtComputesXy) { capabilitiesColorCt["computes_xy"] = item->toBool(); }
         else if (rid.suffix == RCapColorCtMax)
         {
@@ -301,7 +307,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
             }
             capabilitiesColorCt["min"] = item->toNumber();
         }
-        else if (rid.suffix == RCapColorEffects) { icce = item; }
+        else if (rid.suffix == RCapColorEffects) { itemCapColorEffects = item; }
         else if (rid.suffix == RCapColorGamutType) { capabilitiesColor["gamut_type"] = item->toString(); }
         else if (rid.suffix == RCapColorGradientMaxSegments) { capabilitiesColorGradient["max_segments"] = item->toNumber(); }
         else if (rid.suffix == RCapColorGradientPixelCount) { capabilitiesColorGradient["pixel_count"] = item->toNumber(); }
@@ -377,18 +383,18 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         config["groups"] = groups;
     }
 
-    if (icc) // colormode
+    if (itemColorCapabilties)
     {
-        const int cc = icc->toNumber();
+        const int cc = itemColorCapabilties->toNumber();
         QStringList colorModes;
 
-        if (cc & 0x10) colorModes.push_back(QLatin1String("ct"));
-        if (cc & 0x04) // colorloop
+        if (cc & COLOR_CAPABILITIES_CT) colorModes.push_back(QLatin1String("ct"));
+        if (cc & COLOR_CAPABILITIES_COLORLOOP)
         {
-            if (icce && lightNode->manufacturerCode() == VENDOR_PHILIPS) // Hue special effects
+            if (itemCapColorEffects && lightNode->manufacturerCode() == VENDOR_PHILIPS) // colorloop and Hue special effects
             {
                 colorModes.push_back(QLatin1String("effect"));
-                capabilitiesColor["effects"] = getHueEffectNames(icce->toNumber(), true);
+                capabilitiesColor["effects"] = getHueEffectNames(itemCapColorEffects->toNumber(), true);
             }
             else if (lightNode->manufacturerCode() == VENDOR_MUELLER)
             {
@@ -400,10 +406,10 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
                 capabilitiesColor["effects"] = RStateEffectValues;
             }
         }
-        else if (icce && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no colorloop, but Hue special effects
+        else if (itemCapColorEffects && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no colorloop, but Hue special effects
         {
             colorModes.push_back(QLatin1String("effect"));
-            capabilitiesColor["effects"] = getHueEffectNames(icce->toNumber(), false);
+            capabilitiesColor["effects"] = getHueEffectNames(itemCapColorEffects->toNumber(), false);
         }
         else if (isXmasLightStrip(lightNode))
         {
@@ -411,8 +417,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
             capabilitiesColor["effects"] = RStateEffectValuesXmasLightStrip;
         }
         if (!capabilitiesColorGradient.isEmpty()) colorModes.push_back(QLatin1String("gradient"));
-        if (cc & 0x01 || cc & 0x02) colorModes.push_back(QLatin1String("hs"));
-        if (cc & 0x08) colorModes.push_back(QLatin1String("xy"));
+        if (cc & COLOR_CAPABILITIES_HS || cc & COLOR_CAPABILITIES_ENHANCED_HS) colorModes.push_back(QLatin1String("hs"));
+        if (cc & COLOR_CAPABILITIES_XY) colorModes.push_back(QLatin1String("xy"));
 
         if (req.apiVersion() <= ApiVersion_1_DDEL)
         {
@@ -424,9 +430,9 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         }
         capabilitiesColor["modes"] = colorModes;
     }
-    else if (icce && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no colormode, but Hue special effects
+    else if (itemCapColorEffects && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no color capabilities, but Hue special effects
     {
-        capabilitiesColor["effects"] = getHueEffectNames(icce->toNumber(), false);
+        capabilitiesColor["effects"] = getHueEffectNames(itemCapColorEffects->toNumber(), false);
     }
 
     if (ibluex && ibluey && igreenx && igreeny && iredx && iredy)
@@ -752,9 +758,9 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     QStringList effectList = RStateEffectValues;
     bool colorloop = false;
     {
-        ResourceItem *icc = taskRef.lightNode->item(RCapColorCapabilities);
-        int cc = icc ? icc->toNumber() : 0;
-        colorloop = (cc & 0x04) != 0;
+        ResourceItem *itemColorCapabilties = taskRef.lightNode->item(RCapColorCapabilities);
+        int cc = itemColorCapabilties ? itemColorCapabilties->toNumber() : 0;
+        colorloop = (cc & COLOR_CAPABILITIES_COLORLOOP) != 0;
     }
     if (taskRef.lightNode->item(RCapColorEffects) && taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS)
     {
@@ -1468,7 +1474,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/effect").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-    else if (effect != nullptr && effect != "none")
+    else if (!effect.isEmpty() && effect != "none")
     {
         if (!isOn && !taskRef.lightNode->toBool(RConfigColorExecuteIfOff))
         {
@@ -3893,8 +3899,8 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             QVariantMap capabilities;
             QVariantMap capabilitiesBri;
             QVariantMap capabilitiesColor;
-            ResourceItem *icc = nullptr;
-            ResourceItem *icce = nullptr;
+            ResourceItem *itemColorCapabilties = nullptr;
+            ResourceItem *itemCapColorEffects = nullptr;
             QVariantMap capabilitiesColorCt;
             QVariantMap capabilitiesColorGradient;
             QVariantMap capabilitiesColorXy;
@@ -3938,7 +3944,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     if (strncmp(rid.suffix, "state/", 6) == 0) { pushState = true; }
                 }
 
-                if      (rid.suffix == RCapColorCapabilities) { icc = item; }
+                if      (rid.suffix == RCapColorCapabilities) { itemColorCapabilties = item; }
                 else if (rid.suffix == RCapColorXyBlueX) { ibluex = item; }
                 else if (rid.suffix == RCapColorXyBlueY) { ibluey = item; }
                 else if (rid.suffix == RCapColorXyGreenX) { igreenx = item; }
@@ -3984,7 +3990,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                         if (item->needPushChange()) { pushAttr = true; }
                         capabilitiesColorCt["min"] = item->toNumber();
                     }
-                    else if (rid.suffix == RCapColorEffects) { icce = item; }
+                    else if (rid.suffix == RCapColorEffects) { itemCapColorEffects = item; }
                     else if (rid.suffix == RCapColorGamutType) { capabilitiesColor["gamut_type"] = item->toString(); }
                     else if (rid.suffix == RCapColorGradientMaxSegments) { capabilitiesColorGradient["max_segments"] = item->toNumber(); }
                     else if (rid.suffix == RCapColorGradientPixelCount) { capabilitiesColorGradient["pixel_count"] = item->toNumber(); }
@@ -4055,20 +4061,20 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                 }
             }
             
-            if (icc) // colormode
+            if (itemColorCapabilties)
             {
-                if (gwWebSocketNotifyAll || icc->needPushChange())
+                if (gwWebSocketNotifyAll || itemColorCapabilties->needPushChange())
                 {
-                    const int cc = icc->toNumber();
+                    const int cc = itemColorCapabilties->toNumber();
                     QStringList colorModes;
 
-                    if (cc & 0x10) colorModes.push_back(QLatin1String("ct"));
-                    if (cc & 0x04) // colorloop
+                    if (cc & COLOR_CAPABILITIES_CT) colorModes.push_back(QLatin1String("ct"));
+                    if (cc & COLOR_CAPABILITIES_COLORLOOP)
                     {
-                        if (icce && lightNode->manufacturerCode() == VENDOR_PHILIPS) // Hue special effects
+                        if (itemCapColorEffects && lightNode->manufacturerCode() == VENDOR_PHILIPS) // colorloop and Hue special effects
                         {
                             colorModes.push_back(QLatin1String("effect"));
-                            capabilitiesColor["effects"] = getHueEffectNames(icce->toNumber(), true);
+                            capabilitiesColor["effects"] = getHueEffectNames(itemCapColorEffects->toNumber(), true);
                         }
                         else if (lightNode->manufacturerCode() == VENDOR_MUELLER)
                         {
@@ -4080,10 +4086,10 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                             capabilitiesColor["effects"] = RStateEffectValues;
                         }
                     }
-                    else if (icce && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no colorloop, but Hue special effects
+                    else if (itemCapColorEffects && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no colorloop, but Hue special effects
                     {
                         colorModes.push_back(QLatin1String("effect"));
-                        capabilitiesColor["effects"] = getHueEffectNames(icce->toNumber(), false);
+                        capabilitiesColor["effects"] = getHueEffectNames(itemCapColorEffects->toNumber(), false);
                     }
                     else if (isXmasLightStrip(lightNode))
                     {
@@ -4091,18 +4097,18 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                         capabilitiesColor["effects"] = RStateEffectValuesXmasLightStrip;
                     }
                     if (!capabilitiesColorGradient.isEmpty()) colorModes.push_back(QLatin1String("gradient"));
-                    if (cc & 0x01 || cc & 0x02) colorModes.push_back(QLatin1String("hs"));
-                    if (cc & 0x08) colorModes.push_back(QLatin1String("xy"));
+                    if (cc & COLOR_CAPABILITIES_HS || cc & COLOR_CAPABILITIES_ENHANCED_HS) colorModes.push_back(QLatin1String("hs"));
+                    if (cc & COLOR_CAPABILITIES_XY) colorModes.push_back(QLatin1String("xy"));
 
                     attr["colorcapabilities"] = cc;
-                    if (icc->needPushChange()) { pushAttr = true; }
+                    if (itemColorCapabilties->needPushChange()) { pushAttr = true; }
                     capabilitiesColor["modes"] = colorModes;
-                    icc->clearNeedPush();
+                    itemColorCapabilties->clearNeedPush();
                 }
             }
-            else if (icce && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no colormode, but Hue special effects
+            else if (itemCapColorEffects && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no color capabilities, but Hue special effects
             {
-                capabilitiesColor["effects"] = getHueEffectNames(icce->toNumber(), false);
+                capabilitiesColor["effects"] = getHueEffectNames(itemCapColorEffects->toNumber(), false);
             }
 
             if (ibluex && ibluey && igreenx && igreeny && iredx && iredy)
