@@ -379,8 +379,6 @@ extern const QStringList RStateAlertValues;
 extern const QStringList RStateAlertValuesTriggerEffect;
 
 extern const QStringList RStateEffectValues;
-#define R_EFFECT_NONE               0
-#define R_EFFECT_COLORLOOP          1
 extern const QStringList RStateEffectValuesMueller;
 extern const QStringList RStateEffectValuesXmasLightStrip;
 

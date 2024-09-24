@@ -111,6 +111,9 @@
           "name": "cap/color/ct/min"
         },
         {
+          "name": "cap/color/effects"
+        },
+        {
           "name": "cap/on/off_with_effect"
         },
         {
@@ -180,16 +183,6 @@
         },
         {
           "name": "state/effect",
-          "values": [
-            [
-              "\"none\"",
-              "no effect is active"
-            ],
-            [
-              "\"candle\"",
-              "candlelight dynamic effect"
-            ]
-          ],
           "parse": {
             "fn": "zcl:attr",
             "ep": "0x0b",

@@ -1,8 +1,8 @@
 {
     "schema": "devcap1.schema.json",
     "uuid": "ab855acd-56bb-45df-a127-b796c4b3e547",
-    "manufacturername": "Xiaomi",
-    "modelid": "LYWSD03MMC",
+    "manufacturername": ["Xiaomi", "Xiaomi"],
+    "modelid": ["LYWSD03MMC", "LYWSD03MMC-z"],
     "vendor": "Xiaomi Mi",
     "product": "Temperature and humidity sensor with LCD (LYWSD03MMC)",
     "sleeper": false,

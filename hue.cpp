@@ -21,7 +21,8 @@ code effects[] = {
     { 0x09, QLatin1String("sunrise") },
     { 0x0a, QLatin1String("sparkle") },
     { 0x0b, QLatin1String("opal") },
-    { 0x0c, QLatin1String("glisten") }
+    { 0x0c, QLatin1String("glisten") },
+    { 0x0d, QLatin1String("sunset") }
 };
 
 quint8 effectNameToValue(QString &effectName)
@@ -41,11 +42,13 @@ quint8 effectNameToValue(QString &effectName)
    \param effectBitmap - the bitmap with supported effects (from 0x0011)
    \return QStringList of effect names
  */
-QStringList DeRestPluginPrivate::getHueEffectNames(quint64 effectBitmap)
+QStringList DeRestPluginPrivate::getHueEffectNames(quint64 effectBitmap, bool colorloop)
 {
-    QStringList names = {
-        "none", "colorloop"
-    };
+    QStringList names = { QLatin1String("none") };
+    if (colorloop)
+    {
+        names.append(QLatin1String("colorloop"));
+    }
     for (auto &e: effects) {
         if (effectBitmap & (0x01 << e.value))
         {
@@ -119,12 +122,14 @@ bool DeRestPluginPrivate::addTaskHueEffect(TaskItem &task, QString &effectName)
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        if (effectName == "none") {
-            stream << (quint16) 0x0020; // clear effect
-            stream << (quint8) 0; // off
-        } else {
-            stream << (quint16) 0x0021; // set effect (with on/off)
-            stream << (quint8) 1; // on
+        stream << (quint16) 0x0021; // set effect (with on/off)
+        stream << (quint8) 1; // on
+        if (effectName == "none")
+        {
+            stream << (quint8) 0; // none
+        }
+        else
+        {
             stream << effectNameToValue(effectName);
         }
     }

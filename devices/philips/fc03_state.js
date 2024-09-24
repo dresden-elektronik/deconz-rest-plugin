@@ -63,6 +63,9 @@ if (attrid === 0x0002) {
           case 0x800C:
             R.item('state/effect').val = 'glisten'
             break
+          case 0x800D:
+            R.item('state/effect').val = 'sunset'
+            break
           default:
             R.item('state/effect').val = '0x' + effect.toString(16)
             break
