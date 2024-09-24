@@ -60,6 +60,9 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "state/reachable"
+        },
+        {
           "name": "state/on"
         }
       ]
