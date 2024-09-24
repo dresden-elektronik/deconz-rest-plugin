@@ -556,5 +556,19 @@ bool DEV_InitDeviceBasic(Device *device)
         }
     }
 
+    zclVal.clusterId = 0x0500; // IAS Zone cluster
+    zclVal.attrId = 0x0001; // IAS Zone Type
+    zclVal.data = 0;
+
+    if (DB_LoadZclValue(&zclVal) && zclVal.data != 0)
+    {
+        ResourceItem *item = device->item(RAttrZoneType);
+        if (item && item->toNumber() != zclVal.data)
+        {
+            item->setValue(zclVal.data, ResourceItem::SourceDevice);
+            item->clearNeedPush();
+        }
+    }
+
     return found == poi.size();
 }

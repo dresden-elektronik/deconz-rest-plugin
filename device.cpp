@@ -2157,6 +2157,7 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     addItem(DataTypeString, RAttrDdfPolicy);
     addItem(DataTypeString, RAttrDdfHash);
     addItem(DataTypeUInt32, RAttrOtaVersion);
+    addItem(DataTypeUInt16, RAttrZoneType);
 
     // lazy init since the event handler is connected after the constructor
     QTimer::singleShot(0, this, [this]()
