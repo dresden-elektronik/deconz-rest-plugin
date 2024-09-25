@@ -61,6 +61,9 @@
           "name": "attr/zonetype"
         },
         {
+          "name": "cap/groups/not_supported"
+        },
+        {
           "name": "state/alert",
           "read": {
             "fn": "none"
