@@ -3,7 +3,7 @@
   "manufacturername": "Fireangel",
   "modelid": "Alarm_SD_Device",
   "vendor": "Fire Angel",
-  "product": "Zigbee Module",
+  "product": "Zigbee Radio Module (P-LINE)",
   "matchexpr": "const v = R.item('attr/zonetype').val; (v != 0x0028 && v != 0x002B)",
   "sleeper": false,
   "status": "Gold",

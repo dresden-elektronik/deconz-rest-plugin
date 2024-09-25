@@ -3,7 +3,7 @@
   "manufacturername": "Fireangel",
   "modelid": "Alarm_SD_Device",
   "vendor": "Fire Angel",
-  "product": "Carbon Monoxide Alarm (NMCO-10X-INT)",
+  "product": "Zigbee Radio Module (P-LINE)",
   "matchexpr": "R.item('attr/zonetype').val === 0x002B",
   "sleeper": false,
   "status": "Gold",

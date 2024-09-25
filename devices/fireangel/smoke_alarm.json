@@ -3,7 +3,7 @@
   "manufacturername": "Fireangel",
   "modelid": "Alarm_SD_Device",
   "vendor": "Fire Angel",
-  "product": "Thermoptek Smoke Alarm (ST-630-DET)",
+  "product": "Zigbee Radio Module (P-LINE)",
   "matchexpr": "R.item('attr/zonetype').val === 0x0028",
   "sleeper": false,
   "status": "Gold",
