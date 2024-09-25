@@ -58,9 +58,6 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "attr/zonetype"
-        },
-        {
           "name": "cap/groups/not_supported"
         },
         {
@@ -149,8 +146,15 @@
             "ep": "0x01",
             "cl": "0x0001",
             "at": "0x0020",
-            "eval": "Item.val = Math.round(9.09090909 * (Attr.val - 19))"
-          }
+            "script": "0001_battery_voltage.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0001",
+            "at": "0x0020"
+          },
+          "refresh.interval": 43260
         },
         {
           "name": "config/enrolled"
@@ -181,9 +185,24 @@
           "name": "state/lowbattery"
         },
         {
+          "name": "state/tampered"
+        },
+        {
           "name": "state/test"
         }
       ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": "0x01",
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": "0x01",
+      "cl": "0x0001"
     }
   ]
 }
