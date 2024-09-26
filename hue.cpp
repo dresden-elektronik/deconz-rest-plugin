@@ -372,7 +372,7 @@ bool DeRestPluginPrivate::addTaskHueGradient(TaskItem &task, QVariantMap &gradie
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, QVariantMap &items)
+bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, HueManufacturerSpecificPayloads &payloadItems, QVariantMap &items)
 {
     task.taskType = TaskHueManufacturerSpecific;
     task.req.setClusterId(HUE_EFFECTS_CLUSTER_ID);
@@ -391,7 +391,8 @@ bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, QVarian
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        // FIXME: Build payload
+        // Set payload contents
+        stream << (quint16)payloadItems;
     }
 
     { // ZCL frame
