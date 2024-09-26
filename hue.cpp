@@ -394,9 +394,16 @@ bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, HueManu
         // Set payload contents
         stream << (quint16)payloadItems;
 
+        // !!!: The order the items are processed in is important
+
         if (payloadItems.testFlag(HueManufacturerSpecificPayload::On))
         {
             stream << (quint8)(items["on"].toUInt());
+        }
+
+        if (payloadItems.testFlag(HueManufacturerSpecificPayload::TransitionTime))
+        {
+            stream << (quint16)(items["transitiontime"].toUInt());
         }
     }
 
@@ -422,6 +429,7 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
         bool paramOk = false;
         bool valueOk = false;
         QString param = p.key();
+
         if (param == "on" && taskRef.lightNode->item(RStateOn))
         {
             paramOk = true;
@@ -430,6 +438,20 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
                 valueOk = true;
                 payloadItems.setFlag(HueManufacturerSpecificPayload::On);
                 itemList["on"] = QVariant(map[param].toBool() ? 0x01 : 0x00);
+            }
+        }
+        else if (param == "transitiontime")
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const uint tt = map[param].toUInt(&ok);
+                if (ok && tt <= 0xFFFF)
+                {
+                    valueOk = true;
+                    payloadItems.setFlag(HueManufacturerSpecificPayload::TransitionTime);
+                    itemList["transitiontime"] = QVariant(tt > 0xFFFE ? 0xFFFE : tt);
+                }
             }
         }
 
