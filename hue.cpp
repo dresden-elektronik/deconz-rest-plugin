@@ -393,6 +393,11 @@ bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, HueManu
 
         // Set payload contents
         stream << (quint16)payloadItems;
+
+        if (payloadItems.testFlag(HueManufacturerSpecificPayload::On))
+        {
+            stream << (quint8)(items["on"].toUInt());
+        }
     }
 
     { // ZCL frame
@@ -407,5 +412,36 @@ bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, HueManu
 
 int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
 {
-    return REQ_NOT_HANDLED;
+    bool ok;
+    QVariantMap itemList;
+    QString id = req.path[3];
+    HueManufacturerSpecificPayloads payloadItems(HueManufacturerSpecificPayload::None);
+
+    for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
+    {
+        bool paramOk = false;
+        bool valueOk = false;
+        QString param = p.key();
+        if (param == "on" && taskRef.lightNode->item(RStateOn))
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Bool)
+            {
+                valueOk = true;
+                payloadItems.setFlag(HueManufacturerSpecificPayload::On);
+                itemList["on"] = QVariant(map[param].toBool() ? 0x01 : 0x00);
+            }
+        }
+
+        if (!paramOk)
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, not available").arg(param)));
+        }
+        else if (!valueOk)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state").arg(id), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
+        }
+    }
+
+    return addTaskHueManufacturerSpecific(taskRef, payloadItems, itemList) ? REQ_READY_SEND : REQ_NOT_HANDLED;
 }
