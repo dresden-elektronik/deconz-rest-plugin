@@ -808,7 +808,8 @@ enum TaskType
     TaskTuyaRequest = 41,
     TaskXmasLightStrip = 42,
     TaskSimpleMetering = 43,
-    TaskHueEffect = 44
+    TaskHueEffect = 44,
+    TaskHueManufacturerSpecific = 45
 };
 
 enum XmasLightStripMode
@@ -1436,6 +1437,7 @@ public:
     bool addTaskHueEffect(TaskItem &task, QString &effect);
     bool validateHueGradient(const ApiRequest &req, ApiResponse &rsp, QVariantMap &gradient, quint16 styleBitmap);
     bool addTaskHueGradient(TaskItem &task, QVariantMap &gradient);
+    bool addTaskHueManufacturerSpecific(TaskItem &task, QVariantMap &items);
     int setHueLightState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
 
     // Merry Christmas!

@@ -365,6 +365,45 @@ bool DeRestPluginPrivate::addTaskHueGradient(TaskItem &task, QVariantMap &gradie
     return addTask(task);
 }
 
+/*! Add a Hue Manufacturer Specific '0xfc03' '0x00' task to the queue.
+
+   \param task - the task item
+   \param items - the list of items in the payload
+   \return true - on success
+           false - on error
+ */
+bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, QVariantMap &items)
+{
+    task.taskType = TaskHueManufacturerSpecific;
+    task.req.setClusterId(HUE_EFFECTS_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(0x00);
+    task.zclFrame.setManufacturerCode(VENDOR_PHILIPS);
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                                  deCONZ::ZclFCManufacturerSpecific |
+                                  deCONZ::ZclFCDirectionClientToServer |
+                                  deCONZ::ZclFCDisableDefaultResponse);
+
+    { // Payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        // FIXME: Build payload
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
 int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
 {
     return REQ_NOT_HANDLED;
