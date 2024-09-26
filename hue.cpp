@@ -406,6 +406,11 @@ bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, HueManu
             stream << (quint8)(items["bri"].toUInt());
         }
 
+        if (payloadItems.testFlag(HueManufacturerSpecificPayload::ColorTemperature))
+        {
+            stream << (quint16)(items["ct"].toUInt());
+        }
+
         if (payloadItems.testFlag(HueManufacturerSpecificPayload::TransitionTime))
         {
             stream << (quint16)(items["transitiontime"].toUInt());
@@ -456,6 +461,22 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
                     valueOk = true;
                     payloadItems.setFlag(HueManufacturerSpecificPayload::Brightness);
                     itemList["bri"] = QVariant(bri > 0xFE ? 0xFE : bri);
+                }
+            }
+        }
+        else if (param == "ct"  && taskRef.lightNode->item(RStateCt))
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const quint16 ctMin = taskRef.lightNode->toNumber(RCapColorCtMin);
+                const quint16 ctMax = taskRef.lightNode->toNumber(RCapColorCtMax);
+                const uint ct = map[param].toUInt(&ok);
+                if (ok && ct <= 0xFFFF)
+                {
+                    valueOk = true;
+                    payloadItems.setFlag(HueManufacturerSpecificPayload::ColorTemperature);
+                    itemList["ct"] = QVariant((ctMin < 500 && ct < ctMin) ? ctMin : (ctMax > ctMin && ct > ctMax) ? ctMax : ct);
                 }
             }
         }
