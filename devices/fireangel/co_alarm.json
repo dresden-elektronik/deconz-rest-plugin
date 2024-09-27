@@ -138,9 +138,6 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "attr/zonetype"
-        },
-        {
           "name": "config/battery",
           "parse": {
             "ep": "0x01",
