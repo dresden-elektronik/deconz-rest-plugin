@@ -41,6 +41,16 @@ quint8 effectNameToValue(QString &effectName)
     return 0xFF;
 }
 
+/*! Test if a LightNode is a Philips Hue light that supports effects.
+    \param lightNode - the light node to test
+ */
+bool DeRestPluginPrivate::isHueEffectLight(const LightNode *lightNode)
+{
+    return lightNode != nullptr &&
+           lightNode->manufacturerCode() == VENDOR_PHILIPS &&
+           lightNode->item(RCapColorEffects);
+}
+
 /*! Return a list of effect names corresponding to the bitmap of supported effects.
 
    \param effectBitmap - the bitmap with supported effects (from 0x0011)
