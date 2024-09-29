@@ -9,6 +9,25 @@
 
 #define HUE_EFFECTS_CLUSTER_ID 0xFC03
 
+// Constants for 'timed_effect duration'
+#define RESOLUTION_01s_BASE 0xFC
+#define RESOLUTION_05s_BASE 0xCC
+#define RESOLUTION_15s_BASE 0xA5
+#define RESOLUTION_01m_BASE 0x79
+#define RESOLUTION_05m_BASE 0x4A
+
+#define RESOLUTION_01s (1 * 10)         // 01s.
+#define RESOLUTION_05s (5 * 10)         // 05s.
+#define RESOLUTION_15s (15 * 10)        // 15s.
+#define RESOLUTION_01m (1 * 60 * 10)    // 01min.
+#define RESOLUTION_05m (5 * 60 * 100)   // 05min.
+
+#define RESOLUTION_01s_LIMIT (60 * 10)          // 01min.
+#define RESOLUTION_05s_LIMIT (5 * 60 * 10)      // 05min.
+#define RESOLUTION_15s_LIMIT (15 * 60 * 10)     // 15min.
+#define RESOLUTION_01m_LIMIT (60 * 60 * 10)     // 60min.
+#define RESOLUTION_05m_LIMIT (6 * 60 * 60 * 10) // 06hrs.
+
 // List of 'state' keys that can be mapped into the '0xfc03' cluster's '0x00' command.
 QList<QString> supportedStateKeys = {"on", "bri", "ct", "xy", "transitiontime", "effect", "effect_duration"};
 
@@ -432,6 +451,11 @@ bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, HueManu
         {
             stream << (quint8)(items["effect"].toUInt());
         }
+
+        if (payloadItems.testFlag(HueManufacturerSpecificPayload::EffectDuration))
+        {
+            stream << (quint8)(items["effect_duration"].toUInt());
+        }
     }
 
     { // ZCL frame
@@ -556,6 +580,36 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
                     valueOk = true;
                     payloadItems.setFlag(HueManufacturerSpecificPayload::Effect);
                     itemList["effect"] = QVariant(effectNameToValue(e));
+                }
+            }
+        }
+        else if (param == "effect_duration")
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const uint ed = map[param].toUInt(&ok);
+                if (ok && ed <= 216000)
+                {
+                    valueOk = true;
+
+                    uint resolutionBase = (ed == 0) ? 0 :
+                                        (ed < RESOLUTION_01s_LIMIT) ? RESOLUTION_01s_BASE :
+                                        (ed < RESOLUTION_05s_LIMIT) ? RESOLUTION_05s_BASE :
+                                        (ed < RESOLUTION_15s_LIMIT) ? RESOLUTION_15s_BASE :
+                                        (ed < RESOLUTION_01m_LIMIT) ? RESOLUTION_01m_BASE :
+                                        (ed < RESOLUTION_05m_LIMIT) ? RESOLUTION_05m_BASE : 0;
+
+                    uint resolution = (ed == 0) ? 1 :
+                                    (ed < RESOLUTION_01s_LIMIT) ? RESOLUTION_01s :
+                                    (ed < RESOLUTION_05s_LIMIT) ? RESOLUTION_05s :
+                                    (ed < RESOLUTION_15s_LIMIT) ? RESOLUTION_15s :
+                                    (ed < RESOLUTION_01m_LIMIT) ? RESOLUTION_01m :
+                                    (ed < RESOLUTION_05m_LIMIT) ? RESOLUTION_05m : 1;
+
+                    payloadItems.setFlag(HueManufacturerSpecificPayload::EffectDuration);
+                    itemList["effect_duration"] = QVariant(resolutionBase - (ed / resolution));
+
                 }
             }
         }
