@@ -110,7 +110,7 @@
             },
             {
                 "name":"config/battery",
-                "refresh.interval": 7265,
+                "refresh.interval": 86400,
                 "read":{
                     "at":"0x0021",
                     "cl":"0x0001",
