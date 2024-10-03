@@ -5160,18 +5160,21 @@ These devices can operate on either battery or mains power, and can have a wide 
       <server>
         <command id="0x00" dir="recv" name="Set Effect" vendor="0x100b" required="m">
           <payload>
-            <attribute id="0x0000" type="u16" name="Command" showas="hex" default="0x0021" required="o"></attribute>
-            <attribute id="0x0001" type="bool" name="Enable" required="m"></attribute>
-            <attribute id="0x0002" type="enum8" name="Effect" required="m">
+            <attribute id="0x0000" type="u16" name="Command" showas="hex" default="0x0020" required="o"></attribute>
+            <attribute id="0x0001" type="enum8" name="Effect" required="m">
               <value name="None" value="0x00"/>
               <value name="Candle" value="0x01"/>
-              <value name="Fireplace" value="0x02"/>
+              <value name="Fire" value="0x02"/>
               <value name="Prism" value="0x03"/>
               <value name="Sunrise" value="0x09"/>
               <value name="Sparkle" value="0x0a"/>
               <value name="Opal" value="0x0b"/>
               <value name="Glisten" value="0x0c"/>
               <value name="Sunset" value="0x0d"/>
+              <value name="Underwater" value="0x0e"/>
+              <value name="Cosmos" value="0x0f"/>
+              <value name="Sunbeam" value="0x10"/>
+              <value name="Enchant" value="0x11"/>
             </attribute>
           </payload>
         </command>
@@ -5187,13 +5190,17 @@ These devices can operate on either battery or mains power, and can have a wide 
         </attribute>
         <attribute id="0x0011" name="Effects" type="bmp64" mfcode="0x100b" access="r" required="o">
           <value name="Candle" value="0x01"/>
-          <value name="Fireplace" value="0x02"/>
+          <value name="Fire" value="0x02"/>
           <value name="Prism" value="0x03"/>
           <value name="Sunrise" value="0x09"/>
           <value name="Sparkle" value="0x0a"/>
           <value name="Opal" value="0x0b"/>
           <value name="Glisten" value="0x0c"/>
           <value name="Sunset" value="0x0d"/>
+          <value name="Underwater" value="0x0e"/>
+          <value name="Cosmos" value="0x0f"/>
+          <value name="Sunbeam" value="0x10"/>
+          <value name="Enchant" value="0x11"/>
         </attribute>
         <attribute id="0x0012" name="Gradient Unknown 12" type="bmp32" mfcode="0x100b" access="r" required="o">
           <value name="Unknown 00" value="0x00"/>
