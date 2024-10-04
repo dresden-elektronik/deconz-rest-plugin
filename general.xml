@@ -5130,6 +5130,8 @@ These devices can operate on either battery or mains power, and can have a wide 
           </payload>
         </command>
       </server>
+      <client>
+      </client>
     </cluster>
 
     <cluster id="0xfc01" name="Hue Entertainment" mfcode="0x100b">
@@ -5221,6 +5223,24 @@ These devices can operate on either battery or mains power, and can have a wide 
         <attribute id="0x0035" name="Gradient Unknown 35" type="u8" mfcode="0x100b" access="r" required="o"></attribute>
         <attribute id="0x0036" name="Gradient Max Segments" type="u8" mfcode="0x100b" access="r" required="o"></attribute>
       </server>
+      <client>
+      </client>
+    </cluster>
+
+    <cluster id="0xfc04" name="Hue Unknown" mfcode="0x100b">
+      <description>Hue-specific cluster for Hue smart plugs.</description>
+      <server>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
+    <cluster id="0xfc06" name="Hue Unknown" mfcode="0x100b">
+      <description>Hue-specific cluster for Hue smart plugs.</description>
+      <server>
+      </server>
+      <client>
+      </client>
     </cluster>
 
     <!-- Hue for Lutron Aurora -->
