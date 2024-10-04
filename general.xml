@@ -5158,7 +5158,7 @@ These devices can operate on either battery or mains power, and can have a wide 
     </cluster>
 
     <cluster id="0xfc03" name="Hue Effects" mfcode="0x100b">
-      <description>Hue-specific cluster for Hue white and color ambiance lights.</description>
+      <description>Hue-specific cluster for Hue lights.</description>
       <server>
         <command id="0x00" dir="recv" name="Set Effect" vendor="0x100b" required="m">
           <payload>
@@ -5228,7 +5228,7 @@ These devices can operate on either battery or mains power, and can have a wide 
     </cluster>
 
     <cluster id="0xfc04" name="Hue Unknown" mfcode="0x100b">
-      <description>Hue-specific cluster for Hue smart plugs.</description>
+      <description>Hue-specific cluster.</description>
       <server>
       </server>
       <client>
@@ -5236,7 +5236,7 @@ These devices can operate on either battery or mains power, and can have a wide 
     </cluster>
 
     <cluster id="0xfc06" name="Hue Unknown" mfcode="0x100b">
-      <description>Hue-specific cluster for Hue smart plugs.</description>
+      <description>Hue-specific cluster.</description>
       <server>
       </server>
       <client>
