@@ -839,6 +839,11 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
+        // if there is a IAS Zone Cluster add the RAttrZoneType
+        if (DEV_GetSimpleDescriptorForServerCluster(device, 0x0500_clid))
+        {
+            device->addItem(DataTypeUInt16, RAttrZoneType);
+        }
         DEV_EnqueueEvent(device, REventDDFInitRequest);
     }
     else if (event.what() == REventDDFInitResponse)
@@ -2157,7 +2162,6 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     addItem(DataTypeString, RAttrDdfPolicy);
     addItem(DataTypeString, RAttrDdfHash);
     addItem(DataTypeUInt32, RAttrOtaVersion);
-    addItem(DataTypeUInt16, RAttrZoneType);
 
     // lazy init since the event handler is connected after the constructor
     QTimer::singleShot(0, this, [this]()
