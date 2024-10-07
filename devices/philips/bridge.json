@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "ab5e2da9-36cf-43ea-8095-1f17e81a2d4d",
   "manufacturername": "$MF_PHILIPS",
   "modelid": "IPC002",
   "vendor": "Philips",
