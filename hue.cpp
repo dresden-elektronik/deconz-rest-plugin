@@ -16,13 +16,17 @@ struct code {
 
 code effects[] = {
     { 0x01, QLatin1String("candle") },
-    { 0x02, QLatin1String("fireplace") },
+    { 0x02, QLatin1String("fire") },
     { 0x03, QLatin1String("prism") },
     { 0x09, QLatin1String("sunrise") },
     { 0x0a, QLatin1String("sparkle") },
     { 0x0b, QLatin1String("opal") },
     { 0x0c, QLatin1String("glisten") },
-    { 0x0d, QLatin1String("sunset") }
+    { 0x0d, QLatin1String("sunset") },
+    { 0x0e, QLatin1String("underwater") },
+    { 0x0f, QLatin1String("cosmos") },
+    { 0x10, QLatin1String("sunbeam") },
+    { 0x11, QLatin1String("enchant") }
 };
 
 quint8 effectNameToValue(QString &effectName)
@@ -122,8 +126,9 @@ bool DeRestPluginPrivate::addTaskHueEffect(TaskItem &task, QString &effectName)
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        stream << (quint16) 0x0021; // set effect (with on/off)
-        stream << (quint8) 1; // on
+        stream << (quint16) 0x0020; // set effect
+        // stream << (quint16) 0x0021; // set effect (with on/off)
+        // stream << (quint8) 1; // on
         if (effectName == "none")
         {
             stream << (quint8) 0; // none
@@ -304,7 +309,7 @@ bool DeRestPluginPrivate::addTaskHueGradient(TaskItem &task, QVariantMap &gradie
         stream.setByteOrder(QDataStream::LittleEndian);
 
         stream << (quint16) 0x0150; // set gradient
-        stream << (quint16) 0x0004; // unknown
+        stream << (quint16) 0x0004; // transitiontime
 
         const quint8 nPoints = points.length();
         stream << (quint8) (1 + 3 * (nPoints + 1));
