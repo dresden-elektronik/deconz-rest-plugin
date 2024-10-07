@@ -1,0 +1,230 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "$MF_IKEA",
+  "modelid": "INSPELNING Smart plug",
+  "vendor": "IKEA",
+  "product": "INSPELNING smart plug",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SMART_PLUG",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0006",
+            "ep": 0,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0006",
+            "ep": 0,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_CONSUMPTION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0702"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/consumption",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0702",
+            "ep": 0,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0702",
+            "ep": 0,
+            "eval": "Item.val = Attr.val / 1000"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0b04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/current",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x0508",
+            "cl": "0x0b04",
+            "ep": 0,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0508",
+            "cl": "0x0b04",
+            "ep": 0,
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x050b",
+            "cl": "0x0b04",
+            "ep": 0,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x050b",
+            "cl": "0x0b04",
+            "ep": 0,
+            "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val / 10; }"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/voltage",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x0505",
+            "cl": "0x0b04",
+            "ep": 0,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0505",
+            "cl": "0x0b04",
+            "ep": 0,
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
+          },
+          "default": 0
+        }
+      ]
+    }
+  ]
+}
