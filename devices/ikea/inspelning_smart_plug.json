@@ -44,7 +44,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 300,
+          "refresh.interval": 900,
           "read": {
             "at": "0x0000",
             "cl": "0x0006",
@@ -108,7 +108,7 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300,
+          "refresh.interval": 10800,
           "read": {
             "at": "0x0000",
             "cl": "0x0702",
@@ -172,7 +172,7 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 300,
+          "refresh.interval": 600,
           "read": {
             "at": "0x0508",
             "cl": "0x0b04",
@@ -192,7 +192,7 @@
         },
         {
           "name": "state/power",
-          "refresh.interval": 300,
+          "refresh.interval": 600,
           "read": {
             "at": "0x050b",
             "cl": "0x0b04",
@@ -209,7 +209,7 @@
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 300,
+          "refresh.interval": 600,
           "read": {
             "at": "0x0505",
             "cl": "0x0b04",
@@ -223,6 +223,63 @@
             "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
           },
           "default": 0
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 600
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0702",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x25",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0B04",
+      "report": [
+        {
+          "at": "0x0505",
+          "dt": "0x21",
+          "min": 10,
+          "max": 300,
+          "change": "0x00000005"
+        },
+        {
+          "at": "0x0508",
+          "dt": "0x21",
+          "min": 10,
+          "max": 300,
+          "change": "0x00000064"
+        },
+        {
+          "at": "0x050B",
+          "dt": "0x29",
+          "min": 10,
+          "max": 300,
+          "change": "0x0000000A"
         }
       ]
     }
