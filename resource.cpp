@@ -84,6 +84,7 @@ const char *RAttrSwVersion = "attr/swversion";
 const char *RAttrSwVersionBis = "attr/swversion_bis";
 const char *RAttrType = "attr/type";
 const char *RAttrUniqueId = "attr/uniqueid";
+const char *RAttrZoneType = "attr/zonetype";
 
 const char *RActionScene = "action/scene";
 
@@ -404,6 +405,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrSwVersionBis));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrUniqueId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RAttrZoneType));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RActionScene));
 

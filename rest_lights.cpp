@@ -287,6 +287,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RAttrSwconfigid) {attr["swconfigid"] = item->toString(); }
         else if (rid.suffix == RAttrType) { attr["type"] = item->toString(); }
         else if (rid.suffix == RAttrUniqueId) { attr["uniqueid"] = item->toString(); }
+        else if (rid.suffix == RAttrZoneType) { attr["zonetype"] = item->toNumber(); }
         else if (rid.suffix == RCapAlertTriggerEffect) { capabilitiesAlerts = &RStateAlertValuesTriggerEffect; }
         else if (rid.suffix == RCapBriMinDimLevel) { capabilitiesBri["min_dim_level"] = round(item->toNumber() / 10.0) / 100.0; }
         else if (rid.suffix == RCapColorCapabilities) { itemColorCapabilties = item; }
@@ -3975,6 +3976,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     else if (rid.suffix == RAttrSwVersion) { attr["swversion"] = item->toString(); }
                     else if (rid.suffix == RAttrType) { attr["type"] = item->toString(); }
                     else if (rid.suffix == RAttrUniqueId) { attr["uniqueid"] = item->toString(); }
+                    else if (rid.suffix == RAttrZoneType) { attr["zonetype"] = item->toNumber(); }
                     else if (rid.suffix == RCapAlertTriggerEffect) { capabilitiesAlerts = &RStateAlertValuesTriggerEffect; }
                     else if (rid.suffix == RCapBriMinDimLevel) { capabilitiesBri["min_dim_level"] = round(item->toNumber() / 10.0) / 100.0; }
                     else if (rid.suffix == RCapColorCtComputesXy) { capabilitiesColorCt["computes_xy"] = item->toBool(); }
