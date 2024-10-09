@@ -112,6 +112,7 @@ extern const char *RAttrSwVersion;
 extern const char *RAttrSwVersionBis;
 extern const char *RAttrType;
 extern const char *RAttrUniqueId;
+extern const char *RAttrZoneType;
 
 extern const char *RActionScene;
 

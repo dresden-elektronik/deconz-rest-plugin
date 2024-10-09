@@ -1169,6 +1169,19 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                             DB_StoreZclValue(&dbVal);
                         }
                     }
+                    else if (r->prefix() == RDevices && ind.clusterId() == IAS_ZONE_CLUSTER_ID)
+                    {
+                        if (itemSuffix == RAttrZoneType)
+                        {
+                            DB_ZclValue dbVal;
+                            dbVal.deviceId = device->deviceId();
+                            dbVal.endpoint = ind.srcEndpoint();
+                            dbVal.clusterId = ind.clusterId();
+                            dbVal.attrId = 0x0001;
+                            dbVal.data = i->toNumber();
+                            DB_StoreZclValue(&dbVal);
+                        }
+                    }
                 }
 
                 if (!eventLastUpdatedEmitted && i->descriptor().suffix[0] == 's') // state/*

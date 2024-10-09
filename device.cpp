@@ -839,6 +839,11 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
 
     if (event.what() == REventStateEnter)
     {
+        // if there is a IAS Zone Cluster add the RAttrZoneType
+        if (DEV_GetSimpleDescriptorForServerCluster(device, 0x0500_clid))
+        {
+            device->addItem(DataTypeUInt16, RAttrZoneType);
+        }
         DEV_EnqueueEvent(device, REventDDFInitRequest);
     }
     else if (event.what() == REventDDFInitResponse)
