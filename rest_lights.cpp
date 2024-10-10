@@ -232,6 +232,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         return false;
     }
 
+    QVariantMap attrOtau;
+
     QVariantMap capabilities;
     QVariantMap capabilitiesBri;
     QVariantMap capabilitiesColor;
@@ -279,6 +281,9 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RAttrLastSeen) { attr["lastseen"] = item->toString(); }
         else if (rid.suffix == RAttrLevelMin) { attr["levelmin"] = item->toNumber(); }
         else if (rid.suffix == RAttrName) { attr["name"] = item->toString(); }
+        else if (rid.suffix == RAttrOtauImageType) { attrOtau["imagetype"] = item->toNumber(); }
+        else if (rid.suffix == RAttrOtauManufacturerCode) { attrOtau["manufacturercode"] = item->toNumber(); }
+        else if (rid.suffix == RAttrOtauVersion) { attrOtau["version"] = item->toNumber(); }
         else if (rid.suffix == RAttrPowerOnLevel) { attr["poweronlevel"] = item->toNumber(); }
         else if (rid.suffix == RAttrPowerOnCt) { attr["poweronct"] = item->toNumber(); }
         else if (rid.suffix == RAttrPowerup) { attr["powerup"] = item->toNumber(); }
@@ -534,6 +539,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     if (!configColor.isEmpty()) config["color"] = configColor;
     if (!configOn.isEmpty()) config["on"] = configOn;
     if (!config.isEmpty()) attr["config"] = config;
+    if (!attrOtau.isEmpty()) attr["otau"] = attrOtau;
 
     return true;
 }
@@ -3896,6 +3902,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             bool pushState = false;
 
             QVariantMap attr;
+            QVariantMap attrOtau;
 
             QVariantMap capabilities;
             QVariantMap capabilitiesBri;
@@ -3967,6 +3974,9 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     else if (rid.suffix == RAttrManufacturerName) { attr["manufacturername"] = item->toString(); }
                     else if (rid.suffix == RAttrModelId) { attr["modelid"] = item->toString(); }
                     else if (rid.suffix == RAttrName) { attr["name"] = item->toString(); }
+                    else if (rid.suffix == RAttrOtauImageType) { otau["imagetype"] = item->toNumber(); }
+                    else if (rid.suffix == RAttrOtauManufacturerCode) { otau["manufacturercode"] = item->toNumber(); }
+                    else if (rid.suffix == RAttrOtauVersion) { otau["version"] = item->toNumber(); }
                     else if (rid.suffix == RAttrPowerOnLevel) { attr["poweronlevel"] = item->toNumber(); }
                     else if (rid.suffix == RAttrPowerOnCt) { attr["poweronct"] = item->toNumber(); }
                     else if (rid.suffix == RAttrPowerup) { attr["powerup"] = item->toNumber(); }
@@ -4180,6 +4190,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                 }
             }
 
+            if (!attrOtau.isEmpty()) attr["otau"] = attrOtau;
             if (pushAttr)
             {
                 QVariantMap map;

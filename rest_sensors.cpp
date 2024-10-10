@@ -2665,6 +2665,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         return false;
     }
 
+    QVariantMap attrOtau;
     QVariantMap state;
     const ResourceItem *iox = nullptr;
     const ResourceItem *ioy = nullptr;
@@ -2799,6 +2800,9 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         }
         else if (rid.suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
         else if (rid.suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
+        else if (rid.suffix == RAttrOtauImageType) { attrOtau["imagetype"] = item->toNumber(); }
+        else if (rid.suffix == RAttrOtauManufacturerCode) { attrOtau["manufacturercode"] = item->toNumber(); }
+        else if (rid.suffix == RAttrOtauVersion) { attrOtau["version"] = item->toNumber(); }
         else if (rid.suffix == RAttrProductId) { map["productid"] = item->toString(); }
         else if (rid.suffix == RAttrProductName) { map["productname"] = item->toString(); }
         else if (rid.suffix == RAttrZoneType) { map["zonetype"] = item->toNumber(); }
@@ -2841,6 +2845,10 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         if (!sensor->manufacturer().isEmpty())
         {
             map[QLatin1String("manufacturername")] = sensor->manufacturer();
+        }
+        if (!attrOtau.isEmpty())
+        {
+            map[QLatin1String("otau")] = attrOtau;
         }
         if (!sensor->swVersion().isEmpty() && !sensor->type().startsWith(QLatin1String("ZGP")))
         {
@@ -3253,6 +3261,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             map[QLatin1String("uniqueid")] = sensor->uniqueId();
 
             QVariantMap attr;
+            QVariantMap attrOtau;
 
             for (int i = 0; i < sensor->itemCount(); i++)
             {
@@ -3265,12 +3274,24 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
                     if (gwWebSocketNotifyAll || item->needPushChange())
                     {
-                        attr[key] = item->toVariant();
+                        if (*strncmp(key, "otau/", 5 == 0)
+                        {
+                            const char *subkey = key + 5;
+                            attrOtau[subkey] = item->toVariant();
+                        }
+                        else
+                        {
+                            attr[key] = item->toVariant();
+                        }
                         item->clearNeedPush();
                     }
                 }
             }
 
+            if (!attrOtau.isEmpty)
+            {
+                attr["otau"] = attrOtau;
+            }
             if (!attr.isEmpty())
             {
                 map["attr"] = attr;
