@@ -106,6 +106,15 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/otau/imagetype"
+        },
+        {
+          "name": "attr/otau/manufacturercode"
+        },
+        {
+          "name": "attr/otau/version"
+        },
+        {
           "name": "attr/productid"
         },
         {
