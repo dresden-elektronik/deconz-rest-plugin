@@ -5,7 +5,7 @@
   "access": "R",
   "public": true,
   "implicit": false,
-  "description": "OTA manufacturer code.",
+  "description": "Firmware manufacturer code.",
   "parse": {
     "fn": "zcl:cmd",
     "ep": 255,
