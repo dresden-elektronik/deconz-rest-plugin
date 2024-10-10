@@ -3274,7 +3274,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
                     if (gwWebSocketNotifyAll || item->needPushChange())
                     {
-                        if (*strncmp(key, "otau/", 5 == 0)
+                        if (strncmp(key, "otau/", 5) == 0)
                         {
                             const char *subkey = key + 5;
                             attrOtau[subkey] = item->toVariant();
@@ -3288,7 +3288,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 }
             }
 
-            if (!attrOtau.isEmpty)
+            if (!attrOtau.isEmpty())
             {
                 attr["otau"] = attrOtau;
             }
