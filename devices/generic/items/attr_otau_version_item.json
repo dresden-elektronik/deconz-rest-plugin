@@ -5,7 +5,7 @@
   "access": "R",
   "public": true,
   "implicit": false,
-  "description": "OTAU version.",
+  "description": "Firmware (file) version.",
   "parse": {
     "fn": "zcl:cmd",
     "ep": 255,
