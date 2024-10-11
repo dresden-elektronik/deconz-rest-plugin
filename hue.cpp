@@ -411,6 +411,11 @@ bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, HueManu
             stream << (quint16)(items["ct"].toUInt());
         }
 
+        if (payloadItems.testFlag(HueManufacturerSpecificPayload::Color))
+        {
+            stream << (quint32)(items["xy"].toUInt());
+        }
+
         if (payloadItems.testFlag(HueManufacturerSpecificPayload::TransitionTime))
         {
             stream << (quint16)(items["transitiontime"].toUInt());
@@ -477,6 +482,39 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
                     valueOk = true;
                     payloadItems.setFlag(HueManufacturerSpecificPayload::ColorTemperature);
                     itemList["ct"] = QVariant((ctMin < 500 && ct < ctMin) ? ctMin : (ctMax > ctMin && ct > ctMax) ? ctMax : ct);
+                }
+            }
+        }
+        else if (param == "xy" && taskRef.lightNode->item(RStateX) && taskRef.lightNode->item(RStateY))
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::List)
+            {
+                QVariantList xy = map["xy"].toList();
+                if (xy[0].type() == QVariant::Double && xy[1].type() == QVariant::Double)
+                {
+                    const double x = xy[0].toDouble(&ok);
+                    const double y = ok ? xy[1].toDouble(&ok) : 0;
+                    if (ok && x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0)
+                    {
+                        valueOk = true;
+                        quint16 colorX = static_cast<quint16>((x > 0.9961 ? 0.9961 : x) * 65535.0);
+                        quint16 colorY = static_cast<quint16>((y > 0.9961 ? 0.9961 : y) * 65535.0);
+
+                        if (colorX > 65279) { colorX = 65279; }
+                        else if (colorX == 0) { colorX = 1; }
+
+                        if (colorY > 65279) { colorY = 65279; }
+                        else if (colorY == 0) { colorY = 1; }
+
+                        payloadItems.setFlag(HueManufacturerSpecificPayload::Color);
+                        itemList["xy"] = QVariant((colorY << 16) + colorX);
+                    }
+                    else
+                    {
+                        valueOk = true;
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/xy").arg(id), QString("invalid value, [%1,%2], for parameter, xy").arg(xy[0].toString()).arg(xy[1].toString())));
+                    }
                 }
             }
         }
