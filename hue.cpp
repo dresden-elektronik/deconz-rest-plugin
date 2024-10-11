@@ -476,6 +476,7 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
     HueManufacturerSpecificPayloads payloadItems(HueManufacturerSpecificPayload::None);
 
     QMap<QString, QVariant> rspItemStates;
+    QMap<const char *, QVariant> stateValues;
 
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
     {
@@ -494,6 +495,8 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
 
                 itemList["on"] = QVariant(targetOn ? 0x01 : 0x00);
                 rspItemStates[param] = targetOn;
+
+                stateValues[RStateOn] = QVariant(targetOn);
             }
         }
         else if (param == "bri" && taskRef.lightNode->item(RStateBri))
@@ -510,6 +513,8 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
 
                     itemList["bri"] = QVariant(targetBri);
                     rspItemStates[param] = targetBri;
+
+                    stateValues[RStateBri] = QVariant(targetBri);
                 }
             }
         }
@@ -529,6 +534,9 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
 
                     itemList["ct"] = QVariant(targetCt);
                     rspItemStates[param] = targetCt;
+
+                    stateValues[RStateCt] = QVariant(targetCt);
+                    stateValues[RStateColorMode] = QVariant(QString("ct"));
                 }
             }
         }
@@ -561,6 +569,10 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
                         xy.append(colorX);
                         xy.append(colorY);
                         rspItemStates[param] = xy;
+
+                        stateValues[RStateX] = QVariant(colorX);
+                        stateValues[RStateY] = QVariant(colorY);
+                        stateValues[RStateColorMode] = QVariant(QString("xy"));
                     }
                     else
                     {
@@ -601,6 +613,9 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
 
                     itemList["effect"] = QVariant(effectNameToValue(e));
                     rspItemStates[param] = e;
+
+                    stateValues[RStateEffect] = QVariant(e);
+                    stateValues[RStateColorMode] = QVariant(QString("effect"));
                 }
             }
         }
@@ -660,6 +675,23 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
         }
+
+        for (QMap<const char *, QVariant>::const_iterator v = stateValues.begin(); v != stateValues.end(); v++)
+        {
+            const char *resource = v.key();
+            QVariant value = stateValues[resource];
+
+            if (value.userType() == QMetaType::QString)
+            {
+                taskRef.lightNode->setValue(resource, value.toString());
+            }
+            else if (value.canConvert<qint64>()) // Treat as qint64
+            {
+                taskRef.lightNode->setValue(resource, value.value<qint64>());
+            }
+        }
+
+        rsp.etag = taskRef.lightNode->etag;
     }
 
     return REQ_READY_SEND;
