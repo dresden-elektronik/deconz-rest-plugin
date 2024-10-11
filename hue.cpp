@@ -475,6 +475,8 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
     QString id = req.path[3];
     HueManufacturerSpecificPayloads payloadItems(HueManufacturerSpecificPayload::None);
 
+    QMap<QString, QVariant> rspItemStates;
+
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
     {
         bool paramOk = false;
@@ -488,7 +490,10 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
             {
                 valueOk = true;
                 payloadItems.setFlag(HueManufacturerSpecificPayload::On);
-                itemList["on"] = QVariant(map[param].toBool() ? 0x01 : 0x00);
+                bool targetOn = map[param].toBool();
+
+                itemList["on"] = QVariant(targetOn ? 0x01 : 0x00);
+                rspItemStates[param] = targetOn;
             }
         }
         else if (param == "bri" && taskRef.lightNode->item(RStateBri))
@@ -501,7 +506,10 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
                 {
                     valueOk = true;
                     payloadItems.setFlag(HueManufacturerSpecificPayload::Brightness);
-                    itemList["bri"] = QVariant(bri > 0xFE ? 0xFE : bri);
+                    quint8 targetBri = bri > 0xFE ? 0xFE : bri;
+
+                    itemList["bri"] = QVariant(targetBri);
+                    rspItemStates[param] = targetBri;
                 }
             }
         }
@@ -517,7 +525,10 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
                 {
                     valueOk = true;
                     payloadItems.setFlag(HueManufacturerSpecificPayload::ColorTemperature);
-                    itemList["ct"] = QVariant((ctMin < 500 && ct < ctMin) ? ctMin : (ctMax > ctMin && ct > ctMax) ? ctMax : ct);
+                    quint16 targetCt = (ctMin < 500 && ct < ctMin) ? ctMin : (ctMax > ctMin && ct > ctMax) ? ctMax : ct;
+
+                    itemList["ct"] = QVariant(targetCt);
+                    rspItemStates[param] = targetCt;
                 }
             }
         }
@@ -545,6 +556,11 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
 
                         payloadItems.setFlag(HueManufacturerSpecificPayload::Color);
                         itemList["xy"] = QVariant((colorY << 16) + colorX);
+
+                        QVariantList xy;
+                        xy.append(colorX);
+                        xy.append(colorY);
+                        rspItemStates[param] = xy;
                     }
                     else
                     {
@@ -564,7 +580,10 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
                 {
                     valueOk = true;
                     payloadItems.setFlag(HueManufacturerSpecificPayload::TransitionTime);
-                    itemList["transitiontime"] = QVariant(tt > 0xFFFE ? 0xFFFE : tt);
+                    quint16 transitionTime = tt > 0xFFFE ? 0xFFFE : tt;
+
+                    itemList["transitiontime"] = QVariant(transitionTime);
+                    rspItemStates[param] = transitionTime;
                 }
             }
         }
@@ -579,7 +598,9 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
                 {
                     valueOk = true;
                     payloadItems.setFlag(HueManufacturerSpecificPayload::Effect);
+
                     itemList["effect"] = QVariant(effectNameToValue(e));
+                    rspItemStates[param] = e;
                 }
             }
         }
@@ -608,8 +629,10 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
                                     (ed < RESOLUTION_05m_LIMIT) ? RESOLUTION_05m : 1;
 
                     payloadItems.setFlag(HueManufacturerSpecificPayload::EffectDuration);
-                    itemList["effect_duration"] = QVariant(resolutionBase - (ed / resolution));
+                    quint8 effectDuration = resolutionBase - (ed / resolution);
 
+                    itemList["effect_duration"] = QVariant(effectDuration);
+                    rspItemStates[param] = effectDuration;
                 }
             }
         }
@@ -624,5 +647,20 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
         }
     }
 
-    return addTaskHueManufacturerSpecific(taskRef, payloadItems, itemList) ? REQ_READY_SEND : REQ_NOT_HANDLED;
+    ok = addTaskHueManufacturerSpecific(taskRef, payloadItems, itemList);
+
+    if (ok)
+    {
+        for (QMap<QString, QVariant>::const_iterator s = rspItemStates.begin(); s != rspItemStates.end(); s++)
+        {
+            QString param = s.key();
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = rspItemStates[param];
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+        }
+    }
+
+    return REQ_READY_SEND;
 }
