@@ -18,6 +18,7 @@ struct code {
 };
 
 code effects[] = {
+    { 0x00, QLatin1String("none") },
     { 0x01, QLatin1String("candle") },
     { 0x02, QLatin1String("fire") },
     { 0x03, QLatin1String("prism") },
@@ -62,6 +63,12 @@ bool DeRestPluginPrivate::isMappableToManufacturerSpecific(const QVariantMap &ma
     const QList<QString> keyList = map.keys();
     for (const QString &key : keyList)
     {
+        // Ensure 'effect' is not 'colorloop' - that's handled through the ZCL
+        if ((key == "effect") && (map[key].toString() == "colorloop"))
+        {
+            return false;
+        }
+
         if (!supportedStateKeys.contains(key))
         {
             return false;
@@ -420,6 +427,11 @@ bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, HueManu
         {
             stream << (quint16)(items["transitiontime"].toUInt());
         }
+
+        if (payloadItems.testFlag(HueManufacturerSpecificPayload::Effect))
+        {
+            stream << (quint8)(items["effect"].toUInt());
+        }
     }
 
     { // ZCL frame
@@ -529,6 +541,21 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
                     valueOk = true;
                     payloadItems.setFlag(HueManufacturerSpecificPayload::TransitionTime);
                     itemList["transitiontime"] = QVariant(tt > 0xFFFE ? 0xFFFE : tt);
+                }
+            }
+        }
+        else if (param == "effect" && taskRef.lightNode->item(RStateEffect))
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::String)
+            {
+                QString e = map[param].toString();
+                QStringList effectList = getHueEffectNames(taskRef.lightNode->item(RCapColorEffects)->toNumber(), false);
+                if (effectList.indexOf(e) >= 0)
+                {
+                    valueOk = true;
+                    payloadItems.setFlag(HueManufacturerSpecificPayload::Effect);
+                    itemList["effect"] = QVariant(effectNameToValue(e));
                 }
             }
         }
