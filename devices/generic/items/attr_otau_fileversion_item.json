@@ -1,11 +1,11 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "attr/otau/version",
+  "id": "attr/otau/fileversion",
   "datatype": "UInt32",
   "access": "R",
   "public": true,
   "implicit": false,
-  "description": "Firmware (file) version.",
+  "description": "Firmware file version.",
   "parse": {
     "fn": "zcl:cmd",
     "ep": 255,
