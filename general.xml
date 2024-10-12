@@ -2823,6 +2823,37 @@ Note: It does not clear or delete previous weekly schedule programming configura
         </command>
         <command id="0x03" dir="recv" name="Clear Weekly Schedule" required="o"></command>
         <command id="0x04" dir="recv" name="Get Relay Status Log" required="o"></command>
+        <!-- Danfoss manufacturer specific -->
+        <command id="0x40" dir="recv" name="Set Heating Setpoint" required="o" mfcode="0x1246">
+          <description>Set immediately:
+The actuator will make a large movement to minimize reaction time.
+
+Mimic Occupied Heating Setpoint Behavior:
+The behavior will be the same as setting the attribute "Occupied Heating Setpoint" to the same value.
+
+Preserve Displayed Setpoint:
+Displayed setpoint is not affected, but regulated setpoint will change. Can be used for Forecast functionality.</description>
+          <payload>
+            <attribute id="0x0000" type="enum8" name="Setpoint Type" required="m">
+              <value name="Set immediately" value="0"/>
+              <value name="Mimic Occupied Heating Setpoint Behavior" value="1"/>
+              <value name="Preserve Displayed Setpoint" value="2"/>
+            </attribute>
+            <attribute id="0x0001" type="u16" name="Heating Setpoint" required="m"/>
+          </payload>
+        </command>
+        <command id="0x41" dir="recv" name="Danfoss Test Command" required="o" mfcode="0x1246"></command>
+        <command id="0x42" dir="recv" name="Preheat" required="o" mfcode="0x1246">
+          <description>Request eTRV to enter pre-heat if in schedule mode and if other eTRV in same room has triggeed pre-heat.</description>
+          <payload>
+            <attribute id="0x0000" type="enum8" name="Type" required="m">
+              <value name="Force Preheat" value="0"></value>
+            </attribute>
+            <attribute id="0x0001" type="u32" name="Timestamp" required="m">
+              <description>Timestamp received from other eTRV in the same room that went into preheat.</description>
+            </attribute>
+          </payload>
+        </command>
       </server>
       <client>
         <command id="0x00" dir="recv" name="Get Weekly Schedule Response" required="o">
