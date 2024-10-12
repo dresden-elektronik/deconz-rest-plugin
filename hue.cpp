@@ -9,6 +9,9 @@
 
 #define HUE_EFFECTS_CLUSTER_ID 0xFC03
 
+// List of 'state' keys that can be mapped into the '0xfc03' cluster's '0x00' command.
+QList<QString> supportedStateKeys = {"on", "bri", "ct", "xy", "transitiontime", "effect", "effect_duration"};
+
 struct code {
     quint8 value;
     QString name;
@@ -49,6 +52,23 @@ bool DeRestPluginPrivate::isHueEffectLight(const LightNode *lightNode)
     return lightNode != nullptr &&
            lightNode->manufacturerCode() == VENDOR_PHILIPS &&
            lightNode->item(RCapColorEffects);
+}
+
+/*! Test whether all the items in a request can be mapped into an '0xfc03' cluster command.
+    \param map - the map to test
+ */
+bool DeRestPluginPrivate::isMappableToManufacturerSpecific(const QVariantMap &map)
+{
+    const QList<QString> keyList = map.keys();
+    for (const QString &key : keyList)
+    {
+        if (!supportedStateKeys.contains(key))
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /*! Return a list of effect names corresponding to the bitmap of supported effects.
@@ -343,4 +363,9 @@ bool DeRestPluginPrivate::addTaskHueGradient(TaskItem &task, QVariantMap &gradie
         task.zclFrame.writeToStream(stream);
     }
     return addTask(task);
+}
+
+int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
+{
+    return REQ_NOT_HANDLED;
 }
