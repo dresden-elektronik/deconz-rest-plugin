@@ -34,6 +34,15 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/otau/fileversion"
+        },
+        {
+          "name": "attr/otau/imagetype"
+        },
+        {
+          "name": "attr/otau/manufacturercode"
+        },
+        {
           "name": "attr/swversion"
         },
         {
@@ -132,6 +141,15 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/otau/fileversion"
+        },
+        {
+          "name": "attr/otau/imagetype"
+        },
+        {
+          "name": "attr/otau/manufacturercode"
+        },
+        {
           "name": "attr/swversion"
         },
         {
@@ -190,6 +208,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "attr/otau/fileversion"
+        },
+        {
+          "name": "attr/otau/imagetype"
+        },
+        {
+          "name": "attr/otau/manufacturercode"
         },
         {
           "name": "attr/swversion"
