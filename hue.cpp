@@ -29,7 +29,7 @@
 #define RESOLUTION_05m_LIMIT (6 * 60 * 60 * 10) // 06hrs.
 
 // List of 'state' keys that can be mapped into the '0xfc03' cluster's '0x00' command.
-QList<QString> supportedStateKeys = {"on", "bri", "ct", "xy", "transitiontime", "effect", "effect_duration"};
+QList<QString> supportedStateKeys = {"on", "bri", "ct", "xy", "transitiontime", "effect", "effect_duration", "effect_speed"};
 
 struct code {
     quint8 value;
@@ -648,6 +648,26 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
 
                     itemList["effect_duration"] = QVariant(effectDuration);
                     rspItemStates[param] = effectDuration;
+                }
+            }
+        }
+        else if (param == "effect_speed")
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const double es = map[param].toDouble(&ok);
+                if (ok && es >= 0.0 && es <= 1.0)
+                {
+                    valueOk = true;
+                    quint8 effectSpeed = static_cast<quint8>(es * 254.0);
+
+                    // 'effect_speed' and 'effect_duration' share the same byte in the
+                    // manufacturer-specific command's payload.
+                    payloadItems.setFlag(HueManufacturerSpecificPayload::EffectDuration);
+
+                    itemList["effect_duration"] = QVariant(effectSpeed);
+                    rspItemStates[param] = effectSpeed;
                 }
             }
         }
