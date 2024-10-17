@@ -4,7 +4,7 @@
   "datatype": "Int16",
   "access": "R",
   "public": true,
-  "description": "The measured power (in W).",
+  "description": "Active Power (in Watts). Positive values indicate power delivered, negative values indicate power received.",
   "read": {
     "at": "0x050b",
     "cl": "0x0b04",
