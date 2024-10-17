@@ -123,15 +123,6 @@
           "refresh.interval": 86400
         },
         {
-          "name": "config/ctmax",
-          "default": "0xfeff"
-        },
-        {
-          "name": "config/ctmin",
-          "refresh.interval": 86400,
-          "default": 0
-        },
-        {
           "name": "config/on/startup",
           "refresh.interval": 3600,
           "default": 255
