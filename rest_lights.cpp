@@ -281,9 +281,9 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RAttrLastSeen) { attr["lastseen"] = item->toString(); }
         else if (rid.suffix == RAttrLevelMin) { attr["levelmin"] = item->toNumber(); }
         else if (rid.suffix == RAttrName) { attr["name"] = item->toString(); }
-        else if (rid.suffix == RAttrOtauFileVersion) { attrOtau["fileversion"] = item->toNumber(); }
-        else if (rid.suffix == RAttrOtauImageType) { attrOtau["imagetype"] = item->toNumber(); }
-        else if (rid.suffix == RAttrOtauManufacturerCode) { attrOtau["manufacturercode"] = item->toNumber(); }
+        else if (rid.suffix == RAttrOtauFileVersion) { attrOtau["file_version"] = item->toNumber(); }
+        else if (rid.suffix == RAttrOtauImageType) { attrOtau["image_type"] = item->toNumber(); }
+        else if (rid.suffix == RAttrOtauManufacturerCode) { attrOtau["manufacturer_code"] = item->toNumber(); }
         else if (rid.suffix == RAttrPowerOnLevel) { attr["poweronlevel"] = item->toNumber(); }
         else if (rid.suffix == RAttrPowerOnCt) { attr["poweronct"] = item->toNumber(); }
         else if (rid.suffix == RAttrPowerup) { attr["powerup"] = item->toNumber(); }
@@ -3974,9 +3974,9 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     else if (rid.suffix == RAttrManufacturerName) { attr["manufacturername"] = item->toString(); }
                     else if (rid.suffix == RAttrModelId) { attr["modelid"] = item->toString(); }
                     else if (rid.suffix == RAttrName) { attr["name"] = item->toString(); }
-                    else if (rid.suffix == RAttrOtauFileVersion) { attrOtau["fileversion"] = item->toNumber(); }
-                    else if (rid.suffix == RAttrOtauImageType) { attrOtau["imagetype"] = item->toNumber(); }
-                    else if (rid.suffix == RAttrOtauManufacturerCode) { attrOtau["manufacturercode"] = item->toNumber(); }
+                    else if (rid.suffix == RAttrOtauFileVersion) { attrOtau["file_version"] = item->toNumber(); }
+                    else if (rid.suffix == RAttrOtauImageType) { attrOtau["image_type"] = item->toNumber(); }
+                    else if (rid.suffix == RAttrOtauManufacturerCode) { attrOtau["manufacturer_code"] = item->toNumber(); }
                     else if (rid.suffix == RAttrPowerOnLevel) { attr["poweronlevel"] = item->toNumber(); }
                     else if (rid.suffix == RAttrPowerOnCt) { attr["poweronct"] = item->toNumber(); }
                     else if (rid.suffix == RAttrPowerup) { attr["powerup"] = item->toNumber(); }

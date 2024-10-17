@@ -2800,9 +2800,9 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         }
         else if (rid.suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
         else if (rid.suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
-        else if (rid.suffix == RAttrOtauFileVersion) { attrOtau["fileversion"] = item->toNumber(); }
-        else if (rid.suffix == RAttrOtauImageType) { attrOtau["imagetype"] = item->toNumber(); }
-        else if (rid.suffix == RAttrOtauManufacturerCode) { attrOtau["manufacturercode"] = item->toNumber(); }
+        else if (rid.suffix == RAttrOtauFileVersion) { attrOtau["file_version"] = item->toNumber(); }
+        else if (rid.suffix == RAttrOtauImageType) { attrOtau["image_type"] = item->toNumber(); }
+        else if (rid.suffix == RAttrOtauManufacturerCode) { attrOtau["manufacturer_code"] = item->toNumber(); }
         else if (rid.suffix == RAttrProductId) { map["productid"] = item->toString(); }
         else if (rid.suffix == RAttrProductName) { map["productname"] = item->toString(); }
         else if (rid.suffix == RAttrZoneType) { map["zonetype"] = item->toNumber(); }
