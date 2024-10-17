@@ -119,10 +119,6 @@
           "default": "0xffff"
         },
         {
-          "name": "config/colorcapabilities",
-          "refresh.interval": 86400
-        },
-        {
           "name": "config/on/startup",
           "refresh.interval": 3600,
           "default": 255
