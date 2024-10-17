@@ -1,0 +1,22 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/power_multiplier",
+  "datatype": "UInt16",
+  "access": "R",
+  "public": false,
+  "description": "AC Power Divisor to be divided against the Instantaneous Power and Active Power attributes.",
+  "read": {
+    "at": "0x0604",
+    "cl": "0x0b04",
+    "ep": 0,
+    "fn": "zcl:attr"
+  },
+  "parse": {
+    "at": "0x0604",
+    "cl": "0x0b04",
+    "ep": 0,
+    "eval": "if (Attr.val > 0) { Item.val = Attr.val; }"
+  },
+  "refresh.interval": 600,
+  "default": 1
+}
