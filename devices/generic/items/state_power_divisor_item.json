@@ -1,10 +1,10 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "state/power_multiplier",
+  "id": "state/power_divisor",
   "datatype": "UInt16",
   "access": "R",
   "public": false,
-  "description": "AC Power Divisor to be multiplied against the Instantaneous Power and Active Power attributes.",
+  "description": "AC Power Divisor to be divided against the Instantaneous Power and Active Power attributes.",
   "read": {
     "at": "0x0605",
     "cl": "0x0b04",
