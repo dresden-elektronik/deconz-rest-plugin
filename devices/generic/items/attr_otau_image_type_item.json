@@ -1,6 +1,6 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "attr/otau/imagetype",
+  "id": "attr/otau/image_type",
   "datatype": "UInt16",
   "access": "R",
   "public": true,

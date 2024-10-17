@@ -1,6 +1,6 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "attr/otau/manufacturercode",
+  "id": "attr/otau/manufacturer_code",
   "datatype": "UInt16",
   "access": "R",
   "public": true,

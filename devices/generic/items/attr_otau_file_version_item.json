@@ -1,6 +1,6 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "attr/otau/fileversion",
+  "id": "attr/otau/file_version",
   "datatype": "UInt32",
   "access": "R",
   "public": true,
