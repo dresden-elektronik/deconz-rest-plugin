@@ -70,11 +70,6 @@
           "refresh.interval": 600
         },
         {
-          "name": "state/effect",
-          "refresh.interval": 600,
-          "default": "none"
-        },
-        {
           "name": "state/on",
           "refresh.interval": 600
         },
