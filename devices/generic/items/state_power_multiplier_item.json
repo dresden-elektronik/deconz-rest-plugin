@@ -17,6 +17,6 @@
     "ep": 0,
     "eval": "if (Attr.val > 0) { Item.val = Attr.val; }"
   },
-  "refresh.interval": 600,
+  "refresh.interval": 300,
   "default": 1
 }
