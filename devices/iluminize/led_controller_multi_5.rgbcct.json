@@ -69,11 +69,11 @@
         },
         {
           "name": "cap/color/xy/green_y",
-          "static": 0
+          "static": 65279
         },
         {
           "name": "cap/color/xy/red_x",
-          "static": 0
+          "static": 65279
         },
         {
           "name": "cap/color/xy/red_y",
