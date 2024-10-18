@@ -31,6 +31,16 @@ enum ApiDataType
     DataTypeTimePattern
 };
 
+class ApiAttribute
+{
+    public:
+        QVariantMap *map;
+        QString key;
+        ApiAttribute(QVariantMap *m, QString k) :
+            map(m),
+            key(k) { }
+};
+
 struct R_Stats
 {
     size_t toString = 0;
@@ -429,6 +439,7 @@ public:
     double validMin = 0;
     double validMax = 0;
     quint16 flags = 0;
+    ApiAttribute toApi(QVariantMap &attr) const;
 };
 
 class Resource;

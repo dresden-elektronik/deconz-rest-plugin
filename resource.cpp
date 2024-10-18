@@ -1498,6 +1498,47 @@ QVariant ResourceItem::toVariant() const
     return QVariant();
 }
 
+/*! Return a pointer to the submap and the key where this ResourceItemDescriptor is to be reported. */
+ApiAttribute ResourceItemDescriptor::toApi(QVariantMap &attr) const
+{
+    QStringList keys = QString(suffix).split(QLatin1String("/"), SKIP_EMPTY_PARTS);
+    DBG_Assert(keys.length() > 1);
+    QString key;
+
+    QVariantMap *p = &attr;
+    bool topLevel = true;
+    while (!keys.isEmpty())
+    {
+        key = keys.takeFirst();
+        if (topLevel)
+        {
+            if (key == QLatin1String("attr"))
+            {
+                continue;
+            }
+            if (key == QLatin1String("cap"))
+            {
+                key = QLatin1String("capabilities");
+            }
+            topLevel = false;
+        }
+        if (!keys.isEmpty())
+        {
+            if ((*p)[key].isNull())
+            {
+                (*p)[key] = QVariantMap();
+                p = (QVariantMap *) &((*p)[key]);
+            }
+            else if ((*p)[key].type() == QVariant::Map)
+            {
+                p = (QVariantMap *) &((*p)[key]);
+            }
+        }
+    }
+    // ApiAttribute a = ApiAttribute(p, key);
+    return ApiAttribute(p, key);
+}
+
 /*! Marks the resource item as involved in a rule. */
 void ResourceItem::inRule(int ruleHandle)
 {
