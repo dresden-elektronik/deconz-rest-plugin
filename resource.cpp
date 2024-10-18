@@ -73,6 +73,9 @@ const char *RAttrMode = "attr/mode";
 const char *RAttrModelId = "attr/modelid";
 const char *RAttrName = "attr/name";
 const char *RAttrNwkAddress = "attr/nwkaddress";
+const char *RAttrOtauFileVersion = "attr/otau/file_version";
+const char *RAttrOtauImageType = "attr/otau/image_type";
+const char *RAttrOtauManufacturerCode = "attr/otau/manufacturer_code";
 const char *RAttrOtaVersion = "attr/otaversion";
 const char *RAttrPowerOnCt = "attr/poweronct";
 const char *RAttrPowerOnLevel = "attr/poweronlevel";
@@ -394,6 +397,9 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrModelId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RAttrName));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RAttrNwkAddress));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrOtauFileVersion));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RAttrOtauImageType));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RAttrOtauManufacturerCode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, QVariant::Double, RAttrOtaVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RAttrPowerOnCt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RAttrPowerOnLevel));
@@ -1490,6 +1496,47 @@ QVariant ResourceItem::toVariant() const
     }
 
     return QVariant();
+}
+
+/*! Return a pointer to the submap and the key where this ResourceItemDescriptor is to be reported. */
+ApiAttribute ResourceItemDescriptor::toApi(QVariantMap &attr) const
+{
+    QStringList keys = QString(suffix).split(QLatin1String("/"), SKIP_EMPTY_PARTS);
+    DBG_Assert(keys.length() > 1);
+    QString key;
+
+    QVariantMap *p = &attr;
+    bool topLevel = true;
+    while (!keys.isEmpty())
+    {
+        key = keys.takeFirst();
+        if (topLevel)
+        {
+            if (key == QLatin1String("attr"))
+            {
+                continue;
+            }
+            if (key == QLatin1String("cap"))
+            {
+                key = QLatin1String("capabilities");
+            }
+            topLevel = false;
+        }
+        if (!keys.isEmpty())
+        {
+            if ((*p)[key].isNull())
+            {
+                (*p)[key] = QVariantMap();
+                p = (QVariantMap *) &((*p)[key]);
+            }
+            else if ((*p)[key].type() == QVariant::Map)
+            {
+                p = (QVariantMap *) &((*p)[key]);
+            }
+        }
+    }
+    // ApiAttribute a = ApiAttribute(p, key);
+    return ApiAttribute(p, key);
 }
 
 /*! Marks the resource item as involved in a rule. */

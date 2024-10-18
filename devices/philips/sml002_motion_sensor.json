@@ -44,6 +44,15 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/otau/file_version"
+        },
+        {
+          "name": "attr/otau/image_type"
+        },
+        {
+          "name": "attr/otau/manufacturer_code"
+        },
+        {
           "name": "attr/productname",
           "static": "Hue outdoor motion sensor"
         },
@@ -264,6 +273,15 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/otau/file_version"
+        },
+        {
+          "name": "attr/otau/image_type"
+        },
+        {
+          "name": "attr/otau/manufacturer_code"
+        },
+        {
           "name": "attr/productname",
           "static": "Hue outdoor light sensor"
         },
@@ -364,6 +382,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "attr/otau/file_version"
+        },
+        {
+          "name": "attr/otau/image_type"
+        },
+        {
+          "name": "attr/otau/manufacturer_code"
         },
         {
           "name": "attr/productname",
