@@ -2658,55 +2658,75 @@ int DeRestPluginPrivate::getNewSensors(const ApiRequest &req, ApiResponse &rsp)
     \return true - on success
             false - on error
  */
-bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, const ApiRequest &req)
+bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &attr, const ApiRequest &req)
 {
     if (!sensor)
     {
         return false;
     }
 
-    QVariantMap attrOtau;
-    QVariantMap state;
+    const Device *device = static_cast<const Device *>(sensor->parentResource());
+    if (device)
+    {
+        for (int i = 0; i < device->itemCount(); i++)
+        {
+            const ResourceItem *item = device->itemForIndex(static_cast<size_t>(i));
+            DBG_Assert(item);
+            if (!item->isPublic())
+            {
+                continue;
+            }
+            const ResourceItemDescriptor &rid = item->descriptor();
+
+            const ApiAttribute a = rid.toApi(attr);
+            QVariantMap *p = a.map;
+            (*p)[a.key] = item->toVariant();
+        }
+    }
+
     const ResourceItem *iox = nullptr;
     const ResourceItem *ioy = nullptr;
     const ResourceItem *ioz = nullptr;
-    QVariantList orientation;
-    const ResourceItem *ix = nullptr;
-    const ResourceItem *iy = nullptr;
-    QVariantList xy;
-    QVariantMap cap;
-    QVariantMap measuredValue;
-    QVariantMap config;
     const ResourceItem *ilcs = nullptr;
     const ResourceItem *ilca = nullptr;
     const ResourceItem *ilct = nullptr;
-    QVariantMap lastchange;
+    const ResourceItem *ix = nullptr;
+    const ResourceItem *iy = nullptr;
 
     for (int i = 0; i < sensor->itemCount(); i++)
     {
         const ResourceItem *item = sensor->itemForIndex(static_cast<size_t>(i));
         DBG_Assert(item);
-        const ResourceItemDescriptor &rid = item->descriptor();
-
         if (!item->isPublic())
         {
             continue;
         }
+        const ResourceItemDescriptor &rid = item->descriptor();
 
-        if (rid.suffix == RConfigReachable &&
-            sensor->type().startsWith(QLatin1String("ZGP")))
+        if (rid.suffix == RConfigReachable && sensor->type().startsWith(QLatin1String("ZGP")))
         {
             continue; // don't provide reachable for green power devices
         }
 
-        if (rid.suffix == RAttrMode)
+        if (rid.suffix == RAttrMode && (sensor->mode() == Sensor::ModeNone || !(sensor->type().endsWith(QLatin1String("Switch")))))
         {
-            continue; // handled later on
+            continue;
         }
 
-        if (strncmp(rid.suffix, "config/", 7) == 0)
+             if (rid.suffix == RConfigLastChangeSource) { ilcs = item; }
+        else if (rid.suffix == RConfigLastChangeAmount) { ilca = item; }
+        else if (rid.suffix == RConfigLastChangeTime) { ilct = item; }
+        else if (rid.suffix == RStateOrientationX) { iox = item; }
+        else if (rid.suffix == RStateOrientationY) { ioy = item; }
+        else if (rid.suffix == RStateOrientationZ) { ioz = item; }
+        else if (rid.suffix == RStateX) { ix = item; }
+        else if (rid.suffix == RStateY) { iy = item; }
+        else
         {
-            const char *key = item->descriptor().suffix + 7;
+            const ApiAttribute a = rid.toApi(attr);
+            QVariantMap *p = a.map;
+            QString key = a.key;
+
             if (rid.suffix == RConfigPending)
             {
                 QVariantList pending;
@@ -2720,210 +2740,68 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
                 {
                     pending.append(QLatin1String("sensitivity"));
                 }
-                config[key] = pending;
-            }
-            else if (rid.suffix == RConfigLastChangeSource)
-            {
-                ilcs = item;
-            }
-            else if (rid.suffix == RConfigLastChangeAmount)
-            {
-                ilca = item;
-            }
-            else if (rid.suffix == RConfigLastChangeTime)
-            {
-                ilct = item;
+                (*p)[key] = pending;
             }
             else if (rid.suffix == RConfigSchedule)
             {
                 QVariantMap schedule;
                 deserialiseThermostatSchedule(item->toString(), &schedule);
-                config[key] = schedule;
+                (*p)[key] = schedule;
             }
-            else
-            {
-                config[key] = item->toVariant();
-            }
-        }
-        else if (strncmp(rid.suffix, "state/", 6) == 0)
-        {
-            const char *key = item->descriptor().suffix + 6;
-
-            if (rid.suffix == RStateLastUpdated)
+            else if (rid.suffix == RStateLastUpdated)
             {
                 if (!item->lastSet().isValid() || item->lastSet().date().year() < 2000)
                 {
-                    state[key] = QLatin1String("none");
+                    (*p)[key] = QLatin1String("none");
                 }
                 else
                 {
-                    state[key] = item->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ss.zzz");
+                    (*p)[key] = item->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ss.zzz");
                 }
             }
-            else if (rid.suffix == RStateOrientationX)
-            {
-                iox = item;
-            }
-            else if (rid.suffix == RStateOrientationY)
-            {
-                ioy = item;
-            }
-            else if (rid.suffix == RStateOrientationZ)
-            {
-                ioz = item;
-            }
-            else if (rid.suffix == RStateX)
-            {
-                ix = item;
-            }
-            else if (rid.suffix == RStateY)
-            {
-                iy = item;
-            }
-            else
-            {
-                state[key] = item->toVariant();
-            }
+            else { (*p)[key] = item->toVariant(); }
         }
-        else if (strncmp(rid.suffix, "cap/", 4) == 0)
-        {
-            const char *key = item->descriptor().suffix + 4;
-
-            if (strncmp(key, "measured_value/", 15) == 0)
-            {
-                measuredValue[key + 15] = item->toVariant();
-            }
-            else
-            {
-                cap[key] = item->toVariant();
-            }
-        }
-        else if (rid.suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
-        else if (rid.suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
-        else if (rid.suffix == RAttrOtauFileVersion) { attrOtau["file_version"] = item->toNumber(); }
-        else if (rid.suffix == RAttrOtauImageType) { attrOtau["image_type"] = item->toNumber(); }
-        else if (rid.suffix == RAttrOtauManufacturerCode) { attrOtau["manufacturer_code"] = item->toNumber(); }
-        else if (rid.suffix == RAttrProductId) { map["productid"] = item->toString(); }
-        else if (rid.suffix == RAttrProductName) { map["productname"] = item->toString(); }
-        else if (rid.suffix == RAttrZoneType) { map["zonetype"] = item->toNumber(); }
     }
+
     if (iox && ioy && ioz)
     {
+        QVariantList orientation;
+        QVariantMap *p = (iox->descriptor().toApi(attr)).map;
+
         orientation.append(iox->toNumber());
         orientation.append(ioy->toNumber());
         orientation.append(ioz->toNumber());
-        state[QLatin1String("orientation")] = orientation;
+        (*p)[QLatin1String("orientation")] = orientation;
     }
+
     if (ix && iy)
     {
+        QVariantList xy;
+        QVariantMap *p = (ix->descriptor().toApi(attr)).map;
+
         xy.append(round(ix->toNumber() / 6.5535) / 10000.0);
         xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
-        state[QLatin1String("xy")] = xy;
+        (*p)[QLatin1String("xy")] = xy;
     }
+
     if (ilcs && ilca && ilct)
     {
+        QVariantMap lastchange;
+        QVariantMap *p = (ilcs->descriptor().toApi(attr)).map;
+
         lastchange[QLatin1String("source")] = RConfigLastChangeSourceValues[ilcs->toNumber()];
         lastchange[QLatin1String("amount")] = ilca->toNumber();
         lastchange[QLatin1String("time")] = ilct->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ssZ");
-        config[QLatin1String("lastchange")] = lastchange;
+        (*p)[QLatin1String("lastchange")] = lastchange;
     }
 
-    //sensor
-    map[QLatin1String("name")] = sensor->name();
-    map[QLatin1String("type")] = sensor->type();
-
-    if (req.path.size() > 2 && req.path[2] == QLatin1String("devices"))
+    if (sensor->fingerPrint().endpoint != INVALID_ENDPOINT)
     {
-        // don't add in sub device
-    }
-    else
-    {
-        if (!sensor->modelId().isEmpty())
-        {
-            map[QLatin1String("modelid")] = sensor->modelId();
-        }
-        if (!sensor->manufacturer().isEmpty())
-        {
-            map[QLatin1String("manufacturername")] = sensor->manufacturer();
-        }
-        if (!attrOtau.isEmpty())
-        {
-            map[QLatin1String("otau")] = attrOtau;
-        }
-        if (!sensor->swVersion().isEmpty() && !sensor->type().startsWith(QLatin1String("ZGP")))
-        {
-            map[QLatin1String("swversion")] = sensor->swVersion();
-        }
-        if (sensor->fingerPrint().endpoint != INVALID_ENDPOINT)
-        {
-            map[QLatin1String("ep")] = sensor->fingerPrint().endpoint;
-        }
-        QString etag = sensor->etag;
-        etag.remove('"'); // no quotes allowed in string
-        map[QLatin1String("etag")] = etag;
+        attr[QLatin1String("ep")] = sensor->fingerPrint().endpoint;
     }
 
-    // whitelist, HueApp crashes on ZHAAlarm and ZHAPressure
-    if (req.mode == ApiModeHue)
-    {
-        if (!(sensor->type() == QLatin1String("Daylight") ||
-              sensor->type() == QLatin1String("CLIPGenericFlag") ||
-              sensor->type() == QLatin1String("CLIPGenericStatus") ||
-              sensor->type() == QLatin1String("CLIPSwitch") ||
-              sensor->type() == QLatin1String("CLIPOpenClose") ||
-              sensor->type() == QLatin1String("CLIPPresence") ||
-              sensor->type() == QLatin1String("CLIPTemperature") ||
-              sensor->type() == QLatin1String("CLIPHumidity") ||
-              sensor->type() == QLatin1String("CLIPLightlevel") ||
-              sensor->type() == QLatin1String("ZGPSwitch") ||
-              sensor->type() == QLatin1String("ZHASwitch") ||
-              sensor->type() == QLatin1String("ZHAOpenClose") ||
-              sensor->type() == QLatin1String("ZHAPresence") ||
-              sensor->type() == QLatin1String("ZHATemperature") ||
-              sensor->type() == QLatin1String("ZHAHumidity") ||
-              sensor->type() == QLatin1String("ZHALightLevel")))
-        {
-            return false;
-        }
-        // mimic Hue Dimmer Switch
-        if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer") ||
-            sensor->modelId() == QLatin1String("lumi.sensor_switch.aq2"))
-        {
-            map[QLatin1String("manufacturername")] = QLatin1String("Philips");
-            map[QLatin1String("modelid")] = QLatin1String("RWL021");
-        }
-        // mimic Hue motion sensor
-        else if (false)
-        {
-            map[QLatin1String("manufacturername")] = QLatin1String("Philips");
-            map[QLatin1String("modelid")] = QLatin1String("SML001");
-        }
-    }
-
-    if (req.mode != ApiModeNormal &&
-        sensor->manufacturer().startsWith(QLatin1String("Philips")) &&
-        sensor->type().startsWith(QLatin1String("ZHA")))
-    {
-        QString type = sensor->type();
-        type.replace(QLatin1String("ZHA"), QLatin1String("ZLL"));
-        map[QLatin1String("type")] = type;
-    }
-
-    if (sensor->mode() != Sensor::ModeNone &&
-        sensor->type().endsWith(QLatin1String("Switch")))
-    {
-        map[QLatin1String("mode")] = (double)sensor->mode();
-    }
-
-    const ResourceItem *item = sensor->item(RAttrUniqueId);
-    if (item)
-    {
-        map[QLatin1String("uniqueid")] = item->toString();
-    }
-    map[QLatin1String("state")] = state;
-    map[QLatin1String("config")] = config;
-    if (!measuredValue.isEmpty()) cap[QLatin1String("measured_value")] = measuredValue;
-    if (!cap.isEmpty()) map[QLatin1String("capabilities")] = cap;
+    QString etag = sensor->etag;
+    attr[QLatin1String("etag")] = etag.remove('"');
 
     return true;
 }
