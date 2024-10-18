@@ -15,7 +15,7 @@
     "at": "0x050b",
     "cl": "0x0b04",
     "ep": 0,
-    "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val / R.item('state/power_multiplier').val * R.item('state/power_divisor').val; }"
+    "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val * R.item('state/power_multiplier').val / R.item('state/power_divisor').val; }"
   },
   "refresh.interval": 300,
   "default": 0
