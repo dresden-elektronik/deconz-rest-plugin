@@ -1,6 +1,6 @@
 {
   "schema": "resourceitem1.schema.json",
-  "id": "attr/otau/image_type",
+  "id": "cap/otau/image_type",
   "datatype": "UInt16",
   "access": "R",
   "public": true,
@@ -11,6 +11,6 @@
     "ep": 255,
     "cl": "0x0019",
     "cmd": "0x01",
-    "eval": "Item.val = ZclFrame.at(4) << 8 | ZclFrame.at(3)"
+    "eval": "if (ZclFrame.payloadSize >= 9) Item.val = ZclFrame.at(4) << 8 | ZclFrame.at(3)"
   }
 }
