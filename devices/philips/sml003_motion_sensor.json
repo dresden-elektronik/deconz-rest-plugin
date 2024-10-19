@@ -50,13 +50,13 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/otau/file_version"
+          "name": "cap/otau/file_version"
         },
         {
-          "name": "attr/otau/image_type"
+          "name": "cap/otau/image_type"
         },
         {
-          "name": "attr/otau/manufacturer_code"
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productname",
@@ -279,13 +279,13 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/otau/file_version"
+          "name": "cap/otau/file_version"
         },
         {
-          "name": "attr/otau/image_type"
+          "name": "cap/otau/image_type"
         },
         {
-          "name": "attr/otau/manufacturer_code"
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productname",
@@ -390,13 +390,13 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/otau/file_version"
+          "name": "cap/otau/file_version"
         },
         {
-          "name": "attr/otau/image_type"
+          "name": "cap/otau/image_type"
         },
         {
-          "name": "attr/otau/manufacturer_code"
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productname",

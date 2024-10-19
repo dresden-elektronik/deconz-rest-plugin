@@ -2665,7 +2665,6 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         return false;
     }
 
-    QVariantMap attrOtau;
     QVariantMap state;
     const ResourceItem *iox = nullptr;
     const ResourceItem *ioy = nullptr;
@@ -2676,6 +2675,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     QVariantList xy;
     QVariantMap cap;
     QVariantMap measuredValue;
+    QVariantMap otau;
     QVariantMap config;
     const ResourceItem *ilcs = nullptr;
     const ResourceItem *ilca = nullptr;
@@ -2793,6 +2793,10 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
             {
                 measuredValue[key + 15] = item->toVariant();
             }
+            else if (strncmp(key, "otau/", 5) == 0)
+            {
+                otau[key + 5] = item->toVariant();
+            }
             else
             {
                 cap[key] = item->toVariant();
@@ -2800,9 +2804,6 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         }
         else if (rid.suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
         else if (rid.suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
-        else if (rid.suffix == RAttrOtauFileVersion) { attrOtau["file_version"] = item->toNumber(); }
-        else if (rid.suffix == RAttrOtauImageType) { attrOtau["image_type"] = item->toNumber(); }
-        else if (rid.suffix == RAttrOtauManufacturerCode) { attrOtau["manufacturer_code"] = item->toNumber(); }
         else if (rid.suffix == RAttrProductId) { map["productid"] = item->toString(); }
         else if (rid.suffix == RAttrProductName) { map["productname"] = item->toString(); }
         else if (rid.suffix == RAttrZoneType) { map["zonetype"] = item->toNumber(); }
@@ -2845,10 +2846,6 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         if (!sensor->manufacturer().isEmpty())
         {
             map[QLatin1String("manufacturername")] = sensor->manufacturer();
-        }
-        if (!attrOtau.isEmpty())
-        {
-            map[QLatin1String("otau")] = attrOtau;
         }
         if (!sensor->swVersion().isEmpty() && !sensor->type().startsWith(QLatin1String("ZGP")))
         {
@@ -2923,6 +2920,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     map[QLatin1String("state")] = state;
     map[QLatin1String("config")] = config;
     if (!measuredValue.isEmpty()) cap[QLatin1String("measured_value")] = measuredValue;
+    if (!otau.isEmpty()) cap[QLatin1String("otau")] = otau;
     if (!cap.isEmpty()) map[QLatin1String("capabilities")] = cap;
 
     return true;
@@ -3204,6 +3202,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
             QVariantMap cap;
             QVariantMap measuredValue;
+            QVariantMap otau;
 
             for (int i = 0; i < sensor->itemCount(); i++)
             {
@@ -3220,6 +3219,10 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                         {
                             measuredValue[key + 15] = item->toVariant();
                         }
+                        else if (strncmp(key, "otau/", 5) == 0)
+                        {
+                            otau[key + 5] = item->toVariant();
+                        }
                         else
                         {
                             cap[key] = item->toVariant();
@@ -3232,6 +3235,10 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             if (!measuredValue.isEmpty())
             {
                 cap[QLatin1String("measured_value")] = measuredValue;
+            }
+            if (!otau.isEmpty())
+            {
+                cap[QLatin1String("otau")] = otau;
             }
             if (!cap.isEmpty())
             {
@@ -3274,15 +3281,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
                     if (gwWebSocketNotifyAll || item->needPushChange())
                     {
-                        if (strncmp(key, "otau/", 5) == 0)
-                        {
-                            const char *subkey = key + 5;
-                            attrOtau[subkey] = item->toVariant();
-                        }
-                        else
-                        {
-                            attr[key] = item->toVariant();
-                        }
+                        attr[key] = item->toVariant();
                         item->clearNeedPush();
                     }
                 }

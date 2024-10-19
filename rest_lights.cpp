@@ -232,8 +232,6 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         return false;
     }
 
-    QVariantMap attrOtau;
-
     QVariantMap capabilities;
     QVariantMap capabilitiesBri;
     QVariantMap capabilitiesColor;
@@ -248,6 +246,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     const ResourceItem *igreeny = nullptr;
     const ResourceItem *iredx = nullptr;
     const ResourceItem *iredy = nullptr;
+    QVariantMap capabilitiesOtau;
 
     QVariantMap config;
     bool groups = true;
@@ -281,9 +280,6 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RAttrLastSeen) { attr["lastseen"] = item->toString(); }
         else if (rid.suffix == RAttrLevelMin) { attr["levelmin"] = item->toNumber(); }
         else if (rid.suffix == RAttrName) { attr["name"] = item->toString(); }
-        else if (rid.suffix == RAttrOtauFileVersion) { attrOtau["file_version"] = item->toNumber(); }
-        else if (rid.suffix == RAttrOtauImageType) { attrOtau["image_type"] = item->toNumber(); }
-        else if (rid.suffix == RAttrOtauManufacturerCode) { attrOtau["manufacturer_code"] = item->toNumber(); }
         else if (rid.suffix == RAttrPowerOnLevel) { attr["poweronlevel"] = item->toNumber(); }
         else if (rid.suffix == RAttrPowerOnCt) { attr["poweronct"] = item->toNumber(); }
         else if (rid.suffix == RAttrPowerup) { attr["powerup"] = item->toNumber(); }
@@ -326,6 +322,9 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (rid.suffix == RCapColorXyRedX) { iredx = item; }
         else if (rid.suffix == RCapColorXyRedY) { iredy = item; }
         else if (rid.suffix == RCapGroupsNotSupported) { groups = false; }
+        else if (rid.suffix == RCapOtauFileVersion) { capabilitiesOtau["file_version"] = item->toNumber(); }
+        else if (rid.suffix == RCapOtauImageType) { capabilitiesOtau["image_type"] = item->toNumber(); }
+        else if (rid.suffix == RCapOtauManufacturerCode) { capabilitiesOtau["manufacturer_code"] = item->toNumber(); }
         else if (rid.suffix == RCapSleeper) { capabilities["sleeper"] = true; }
         else if (rid.suffix == RCapTransitionBlock) { capabilities["transition_block"] = true; }
         else if (rid.suffix == RConfigBriCoupleCt) { configBri["couple_ct"] = item->toBool(); }
@@ -531,6 +530,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     if (!capabilitiesColorGradient.isEmpty()) capabilitiesColor["gradient"] = capabilitiesColorGradient;
     if (!capabilitiesColorXy.isEmpty()) capabilitiesColor["xy"] = capabilitiesColorXy;
     if (!capabilitiesColor.isEmpty()) capabilities["color"] = capabilitiesColor;
+    if (!capabilitiesOtau.isEmpty()) capabilities["otau"] = capabilitiesOtau;
     if (!capabilities.isEmpty()) attr["capabilities"] = capabilities;
     if (!configBri.isEmpty()) config["bri"] = configBri;
     if (!configColorCt.isEmpty()) configColor["ct"] = configColorCt;
@@ -539,7 +539,6 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     if (!configColor.isEmpty()) config["color"] = configColor;
     if (!configOn.isEmpty()) config["on"] = configOn;
     if (!config.isEmpty()) attr["config"] = config;
-    if (!attrOtau.isEmpty()) attr["otau"] = attrOtau;
 
     return true;
 }
@@ -3902,7 +3901,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             bool pushState = false;
 
             QVariantMap attr;
-            QVariantMap attrOtau;
 
             QVariantMap capabilities;
             QVariantMap capabilitiesBri;
@@ -3919,6 +3917,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             ResourceItem *iredx = nullptr;
             ResourceItem *iredy = nullptr;
             QStringList effectList = RStateEffectValues;
+            QVariantMap capabilitiesOtau;
 
             QVariantMap config;
             QVariantMap configBri;
@@ -3974,9 +3973,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     else if (rid.suffix == RAttrManufacturerName) { attr["manufacturername"] = item->toString(); }
                     else if (rid.suffix == RAttrModelId) { attr["modelid"] = item->toString(); }
                     else if (rid.suffix == RAttrName) { attr["name"] = item->toString(); }
-                    else if (rid.suffix == RAttrOtauFileVersion) { attrOtau["file_version"] = item->toNumber(); }
-                    else if (rid.suffix == RAttrOtauImageType) { attrOtau["image_type"] = item->toNumber(); }
-                    else if (rid.suffix == RAttrOtauManufacturerCode) { attrOtau["manufacturer_code"] = item->toNumber(); }
                     else if (rid.suffix == RAttrPowerOnLevel) { attr["poweronlevel"] = item->toNumber(); }
                     else if (rid.suffix == RAttrPowerOnCt) { attr["poweronct"] = item->toNumber(); }
                     else if (rid.suffix == RAttrPowerup) { attr["powerup"] = item->toNumber(); }
@@ -4008,6 +4004,9 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     else if (rid.suffix == RCapColorGradientPixelCount) { capabilitiesColorGradient["pixel_count"] = item->toNumber(); }
                     else if (rid.suffix == RCapColorGradientPixelLength) { capabilitiesColorGradient["pixel_length"] = item->toNumber(); }
                     else if (rid.suffix == RCapColorGradientStyles) { capabilitiesColorGradient["styles"] = getHueGradientStyleNames(item->toNumber()); }
+                    else if (rid.suffix == RCapOtauFileVersion) { capabilitiesOtau["file_version"] = item->toNumber(); }
+                    else if (rid.suffix == RCapOtauImageType) { capabilitiesOtau["image_type"] = item->toNumber(); }
+                    else if (rid.suffix == RCapOtauManufacturerCode) { capabilitiesOtau["manufacturer_code"] = item->toNumber(); }
                     else if (rid.suffix == RCapSleeper) { capabilities["sleeper"] = true; }
                     else if (rid.suffix == RCapTransitionBlock) { capabilities["transition_block"] = true; }
                     else if (rid.suffix == RConfigBriCoupleCt) { configBri["couple_ct"] = item->toBool(); }
@@ -4190,7 +4189,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                 }
             }
 
-            if (!attrOtau.isEmpty()) attr["otau"] = attrOtau;
             if (pushAttr)
             {
                 QVariantMap map;
@@ -4211,6 +4209,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             if (!capabilitiesColorGradient.isEmpty()) capabilitiesColor["gradient"] = capabilitiesColorGradient;
             if (!capabilitiesColorXy.isEmpty()) capabilitiesColor["xy"] = capabilitiesColorXy;
             if (!capabilitiesColor.isEmpty()) capabilities["color"] = capabilitiesColor;
+            if (!capabilitiesOtau.isEmpty()) capabilities["otau"] = capabilitiesOtau;
             if (pushCap)
             {
                 if (ialert && gwWebSocketNotifyAll)
