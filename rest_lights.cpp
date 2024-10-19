@@ -282,7 +282,6 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
     for (int i = 0; i < lightNode->itemCount(); i++)
     {
         ResourceItem *item = lightNode->itemForIndex(static_cast<size_t>(i));
-
         DBG_Assert(item);
         if (!item->isPublic())
         {
@@ -3956,7 +3955,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         map[QLatin1String("id")] = e.id();
         map[QLatin1String("uniqueid")] = lightNode->uniqueId();
         map[QLatin1String("light")] = lmap;
-
         webSocketServer->broadcastTextMessage(Json::serialize(map));
         return;
     }
@@ -3975,7 +3973,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
     }
 
     ResourceItem *item = lightNode->item(e.what());
-    if (!item)
+    if (!item || !item->isPublic())
     {
         return;
     }
@@ -3989,7 +3987,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
     QStringList path;  // dummy
     ApiRequest req(hdr, path, nullptr, QLatin1String("")); // dummy
     req.mode = ApiModeNormal;
-
     lightToMap(req, lightNode, lmap, true);
 
     bool pushed = false;
