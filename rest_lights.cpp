@@ -233,12 +233,12 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
     const bool all = !event || gwWebSocketNotifyAll;
     QVariantMap needPush;
 
-    const Device *device = static_cast<const Device *>(lightNode->parentResource());
+    Device *device = static_cast<Device *>(lightNode->parentResource());
     if (device)
     {
         for (int i = 0; i < device->itemCount(); i++)
         {
-            const ResourceItem *item = device->itemForIndex(static_cast<size_t>(i));
+            ResourceItem *item = device->itemForIndex(static_cast<size_t>(i));
             DBG_Assert(item);
             if (!item->isPublic())
             {
@@ -256,7 +256,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
             if (event && item->needPushChange())
             {
                  needPush[a.top] = true;
-                 // Leave clearPush to Device.
+                 item->clearNeedPush();
             }
         }
     }
@@ -340,7 +340,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
             }
         }
 
-        if (all && req.apiVersion() < ApiVersion_3_DDEL)
+        if (!event && req.apiVersion() < ApiVersion_3_DDEL)
         {
             if (rid.suffix == RCapColorCtMax)
             {
@@ -3988,21 +3988,25 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
     QStringList path;  // dummy
     ApiRequest req(hdr, path, nullptr, QLatin1String("")); // dummy
     req.mode = ApiModeNormal;
+
     lightToMap(req, lightNode, lmap, true);
 
+    bool pushed = false;
     QVariantMap needPush = lmap[QLatin1String("_push")].toMap();
-
     for (QVariantMap::const_iterator it = needPush.cbegin(), end = needPush.cend(); it != end; ++it)
     {
-        const QString key = lmap[it.key()].toString();
         QVariantMap map;
         map["t"] = QLatin1String("event");
         map["e"] = QLatin1String("changed");
         map["r"] = QLatin1String("lights");
         map["id"] = e.id();
         map["uniqueid"] = lightNode->uniqueId();
-        map[key] = lmap[key];
+        map[it.key()] = lmap[it.key()];
         webSocketServer->broadcastTextMessage(Json::serialize(map));
+        pushed = true;
+    }
+    if (pushed)
+    {
         updateLightEtag(lightNode);
         plugin->saveDatabaseItems |= DB_LIGHTS;
         plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
