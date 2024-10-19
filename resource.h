@@ -35,10 +35,11 @@ class ApiAttribute
 {
     public:
         QVariantMap *map;
-        QString key;
-        ApiAttribute(QVariantMap *m, QString k) :
+        QString key, top;
+        ApiAttribute(QVariantMap *m, QString k, QString t) :
             map(m),
-            key(k) { }
+            key(k),
+            top(t) { }
 };
 
 struct R_Stats
@@ -439,7 +440,7 @@ public:
     double validMin = 0;
     double validMax = 0;
     quint16 flags = 0;
-    ApiAttribute toApi(QVariantMap &attr) const;
+    ApiAttribute toApi(QVariantMap &attr, bool event = false) const;
 };
 
 class Resource;
