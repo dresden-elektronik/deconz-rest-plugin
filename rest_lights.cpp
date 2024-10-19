@@ -394,14 +394,14 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
                     colorModes.push_back(QLatin1String("effect"));
                     if (all)
                     {
-                        (*p)[QLatin1String("effects")] = &RStateEffectValuesMueller;
+                        (*p)[QLatin1String("effects")] = RStateEffectValuesMueller;
                     }
                 }
                 else
                 {
                     if (all)
                     {
-                        (*p)[QLatin1String("effects")] = &RStateEffectValues;
+                        (*p)[QLatin1String("effects")] = RStateEffectValues;
                     }
                 }
             }
@@ -414,7 +414,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
                 colorModes.push_back(QLatin1String("effect"));
                 if (all)
                 {
-                    (*p)[QLatin1String("effects")] = &RStateEffectValuesXmasLightStrip;
+                    (*p)[QLatin1String("effects")] = RStateEffectValuesXmasLightStrip;
                 }
             }
             if (hasGradient) colorModes.push_back(QLatin1String("gradient"));
