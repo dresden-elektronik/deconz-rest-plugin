@@ -256,6 +256,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
             if (event && item->needPushChange())
             {
                  needPush[a.top] = true;
+                 // TODO: handle clearNeedPush on device level
                  item->clearNeedPush();
             }
         }
@@ -3938,7 +3939,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
     if (e.what() == REventAdded)
     {
         QVariantMap res;
-        res["name"] = lightNode->name();
+        res[QLatin1String("name")] = lightNode->name();
         searchLightsResult[lightNode->id()] = res;
 
         QVariantMap lmap;
@@ -3949,12 +3950,12 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         lightToMap(req, lightNode, lmap);
 
         QVariantMap map;
-        map["t"] = QLatin1String("event");
-        map["e"] = QLatin1String("added");
-        map["r"] = QLatin1String("lights");
-        map["id"] = e.id();
-        map["uniqueid"] = lightNode->uniqueId();
-        map["light"] = lmap;
+        map[QLatin1String("t")] = QLatin1String("event");
+        map[QLatin1String("e")] = QLatin1String("added");
+        map[QLatin1String("r")] = QLatin1String("lights");
+        map[QLatin1String("id")] = e.id();
+        map[QLatin1String("uniqueid")] = lightNode->uniqueId();
+        map[QLatin1String("light")] = lmap;
 
         webSocketServer->broadcastTextMessage(Json::serialize(map));
         return;
@@ -3963,11 +3964,11 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
     if (e.what() == REventDeleted)
     {
         QVariantMap map;
-        map["t"] = QLatin1String("event");
-        map["e"] = QLatin1String("deleted");
-        map["r"] = QLatin1String("lights");
-        map["id"] = e.id();
-        map["uniqueid"] = lightNode->uniqueId();
+        map[QLatin1String("t")] = QLatin1String("event");
+        map[QLatin1String("e")] = QLatin1String("deleted");
+        map[QLatin1String("r")] = QLatin1String("lights");
+        map[QLatin1String("id")] = e.id();
+        map[QLatin1String("uniqueid")] = lightNode->uniqueId();
 
         webSocketServer->broadcastTextMessage(Json::serialize(map));
         return;
@@ -3996,11 +3997,11 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
     for (QVariantMap::const_iterator it = needPush.cbegin(), end = needPush.cend(); it != end; ++it)
     {
         QVariantMap map;
-        map["t"] = QLatin1String("event");
-        map["e"] = QLatin1String("changed");
-        map["r"] = QLatin1String("lights");
-        map["id"] = e.id();
-        map["uniqueid"] = lightNode->uniqueId();
+        map[QLatin1String("t")] = QLatin1String("event");
+        map[QLatin1String("e")] = QLatin1String("changed");
+        map[QLatin1String("r")] = QLatin1String("lights");
+        map[QLatin1String("id")] = e.id();
+        map[QLatin1String("uniqueid")] = lightNode->uniqueId();
         map[it.key()] = lmap[it.key()];
         webSocketServer->broadcastTextMessage(Json::serialize(map));
         pushed = true;
