@@ -2924,7 +2924,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         ApiRequest req(hdr, path, nullptr, QLatin1String("")); // dummy
         req.mode = ApiModeNormal;
         sensorToMap(sensor, smap, req);
-        smap[QLatin1String("id")] = sensor->id(); // huh?
+        // smap[QLatin1String("id")] = sensor->id(); // huh?
 
         QVariantMap map;
         map[QLatin1String("t")] = QLatin1String("event");
@@ -2941,8 +2941,8 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
     {
         deleteGroupsWithDeviceMembership(e.id());
 
-        QVariantMap smap;  // huh?
-        smap[QLatin1String("id")] = e.id(); // huh?
+        // QVariantMap smap;  // huh?
+        // smap[QLatin1String("id")] = e.id(); // huh?
 
         QVariantMap map;
         map[QLatin1String("t")] = QLatin1String("event");
@@ -2950,7 +2950,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         map[QLatin1String("r")] = QLatin1String("sensors");
         map[QLatin1String("id")] = e.id();
         map[QLatin1String("uniqueid")] = sensor->uniqueId();
-        map[QLatin1String("sensor")] = smap; // huh?
+        // map[QLatin1String("sensor")] = smap; // huh?
         webSocketServer->broadcastTextMessage(Json::serialize(map));
         return;
     }
