@@ -1207,8 +1207,8 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
 
     // lights
     {
-        std::vector<LightNode>::const_iterator i = nodes.begin();
-        std::vector<LightNode>::const_iterator end = nodes.end();
+        std::vector<LightNode>::iterator i = nodes.begin();
+        std::vector<LightNode>::iterator end = nodes.end();
 
         for (; i != end; ++i)
         {
