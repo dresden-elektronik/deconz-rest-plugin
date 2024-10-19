@@ -70,7 +70,7 @@
             "at": "0x0304",
             "cl": "0x0b04",
             "ep": 0,
-            "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val; }"
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val; }"
           }
         },
         {

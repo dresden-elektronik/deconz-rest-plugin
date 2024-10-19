@@ -399,7 +399,7 @@
             "at": "0x050B",
             "cl": "0x0B04",
             "ep": 1,
-            "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val; }",
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val; }",
             "fn": "zcl:attr"
           }
         }
