@@ -253,6 +253,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
             const ApiAttribute a = rid.toApi(map, event);
             QVariantMap *p = a.map;
             (*p)[a.key] = item->toVariant();
+
             if (event && item->needPushChange())
             {
                  needPush[a.top] = true;
@@ -331,10 +332,24 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
                 }
             }
             else { (*p)[key] = item->toVariant(); }
+
             if (event && item->needPushChange())
             {
-                 needPush[a.top] = true;
-                 item->clearNeedPush();
+                if ((rid.suffix == RStateOn || rid.suffix == RStateReachable) && !lightNode->groups().empty())
+                {
+                    std::vector<GroupInfo>::const_iterator g = lightNode->groups().begin();
+                    std::vector<GroupInfo>::const_iterator gend = lightNode->groups().end();
+                    for (; g != gend; ++g)
+                    {
+                        if (g->state == GroupInfo::StateInGroup)
+                        {
+                            Event e(RGroups, REventCheckGroupAnyOn, int(g->id));
+                            enqueueEvent(e);
+                        }
+                    }
+                }
+                needPush[a.top] = true;
+                item->clearNeedPush();
             }
         }
 
