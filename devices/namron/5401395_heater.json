@@ -265,6 +265,20 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "cl": "0x0702",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x25",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
       "dst.ep": 1,
       "cl": "0x0B04",
       "report": [
