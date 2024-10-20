@@ -2739,8 +2739,8 @@ bool DeRestPluginPrivate::sensorToMap(Sensor *sensor, QVariantMap &map, const Ap
             QVariantMap *p = a.map;
             QString key = a.key;
 
-                 if (rid.suffix == RConfigLastChangeSource) { (*p)[key] = RConfigLastChangeSourceValues[ilcs->toNumber()]; }
-            else if (rid.suffix == RConfigLastChangeTime) { (*p)[key] = ilct->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ssZ"); }
+                 if (rid.suffix == RConfigLastChangeSource) { (*p)[key] = RConfigLastChangeSourceValues[item->toNumber()]; }
+            else if (rid.suffix == RConfigLastChangeTime) { (*p)[key] = item->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ssZ"); }
             else if (rid.suffix == RConfigPending)
             {
                 QVariantList pending;
