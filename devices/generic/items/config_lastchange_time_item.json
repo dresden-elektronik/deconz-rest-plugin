@@ -1,6 +1,6 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "config/lastchange_time",
+	"id": "config/lastchange/time",
 	"datatype": "ISO 8601 timestamp",
 	"access": "R",
 	"public": true,

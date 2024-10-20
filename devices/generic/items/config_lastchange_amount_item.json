@@ -1,6 +1,6 @@
 {
 	"schema": "resourceitem1.schema.json",
-	"id": "config/lastchange_amount",
+	"id": "config/lastchange/amount",
 	"datatype": "Int16",
 	"access": "R",
 	"public": true,

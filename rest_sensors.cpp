@@ -2700,9 +2700,6 @@ bool DeRestPluginPrivate::sensorToMap(Sensor *sensor, QVariantMap &map, const Ap
     ResourceItem *iox = nullptr;
     ResourceItem *ioy = nullptr;
     ResourceItem *ioz = nullptr;
-    ResourceItem *ilcs = nullptr;
-    ResourceItem *ilca = nullptr;
-    ResourceItem *ilct = nullptr;
     ResourceItem *ix = nullptr;
     ResourceItem *iy = nullptr;
 
@@ -2726,10 +2723,7 @@ bool DeRestPluginPrivate::sensorToMap(Sensor *sensor, QVariantMap &map, const Ap
             continue;
         }
 
-             if (rid.suffix == RConfigLastChangeSource) { ilcs = item; }
-        else if (rid.suffix == RConfigLastChangeAmount) { ilca = item; }
-        else if (rid.suffix == RConfigLastChangeTime) { ilct = item; }
-        else if (rid.suffix == RStateOrientationX) { iox = item; }
+             if (rid.suffix == RStateOrientationX) { iox = item; }
         else if (rid.suffix == RStateOrientationY) { ioy = item; }
         else if (rid.suffix == RStateOrientationZ) { ioz = item; }
         else if (rid.suffix == RStateX) { ix = item; }
@@ -2745,7 +2739,9 @@ bool DeRestPluginPrivate::sensorToMap(Sensor *sensor, QVariantMap &map, const Ap
             QVariantMap *p = a.map;
             QString key = a.key;
 
-            if (rid.suffix == RConfigPending)
+                 if (rid.suffix == RConfigLastChangeSource) { (*p)[key] = RConfigLastChangeSourceValues[ilcs->toNumber()]; }
+            else if (rid.suffix == RConfigLastChangeTime) { (*p)[key] = ilct->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ssZ"); }
+            else if (rid.suffix == RConfigPending)
             {
                 QVariantList pending;
                 auto value = item->toNumber();
@@ -2826,29 +2822,6 @@ bool DeRestPluginPrivate::sensorToMap(Sensor *sensor, QVariantMap &map, const Ap
                 needPush[a.top] = true;
                 ix->clearNeedPush();
                 iy->clearNeedPush();
-            }
-        }
-    }
-
-    if (ilcs && ilca && ilct)
-    {
-        if (all || ilcs->needPushChange() || ilca->needPushChange() || ilct->needPushChange())
-        {
-            ApiAttribute a = ilcs->descriptor().toApi(map, event);
-            QVariantMap *p = a.map;
-            QVariantMap lastchange;
-
-            lastchange[QLatin1String("source")] = RConfigLastChangeSourceValues[ilcs->toNumber()];
-            lastchange[QLatin1String("amount")] = ilca->toNumber();
-            lastchange[QLatin1String("time")] = ilct->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ssZ");
-            (*p)[QLatin1String("lastchange")] = lastchange;
-
-            if (event && (ilcs->needPushChange() || ilca->needPushChange() || ilct->needPushChange()))
-            {
-                needPush[a.top] = true;
-                ilcs->clearNeedPush();
-                ilca->clearNeedPush();
-                ilct->clearNeedPush();
             }
         }
     }
