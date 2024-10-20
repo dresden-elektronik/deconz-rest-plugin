@@ -317,8 +317,6 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
 
                  if (rid.suffix == RCapBriMinDimLevel) { (*p)[key] = round(item->toNumber() / 10.0) / 100.0; }
             else if (rid.suffix == RCapColorGradientStyles) { (*p)[key] = getHueGradientStyleNames(item->toNumber()); }
-            else if (rid.suffix == RCapSleeper) { (*p)[key] = true; } // TODO default item to true
-            else if (rid.suffix == RCapTransitionBlock) { (*p)[key] = true; } // TODO default item to true
             else if (rid.suffix == RConfigBriOnLevel) { (*p)[key] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
             else if (rid.suffix == RConfigBriStartup) { (*p)[key] = item->toNumber() == 0xFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
             else if (rid.suffix == RConfigColorCtStartup) { (*p)[key] = item->toNumber() == 0xFFFF ? QVariant(QLatin1String("previous")) : item->toNumber(); }
