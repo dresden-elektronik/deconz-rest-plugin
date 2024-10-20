@@ -2688,6 +2688,7 @@ bool DeRestPluginPrivate::sensorToMap(Sensor *sensor, QVariantMap &map, const Ap
             const ApiAttribute a = rid.toApi(map, event);
             QVariantMap *p = a.map;
             (*p)[a.key] = item->toVariant();
+
             if (event && item->needPushChange())
             {
                  needPush[a.top] = true;
@@ -2774,10 +2775,11 @@ bool DeRestPluginPrivate::sensorToMap(Sensor *sensor, QVariantMap &map, const Ap
                 }
             }
             else { (*p)[key] = item->toVariant(); }
+
             if (event && item->needPushChange())
             {
-                 needPush[a.top] = true;
-                 item->clearNeedPush();
+                needPush[a.top] = true;
+                item->clearNeedPush();
             }
         }
     }
@@ -2989,6 +2991,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 checkSensorBindingsForClientClusters(sensor);
             }
         }
+        return;
     }
 
     ResourceItem *item = sensor->item(e.what());
