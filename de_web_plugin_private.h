@@ -1075,6 +1075,9 @@ public:
     int modifyScene(const ApiRequest &req, ApiResponse &rsp);
     int deleteScene(const ApiRequest &req, ApiResponse &rsp);
 
+    // REST API hue-scenes
+    int handleHueScenesApi(const ApiRequest &req, ApiResponse &rsp);
+
     bool groupToMap(const ApiRequest &req, const Group *group, QVariantMap &map);
 
     // REST API schedules
