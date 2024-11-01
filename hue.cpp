@@ -391,14 +391,58 @@ bool DeRestPluginPrivate::addTaskHueGradient(TaskItem &task, QVariantMap &gradie
     return addTask(task);
 }
 
+void streamHueManufacturerSpecificState(QDataStream &stream, HueManufacturerSpecificPayloads &payloadItems, QVariantMap &items)
+{
+    // Set payload contents
+    stream << (quint16)payloadItems;
+
+    // !!!: The order the items are processed in is important
+
+    if (payloadItems.testFlag(HueManufacturerSpecificPayload::On))
+    {
+        stream << (quint8)(items["on"].toUInt());
+    }
+
+    if (payloadItems.testFlag(HueManufacturerSpecificPayload::Brightness))
+    {
+        stream << (quint8)(items["bri"].toUInt());
+    }
+
+    if (payloadItems.testFlag(HueManufacturerSpecificPayload::ColorTemperature))
+    {
+        stream << (quint16)(items["ct"].toUInt());
+    }
+
+    if (payloadItems.testFlag(HueManufacturerSpecificPayload::Color))
+    {
+        stream << (quint32)(items["xy"].toUInt());
+    }
+
+    if (payloadItems.testFlag(HueManufacturerSpecificPayload::TransitionTime))
+    {
+        stream << (quint16)(items["transitiontime"].toUInt());
+    }
+
+    if (payloadItems.testFlag(HueManufacturerSpecificPayload::Effect))
+    {
+        stream << (quint8)(items["effect"].toUInt());
+    }
+
+    if (payloadItems.testFlag(HueManufacturerSpecificPayload::EffectDuration))
+    {
+        stream << (quint8)(items["effect_duration"].toUInt());
+    }
+}
+
 /*! Add a Hue Manufacturer Specific '0xfc03' '0x00' task to the queue.
 
    \param task - the task item
+   \param payloadItems - the contents in the payload
    \param items - the list of items in the payload
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, HueManufacturerSpecificPayloads &payloadItems, QVariantMap &items)
+bool DeRestPluginPrivate::addTaskHueManufacturerSpecificSetState(TaskItem &task, HueManufacturerSpecificPayloads &payloadItems, QVariantMap &items)
 {
     task.taskType = TaskHueManufacturerSpecific;
     task.req.setClusterId(HUE_EFFECTS_CLUSTER_ID);
@@ -417,45 +461,7 @@ bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, HueManu
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        // Set payload contents
-        stream << (quint16)payloadItems;
-
-        // !!!: The order the items are processed in is important
-
-        if (payloadItems.testFlag(HueManufacturerSpecificPayload::On))
-        {
-            stream << (quint8)(items["on"].toUInt());
-        }
-
-        if (payloadItems.testFlag(HueManufacturerSpecificPayload::Brightness))
-        {
-            stream << (quint8)(items["bri"].toUInt());
-        }
-
-        if (payloadItems.testFlag(HueManufacturerSpecificPayload::ColorTemperature))
-        {
-            stream << (quint16)(items["ct"].toUInt());
-        }
-
-        if (payloadItems.testFlag(HueManufacturerSpecificPayload::Color))
-        {
-            stream << (quint32)(items["xy"].toUInt());
-        }
-
-        if (payloadItems.testFlag(HueManufacturerSpecificPayload::TransitionTime))
-        {
-            stream << (quint16)(items["transitiontime"].toUInt());
-        }
-
-        if (payloadItems.testFlag(HueManufacturerSpecificPayload::Effect))
-        {
-            stream << (quint8)(items["effect"].toUInt());
-        }
-
-        if (payloadItems.testFlag(HueManufacturerSpecificPayload::EffectDuration))
-        {
-            stream << (quint8)(items["effect_duration"].toUInt());
-        }
+        streamHueManufacturerSpecificState(stream, payloadItems, items);
     }
 
     { // ZCL frame
@@ -750,7 +756,7 @@ int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rs
         }
     }
 
-    ok = addTaskHueManufacturerSpecific(taskRef, payloadItems, itemList);
+    ok = addTaskHueManufacturerSpecificSetState(taskRef, payloadItems, itemList);
 
     if (ok)
     {

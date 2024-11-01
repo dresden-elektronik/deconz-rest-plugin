@@ -1458,7 +1458,7 @@ public:
     bool addTaskHueEffect(TaskItem &task, QString &effect);
     bool validateHueGradient(const ApiRequest &req, ApiResponse &rsp, QVariantMap &gradient, quint16 styleBitmap);
     bool addTaskHueGradient(TaskItem &task, QVariantMap &gradient);
-    bool addTaskHueManufacturerSpecific(TaskItem &task, HueManufacturerSpecificPayloads &payloadItems, QVariantMap &items);
+    bool addTaskHueManufacturerSpecificSetState(TaskItem &task, HueManufacturerSpecificPayloads &payloadItems, QVariantMap &items);
     int setHueLightState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     bool addTaskPlayHueDynamicScene(TaskItem &task, quint16 groupId, quint8 sceneId, QVariantMap &palette);
 
