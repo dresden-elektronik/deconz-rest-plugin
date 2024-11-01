@@ -1077,6 +1077,7 @@ public:
 
     // REST API hue-scenes
     int handleHueScenesApi(const ApiRequest &req, ApiResponse &rsp);
+    int playHueDynamicScene(const ApiRequest &req, ApiResponse &rsp);
 
     bool groupToMap(const ApiRequest &req, const Group *group, QVariantMap &map);
 
@@ -1459,6 +1460,7 @@ public:
     bool addTaskHueGradient(TaskItem &task, QVariantMap &gradient);
     bool addTaskHueManufacturerSpecific(TaskItem &task, HueManufacturerSpecificPayloads &payloadItems, QVariantMap &items);
     int setHueLightState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
+    bool addTaskPlayHueDynamicScene(TaskItem &task, quint16 groupId, quint8 sceneId, QVariantMap &palette);
 
     // Merry Christmas!
     bool isXmasLightStrip(const LightNode *lightNode);

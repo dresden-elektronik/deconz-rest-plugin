@@ -468,6 +468,74 @@ bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, HueManu
     return addTask(task);
 }
 
+/*! Add a Play Hue Dynamic Scene task to the queue.
+
+   \param task - the task item
+   \param items - the list of items in the payload
+   \return true - on success
+           false - on error
+ */
+bool DeRestPluginPrivate::addTaskPlayHueDynamicScene(TaskItem &task, quint16 groupId, quint8 sceneId, QVariantMap &palette)
+{
+    // FIXME: Update to TaskPlayHueScene
+    task.taskType = TaskHueManufacturerSpecific;
+    task.req.setClusterId(SCENE_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(0x00);
+    task.zclFrame.setManufacturerCode(VENDOR_PHILIPS);
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                                  deCONZ::ZclFCManufacturerSpecific |
+                                  deCONZ::ZclFCDirectionClientToServer |
+                                  deCONZ::ZclFCDisableDefaultResponse);
+
+    { // Payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        // Group and Scene IDs
+        stream << (quint16) groupId;
+        stream << (quint8) sceneId;
+
+        // FIXME: Contents flag
+        //        Palette-only for now
+        //        Missing brightness and transitiontime
+        stream << (quint8) 0x0C;
+
+        QVariantList colors = palette["xy"].toList();
+        QVariantList color;
+
+        const quint8 nColors = colors.length();
+        stream << (quint8) (1 + 3 * (nColors + 1));
+        stream << (quint8) (nColors << 4);
+
+        stream << (quint8) 0x00;
+        stream << (quint8) 0x00;
+        stream << (quint8) 0x00;
+
+        // Palette Colors
+        for (auto &color : colors)
+        {
+            QVariantList xy = color.toList();
+            streamPoint(stream, xy[0].toDouble(), xy[1].toDouble());
+        }
+
+        // FIXME: Speed
+        stream << (quint8) 0xBA;
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
 int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
 {
     bool ok;
