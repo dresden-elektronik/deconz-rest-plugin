@@ -57,11 +57,11 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -93,8 +93,8 @@
         {
           "at": "0x0000",
           "dt": "0x10",
-          "min": 1,
-          "max": 1800
+          "min": 5,
+          "max": 300
         }
       ]
     },
@@ -108,7 +108,7 @@
           "at": "0x0000",
           "dt": "0x20",
           "min": 5,
-          "max": 1800,
+          "max": 300,
           "change": "0x00000001"
         }
       ]
