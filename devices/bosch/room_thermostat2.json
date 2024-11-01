@@ -124,7 +124,7 @@
             "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 3) { Item.val = 'cooling' } else if (Attr.val == 4) { Item.val = 'heating' };",
             "fn": "zcl:attr"
           },
-          "default": "heat"
+          "default": "heating"
         },
         {
           "name": "config/externalwindowopen",
