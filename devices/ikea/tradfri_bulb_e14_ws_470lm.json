@@ -68,19 +68,19 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/colormode",
-          "refresh.interval": 300
+          "refresh.interval": 360
         },
         {
           "name": "state/ct",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -113,7 +113,7 @@
           "at": "0x0000",
           "dt": "0x10",
           "min": 5,
-          "max": 180
+          "max": 300
         }
       ]
     },
@@ -127,7 +127,7 @@
           "at": "0x0000",
           "dt": "0x20",
           "min": 5,
-          "max": 180,
+          "max": 300,
           "change": "0x00000005"
         }
       ]
