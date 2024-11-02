@@ -152,7 +152,13 @@ int DeRestPluginPrivate::playHueDynamicScene(const ApiRequest &req, ApiResponse 
         return REQ_READY_SEND;
     }
 
-    // FIXME: Validate contents of 'map'
+    QList<QString> validatedParameters;
+    if (!validateHueDynamicScenePalette(rsp, scene, map, validatedParameters))
+    {
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
     if (!addTaskHueDynamicSceneRecall(taskRef, group->address(), scene->id, map))
     {
         rsp.httpStatus = HttpStatusServiceUnavailable;
@@ -285,7 +291,6 @@ int DeRestPluginPrivate::modifyHueScene(const ApiRequest &req, ApiResponse &rsp)
     QList<QString> validatedParameters;
     if (!validateHueLightState(rsp, light, map, validatedParameters))
     {
-        // FIXME: Missing addition to 'rsp.list'
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }

@@ -813,6 +813,125 @@ bool DeRestPluginPrivate::validateHueLightState(ApiResponse &rsp, const LightNod
     return !hasErrors;
 }
 
+bool DeRestPluginPrivate::validateHueDynamicScenePalette(ApiResponse &rsp, const Scene *scene, QVariantMap &map, QList<QString> &validatedParameters)
+{
+    bool ok = false;
+    bool hasErrors = false;
+
+    for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
+    {
+        bool paramOk = false;
+        bool valueOk = false;
+        QString param = p.key();
+
+        if (param == "bri")
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const uint bri = map[param].toUInt(&ok);
+                if (ok && bri <= 0xFF)
+                {
+                    // Clamp to 254
+                    valueOk = true;
+                    validatedParameters.append(param);
+                    map["bri"] = bri > 0xFE ? 0xFE : bri;
+                }
+            }
+        }
+        else if (param == "xy")
+        {
+            paramOk = true;
+            ok = true;
+            if (map[param].type() == QVariant::List)
+            {
+                bool check = false;
+                QVariantList colors = map["xy"].toList();
+
+                int i = -1;
+                for (auto &color : colors)
+                {
+                    i++;
+                    if (color.type() != QVariant::List)
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/scenes/%2").arg(QString(scene->groupAddress)).arg(QString(scene->id)), QString("invalid value, %1, for parameter, xy/%2").arg(color.toString()).arg(i)));
+                        ok = false;
+                        continue;
+                    }
+                    QVariantList &xy = *reinterpret_cast<QVariantList *>(color.data()); // Create reference instead of copy
+                    if (xy.length() != 2)
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/scenes/%2").arg(QString(scene->groupAddress)).arg(QString(scene->id)), QString("invalid length, %1, for parameter, gradient/points/%2").arg(xy.length()).arg(i)));
+                        ok = false;
+                        continue;
+                    }
+                    double x = xy[0].toDouble(&check);
+                    if (!check || x < 0 || x > 1)
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/scenes/%2").arg(QString(scene->groupAddress)).arg(QString(scene->id)), QString("invalid value, %1, for parameter, gradient/points/%2/0").arg(xy[0].toString()).arg(i)));
+                        ok = false;
+                    }
+                    if (x > maxX)
+                        xy[0] = maxX; // This is why we needed a reference
+                    double y = xy[1].toDouble(&check);
+                    if (!check || y < 0 || y > 1)
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/scenes/%2").arg(QString(scene->groupAddress)).arg(QString(scene->id)), QString("invalid value, %1, for parameter, gradient/points/%2/1").arg(xy[1].toString()).arg(i)));
+                        ok = false;
+                    }
+                    if (y > maxY)
+                        xy[1] = maxY; // This is why we needed a reference
+                }
+
+                if (ok)
+                {
+                    valueOk = true;
+                    validatedParameters.append(param);
+                }
+            }
+        }
+        else if (param == "transitiontime")
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const uint tt = map[param].toUInt(&ok);
+                if (ok && tt <= 0xFFFF)
+                {
+                    valueOk = true;
+                    validatedParameters.append(param);
+                }
+            }
+        }
+        else if (param == "effect_speed")
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const double es = map[param].toDouble(&ok);
+                if (ok && es >= 0.0 && es <= 1.0)
+                {
+                    valueOk = true;
+                    validatedParameters.append(param);
+                }
+            }
+        }
+
+        if (!paramOk)
+        {
+            hasErrors = true;
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/groups/%1/scenes/%2").arg(QString(scene->groupAddress)).arg(QString(scene->id)), QString("parameter, %1, not available").arg(param)));
+        }
+        else if (!valueOk)
+        {
+            hasErrors = true;
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/scenes/%2").arg(QString(scene->groupAddress)).arg(QString(scene->id)), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
+        }
+    }
+
+    return !hasErrors;
+}
+
 // MARK: - Light State
 
 int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)

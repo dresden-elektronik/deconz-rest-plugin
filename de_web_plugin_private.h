@@ -1444,6 +1444,7 @@ public:
     bool validateHueGradient(const ApiRequest &req, ApiResponse &rsp, QVariantMap &gradient, quint16 styleBitmap);
     bool addTaskHueGradient(TaskItem &task, QVariantMap &gradient);
     bool validateHueLightState(ApiResponse &rsp, const LightNode *lightNode, QVariantMap &map, QList<QString> &validatedParameters);
+    bool validateHueDynamicScenePalette(ApiResponse &rsp, const Scene *scene, QVariantMap &map, QList<QString> &validatedParameters);
     bool addTaskHueManufacturerSpecificSetState(TaskItem &task, const QVariantMap &items);
     bool addTaskHueManufacturerSpecificAddScene(TaskItem &task, const quint16 groupId, const quint8 sceneId, const QVariantMap &items);
     bool addTaskHueDynamicSceneRecall(TaskItem &task, const quint16 groupId, const quint8 sceneId, const QVariantMap &palette);
