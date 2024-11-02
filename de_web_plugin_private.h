@@ -812,22 +812,6 @@ enum TaskType
     TaskHueManufacturerSpecific = 45
 };
 
-// Option set to represent the payload items in a '0xfc03' cluster's '0x00' command.
-enum HueManufacturerSpecificPayload : quint16
-{
-    None = 0x0,                // 0x0000
-    On = 1 << 0,               // 0x0001
-    Brightness = 1 << 1,       // 0x0002
-    ColorTemperature = 1 << 2, // 0x0004
-    Color = 1 << 3,            // 0x0008
-    TransitionTime = 1 << 4,   // 0x0010
-    Effect = 1 << 5,           // 0x0020
-    UNKNOWN = 1 << 6,          // 0x0040
-    EffectDuration = 1 << 7    // 0x0080
-};
-Q_DECLARE_FLAGS(HueManufacturerSpecificPayloads, HueManufacturerSpecificPayload)
-Q_DECLARE_OPERATORS_FOR_FLAGS(HueManufacturerSpecificPayloads)
-
 enum XmasLightStripMode
 {
     ModeWhite = 0,
@@ -1078,6 +1062,7 @@ public:
     // REST API hue-scenes
     int handleHueScenesApi(const ApiRequest &req, ApiResponse &rsp);
     int playHueDynamicScene(const ApiRequest &req, ApiResponse &rsp);
+    int modifyHueScene(const ApiRequest &req, ApiResponse &rsp);
 
     bool groupToMap(const ApiRequest &req, const Group *group, QVariantMap &map);
 
@@ -1458,9 +1443,12 @@ public:
     bool addTaskHueEffect(TaskItem &task, QString &effect);
     bool validateHueGradient(const ApiRequest &req, ApiResponse &rsp, QVariantMap &gradient, quint16 styleBitmap);
     bool addTaskHueGradient(TaskItem &task, QVariantMap &gradient);
-    bool addTaskHueManufacturerSpecificSetState(TaskItem &task, HueManufacturerSpecificPayloads &payloadItems, QVariantMap &items);
+    bool validateHueLightState(ApiResponse &rsp, const LightNode *lightNode, QVariantMap &map, QList<QString> &validatedParameters);
+    bool addTaskHueManufacturerSpecificSetState(TaskItem &task, const QVariantMap &items);
+    bool addTaskHueManufacturerSpecificAddScene(TaskItem &task, const quint16 groupId, const quint8 sceneId, const QVariantMap &items);
+    bool addTaskHueDynamicSceneRecall(TaskItem &task, const quint16 groupId, const quint8 sceneId, const QVariantMap &palette);
     int setHueLightState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
-    bool addTaskPlayHueDynamicScene(TaskItem &task, quint16 groupId, quint8 sceneId, QVariantMap &palette);
+    int setHueSceneLightState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
 
     // Merry Christmas!
     bool isXmasLightStrip(const LightNode *lightNode);
