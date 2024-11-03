@@ -137,7 +137,7 @@
         },
         {
           "name": "state/windowopen",
-          "parse": {"fn": "tuya", "dpid": 17, "eval": "if (Attr.val == 0) { Item.val = 'close' } else { Item.val = 'open' };"},
+          "parse": {"fn": "tuya", "dpid": 17, "eval": "if (Attr.val == 0) { Item.val = 'close' } else { Item.val = 'open' }"},
           "read": {"fn": "none"},
           "default": "close"
         }
