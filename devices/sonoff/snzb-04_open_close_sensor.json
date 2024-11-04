@@ -1,8 +1,8 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "cd25fbd8-9b9b-4051-9c01-1c08a9d65203",
-  "manufacturername": ["eWeLink", "zbeacon"],
-  "modelid": ["DS01", "DS01"],
+  "manufacturername": ["eWeLink", "zbeacon", "eWeLink", "eWeLink"],
+  "modelid": ["DS01", "DS01", "SNZB-04P", "SNZB-04"],
   "vendor": "eWeLink",
   "product": "Open/close sensor (DS01)",
   "sleeper": true,
@@ -108,7 +108,7 @@
           "at": "0x0021",
           "dt": "0x20",
           "min": 3600,
-          "max": 43200,
+          "max": 7200,
           "change": "0x00000002"
         }
       ]
