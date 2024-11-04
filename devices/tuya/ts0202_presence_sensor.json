@@ -1,6 +1,6 @@
 {
-  "schema":"devcap1.schema.json",
-  "uuid":"13e89e44-1f42-4e5d-8d29-995d394451ac",
+  "schema": "devcap1.schema.json",
+  "uuid": "13e89e44-1f42-4e5d-8d29-995d394451ac",
   "manufacturername": [
     "_TYZB01_tv3wxhcz",
     "_TYZB01_hqbdru35",
@@ -28,7 +28,7 @@
     "_TZ3040_bb6xaihh",
     "_TZ3000_lf56vpxj"
   ],
-  "modelid":[
+  "modelid": [
     "TS0202",
     "TS0202",
     "TS0202",
@@ -56,14 +56,14 @@
     "TS0202"
   ],
   "vendor": "Tuya",
-  "product":"Presence sensor (TS0202)",
-  "sleeper":true,
-  "status":"Gold",
-  "subdevices":[
+  "product": "Presence sensor (TS0202)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
     {
-      "type":"$TYPE_PRESENCE_SENSOR",
-      "restapi":"/sensors",
-      "uuid":[
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
         "$address.ext",
         "0x01",
         "0x0500"
@@ -78,24 +78,24 @@
           "0x0500"
         ]
       },
-      "items":[
+      "items": [
         {
-          "name":"attr/id"
+          "name": "attr/id"
         },
         {
-          "name":"attr/lastannounced"
+          "name": "attr/lastannounced"
         },
         {
-          "name":"attr/lastseen"
+          "name": "attr/lastseen"
         },
         {
-          "name":"attr/manufacturername"
+          "name": "attr/manufacturername"
         },
         {
-          "name":"attr/modelid"
+          "name": "attr/modelid"
         },
         {
-          "name":"attr/name"
+          "name": "attr/name"
         },
         {
           "name": "attr/swversion",                   
@@ -103,78 +103,78 @@
           "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
         },
         {
-          "name":"attr/type"
+          "name": "attr/type"
         },
         {
-          "name":"attr/uniqueid"
+          "name": "attr/uniqueid"
         },
         {
-          "name":"config/battery",
+          "name": "config/battery",
           "refresh.interval": 86400,
-          "read":{
-            "at":"0x0021",
-            "cl":"0x0001",
-            "ep":1,
-            "fn":"zcl:attr"
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
           },
-          "parse":{
-            "at":"0x0021",
-            "cl":"0x0001",
-            "ep":1,
-            "eval":"Item.val = Attr.val/2"
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val/2"
           },
-          "default":0
+          "default": 0
         },
         {
-          "name":"config/duration"
+          "name": "config/duration"
         },
         {
-          "name":"config/enrolled",
-          "public":false
+          "name": "config/enrolled",
+          "public": false
         },
         {
-          "name":"config/on"
+          "name": "config/on"
         },
         {
-          "name":"config/pending"
+          "name": "config/pending"
         },
         {
-          "name":"config/reachable"
+          "name": "config/reachable"
         },
         {
-          "name":"state/lastupdated"
+          "name": "state/lastupdated"
         },
         {
-          "name":"state/lowbattery"
+          "name": "state/lowbattery"
         },
         {
-          "name":"state/presence",
-          "awake":true,
-          "parse":{
-            "fn":"ias:zonestatus",
-            "mask":"alarm1"
+          "name": "state/presence",
+          "awake": true,
+          "parse": {
+            "fn": "ias:zonestatus",
+            "mask": "alarm1"
           }
         }
       ]
     }
   ],
-  "bindings":[
+  "bindings": [
     {
-      "bind":"unicast",
-      "src.ep":1,
-      "cl":"0x0500"
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500"
     },
     {
-      "bind":"unicast",
-      "src.ep":1,
-      "cl":"0x0001",
-      "report":[
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
         {
-          "at":"0x0021",
-          "dt":"0x20",
-          "min":3600,
-          "max":14400,
-          "change":"0x00000001"
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 3600,
+          "max": 14400,
+          "change": "0x00000001"
         }
       ]
     }

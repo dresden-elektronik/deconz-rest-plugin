@@ -1,150 +1,150 @@
 {
-  "schema":"devcap1.schema.json",
-  "uuid":"cb65ebbd-876d-4f46-9167-3a6cb183ede4",
+  "schema": "devcap1.schema.json",
+  "uuid": "cb65ebbd-876d-4f46-9167-3a6cb183ede4",
   "manufacturername": ["Develco Products A/S", "frient A/S"],
   "modelid": ["KEPZB-110", "KEPZB-110"],
   "vendor": "Frient",
   "product": "Wireless keypad (KEPZB-110)",
-  "sleeper":false,
-  "status":"Bronze",
-  "subdevices":[
+  "sleeper": false,
+  "status": "Bronze",
+  "subdevices": [
     {
-      "type":"$TYPE_ANCILLARY_CONTROL",
-      "restapi":"/sensors",
-      "uuid":[
+      "type": "$TYPE_ANCILLARY_CONTROL",
+      "restapi": "/sensors",
+      "uuid": [
         "$address.ext",
         "0x2c",
         "0x0501"
       ],
-      "fingerprint":{
-        "profile":"0x0104",
-        "device":"0x0401",
-        "endpoint":"0x2C",
-        "in":[
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0401",
+        "endpoint": "0x2C",
+        "in": [
           "0x0000",
           "0x0001",
           "0x0500"
         ],
-        "out":[
+        "out": [
           "0x0501"
         ]
       },
-      "items":[
+      "items": [
         {
-          "name":"attr/id"
+          "name": "attr/id"
         },
         {
-          "name":"attr/lastannounced"
+          "name": "attr/lastannounced"
         },
         {
-          "name":"attr/lastseen"
+          "name": "attr/lastseen"
         },
         {
-          "name":"attr/manufacturername"
+          "name": "attr/manufacturername"
         },
         {
-          "name":"attr/modelid"
+          "name": "attr/modelid"
         },
         {
-          "name":"attr/name"
+          "name": "attr/name"
         },
         {
-          "name":"attr/swversion"
+          "name": "attr/swversion"
         },
         {
-          "name":"attr/type"
+          "name": "attr/type"
         },
         {
-          "name":"attr/uniqueid"
+          "name": "attr/uniqueid"
         },
         {
-          "name":"config/battery"
+          "name": "config/battery"
         },
         {
-          "name":"config/enrolled",
-          "public":false
+          "name": "config/enrolled",
+          "public": false
         },
         {
-          "name":"config/on"
+          "name": "config/on"
         },
         {
-          "name":"config/pending"
+          "name": "config/pending"
         },
         {
-          "name":"config/reachable"
+          "name": "config/reachable"
         },
         {
-          "name":"state/action",
-          "public":true
+          "name": "state/action",
+          "public": true
         },
         {
-          "name":"state/lastupdated"
+          "name": "state/lastupdated"
         },
         {
-          "name":"state/lowbattery"
+          "name": "state/lowbattery"
         },
         {
           "name": "state/seconds_remaining"
         },
         {
-          "name":"state/panel",
-          "default":"exit_delay"
+          "name": "state/panel",
+          "default": "exit_delay"
         },
         {
-          "name":"state/tampered"
+          "name": "state/tampered"
         }
       ]
     },
     {
-      "type":"$TYPE_PRESENCE_SENSOR",
-      "restapi":"/sensors",
-      "uuid":[
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
         "$address.ext",
         "0x01",
         "0x0406"
       ],
-      "items":[
+      "items": [
         {
-          "name":"attr/id"
+          "name": "attr/id"
         },
         {
-          "name":"attr/lastannounced"
+          "name": "attr/lastannounced"
         },
         {
-          "name":"attr/lastseen"
+          "name": "attr/lastseen"
         },
         {
-          "name":"attr/manufacturername"
+          "name": "attr/manufacturername"
         },
         {
-          "name":"attr/modelid"
+          "name": "attr/modelid"
         },
         {
-          "name":"attr/name"
+          "name": "attr/name"
         },
         {
-          "name":"attr/swversion"
+          "name": "attr/swversion"
         },
         {
-          "name":"attr/type"
+          "name": "attr/type"
         },
         {
-          "name":"attr/uniqueid"
+          "name": "attr/uniqueid"
         },
         {
-          "name":"config/duration"
+          "name": "config/duration"
         },
         {
-          "name":"config/on"
+          "name": "config/on"
         },
         {
-          "name":"config/reachable"
+          "name": "config/reachable"
         },
         {
-          "name":"state/lastupdated"
+          "name": "state/lastupdated"
         },
         {
-          "name":"state/presence"
+          "name": "state/presence"
         }
       ]
     }
