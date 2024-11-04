@@ -56,7 +56,7 @@
         }
       ]
     },
-   {
+    {
       "type": "$TYPE_BATTERY_SENSOR",
       "restapi": "/sensors",
       "uuid": [

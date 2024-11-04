@@ -55,7 +55,7 @@
           "name": "attr/uniqueid"
         },
         {
-           "name":"state/tampered"
+          "name":"state/tampered"
         },
         {
           "name": "config/checkin"

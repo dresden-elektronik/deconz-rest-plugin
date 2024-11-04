@@ -61,7 +61,7 @@
         },
         {
           "name": "config/mode",
-         "default": "off"
+          "default": "off"
         },
         {
           "name": "config/offset",
@@ -232,13 +232,13 @@
       ]
     }
   ],
-    "bindings": [
+  "bindings": [
     {
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
       "cl": "0x0201",
-     "report": [
+      "report": [
         {
           "at": "0x0000",
           "dt": "0x29",
