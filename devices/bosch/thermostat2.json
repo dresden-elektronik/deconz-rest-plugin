@@ -29,7 +29,11 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"auto": 0, "heat": 1, "off": 5}
+          "config/mode": {
+            "auto": 0,
+            "heat": 1,
+            "off": 5
+          }
         }
       },
       "items": [
