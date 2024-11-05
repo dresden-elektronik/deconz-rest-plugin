@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "330ac513-ca70-4a25-8a28-9ae251e7107e",
-  "manufacturername": ["dresden elektronik", "dresden elektronik"],
-  "modelid": ["FLS-PP3", "FLS-PP3 White"],
+  "manufacturername": [
+    "dresden elektronik",
+    "dresden elektronik"
+  ],
+  "modelid": [
+    "FLS-PP3",
+    "FLS-PP3 White"
+  ],
   "vendor": "dresden elektronik",
   "product": "Wireless electronic ballast power-PWM (FLS-PP)",
   "sleeper": false,
@@ -31,7 +37,13 @@
         {
           "name": "attr/modelid",
           "static": "FLS-PP3",
-          "parse": {"fn": "zcl:attr", "ep": 10, "cl": "0x0000", "at": "0x0005", "eval": "Item.val = Attr.val"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 10,
+            "cl": "0x0000",
+            "at": "0x0005",
+            "eval": "Item.val = Attr.val"
+          }
         },
         {
           "name": "attr/name"
@@ -160,7 +172,13 @@
         {
           "name": "attr/modelid",
           "static": "FLS-PP3 White",
-          "parse": {"fn": "zcl:attr", "ep": 11, "cl": "0x0000", "at": "0x0005", "eval": "Item.val = Attr.val"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 11,
+            "cl": "0x0000",
+            "at": "0x0005",
+            "eval": "Item.val = Attr.val"
+          }
         },
         {
           "name": "attr/name"

@@ -92,7 +92,11 @@
           "button": 6
         }
       },
-      "meta": {"group.endpoints": [1] },
+      "meta": {
+        "group.endpoints": [
+          1
+        ]
+      },
       "items": [
         {
           "name": "attr/id"
