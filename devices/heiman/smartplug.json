@@ -1,311 +1,311 @@
 {
-    "schema": "devcap1.schema.json",
-    "uuid": "14938c50-2781-41e4-80a4-d38b3a996ca1",
-    "manufacturername": "Heiman",
-    "modelid": "SmartPlug",
-    "vendor": "Heiman",
-    "product": "Metering Plug (HS2SK)",
-    "sleeper": false,
-    "status": "Gold",
-    "subdevices": [
+  "schema": "devcap1.schema.json",
+  "uuid": "14938c50-2781-41e4-80a4-d38b3a996ca1",
+  "manufacturername": "Heiman",
+  "modelid": "SmartPlug",
+  "vendor": "Heiman",
+  "product": "Metering Plug (HS2SK)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SMART_PLUG",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
         {
-            "type": "$TYPE_SMART_PLUG",
-            "restapi": "/lights",
-            "uuid": [
-                "$address.ext",
-                "0x01"
-            ],
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion",
-                    "parse": {
-                        "fn": "zcl:attr",
-                        "ep": "0x01",
-                        "cl": "0x0000",
-                        "at": "0x0006",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "fn": "zcl:attr",
-                        "ep": "0x01",
-                        "cl": "0x0000",
-                        "at": "0x0006"
-                    },
-                    "refresh.interval": 86400
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "state/alert"
-                },
-                {
-                    "name": "state/on",
-                    "refresh.interval": 360
-                },
-                {
-                    "name": "state/reachable"
-                }
-            ]
+          "name": "attr/id"
         },
         {
-            "type": "$TYPE_CONSUMPTION_SENSOR",
-            "restapi": "/sensors",
-            "uuid": [
-                "$address.ext",
-                "0x01",
-                "0x0702"
-            ],
-            "fingerprint": {
-                "profile": "0x0104",
-                "device": "0x0051",
-                "endpoint": "0x01",
-                "in": [
-                    "0x0000",
-                    "0x0006",
-                    "0x0702"
-                ],
-                "out": [
-                    "0x0019"
-                ]
-            },
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion",
-                    "parse": {
-                        "fn": "zcl:attr",
-                        "ep": "0x01",
-                        "cl": "0x0000",
-                        "at": "0x0006",
-                        "eval": "Item.val = Attr.val"
-                    }
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/consumption",
-                    "description": "The measured consumption (in Wh).",
-                    "parse": {
-                        "fn": "zcl:attr",
-                        "ep": "0x01",
-                        "cl": "0x0702",
-                        "at": "0x0000",
-                        "eval": "Item.val = Math.round(Attr.val / 10)"
-                    },
-                    "refresh.interval": 360,
-                    "default": 0
-                },
-                {
-                    "name": "state/lastupdated"
-                }
-            ]
+          "name": "attr/lastannounced"
         },
         {
-            "type": "$TYPE_POWER_SENSOR",
-            "restapi": "/sensors",
-            "uuid": [
-                "$address.ext",
-                "0x01",
-                "0x0b04"
-            ],
-            "fingerprint": {
-                "profile": "0x0104",
-                "device": "0x0051",
-                "endpoint": "0x01",
-                "in": [
-                    "0x0B04"
-                ]
-            },
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion",
-                    "parse": {
-                        "fn": "zcl:attr",
-                        "ep": "0x01",
-                        "cl": "0x0000",
-                        "at": "0x0006",
-                        "eval": "Item.val = Attr.val"
-                    }
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/current",
-                    "description": "The measured current (in mA).",
-                    "parse": {
-                        "fn": "zcl:attr",
-                        "ep": "0x01",
-                        "cl": "0x0B04",
-                        "at": "0x0508",
-                        "eval": "Item.val = Attr.val * 10"
-                    },
-                    "refresh.interval": 360,
-                    "default": 0
-                },
-                {
-                    "name": "state/lastupdated"
-                },
-                {
-                    "name": "state/power",
-                    "description": "The measured power (in W).",
-                    "parse": {
-                        "fn": "zcl:attr",
-                        "ep": "0x01",
-                        "cl": "0x0B04",
-                        "at": "0x050B",
-                        "eval": "Item.val = Math.round(Attr.val / 10)"
-                    },
-                    "refresh.interval": 360,
-                    "default": 0
-                },
-                {
-                    "name": "state/voltage",
-                    "description": "The measured voltage (in V).",
-                    "parse": {
-                        "fn": "zcl:attr",
-                        "ep": "0x01",
-                        "cl": "0x0B04",
-                        "at": "0x0505",
-                        "eval": "Item.val = Math.round(Attr.val / 100)"
-                    },
-                    "refresh.interval": 360,
-                    "default": 0
-                }
-            ]
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0006",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0006"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/reachable"
         }
-    ],
-    "bindings": [
+      ]
+    },
+    {
+      "type": "$TYPE_CONSUMPTION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0702"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0051",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0006",
+          "0x0702"
+        ],
+        "out": [
+          "0x0019"
+        ]
+      },
+      "items": [
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0006",
-            "report": [
-                {
-                    "at": "0x0000",
-                    "dt": "0x10",
-                    "min": 1,
-                    "max": 300
-                }
-            ]
+          "name": "attr/id"
         },
         {
-            "bind": "unicast",
-            "src.ep": 1,
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0006",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/consumption",
+          "description": "The measured consumption (in Wh).",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
             "cl": "0x0702",
-            "report": [
-                {
-                    "at": "0x0000",
-                    "dt": "0x25",
-                    "min": 1,
-                    "max": 300,
-                    "change": "0x0A"
-                }
-            ]
+            "at": "0x0000",
+            "eval": "Item.val = Math.round(Attr.val / 10)"
+          },
+          "refresh.interval": 360,
+          "default": 0
         },
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0B04",
-            "report": [
-                {
-                    "at": "0x0505",
-                    "dt": "0x21",
-                    "min": 1,
-                    "max": 300,
-                    "change": "0x64"
-                },
-                {
-                    "at": "0x0508",
-                    "dt": "0x21",
-                    "min": 1,
-                    "max": 300,
-                    "change": "0x01"
-                },
-                {
-                    "at": "0x050B",
-                    "dt": "0x29",
-                    "min": 1,
-                    "max": 300,
-                    "change": "0x0A"
-                }
-            ]
+          "name": "state/lastupdated"
         }
-    ]
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0b04"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0051",
+        "endpoint": "0x01",
+        "in": [
+          "0x0B04"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0006",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/current",
+          "description": "The measured current (in mA).",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0B04",
+            "at": "0x0508",
+            "eval": "Item.val = Attr.val * 10"
+          },
+          "refresh.interval": 360,
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "description": "The measured power (in W).",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0B04",
+            "at": "0x050B",
+            "eval": "Item.val = Math.round(Attr.val / 10)"
+          },
+          "refresh.interval": 360,
+          "default": 0
+        },
+        {
+          "name": "state/voltage",
+          "description": "The measured voltage (in V).",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0B04",
+            "at": "0x0505",
+            "eval": "Item.val = Math.round(Attr.val / 100)"
+          },
+          "refresh.interval": 360,
+          "default": 0
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0702",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x25",
+          "min": 1,
+          "max": 300,
+          "change": "0x0A"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0B04",
+      "report": [
+        {
+          "at": "0x0505",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x64"
+        },
+        {
+          "at": "0x0508",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x01"
+        },
+        {
+          "at": "0x050B",
+          "dt": "0x29",
+          "min": 1,
+          "max": 300,
+          "change": "0x0A"
+        }
+      ]
+    }
+  ]
 }
