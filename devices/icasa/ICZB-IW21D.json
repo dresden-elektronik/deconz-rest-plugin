@@ -148,14 +148,14 @@
         },
         {
           "name": "state/consumption",
-	  "description": "Electrical consumption (in Wh).",
-	  "parse": {
+          "description": "Electrical consumption (in Wh).",
+          "parse": {
             "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0702",
             "at": "0x0000",
-	    "eval": "Item.val = Math.round(Attr.val / 3600)"
-	  },
+            "eval": "Item.val = Math.round(Attr.val / 3600)"
+          },
           "refresh.interval": 360,
           "default": 0
         },
@@ -208,7 +208,7 @@
         },
         {
           "name": "state/current",
-	  "description": "Electrical current (in mA).",
+          "description": "Electrical current (in mA).",
           "read": {
             "fn": "zcl:attr",
             "ep": "0x01",
@@ -226,28 +226,28 @@
         },
         {
           "name": "state/power",
-	  "description": "Electrical power (in W).",
-	  "parse": {
+          "description": "Electrical power (in W).",
+          "parse": {
             "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0B04",
             "at": "0x050B",
-	    "eval": "if (Attr.val !== -32768) { Item.val = Math.round(Attr.val / 10) }"
-	  },
+            "eval": "if (Attr.val !== -32768) { Item.val = Math.round(Attr.val / 10) }"
+          },
           "read": {
             "fn": "none"
           }
         },
         {
           "name": "state/voltage",
-	  "description": "Voltage (in V).",
-	  "parse": {
+          "description": "Voltage (in V).",
+          "parse": {
             "fn": "zcl:attr",
             "ep": "0x01",
             "cl": "0x0B04",
             "at": "0x0505",
-	    "eval": "if (Attr.val !== 65536) { Item.val = Math.round(Attr.val / 10) }"
-	  },
+            "eval": "if (Attr.val !== 65536) { Item.val = Math.round(Attr.val / 10) }"
+          },
           "read": {
             "fn": "none"
           }
@@ -313,14 +313,14 @@
           "max": 300,
           "change": "0x000A"
         },
-	{
+        {
           "at": "0x0508",
           "dt": "0x21",
           "min": 1,
           "max": 300,
           "change": "0x0064"
         },
-	{
+        {
           "at": "0x050B",
           "dt": "0x29",
           "min": 1,

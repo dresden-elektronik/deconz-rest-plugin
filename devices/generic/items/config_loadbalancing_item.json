@@ -1,9 +1,9 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/loadbalancing",
-	"datatype": "Bool",
-	"access": "RW",
-	"public": true,
-	"description": "Thermostat runs stand alone (false) or shares load with others in the same room (true).",
-	"default": false
+  "schema": "resourceitem1.schema.json",
+  "id": "config/loadbalancing",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "description": "Thermostat runs stand alone (false) or shares load with others in the same room (true).",
+  "default": false
 }
