@@ -1,8 +1,22 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "01f14344-531a-4b8a-831c-7dbdb134f755",
-  "manufacturername": ["Onesti Products AS", "Onesti Products AS", "Onesti Products AS", "Onesti Products AS", "Onesti Products AS", "Onesti Products AS"],
-  "modelid": ["EasyFingerTouch", "EasyCodeTouch", "NimlyPRO", "NimlyCode", "NimlyTouch", "NimlyIn"],
+  "manufacturername": [
+    "Onesti Products AS",
+    "Onesti Products AS",
+    "Onesti Products AS",
+    "Onesti Products AS",
+    "Onesti Products AS",
+    "Onesti Products AS"
+  ],
+  "modelid": [
+    "EasyFingerTouch",
+    "EasyCodeTouch",
+    "NimlyPRO",
+    "NimlyCode",
+    "NimlyTouch",
+    "NimlyIn"
+  ],
   "vendor": "Onesti",
   "product": "Keypad doorlock (Various models)",
   "sleeper": false,
