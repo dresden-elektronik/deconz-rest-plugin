@@ -267,7 +267,7 @@
           "values": [
             ["\"disabled\"", "Device is not configured"],
             ["\"shutter\"", "Device controls a shutter"],
-            ["\"light\"", "Device controls lights"] 
+            ["\"light\"", "Device controls lights"]
           ],
           "default": "disabled"
         },

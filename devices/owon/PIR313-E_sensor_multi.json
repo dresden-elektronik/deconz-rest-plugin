@@ -59,7 +59,7 @@
         },
         {
           "name": "config/duration",
-          "default": 120	
+          "default": 120
         },
         {
           "name": "config/on"

@@ -248,8 +248,8 @@
           "name": "state/power",
           "refresh.interval": 360,
           "read": {
-            "at": "0x0400", 
-            "cl": "0x0702", 
+            "at": "0x0400",
+            "cl": "0x0702",
             "ep": 2,
             "fn": "zcl:attr"
           },
