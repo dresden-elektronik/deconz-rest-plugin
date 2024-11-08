@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "9f506d1d-a34c-4788-9a36-75b6d0b4643c",
-  "manufacturername": ["_TZ3000_ywagc4rj","_TZ3000_itnrsufe"],
-  "modelid": ["TS0201","TS0201"],
+  "manufacturername": [
+    "_TZ3000_ywagc4rj",
+    "_TZ3000_itnrsufe"
+  ],
+  "modelid": [
+    "TS0201",
+    "TS0201"
+  ],
   "vendor": "Moes",
   "product": "Temperature and humidity sensor (TS0201)",
   "sleeper": true,
