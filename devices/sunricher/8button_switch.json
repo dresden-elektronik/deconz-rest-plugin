@@ -32,7 +32,11 @@
     {
       "type": "$TYPE_SWITCH",
       "restapi": "/sensors",
-      "uuid": ["$address.ext", "0x01", "0x0006"],
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0006"
+      ],
       "fingerprint": {
         "profile": "0x0104",
         "device": "0x0001",
@@ -48,7 +52,14 @@
           "0x0008"
         ]
       },
-      "meta": {"group.endpoints": [1, 2, 3, 4] },
+      "meta": {
+        "group.endpoints": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
       "items": [
         {
           "name": "attr/id"
@@ -79,8 +90,18 @@
         },
         {
           "name": "config/battery",
-          "parse": {"at": "0x0021", "cl": "0x0001", "ep": 1, "eval": "Item.val = Attr.val"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021"},
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
           "refresh.interval": 4000,
           "awake": true
         },
