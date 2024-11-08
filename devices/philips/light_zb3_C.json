@@ -71,6 +71,7 @@
     "LCL003",
     "LCL006",
     "LCU001",
+    "LCV001",
     "1746447P7",
     "4080248P9",
     "5063130P7",
@@ -100,6 +101,7 @@
     "LCL003",
     "LCL006",
     "LCU001",
+    "LCV001",
     "1746447P7",
     "4080248P9",
     "5063130P7",
@@ -180,6 +182,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productid"
