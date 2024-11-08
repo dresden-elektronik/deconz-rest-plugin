@@ -191,7 +191,7 @@
         "0x19",
         "0x0405"
       ],
-       "fingerprint": {
+      "fingerprint": {
         "profile": "0x0104",
         "device": "0x0301",
         "endpoint": "0x19",

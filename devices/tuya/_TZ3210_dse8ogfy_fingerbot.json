@@ -56,7 +56,7 @@
         }
       ]
     },
-   {
+    {
       "type": "$TYPE_BATTERY_SENSOR",
       "restapi": "/sensors",
       "uuid": [
@@ -107,22 +107,22 @@
           "default": 0
         },
         {
-          "name":"config/delay",
-          "read":{
-            "fn":"none"
+          "name": "config/delay",
+          "read": {
+            "fn": "none"
           },
-          "write":{
-            "dpid":103,
-            "dt":"0x2b",
-            "eval":"Item.val;",
-            "fn":"tuya"
+          "write": {
+            "dpid": 103,
+            "dt": "0x2b",
+            "eval": "Item.val;",
+            "fn": "tuya"
           },
-          "parse":{
-            "dpid":103,
-            "eval":"Item.val = Attr.val;",
-            "fn":"tuya"
+          "parse": {
+            "dpid": 103,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
           },
-          "default":1
+          "default": 1
         },
         {
           "name": "state/lastupdated"

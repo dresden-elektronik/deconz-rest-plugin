@@ -96,112 +96,112 @@
         }
       ]
     },
-      {
-         "type":"$TYPE_TEMPERATURE_SENSOR",
-         "restapi":"/sensors",
-         "uuid":[
-            "$address.ext",
-            "0x02",
-            "0x0402"
-         ],
-         "items":[
-            {
-               "name":"attr/id"
-            },
-            {
-               "name":"attr/lastannounced"
-            },
-            {
-               "name":"attr/lastseen"
-            },
-            {
-               "name":"attr/manufacturername"
-            },
-            {
-               "name":"attr/modelid"
-            },
-            {
-               "name":"attr/name"
-            },
-            {
-               "name":"attr/swversion"
-            },
-            {
-               "name":"attr/type"
-            },
-            {
-               "name":"attr/uniqueid"
-            },
-            {
-               "name":"config/offset"
-            },
-            {
-               "name":"config/on"
-            },
-            {
-               "name":"config/reachable"
-            },
-            {
-               "name":"state/lastupdated"
-            },
-            {
-               "name":"state/temperature"
-            }
-         ]
-      },
-      {
-         "type":"$TYPE_TEMPERATURE_SENSOR",
-         "restapi":"/sensors",
-         "uuid":[
-            "$address.ext",
-            "0x03",
-            "0x0402"
-         ],
-         "items":[
-            {
-               "name":"attr/id"
-            },
-            {
-               "name":"attr/lastannounced"
-            },
-            {
-               "name":"attr/lastseen"
-            },
-            {
-               "name":"attr/manufacturername"
-            },
-            {
-               "name":"attr/modelid"
-            },
-            {
-               "name":"attr/name"
-            },
-            {
-               "name":"attr/swversion"
-            },
-            {
-               "name":"attr/type"
-            },
-            {
-               "name":"attr/uniqueid"
-            },
-            {
-               "name":"config/offset"
-            },
-            {
-               "name":"config/on"
-            },
-            {
-               "name":"config/reachable"
-            },
-            {
-               "name":"state/lastupdated"
-            },
-            {
-               "name":"state/temperature"
-            }
-         ]
-      },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x02",
+        "0x0402"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/offset"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x03",
+        "0x0402"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/offset"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature"
+        }
+      ]
+    },
     {
       "type": "$TYPE_CONSUMPTION_SENSOR",
       "restapi": "/sensors",
@@ -264,7 +264,7 @@
     }
   ],
   "bindings": [
-      {
+    {
       "bind": "unicast",
       "src.ep": 1,
       "cl": "0x0201",
@@ -349,4 +349,3 @@
     }
   ]
 }
-

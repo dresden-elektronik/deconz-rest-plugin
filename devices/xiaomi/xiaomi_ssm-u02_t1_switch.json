@@ -148,7 +148,7 @@
           },
           "values": [
             ["\"momentary\"", "Momentary mode"],
-            ["\"rocker\"", "Rocker mode"] 
+            ["\"rocker\"", "Rocker mode"]
           ],
           "default": "rocker"
         },
@@ -181,7 +181,7 @@
           },
           "values": [
             ["\"compatibility\"", "Default mode for Xiaomi devices"],
-            ["\"zigbee\"", "Closer to zigbee standard"] 
+            ["\"zigbee\"", "Closer to zigbee standard"]
           ],
           "default": "compatibility"
         },

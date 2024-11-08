@@ -44,7 +44,7 @@
         {
           "name": "attr/uniqueid"
         },
-		{
+        {
           "name": "config/battery",
           "read": {
             "at": "0x0021",
@@ -114,7 +114,7 @@
         {
           "name": "attr/uniqueid"
         },
-	    {
+        {
           "name": "config/battery",
           "read": {
             "at": "0x0021",

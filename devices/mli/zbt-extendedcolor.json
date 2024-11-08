@@ -101,7 +101,7 @@
           "name": "config/on/startup"
         },
         {
-         "name": "state/alert"
+          "name": "state/alert"
         },
         {
           "name": "state/on",
@@ -116,9 +116,9 @@
           "values": [
             ["\"ct\"", "color temperature"],
             ["\"effect\"", "dynamic effect"],
-        		["\"hs\"", "hue and saturation"],
-        		["\"xy\"", "CIE xy color space coordinates"]
-        	],
+            ["\"hs\"", "hue and saturation"],
+            ["\"xy\"", "CIE xy color space coordinates"]
+          ],
           "parse": {
             "fn": "zcl:attr", "ep": "0x01", "cl": "0x0300", "at": "0x4001",
             "eval": "if (Item.val !== 'effect') Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"

@@ -1,134 +1,134 @@
 {
-  "schema":"devcap1.schema.json",
-  "uuid":"417af879-4d80-4816-ba08-b1b74aeead77",
-  "manufacturername":"3A Smart Home DE",
-  "modelid":"LXN59-2S7LX1.0",
+  "schema": "devcap1.schema.json",
+  "uuid": "417af879-4d80-4816-ba08-b1b74aeead77",
+  "manufacturername": "3A Smart Home DE",
+  "modelid": "LXN59-2S7LX1.0",
   "vendor": "Zemismart",
-  "product":"2 gang inline switch (ZW-EU-02)",
-  "sleeper":false,
-  "status":"Gold",
-  "subdevices":[
+  "product": "2 gang inline switch (ZW-EU-02)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
     {
-      "type":"$TYPE_ON_OFF_LIGHT",
-      "restapi":"/lights",
-      "uuid":[
+      "type": "$TYPE_ON_OFF_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
         "$address.ext",
         "0x01"
       ],
-      "items":[
+      "items": [
         {
-          "name":"attr/id"
+          "name": "attr/id"
         },
         {
-          "name":"attr/lastannounced"
+          "name": "attr/lastannounced"
         },
         {
-          "name":"attr/lastseen"
+          "name": "attr/lastseen"
         },
         {
-          "name":"attr/manufacturername"
+          "name": "attr/manufacturername"
         },
         {
-          "name":"attr/modelid"
+          "name": "attr/modelid"
         },
         {
-          "name":"attr/name"
+          "name": "attr/name"
         },
         {
-          "name":"attr/swversion"
+          "name": "attr/swversion"
         },
         {
-          "name":"attr/type"
+          "name": "attr/type"
         },
         {
-          "name":"attr/uniqueid"
+          "name": "attr/uniqueid"
         },
         {
-          "name":"state/alert",
-          "default":"none"
+          "name": "state/alert",
+          "default": "none"
         },
         {
-          "name":"state/on"
+          "name": "state/on"
         },
         {
-          "name":"state/reachable"
+          "name": "state/reachable"
         }
       ]
     },
     {
-      "type":"$TYPE_ON_OFF_LIGHT",
-      "restapi":"/lights",
-      "uuid":[
+      "type": "$TYPE_ON_OFF_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
         "$address.ext",
         "0x02"
       ],
-      "items":[
+      "items": [
         {
-          "name":"attr/id"
+          "name": "attr/id"
         },
         {
-          "name":"attr/lastannounced"
+          "name": "attr/lastannounced"
         },
         {
-          "name":"attr/lastseen"
+          "name": "attr/lastseen"
         },
         {
-          "name":"attr/manufacturername"
+          "name": "attr/manufacturername"
         },
         {
-          "name":"attr/modelid"
+          "name": "attr/modelid"
         },
         {
-          "name":"attr/name"
+          "name": "attr/name"
         },
         {
-          "name":"attr/swversion"
+          "name": "attr/swversion"
         },
         {
-          "name":"attr/type"
+          "name": "attr/type"
         },
         {
-          "name":"attr/uniqueid"
+          "name": "attr/uniqueid"
         },
         {
-          "name":"state/alert",
-          "default":"none"
+          "name": "state/alert",
+          "default": "none"
         },
         {
-          "name":"state/on"
+          "name": "state/on"
         },
         {
-          "name":"state/reachable"
+          "name": "state/reachable"
         }
       ]
     }
   ],
-  "bindings":[
+  "bindings": [
     {
-      "bind":"unicast",
-      "src.ep":1,
-      "dst.ep":1,
-      "cl":"0x0006",
-      "report":[
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
         {
-          "at":"0x0000",
-          "dt":"0x10",
-          "min":5,
-          "max":300
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 5,
+          "max": 300
         }
       ]
     },
     {
-      "bind":"unicast",
-      "src.ep":2,
-      "dst.ep":1,
-      "cl":"0x0006",
-      "report":[
+      "bind": "unicast",
+      "src.ep": 2,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
         {
-          "at":"0x0000",
-          "dt":"0x10",
-          "min":5,
-          "max":300
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 5,
+          "max": 300
         }
       ]
     }
