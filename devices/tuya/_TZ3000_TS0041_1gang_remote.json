@@ -62,7 +62,7 @@
             "eval": "Item.val = Attr.val / 2"
           },
           "default": 0
-        },        
+        },
         {
           "name": "config/on"
         },

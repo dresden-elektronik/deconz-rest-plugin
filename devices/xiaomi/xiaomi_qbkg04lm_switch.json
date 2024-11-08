@@ -127,7 +127,7 @@
           },
           "values": [
             ["\"decoupled\"", "Decoupled Mode"],
-            ["\"coupled\"", "Coupled Mode"] 
+            ["\"coupled\"", "Coupled Mode"]
           ],
           "default": "coupled"
         },

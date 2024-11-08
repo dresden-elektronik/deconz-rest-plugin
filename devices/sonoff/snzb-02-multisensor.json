@@ -205,40 +205,40 @@
       ]
     }
   ],
-	"bindings": [{
-		"bind": "unicast",
-		"src.ep": 1,
-		"dst.ep": 1,
-		"cl": "0x0001",
-		"report": [{
-			"at": "0x0021",
-			"dt": "0x20",
-			"min": 3600,
-			"max": 7200,
-			"change": "0x00000002"
-		}]
-	}, {
-		"bind": "unicast",
-		"src.ep": 1,
-		"dst.ep": 1,
-		"cl": "0x0405",
-		"report": [{
-			"at": "0x0000",
-			"dt": "0x21",
-			"min": 60,
-			"max": 600,
-			"change": "0x00000064"
-		}]
-	}, {
-		"bind": "unicast",
-		"src.ep": 1,
-		"cl": "0x0402",
-		"report": [{
-			"at": "0x0000",
-			"dt": "0x29",
-			"min": 60,
-			"max": 600,
-			"change": "0x0000001E"
-		}]
-	}]
+  "bindings": [{
+    "bind": "unicast",
+    "src.ep": 1,
+    "dst.ep": 1,
+    "cl": "0x0001",
+    "report": [{
+      "at": "0x0021",
+      "dt": "0x20",
+      "min": 3600,
+      "max": 7200,
+      "change": "0x00000002"
+    }]
+  }, {
+    "bind": "unicast",
+    "src.ep": 1,
+    "dst.ep": 1,
+    "cl": "0x0405",
+    "report": [{
+      "at": "0x0000",
+      "dt": "0x21",
+      "min": 60,
+      "max": 600,
+      "change": "0x00000064"
+    }]
+  }, {
+    "bind": "unicast",
+    "src.ep": 1,
+    "cl": "0x0402",
+    "report": [{
+      "at": "0x0000",
+      "dt": "0x29",
+      "min": 60,
+      "max": 600,
+      "change": "0x0000001E"
+    }]
+  }]
 }

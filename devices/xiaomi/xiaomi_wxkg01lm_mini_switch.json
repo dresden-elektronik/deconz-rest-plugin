@@ -73,7 +73,7 @@
         {
           "name": "config/battery",
           "awake": true,
-          "parse": { 
+          "parse": {
             "at": "0xFF02",
             "ep": 1,
             "fn": "xiaomi:special",

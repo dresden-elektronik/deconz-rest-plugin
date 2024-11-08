@@ -3,10 +3,14 @@
   "uuid": "408ae252-d9bd-4a5a-92e1-2c945a73dde8",
   "manufacturername": [
     "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY",
     "$MF_SIGNIFY"
   ],
   "modelid": [
+    "LOM001",
     "LOM007",
+    "LOM001",
     "LOM007"
   ],
   "vendor": "Philips",
@@ -67,6 +71,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productid"

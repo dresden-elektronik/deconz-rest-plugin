@@ -64,9 +64,9 @@
           "name": "state/on",
           "refresh.interval": 5
         },
-	{
-	 "name": "config/tuya_unlock"
-	},
+        {
+          "name": "config/tuya_unlock"
+        },
         {
           "name": "state/reachable"
         }

@@ -6,7 +6,7 @@
   "vendor": "Xiaomi Mi",
   "product": "Temperature and humidity sensor with display (MHO-C401N)",
   "sleeper": false,
-  "status": "Gold",  
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_TEMPERATURE_SENSOR",

@@ -107,7 +107,7 @@
           },
           "values": [
             ["\"scene\"", "Use 6 sides and gestures rotate, shake, hold"],
-            ["\"action\"", "Use 6 sides and gestures flip 90, flip 180, rotate, push, double tap, shake, trigger after 1 minute inactivity"] 
+            ["\"action\"", "Use 6 sides and gestures flip 90, flip 180, rotate, push, double tap, shake, trigger after 1 minute inactivity"]
           ],
           "default": "action"
         },
@@ -233,7 +233,7 @@
           },
           "values": [
             ["\"scene\"", "Use 6 sides and gestures rotate, shake, hold"],
-            ["\"action\"", "Use 6 sides and gestures flip 90, flip 180, rotate, push, double tap, shake, trigger after 1 minute inactivity"] 
+            ["\"action\"", "Use 6 sides and gestures flip 90, flip 180, rotate, push, double tap, shake, trigger after 1 minute inactivity"]
           ],
           "default": "action"
         },

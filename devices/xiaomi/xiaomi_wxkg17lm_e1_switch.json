@@ -111,7 +111,7 @@
           },
           "values": [
             ["\"highspeed\"", "Buttons emit only single click events, but fast"],
-            ["\"multiclick\"", "Emits single, double and treble presses"] 
+            ["\"multiclick\"", "Emits single, double and treble presses"]
           ],
           "default": "multiclick"
         },
@@ -145,7 +145,7 @@
           },
           "values": [
             ["\"compatibility\"", "Default mode for Xiaomi devices"],
-            ["\"zigbee\"", "Closer to zigbee standard"] 
+            ["\"zigbee\"", "Closer to zigbee standard"]
           ],
           "default": "compatibility"
         },

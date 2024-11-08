@@ -1,9 +1,9 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/radiatorcovered",
-	"datatype": "Bool",
-	"access": "RW",
-	"public": true,
-	"description": "Radiator is standing freely (false) or is covered (true). Set this to true for Danfoss Ally to use external temp sensor.",
-	"default": false
+  "schema": "resourceitem1.schema.json",
+  "id": "config/radiatorcovered",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "description": "Radiator is standing freely (false) or is covered (true). Set this to true for Danfoss Ally to use external temp sensor.",
+  "default": false
 }

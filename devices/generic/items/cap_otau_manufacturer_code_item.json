@@ -1,0 +1,25 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "cap/otau/manufacturer_code",
+  "datatype": "UInt16",
+  "access": "R",
+  "public": true,
+  "implicit": false,
+  "description": "Firmware manufacturer code.",
+  "parse": {
+    "fn": "zcl:cmd",
+    "ep": 255,
+    "cl": "0x0019",
+    "cmd": "0x01",
+    "eval": "if (ZclFrame.payloadSize >= 9) Item.val = ZclFrame.at(2) << 8 | ZclFrame.at(1)"
+  },
+  "read": {
+    "fn": "zcl:cmd",
+    "ep": 255,
+    "fc": "0x19",
+    "cl": "0x0019",
+    "cmd": "0x00",
+    "eval": "'0064'"
+  },
+  "refresh.interval": 86400
+}

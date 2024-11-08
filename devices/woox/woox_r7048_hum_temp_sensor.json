@@ -1,196 +1,196 @@
 {
-   "schema":"devcap1.schema.json",
-   "uuid":"8eff3666-a36d-4a24-a0aa-82396593332a",
-   "manufacturername":"_TZ3000_amqudjr0",
-   "modelid":"TS0201",
-   "vendor": "Woox",
-   "product":"Temperature and Humidity Sensor (R7048)",
-   "sleeper":true,
-   "status":"Gold",
-   "subdevices":[
-      {
-         "type":"$TYPE_HUMIDITY_SENSOR",
-         "restapi":"/sensors",
-         "uuid":[
-            "$address.ext",
-            "0x01",
-            "0x0405"
-         ],
-         "items":[
-            {
-               "name":"attr/id"
-            },
-            {
-               "name":"attr/lastannounced"
-            },
-            {
-               "name":"attr/lastseen"
-            },
-            {
-               "name":"attr/manufacturername"
-            },
-            {
-               "name":"attr/modelid"
-            },
-            {
-               "name":"attr/name"
-            },
-            {
-               "name":"attr/swversion"
-            },
-            {
-               "name":"attr/type"
-            },
-            {
-               "name":"attr/uniqueid"
-            },
-            {
-               "name":"config/offset",
-               "default":0
-            },
-            {
-               "name":"config/on"
-            },
-            {
-               "name":"config/reachable"
-            },
-            {
-               "name":"state/humidity"
-            },
-            {
-               "name":"config/battery",
-               "awake":true,
-               "parse":{
-                  "at":"0x0021",
-                  "cl":"0x0001",
-                  "ep":1,
-                  "eval":"Item.val = Attr.val / 2",
-                  "fn":"zcl:attr"
-               },
-               "read":{
-                  "ep":1,
-                  "cl":"0x0001",
-                  "at":"0x0021"
-               }
-            },
-            {
-               "name":"state/lastupdated"
-            }
-         ]
-      },
-      {
-         "type":"$TYPE_TEMPERATURE_SENSOR",
-         "restapi":"/sensors",
-         "uuid":[
-            "$address.ext",
-            "0x01",
-            "0x0402"
-         ],
-         "items":[
-            {
-               "name":"attr/id"
-            },
-            {
-               "name":"attr/lastannounced"
-            },
-            {
-               "name":"attr/lastseen"
-            },
-            {
-               "name":"attr/manufacturername"
-            },
-            {
-               "name":"attr/modelid"
-            },
-            {
-               "name":"attr/name"
-            },
-            {
-               "name":"attr/swversion"
-            },
-            {
-               "name":"attr/type"
-            },
-            {
-               "name":"attr/uniqueid"
-            },
-            {
-               "name":"config/offset",
-               "default":0
-            },
-            {
-               "name":"config/battery",
-               "awake":true,
-               "parse":{
-                  "at":"0x0021",
-                  "cl":"0x0001",
-                  "ep":1,
-                  "eval":"Item.val = Attr.val / 2",
-                  "fn":"zcl:attr"
-               },
-               "read":{
-                  "ep":1,
-                  "cl":"0x0001",
-                  "at":"0x0021"
-               }
-            },
-            {
-               "name":"config/on"
-            },
-            {
-               "name":"config/reachable"
-            },
-            {
-               "name":"state/lastupdated"
-            },
-            {
-               "name":"state/temperature"
-            }
-         ]
-      }
-   ],
-   "bindings":[
-      {
-         "bind":"unicast",
-         "src.ep":1,
-         "cl":"0x0001",
-         "report":[
-            {
-               "at":"0x0021",
-               "dt":"0x20",
-               "min":300,
-               "max":43200,
-               "change":"0x00000001"
-            }
-         ]
-      },
-      {
-         "bind":"unicast",
-         "src.ep":1,
-         "cl":"0x0402",
-         "report":[
-            {
-               "at":"0x0000",
-               "dt":"0x29",
-               "min":60,
-               "max":300,
-               "change":"0x00000064"
-            }
-         ]
-      },
-      {
-         "bind":"unicast",
-         "src.ep":1,
-         "cl":"0x0405",
-         "report":[
-            {
-               "at":"0x0000",
-               "dt":"0x21",
-               "min":60,
-               "max":300,
-               "change":"0x00000064"
-            }
-         ]
-      }
-   ]
+  "schema": "devcap1.schema.json",
+  "uuid": "8eff3666-a36d-4a24-a0aa-82396593332a",
+  "manufacturername": "_TZ3000_amqudjr0",
+  "modelid": "TS0201",
+  "vendor": "Woox",
+  "product": "Temperature and Humidity Sensor (R7048)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_HUMIDITY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0405"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/humidity"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 300,
+          "max": 43200,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0402",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000064"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0405",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000064"
+        }
+      ]
+    }
+  ]
 }
