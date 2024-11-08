@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "9805ed91-81d6-41be-8ca9-1b7e5caa3539",
   "manufacturername": "iluminize",
   "modelid": "HK-ZD-RGB-A",
   "product": "LED Controller Multi 5 (RGBW mode)",
