@@ -148,7 +148,9 @@
         },
         {
           "name": "state/open",
-          "read": {"fn": "none"},
+          "read": {
+            "fn": "none"
+          },
           "parse": {
             "dpid": 1,
             "eval": "Item.val = Attr.val;",
