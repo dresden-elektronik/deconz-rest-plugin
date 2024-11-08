@@ -172,7 +172,7 @@
         },
         {
           "name": "state/seconds_remaining",
-           "default": 0
+          "default": 0
         },
         {
           "name": "state/tampered"

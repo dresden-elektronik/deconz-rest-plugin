@@ -267,7 +267,7 @@
           "values": [
             ["\"disabled\"", "Device is not configured"],
             ["\"shutter\"", "Device controls a shutter"],
-            ["\"light\"", "Device controls lights"] 
+            ["\"light\"", "Device controls lights"]
           ],
           "default": "disabled"
         },
@@ -298,7 +298,7 @@
             "fn": "zcl:attr",
             "mf": "0x1209"
           },
-          "default" : "momentary",
+          "default": "momentary",
           "values": [
             ["\"momentary\"", "All inputs in momentary mode"],
             ["\"momentaryswitched\"", "All inputs in momentary mode (sides switched)"],
@@ -521,7 +521,7 @@
       ]
     },
     {
-      "bind":"unicast",
+      "bind": "unicast",
       "src.ep": 1,
       "cl": "0x0B04",
       "report": [

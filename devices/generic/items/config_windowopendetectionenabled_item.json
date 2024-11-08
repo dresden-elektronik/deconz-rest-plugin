@@ -1,9 +1,9 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/windowopendetectionenabled",
-	"datatype": "Bool",
-	"access": "RW",
-	"public": true,
-	"description": "Turns the window open detection feature on or off.",
-	"default": true
+  "schema": "resourceitem1.schema.json",
+  "id": "config/windowopendetectionenabled",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "description": "Turns the window open detection feature on or off.",
+  "default": true
 }
