@@ -2469,6 +2469,8 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0020" name="ProportionalGain" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x0021" name="ProportionalShift" type="s8" access="r" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x0022" name="IntegralFactor" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x1000" name="ValveDrivePosition0" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x1001" name="ValveDrivePosition100 " type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
         </attribute-set>
         <!-- Sinope manufacturer specific -->
         <attribute-set id="0x0400" description="Sinope specific" mfcode="0x119c">
