@@ -1,8 +1,22 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "6f36f014-8ed9-40ea-9301-05d55797bd3e",
-  "manufacturername": ["NAMRON AS", "NAMRON AS", "NAMRON AS", "NAMRON AS", "NAMRON AS", "NAMRON AS"],
-  "modelid": ["5401395", "5401399", "5401393", "5401397", "5401392", "5401396"],
+  "manufacturername": [
+    "NAMRON AS",
+    "NAMRON AS",
+    "NAMRON AS",
+    "NAMRON AS",
+    "NAMRON AS",
+    "NAMRON AS"
+  ],
+  "modelid": [
+    "5401395",
+    "5401399",
+    "5401393",
+    "5401397",
+    "5401392",
+    "5401396"
+  ],
   "vendor": "Namron",
   "product": "Panel heater",
   "sleeper": false,
