@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "656d7e98-18d8-472f-a462-2c8ca7f0b702",
-  "manufacturername": ["_TZ3000_ja5osu5g", "_TZ3000_fa9mlvja"],
-  "modelid": ["TS004F", "TS0041"],
+  "manufacturername": [
+    "_TZ3000_ja5osu5g",
+    "_TZ3000_fa9mlvja"
+  ],
+  "modelid": [
+    "TS004F",
+    "TS0041"
+  ],
   "vendor": "Tuya",
   "product": "Wireless smart button (TS004)",
   "sleeper": true,
@@ -37,8 +43,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"

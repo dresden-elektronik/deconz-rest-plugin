@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "165aea49-d5c1-4418-a479-cdad4dfe1600",
-  "manufacturername": ["_TZB000_42ha4rsc", "_TZB000_yqjaollc"],
-  "modelid": ["TS030F", "TS030F"],
+  "manufacturername": [
+    "_TZB000_42ha4rsc",
+    "_TZB000_yqjaollc"
+  ],
+  "modelid": [
+    "TS030F",
+    "TS030F"
+  ],
   "vendor": "Livarno",
   "product": "Window blinds (TS030F)",
   "sleeper": true,
@@ -37,8 +43,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -87,8 +104,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"

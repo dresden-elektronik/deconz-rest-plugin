@@ -1,226 +1,236 @@
 {
-    "schema": "devcap1.schema.json",
-    "uuid": "37f521f8-bcb4-41ca-a865-961258d96ca9",
-    "manufacturername": "_TZ3000_cehuw1lw",
-    "modelid": "TS011F",
-    "vendor": "Tuya",
-    "product": "Standard plug (TS011F)",
-    "sleeper": false,
-    "status": "Gold",
-    "subdevices": [
-      {
-        "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
-        "restapi": "/lights",
-        "uuid": [
-          "$address.ext",
-          "0x01"
-        ],
-        "items": [
-          {
-            "name": "attr/id"
-          },
-          {
-            "name": "attr/lastannounced"
-          },
-          {
-            "name": "attr/lastseen"
-          },
-          {
-            "name": "attr/manufacturername"
-          },
-          {
-            "name": "attr/modelid"
-          },
-          {
-            "name": "attr/name"
-          },
-          {
-            "name": "attr/swversion"
-          },
-          {
-            "name": "attr/type"
-          },
-          {
-            "name": "attr/uniqueid"
-          },
-          {
-            "name": "state/alert",
-            "description": "The currently active alert effect.",
-            "default": "none"
-          },
-          {
-            "name": "state/on"
-          },
-          {
-            "name": "state/reachable"
-          }
-        ]
-      },
-      {
-        "type": "$TYPE_CONSUMPTION_SENSOR",
-        "restapi": "/sensors",
-        "uuid": [
-          "$address.ext",
-          "0x01",
-          "0x0702"
-        ],
-        "items": [
-          {
-            "name": "attr/id"
-          },
-          {
-            "name": "attr/lastannounced"
-          },
-          {
-            "name": "attr/lastseen"
-          },
-          {
-            "name": "attr/manufacturername"
-          },
-          {
-            "name": "attr/modelid"
-          },
-          {
-            "name": "attr/name"
-          },
-          {
-            "name": "attr/swversion"
-          },
-          {
-            "name": "attr/type"
-          },
-          {
-            "name": "attr/uniqueid"
-          },
-          {
-            "name": "config/on"
-          },
-          {
-            "name": "config/reachable"
-          },
-          {
+  "schema": "devcap1.schema.json",
+  "uuid": "37f521f8-bcb4-41ca-a865-961258d96ca9",
+  "manufacturername": "_TZ3000_cehuw1lw",
+  "modelid": "TS011F",
+  "vendor": "Tuya",
+  "product": "Standard plug (TS011F)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "description": "The currently active alert effect.",
+          "default": "none"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_CONSUMPTION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0702"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
           "name": "state/consumption",
-          "read": {"at": "0x0000", "cl": "0x0702", "ep": 1, "fn": "zcl:attr" },
-          "parse": {"at": "0x0000", "cl": "0x0702", "ep": 1, "eval": "Item.val = Attr.val * 10"},
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0702",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0702",
+            "ep": 1,
+            "eval": "Item.val = Attr.val * 10"
+          },
           "refresh.interval": 365
         },
-          {
-            "name": "state/lastupdated"
-          }
-        ]
-      },
-      {
-        "type": "$TYPE_POWER_SENSOR",
-        "restapi": "/sensors",
-        "uuid": [
-          "$address.ext",
-          "0x01",
-          "0x0b04"
-        ],
-        "items": [
-          {
-            "name": "attr/id"
-          },
-          {
-            "name": "attr/lastannounced"
-          },
-          {
-            "name": "attr/lastseen"
-          },
-          {
-            "name": "attr/manufacturername"
-          },
-          {
-            "name": "attr/modelid"
-          },
-          {
-            "name": "attr/name"
-          },
-          {
-            "name": "attr/swversion"
-          },
-          {
-            "name": "attr/type"
-          },
-          {
-            "name": "attr/uniqueid"
-          },
-          {
-            "name": "config/on"
-          },
-          {
-            "name": "config/reachable"
-          },
-          {
-            "name": "state/current"
-          },
-          {
-            "name": "state/lastupdated"
-          },
-          {
-            "name": "state/power"
-          },
-          {
-            "name": "state/voltage"
-          }
-        ]
-      }
-    ],
-    "bindings": [
-      {
-        "bind": "unicast",
-        "src.ep": 1,
-        "cl": "0x0006",
-        "report": [
-          {
-            "at": "0x0000",
-            "dt": "0x10",
-            "min": 1,
-            "max": 1800
-          }
-        ]
-      },
-      {
-        "bind": "unicast",
-        "src.ep": 1,
-        "cl": "0x0702",
-        "report": [
-          {
-            "at": "0x0000",
-            "dt": "0x25",
-            "min": 1,
-            "max": 300,
-            "change": "0x0000000A"
-          }
-        ]
-      },
-      {
-        "bind": "unicast",
-        "src.ep": 1,
-        "cl": "0x0B04",
-        "report": [
-          {
-            "at": "0x0505",
-            "dt": "0x21",
-            "min": 1,
-            "max": 500,
-            "change": "0x00000003"
-          },
-          {
-            "at": "0x0508",
-            "dt": "0x21",
-            "min": 1,
-            "max": 300,
-            "change": "0x0000000F"
-          },
-          {
-            "at": "0x050B",
-            "dt": "0x29",
-            "min": 1,
-            "max": 300,
-            "change": "0x00000003"
-          }
-        ]
-      }
-    ]
-  }
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0b04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/current"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power"
+        },
+        {
+          "name": "state/voltage"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 1800
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0702",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x25",
+          "min": 1,
+          "max": 300,
+          "change": "0x0000000A"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0B04",
+      "report": [
+        {
+          "at": "0x0505",
+          "dt": "0x21",
+          "min": 1,
+          "max": 500,
+          "change": "0x00000003"
+        },
+        {
+          "at": "0x0508",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0000000F"
+        },
+        {
+          "at": "0x050B",
+          "dt": "0x29",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000003"
+        }
+      ]
+    }
+  ]
+}

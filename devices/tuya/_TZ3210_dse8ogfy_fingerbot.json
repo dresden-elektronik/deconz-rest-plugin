@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "aeb64a3c-50c7-45c7-9dca-6378a5004200",
-  "manufacturername": ["_TZ3210_dse8ogfy", "_TZ3210_j4pdtz9v"],
-  "modelid": ["TS0001", "TS0001"],
+  "manufacturername": [
+    "_TZ3210_dse8ogfy",
+    "_TZ3210_j4pdtz9v"
+  ],
+  "modelid": [
+    "TS0001",
+    "TS0001"
+  ],
   "vendor": "Tuya",
   "product": "Adaprox fingerbot (TS0001)",
   "sleeper": false,
@@ -36,8 +42,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -85,8 +102,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -102,8 +130,14 @@
         },
         {
           "name": "state/battery",
-          "parse": {"fn": "tuya", "dpid": 105, "eval": "Item.val = Attr.val;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 105,
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         },
         {
