@@ -196,6 +196,7 @@ extern const char *RStateOrientationZ;
 extern const char *RStatePM2_5; // Deprecated
 extern const char *RStatePanel;
 extern const char *RStatePower;
+extern const char *RStatePowerDivisor;
 extern const char *RStatePresence;
 extern const char *RStatePresenceEvent;
 extern const char *RStatePressure;
