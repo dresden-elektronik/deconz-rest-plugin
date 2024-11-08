@@ -148,7 +148,7 @@
           },
           "values": [
             ["\"decoupled\"", "Decoupled Mode"],
-            ["\"coupled\"", "Coupled Mode"] 
+            ["\"coupled\"", "Coupled Mode"]
           ],
           "default": "coupled"
         },
@@ -181,7 +181,7 @@
           },
           "values": [
             ["\"compatibility\"", "Default mode for Xiaomi devices"],
-            ["\"zigbee\"", "Closer to zigbee standard"] 
+            ["\"zigbee\"", "Closer to zigbee standard"]
           ],
           "default": "compatibility"
         },
@@ -214,7 +214,7 @@
           },
           "values": [
             [true, "Device LED always on"],
-            [false, "Device LED off from 9pm - 9am"] 
+            [false, "Device LED off from 9pm - 9am"]
           ],
           "default": true
         },

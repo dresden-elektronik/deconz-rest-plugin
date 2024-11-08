@@ -1,15 +1,15 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "833cf9e4-5d14-407a-a3c4-deff36c22a49",
+  "uuid": "ee9c00ed-a883-4ca3-8222-a8a79ca5cbb8",
   "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRI bulb E27 WW 806lm",
+  "modelid": "TRETAKT Smart plug",
   "vendor": "IKEA",
-  "product": "Tradfri LED bulb E27 806 lumen, smart wireless dimmable/white spectrum globe (LED1836G9)",
+  "product": "TRETAKT Smart plug (E2204)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_DIMMABLE_LIGHT",
+      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -35,6 +35,23 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A"
+          },
+          "refresh.interval": 86400
+        },
+        {
           "name": "attr/swversion"
         },
         {
@@ -44,20 +61,8 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "cap/bri/move_with_onoff",
-          "static": true
-        },
-        {
-          "name": "cap/on/off_with_effect",
-          "static": true
-        },
-        {
           "name": "state/alert",
           "default": "none"
-        },
-        {
-          "name": "state/bri",
-          "refresh.interval": 360
         },
         {
           "name": "state/on",
@@ -73,21 +78,6 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0000",
-      "report": [
-        {
-          "at": "0x4000",
-          "dt": "0x42",
-          "min": 0,
-          "max": 65535
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
       "cl": "0x0006",
       "report": [
         {
@@ -95,21 +85,6 @@
           "dt": "0x10",
           "min": 1,
           "max": 300
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0008",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x20",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
         }
       ]
     }

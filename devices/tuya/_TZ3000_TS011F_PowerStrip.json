@@ -1,394 +1,394 @@
 {
-   "schema":"devcap1.schema.json",
-   "uuid":"692c7676-9365-4ec4-9549-9d7c114986f2",
-   "manufacturername": [
-      "_TZ3000_cfnprab5",
-      "_TZ3000_o005nuxx",
-      "TZ3000_air9m6af",
-      "_TZ3000_9djocypn",
-      "_TZ3000_bppxj3sf"
-   ],
-   "modelid": [
-      "TS011F",
-      "TS011F",
-      "TS011F",
-      "TS011F",
-      "TS011F"
-   ],
-   "vendor": "Tuya",
-   "product":"Powerstrip with USB (TS011F)",
-   "sleeper":false,
-   "status":"Gold",
-   "subdevices":[
-      {
-         "type":"$TYPE_ON_OFF_PLUGIN_UNIT",
-         "restapi":"/lights",
-         "uuid":[
-            "$address.ext",
-            "0x01"
-         ],
-         "items":[
-            {
-               "name":"attr/id"
-            },
-            {
-               "name":"attr/lastannounced"
-            },
-            {
-               "name":"attr/lastseen"
-            },
-            {
-               "name":"attr/manufacturername"
-            },
-            {
-               "name":"attr/modelid"
-            },
-            {
-               "name":"attr/name"
-            },
-            {
-               "name":"attr/swversion",
-               "read":{
-                  "at":"0x0001",
-                  "cl":"0x0000",
-                  "ep":1,
-                  "fn":"zcl:attr"
-               },
-               "parse":{
-                  "at":"0x0001",
-                  "cl":"0x0000",
-                  "ep":1,
-                  "fn":"zcl:attr",
-                  "script":"tuya_swversion.js"
-               }
-            },
-            {
-               "name":"attr/type"
-            },
-            {
-               "name":"attr/uniqueid"
-            },
-            {
-               "name":"state/alert",
-               "default":"none"
-            },
-            {
-               "name":"state/on"
-            },
-            {
-               "name":"state/reachable"
-            },
-            {
-               "name":"config/tuya_unlock"
-            }
-         ]
-      },
-      {
-         "type":"$TYPE_ON_OFF_PLUGIN_UNIT",
-         "restapi":"/lights",
-         "uuid":[
-            "$address.ext",
-            "0x02"
-         ],
-         "items":[
-            {
-               "name":"attr/id"
-            },
-            {
-               "name":"attr/lastannounced"
-            },
-            {
-               "name":"attr/lastseen"
-            },
-            {
-               "name":"attr/manufacturername"
-            },
-            {
-               "name":"attr/modelid"
-            },
-            {
-               "name":"attr/name"
-            },
-            {
-               "name":"attr/swversion",
-               "read":{
-                  "at":"0x0001",
-                  "cl":"0x0000",
-                  "ep":1,
-                  "fn":"zcl:attr"
-               },
-               "parse":{
-                  "at":"0x0001",
-                  "cl":"0x0000",
-                  "ep":1,
-                  "fn":"zcl:attr",
-                  "script":"tuya_swversion.js"
-               }
-            },
-            {
-               "name":"attr/type"
-            },
-            {
-               "name":"attr/uniqueid"
-            },
-            {
-               "name":"state/alert",
-               "default":"none"
-            },
-            {
-               "name":"state/on"
-            },
-            {
-               "name":"state/reachable"
-            }
-         ]
-      },
-      {
-         "type":"$TYPE_ON_OFF_PLUGIN_UNIT",
-         "restapi":"/lights",
-         "uuid":[
-            "$address.ext",
-            "0x03"
-         ],
-         "items":[
-            {
-               "name":"attr/id"
-            },
-            {
-               "name":"attr/lastannounced"
-            },
-            {
-               "name":"attr/lastseen"
-            },
-            {
-               "name":"attr/manufacturername"
-            },
-            {
-               "name":"attr/modelid"
-            },
-            {
-               "name":"attr/name"
-            },
-            {
-               "name":"attr/swversion",
-               "read":{
-                  "at":"0x0001",
-                  "cl":"0x0000",
-                  "ep":1,
-                  "fn":"zcl:attr"
-               },
-               "parse":{
-                  "at":"0x0001",
-                  "cl":"0x0000",
-                  "ep":1,
-                  "fn":"zcl:attr",
-                  "script":"tuya_swversion.js"
-               }
-            },
-            {
-               "name":"attr/type"
-            },
-            {
-               "name":"attr/uniqueid"
-            },
-            {
-               "name":"state/alert",
-               "default":"none"
-            },
-            {
-               "name":"state/on"
-            },
-            {
-               "name":"state/reachable"
-            }
-         ]
-      },
-      {
-         "type":"$TYPE_ON_OFF_PLUGIN_UNIT",
-         "restapi":"/lights",
-         "uuid":[
-            "$address.ext",
-            "0x04"
-         ],
-         "items":[
-            {
-               "name":"attr/id"
-            },
-            {
-               "name":"attr/lastannounced"
-            },
-            {
-               "name":"attr/lastseen"
-            },
-            {
-               "name":"attr/manufacturername"
-            },
-            {
-               "name":"attr/modelid"
-            },
-            {
-               "name":"attr/name"
-            },
-            {
-               "name":"attr/swversion",
-               "read":{
-                  "at":"0x0001",
-                  "cl":"0x0000",
-                  "ep":1,
-                  "fn":"zcl:attr"
-               },
-               "parse":{
-                  "at":"0x0001",
-                  "cl":"0x0000",
-                  "ep":1,
-                  "fn":"zcl:attr",
-                  "script":"tuya_swversion.js"
-               }
-            },
-            {
-               "name":"attr/type"
-            },
-            {
-               "name":"attr/uniqueid"
-            },
-            {
-               "name":"state/alert",
-               "default":"none"
-            },
-            {
-               "name":"state/on"
-            },
-            {
-               "name":"state/reachable"
-            }
-         ]
-      },
-      {
-         "type":"$TYPE_ON_OFF_PLUGIN_UNIT",
-         "restapi":"/lights",
-         "uuid":[
-            "$address.ext",
-            "0x05"
-         ],
-         "items":[
-            {
-               "name":"attr/id"
-            },
-            {
-               "name":"attr/lastannounced"
-            },
-            {
-               "name":"attr/lastseen"
-            },
-            {
-               "name":"attr/manufacturername"
-            },
-            {
-               "name":"attr/modelid"
-            },
-            {
-               "name":"attr/name"
-            },
-            {
-               "name":"attr/swversion",
-               "read":{
-                  "at":"0x0001",
-                  "cl":"0x0000",
-                  "ep":1,
-                  "fn":"zcl:attr"
-               },
-               "parse":{
-                  "at":"0x0001",
-                  "cl":"0x0000",
-                  "ep":1,
-                  "fn":"zcl:attr",
-                  "script":"tuya_swversion.js"
-               }
-            },
-            {
-               "name":"attr/type"
-            },
-            {
-               "name":"attr/uniqueid"
-            },
-            {
-               "name":"state/alert",
-               "default":"none"
-            },
-            {
-               "name":"state/on"
-            },
-            {
-               "name":"state/reachable"
-            }
-         ]
-      }
-   ],
-   "bindings":[
-      {
-         "bind":"unicast",
-         "src.ep":1,
-         "cl":"0x0006",
-         "report":[
-            {
-               "at":"0x0000",
-               "dt":"0x10",
-               "min":1,
-               "max":300
-            }
-         ]
-      },
-      {
-         "bind":"unicast",
-         "src.ep":2,
-         "cl":"0x0006",
-         "report":[
-            {
-               "at":"0x0000",
-               "dt":"0x10",
-               "min":1,
-               "max":300
-            }
-         ]
-      },
-      {
-         "bind":"unicast",
-         "src.ep":3,
-         "cl":"0x0006",
-         "report":[
-            {
-               "at":"0x0000",
-               "dt":"0x10",
-               "min":1,
-               "max":300
-            }
-         ]
-      },
-      {
-         "bind":"unicast",
-         "src.ep":4,
-         "cl":"0x0006",
-         "report":[
-            {
-               "at":"0x0000",
-               "dt":"0x10",
-               "min":1,
-               "max":300
-            }
-         ]
-      },
-      {
-         "bind":"unicast",
-         "src.ep":5,
-         "cl":"0x0006",
-         "report":[
-            {
-               "at":"0x0000",
-               "dt":"0x10",
-               "min":1,
-               "max":300
-            }
-         ]
-      }
-   ]
+  "schema": "devcap1.schema.json",
+  "uuid": "692c7676-9365-4ec4-9549-9d7c114986f2",
+  "manufacturername": [
+    "_TZ3000_cfnprab5",
+    "_TZ3000_o005nuxx",
+    "TZ3000_air9m6af",
+    "_TZ3000_9djocypn",
+    "_TZ3000_bppxj3sf"
+  ],
+  "modelid": [
+    "TS011F",
+    "TS011F",
+    "TS011F",
+    "TS011F",
+    "TS011F"
+  ],
+  "vendor": "Tuya",
+  "product": "Powerstrip with USB (TS011F)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "read": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "script": "tuya_swversion.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        },
+        {
+          "name": "config/tuya_unlock"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x02"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "read": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "script": "tuya_swversion.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x03"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "read": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "script": "tuya_swversion.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "read": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "script": "tuya_swversion.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x05"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "read": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "script": "tuya_swversion.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 4,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 5,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    }
+  ]
 }

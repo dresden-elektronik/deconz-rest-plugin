@@ -966,6 +966,19 @@
             </attribute>
           </payload>
         </command>
+        <!-- Develco manufacturer specific -->
+        <command id="00" dir="recv" name="Safe Mode Off" required="o" mfcode="0x1015">
+          <description>The 'Safe mode off' functionality is the same as "Safe mode on" the only different is relay entering off state instead of on state.</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="SafeModeTime in Minutes" required="m" default="0x00"/>
+          </payload>
+        </command>
+        <command id="01" dir="recv" name="Safe Mode On" required="o" mfcode="0x1015">
+          <description>If 'Safe mode On' command is sent to a relay with value 10 minutes, the relay will enter the safe mode after 10 minutes and force the relay to turn ON. If a standard OFF command from the On/Off cluster is sent within the first 10 minutes. The timer is restarted and the relay will not turn ON before the new 10 minute time has timed out. Sending the standard OFF command regularly within the 10 minute time interval will prevent the relay to enter safe mode ON state.</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="SafeModeTime in Minutes" required="m" default="0x00"/>
+          </payload>
+        </command>
       </server>
       <client>
       </client>
@@ -2456,6 +2469,8 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0020" name="ProportionalGain" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x0021" name="ProportionalShift" type="s8" access="r" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x0022" name="IntegralFactor" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x1000" name="ValveDrivePosition0" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x1001" name="ValveDrivePosition100 " type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
         </attribute-set>
         <!-- Sinope manufacturer specific -->
         <attribute-set id="0x0400" description="Sinope specific" mfcode="0x119c">
@@ -2823,6 +2838,37 @@ Note: It does not clear or delete previous weekly schedule programming configura
         </command>
         <command id="0x03" dir="recv" name="Clear Weekly Schedule" required="o"></command>
         <command id="0x04" dir="recv" name="Get Relay Status Log" required="o"></command>
+        <!-- Danfoss manufacturer specific -->
+        <command id="0x40" dir="recv" name="Set Heating Setpoint" required="o" mfcode="0x1246">
+          <description>Set immediately:
+The actuator will make a large movement to minimize reaction time.
+
+Mimic Occupied Heating Setpoint Behavior:
+The behavior will be the same as setting the attribute "Occupied Heating Setpoint" to the same value.
+
+Preserve Displayed Setpoint:
+Displayed setpoint is not affected, but regulated setpoint will change. Can be used for Forecast functionality.</description>
+          <payload>
+            <attribute id="0x0000" type="enum8" name="Setpoint Type" required="m">
+              <value name="Set immediately" value="0"/>
+              <value name="Mimic Occupied Heating Setpoint Behavior" value="1"/>
+              <value name="Preserve Displayed Setpoint" value="2"/>
+            </attribute>
+            <attribute id="0x0001" type="u16" name="Heating Setpoint" required="m"/>
+          </payload>
+        </command>
+        <command id="0x41" dir="recv" name="Danfoss Test Command" required="o" mfcode="0x1246"></command>
+        <command id="0x42" dir="recv" name="Preheat" required="o" mfcode="0x1246">
+          <description>Request eTRV to enter pre-heat if in schedule mode and if other eTRV in same room has triggeed pre-heat.</description>
+          <payload>
+            <attribute id="0x0000" type="enum8" name="Type" required="m">
+              <value name="Force Preheat" value="0"></value>
+            </attribute>
+            <attribute id="0x0001" type="u32" name="Timestamp" required="m">
+              <description>Timestamp received from other eTRV in the same room that went into preheat.</description>
+            </attribute>
+          </payload>
+        </command>
       </server>
       <client>
         <command id="0x00" dir="recv" name="Get Weekly Schedule Response" required="o">

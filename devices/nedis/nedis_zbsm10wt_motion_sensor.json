@@ -1,127 +1,127 @@
 {
-   "schema":"devcap1.schema.json",
-   "uuid":"05069614-e8f7-4ec3-b036-d321ea6713db",
-   "manufacturername":"_TZ3000_nss8amz9",
-   "modelid":"TS0202",
-   "vendor": "Nedis",
-   "product":"Zigbee motion sensor (ZBSM10WT)",
-   "sleeper":true,
-   "status":"Gold",
-   "subdevices":[
-      {
-         "type":"$TYPE_PRESENCE_SENSOR",
-         "restapi":"/sensors",
-         "uuid":[
-            "$address.ext",
-            "0x01",
-            "0x0500"
-         ],
-         "fingerprint": {
-           "profile": "0x0104",
-           "device": "0x0402",
-           "endpoint": "0x01",
-           "in": [
-             "0x0000",
-             "0x0001",
-             "0x0500"
-           ]
-         },
-         "items":[
-            {
-               "name":"attr/id"
-            },
-            {
-               "name":"attr/lastannounced"
-            },
-            {
-               "name":"attr/lastseen"
-            },
-            {
-               "name":"attr/manufacturername"
-            },
-            {
-               "name":"attr/modelid"
-            },
-            {
-               "name":"attr/name"
-            },
-            {
-               "name":"attr/swversion"
-            },
-            {
-               "name":"attr/type"
-            },
-            {
-               "name":"attr/uniqueid"
-            },
-            {
-               "name":"config/battery",
-               "awake":true,
-               "parse":{
-                  "at":"0x0021",
-                  "cl":"0x0001",
-                  "ep":1,
-                  "eval":"Item.val = Attr.val / 2",
-                  "fn":"zcl:attr"
-               },
-               "read":{
-                  "ep":1,
-                  "cl":"0x0001",
-                  "at":"0x0021",
-                  "fn":"zcl:attr"
-               },
-               "refresh.interval": 86400,
-               "default":0
-            },
-            {
-               "name":"config/duration",
-               "default": 120
-            },
-            {
-               "name":"config/enrolled",
-               "public":false
-            },
-            {
-               "name":"config/on"
-            },
-            {
-               "name":"config/pending"
-            },
-            {
-               "name":"config/reachable"
-            },
-            {
-               "name":"state/lastupdated"
-            },
-            {
-               "name":"state/lowbattery"
-            },
-            {
-               "name":"state/presence",
-               "awake":true
-            }
-         ]
-      }
-   ],
-   "bindings":[
-      {
-         "bind":"unicast",
-         "src.ep":1,
-         "cl":"0x0500"
+  "schema": "devcap1.schema.json",
+  "uuid": "05069614-e8f7-4ec3-b036-d321ea6713db",
+  "manufacturername": "_TZ3000_nss8amz9",
+  "modelid": "TS0202",
+  "vendor": "Nedis",
+  "product": "Zigbee motion sensor (ZBSM10WT)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0500"
+        ]
       },
-      {
-         "bind":"unicast",
-         "src.ep":1,
-         "cl":"0x0001",
-         "report":[
-            {
-               "at":"0x0021",
-               "dt":"0x20",
-               "min":60,
-               "max":3600,
-               "change":"0x00000001"
-            }
-         ]
-      }
-   ]
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "fn": "zcl:attr"
+          },
+          "refresh.interval": 86400,
+          "default": 0
+        },
+        {
+          "name": "config/duration",
+          "default": 120
+        },
+        {
+          "name": "config/enrolled",
+          "public": false
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery"
+        },
+        {
+          "name": "state/presence",
+          "awake": true
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
 }

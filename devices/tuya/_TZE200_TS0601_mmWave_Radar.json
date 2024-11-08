@@ -7,7 +7,7 @@
   "product": "2.4GHz mmWave radar with LED (TS0601)",
   "sleeper": false,
   "status": "Silver",
-    "subdevices": [
+  "subdevices": [
     {
       "type": "$TYPE_PRESENCE_SENSOR",
       "restapi": "/sensors",
@@ -99,7 +99,7 @@
             "dpid": 103,
             "dt": "0x10",
             "eval": "Item.val == 1 ? 1 : 0;",
-           "fn": "tuya"
+            "fn": "tuya"
           },
           "parse": {
             "dpid": 103,

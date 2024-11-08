@@ -1,111 +1,111 @@
 {
-   "schema":"devcap1.schema.json",
-   "uuid":"f0903584-b715-414b-88e4-db5ee8939507",
-   "manufacturername":"Sunricher",
-   "modelid":"ZG2855-RGB",
-   "vendor": "Sunricher",
-   "product":"3 in 1 zigbee push button remote (ZG2855-RGB)",
-   "sleeper":true,
-   "status":"Gold",
-   "subdevices":[
-      {
-         "type":"$TYPE_SWITCH",
-         "restapi":"/sensors",
-         "uuid":[
-            "$address.ext",
-            "0x01",
-            "0x0006"
-         ],
-         "items":[
-            {
-               "name":"attr/id"
-            },
-            {
-               "name":"attr/lastannounced"
-            },
-            {
-               "name":"attr/lastseen"
-            },
-            {
-               "name":"attr/manufacturername"
-            },
-            {
-               "name":"attr/modelid"
-            },
-            {
-               "name":"attr/name"
-            },
-            {
-               "name":"attr/swversion"
-            },
-            {
-               "name":"attr/type"
-            },
-            {
-               "name":"attr/uniqueid"
-            },
-            {
-               "name":"config/battery",
-               "parse":{
-                  "at":"0x0021",
-                  "cl":"0x0001",
-                  "ep":1,
-                  "eval":"Item.val = Attr.val"
-               },
-               "read":{
-                  "fn":"zcl:attr",
-                  "ep":1,
-                  "cl":"0x0001",
-                  "at":"0x0021"
-               },
-               "refresh.interval":4000,
-               "awake":true
-            },
-            {
-               "name":"config/on"
-            },
-            {
-               "name":"config/reachable"
-            },
-            {
-               "name":"state/buttonevent",
-               "awake":true
-            },
-            {
-               "name":"state/lastupdated"
-            }
-         ]
-      }
-   ],
-   "bindings":[
-      {
-         "bind":"unicast",
-         "src.ep":1,
-         "cl":"0x0001",
-         "report":[
-            {
-               "at":"0x0021",
-               "dt":"0x20",
-               "min":60,
-               "max":3600,
-               "change":"0x00000001"
-            }
-         ]
-      },
-      {
-         "bind":"unicast",
-         "src.ep":1,
-         "cl":"0x0006"
-      },
-      {
-         "bind":"unicast",
-         "src.ep":1,
-         "cl":"0x0008"
-      },
-      {
-         "bind":"unicast",
-         "src.ep":1,
-         "cl":"0x0300"
-      }
-   ]
+  "schema": "devcap1.schema.json",
+  "uuid": "f0903584-b715-414b-88e4-db5ee8939507",
+  "manufacturername": "Sunricher",
+  "modelid": "ZG2855-RGB",
+  "vendor": "Sunricher",
+  "product": "3 in 1 zigbee push button remote (ZG2855-RGB)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0006"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "refresh.interval": 4000,
+          "awake": true
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent",
+          "awake": true
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0008"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0300"
+    }
+  ]
 }
