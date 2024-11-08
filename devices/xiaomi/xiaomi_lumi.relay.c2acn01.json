@@ -66,7 +66,7 @@
         }
       ]
     },
-   {
+    {
       "type": "$TYPE_ON_OFF_OUTPUT",
       "restapi": "/lights",
       "uuid": [
@@ -123,8 +123,8 @@
           "name": "state/reachable"
         }
       ]
-     },
-     {
+    },
+    {
       "type": "$TYPE_POWER_SENSOR",
       "restapi": "/sensors",
       "uuid": [
@@ -197,7 +197,7 @@
         },
         {
           "name": "state/power",
-          "refresh.interval":360,
+          "refresh.interval": 360,
           "read": {
             "at": "0x0055",
             "cl": "0x000C",

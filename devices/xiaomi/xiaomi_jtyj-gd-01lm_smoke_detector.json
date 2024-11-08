@@ -110,8 +110,14 @@
             "mf": "0x115F"
           },
           "values": [
-            [true, "Initiate self-test"],
-            [false, "Self-test not initiated"]
+            [
+              true,
+              "Initiate self-test"
+            ],
+            [
+              false,
+              "Self-test not initiated"
+            ]
           ]
         },
         {
@@ -143,9 +149,18 @@
             "mf": "0x115F"
           },
           "values": [
-            [0, "Low"],
-            [1, "Medium"],
-            [2, "High"]
+            [
+              0,
+              "Low"
+            ],
+            [
+              1,
+              "Medium"
+            ],
+            [
+              2,
+              "High"
+            ]
           ],
           "default": 1
         },
