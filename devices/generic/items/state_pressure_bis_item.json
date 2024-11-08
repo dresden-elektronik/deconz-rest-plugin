@@ -1,8 +1,8 @@
 {
   "schema": "resourceitem1.schema.json",
   "id": "state/pressure_bis",
-  "datatype": "Int16",
+  "datatype": "Double",
   "access": "R",
   "public": false,
-  "description": "The current air pressure (mBar)."
+  "description": "The current air pressure (hPa)."
 }
