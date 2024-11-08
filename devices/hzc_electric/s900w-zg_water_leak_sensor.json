@@ -1,119 +1,119 @@
 {
-    "schema": "devcap1.schema.json",
-    "uuid": "8f8b987f-fb65-4d21-8f44-df439c916d91",
-    "manufacturername": "Shyugj",
-    "modelid": "WaterLeakageSensor-ZB3.0",
-    "vendor": "HZC Electronics",
-    "product": "Water leak sensor (S900W-ZG)",
-    "sleeper": true,
-    "status": "Silver",
-    "subdevices": [
-      {
-        "type": "$TYPE_WATER_LEAK_SENSOR",
-        "restapi": "/sensors",
-        "uuid": [
-          "$address.ext",
-          "0x01",
-          "0x0500"
-        ],
-        "fingerprint": {
-          "profile": "0x0104",
-          "device": "0x0402",
-          "endpoint": "0x01",
-          "in": [
-            "0x0000",
-            "0x0001",
-            "0x0003",
-            "0x0020",
-            "0x0500",
-            "0x0B05"
-          ]
-        },
-        "items": [
-          {
-            "name": "attr/id"
-          },
-          {
-            "name": "attr/lastannounced"
-          },
-          {
-            "name": "attr/lastseen"
-          },
-          {
-            "name": "attr/manufacturername"
-          },
-          {
-            "name": "attr/modelid"
-          },
-          {
-            "name": "attr/name"
-          },
-          {
-            "name": "attr/swversion"
-          },
-          {
-            "name": "attr/type"
-          },
-          {
-            "name": "attr/uniqueid"
-          },
-          {
-            "name": "config/battery",
-            "awake": true,
-            "parse": {
-              "cl": "0x0001",
-              "at": "0x0021",
-              "ep": 1,
-              "eval": "Item.val = Attr.val / 2"
-            }
-          },
-          {
-            "name": "config/enrolled"
-          },
-          {
-            "name": "config/on"
-          },
-          {
-            "name": "config/pending"
-          },
-          {
-            "name": "config/reachable"
-          },
-          {
-            "name": "state/lastupdated"
-          },
-          {
-            "name": "state/lowbattery",
-            "awake": true
-          },
-          {
-            "name": "state/water",
-            "awake": true
-          }
-        ]
-      }
-    ],
-    "bindings": [
-      {
-        "bind": "unicast",
-        "src.ep": 1,
-        "dst.ep": 1,
-        "cl": "0x0001",
-        "report": [
-          {
-            "at": "0x0021",
-            "dt": "0x20",
-            "min": 3600,
-            "max": 14400,
-            "change": "0x00000001"
-          }
+  "schema": "devcap1.schema.json",
+  "uuid": "8f8b987f-fb65-4d21-8f44-df439c916d91",
+  "manufacturername": "Shyugj",
+  "modelid": "WaterLeakageSensor-ZB3.0",
+  "vendor": "HZC Electronics",
+  "product": "Water leak sensor (S900W-ZG)",
+  "sleeper": true,
+  "status": "Silver",
+  "subdevices": [
+    {
+      "type": "$TYPE_WATER_LEAK_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0003",
+          "0x0020",
+          "0x0500",
+          "0x0B05"
         ]
       },
-      {
-        "bind": "unicast",
-        "src.ep": 1,
-        "dst.ep": 1,
-        "cl": "0x0500"
-      }
-    ]
-  }
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "cl": "0x0001",
+            "at": "0x0021",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2"
+          }
+        },
+        {
+          "name": "config/enrolled"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery",
+          "awake": true
+        },
+        {
+          "name": "state/water",
+          "awake": true
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 3600,
+          "max": 14400,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0500"
+    }
+  ]
+}
