@@ -110,7 +110,6 @@
         },
         {
           "name": "config/setvalve",
-          "public": true,
           "parse": {"fn": "tuya", "dpid": 20, "eval": "Item.val = Attr.val;"},
           "write": {"fn": "tuya", "dpid": 20, "dt": "0x10", "eval": "Item.val;"},
           "read": {"fn": "none"}
