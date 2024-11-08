@@ -1,7 +1,7 @@
 {
   "schema": "resourceitem1.schema.json",
   "id": "state/voltage",
-  "datatype": "UInt16",
+  "datatype": "Double",
   "access": "RW",
   "public": true,
   "description": "The measured voltage (in V).",
