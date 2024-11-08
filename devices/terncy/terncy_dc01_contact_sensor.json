@@ -5,7 +5,9 @@
   "modelid": "TERNCY-DC01",
   "vendor": "Terncy",
   "product": "Door sensor (TERNCY-DC01)",
-  "md:info": ["terncy_dc01_contact_sensor_pairing.md"],
+  "md:info": [
+    "terncy_dc01_contact_sensor_pairing.md"
+  ],
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
