@@ -966,6 +966,19 @@
             </attribute>
           </payload>
         </command>
+        <!-- Develco manufacturer specific -->
+        <command id="00" dir="recv" name="Safe Mode Off" required="o" mfcode="0x1015">
+          <description>The 'Safe mode off' functionality is the same as "Safe mode on" the only different is relay entering off state instead of on state.</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="SafeModeTime in Minutes" required="m" default="0x00"/>
+          </payload>
+        </command>
+        <command id="01" dir="recv" name="Safe Mode On" required="o" mfcode="0x1015">
+          <description>If 'Safe mode On' command is sent to a relay with value 10 minutes, the relay will enter the safe mode after 10 minutes and force the relay to turn ON. If a standard OFF command from the On/Off cluster is sent within the first 10 minutes. The timer is restarted and the relay will not turn ON before the new 10 minute time has timed out. Sending the standard OFF command regularly within the 10 minute time interval will prevent the relay to enter safe mode ON state.</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="SafeModeTime in Minutes" required="m" default="0x00"/>
+          </payload>
+        </command>
       </server>
       <client>
       </client>
