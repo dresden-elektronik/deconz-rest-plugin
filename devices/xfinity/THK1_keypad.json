@@ -1,8 +1,16 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "6aa5a6c3-8bd0-4cf8-8f02-279cb0bf4ee2",
-  "manufacturername": ["Technicolor","Universal Electronics Inc","Universal Electronics Inc"],
-  "modelid": ["TKA105","URC4450BC0-X-R","H34450BA00-00007"],
+  "manufacturername": [
+    "Technicolor",
+    "Universal Electronics Inc",
+    "Universal Electronics Inc"
+  ],
+  "modelid": [
+    "TKA105",
+    "URC4450BC0-X-R",
+    "H34450BA00-00007"
+  ],
   "vendor": "Xfinity",
   "product": "Security keypad",
   "sleeper": false,
