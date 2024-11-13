@@ -3,7 +3,7 @@
   "uuid": "7ad2d274-5bb0-40f1-926b-4d9d059ce393",
   "manufacturername": "b-parasite",
   "modelid": "b-parasite",
-  "product": "b-parasite",
+  "product": "open source soil moisture and ambient temperature/humidity/light sensor",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
