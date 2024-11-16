@@ -2675,7 +2675,7 @@ bool DeRestPluginPrivate::sensorToMap(Sensor *sensor, QVariantMap &map, const Ap
         {
             ResourceItem *item = device->itemForIndex(static_cast<size_t>(i));
             DBG_Assert(item);
-            if (!item->isPublic())
+            if (!item->isPublic() || item->descriptor().suffix == RStateReachable)
             {
                 continue;
             }
