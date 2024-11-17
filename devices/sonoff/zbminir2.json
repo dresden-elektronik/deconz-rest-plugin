@@ -1,0 +1,283 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "SONOFF",
+  "modelid": "ZBMINIR2",
+  "product": "Sonoff ZBMINI R2 Extreme",
+  "sleeper": false,
+  "status": "Gold",
+  "path": "/devices/zbminir2.json",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_OUTPUT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0006"
+      ],
+      "meta": {
+        "values": {
+          "config/mode": {
+            "off": 9,
+            "on": 20
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/clickmode",
+          "description": "Allows configuration of the Relay (Detached Relay Mode). Usable Values are 'coupled' and 'decoupled'",
+          "default": "coupled",
+          "refresh.interval": 300,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc11",
+            "at": "0x0017"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc11",
+            "at": "0x0017",
+            "eval": "if (Attr.val == 0) { Item.val = 'coupled' } else if (Attr.val == 1) { Item.val = 'decoupled'}"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc11",
+            "at": "0x0017",
+            "dt": "0x10",
+            "eval": "if (Item.val == 'coupled') { 0 } else if (Item.val == 'decoupled') { 1 } else { '0' }"
+          },
+          "values": [
+            ["\"coupled\"", "Relay Mode"],
+            ["\"decoupled\"", "Detach Relay Mode"]
+          ]
+        },
+        {
+          "name": "config/devicemode",
+          "description": "Mode of the Switch with possible values 'rocker', 'momentary', 'followingon', 'followingoff'.",
+          "default": "rocker",
+          "refresh.interval": 300,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc11",
+            "at": "0x0016"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc11",
+            "at": "0x0016",
+            "eval": "if (Attr.val == 0) { Item.val = 'rocker' } else if (Attr.val == 1) { Item.val = 'momentary' } else if (Attr.val == 2) { Item.val = 'followingoff' } else if (Attr.val == 130) { Item.val = 'followingon' } else { Item.val = 'unknown' }"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "at": "0x0016",
+            "cl": "0xfc11",
+            "dt": "0x20",
+            "eval": "if (Item.val == 'rocker') { 0 } else if (Item.val == 'momentary') { 1 } else if (Item.val == 'followingoff') { 2 } else if (Item.val == 'followingon') { 130 } else { 'unknown' }"
+          },
+          "values": [
+            ["\"momentary\"", "Momentary"],
+            ["\"rocker\"", "Rocker"],
+            ["\"followingoff\"", "Following (On)"],
+            ["\"follogwingon\"", "Following (Off)"]
+          ]
+        },
+		    {
+          "name": "config/delay",
+          "description": "Timedelay for On/Off state on device startup (power on).",
+          "refresh.interval": 3600,
+		      "default": 0,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc11",
+            "at": "0x0015"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc11",
+            "at": "0x0015",
+            "dt": "0x21",
+            "eval": "Item.val",
+	          "range": [
+              1,
+              3600
+            ]
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "at": "0x0015",
+            "cl": "0xfc11",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "config/mode",
+          "description": "Enables or disable the Turbo Mode to Boost the signal.",
+          "default": "off",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc11",
+            "at": "0x0012"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc11",
+            "at": "0x0012",
+            "eval": "if (Attr.val == 9) { Item.val = 'off' } else if (Attr.val == 20) { Item.val = 'on' } else { Item.val = 'unknown' }"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc11",
+            "at": "0x0012",
+            "dt": "0x29",
+            "eval": "if (Item.val == 'off') { 9 } else if (Item.val == 'on') { 20 }"
+          },
+          "values": [
+            ["\"off\"", "Turbo Mode Off"],
+            ["\"on\"", "Turbo Mode On"],
+            ["\"unknown\"", "Unknown"]
+          ]
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/on/delayedpoweron",
+          "description": "Enables or disable the timedelay for On/Off state on device startup (power on).",
+          "refresh.interval": 3600,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc11",
+            "at": "0x0014"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc11",
+            "at": "0x0014",
+            "dt": "0x10",
+            "eval": "Item.val"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc11",
+            "at": "0x0014",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "config/on/startup"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent",
+          "description": "The last received button event."
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 5,
+          "max": 1800
+        }
+      ]
+    }
+  ]
+}

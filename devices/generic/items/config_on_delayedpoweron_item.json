@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/on/delayedpoweron",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "description": "Delays On/Off state on device startup (power on)."
+}
