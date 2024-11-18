@@ -5,7 +5,6 @@
   "product": "Sonoff ZBMINI R2 Extreme",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/zbminir2.json",
   "subdevices": [
     {
       "type": "$TYPE_ON_OFF_OUTPUT",
