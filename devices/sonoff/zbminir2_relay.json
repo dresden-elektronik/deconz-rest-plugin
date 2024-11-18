@@ -162,6 +162,10 @@
           "description": "Timedelay for On/Off state on device startup (power on).",
           "refresh.interval": 3600,
 		      "default": 0,
+          "range": [
+            1,
+            3600
+          ],
           "read": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -174,11 +178,7 @@
             "cl": "0xfc11",
             "at": "0x0015",
             "dt": "0x21",
-            "eval": "Item.val",
-	          "range": [
-              1,
-              3600
-            ]
+            "eval": "Item.val"
           },
           "parse": {
             "fn": "zcl:attr",
