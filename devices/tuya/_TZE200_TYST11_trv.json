@@ -70,8 +70,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -81,49 +92,116 @@
         },
         {
           "name": "config/battery",
-          "parse": {"fn": "tuya", "dpid": 21, "eval": "Item.val = Attr.val;"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 21,
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "config/heatsetpoint",
-          "parse": {"fn": "tuya", "dpid": 2, "eval": "Item.val = Attr.val * 10;"},
-          "write": {"fn": "tuya", "dpid": 2, "dt": "0x2b", "eval": "Item.val / 10;"},
-          "read": {"fn": "tuya"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 2,
+            "eval": "Item.val = Attr.val * 10;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 2,
+            "dt": "0x2b",
+            "eval": "Item.val / 10;"
+          },
+          "read": {
+            "fn": "tuya"
+          }
         },
         {
           "name": "config/locked",
-          "parse": {"fn": "tuya", "dpid": 7, "eval": "Item.val = Attr.val;"},
-          "write": {"fn": "tuya", "dpid": 7, "dt": "0x10", "eval": "Item.val;"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 7,
+            "eval": "Item.val = Attr.val;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 7,
+            "dt": "0x10",
+            "eval": "Item.val;"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "config/on"
         },
         {
           "name": "config/preset",
-          "parse": {"fn": "tuya", "dpid": 4, "script": "tuya_trv_preset.js"},
-          "write": {"fn": "tuya", "dpid": 4, "dt": "0x30", "script": "tuya_trv_preset_set.js"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 4,
+            "script": "tuya_trv_preset.js"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 4,
+            "dt": "0x30",
+            "script": "tuya_trv_preset_set.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "config/reachable"
         },
         {
           "name": "config/setvalve",
-          "parse": {"fn": "tuya", "dpid": 20, "eval": "Item.val = Attr.val;"},
-          "write": {"fn": "tuya", "dpid": 20, "dt": "0x10", "eval": "Item.val;"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 20,
+            "eval": "Item.val = Attr.val;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 20,
+            "dt": "0x10",
+            "eval": "Item.val;"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "config/windowopen_set",
-          "parse": {"fn": "tuya", "dpid": 18, "eval": "Item.val = Attr.val;"},
-          "write": {"fn": "tuya", "dpid": 18, "dt": "0x10", "eval": "Item.val;"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 18,
+            "eval": "Item.val = Attr.val;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 18,
+            "dt": "0x10",
+            "eval": "Item.val;"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/errorcode",
-          "parse": {"fn": "tuya", "dpid": 19, "eval": "Item.val = Attr.val;"},
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 19,
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": "0"
         },
         {
@@ -131,13 +209,25 @@
         },
         {
           "name": "state/temperature",
-          "parse": {"fn": "tuya", "dpid": 3, "eval": "Item.val = Attr.val * 10;"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 3,
+            "eval": "Item.val = Attr.val * 10;"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/windowopen",
-          "parse": {"fn": "tuya", "dpid": 17, "eval": "if (Attr.val == 0) { Item.val = 'close' } else { Item.val = 'open' }"},
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 17,
+            "eval": "if (Attr.val == 0) { Item.val = 'close' } else { Item.val = 'open' }"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": "close"
         }
       ]
