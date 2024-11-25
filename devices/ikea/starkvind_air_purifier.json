@@ -332,7 +332,6 @@
         "$address.ext",
         "0x01",
         "0x042a"
-
       ],
       "fingerprint": {
         "endpoint": "0x01",

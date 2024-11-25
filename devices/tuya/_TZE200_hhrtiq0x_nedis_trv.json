@@ -1,8 +1,16 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "f2401df5-5635-4878-b176-e3246192b02c",
-  "manufacturername": ["_TZE200_hhrtiq0x", "_TZE200_ps5v5jor", "_TZE200_2cs6g9i7"],
-  "modelid": ["TS0601", "TS0601", "TS0601"],
+  "manufacturername": [
+    "_TZE200_hhrtiq0x",
+    "_TZE200_ps5v5jor",
+    "_TZE200_2cs6g9i7"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601",
+    "TS0601"
+  ],
   "vendor": "Tuya",
   "product": "Nedis TRV (TS0601)",
   "sleeper": false,
@@ -18,7 +26,11 @@
       ],
       "meta": {
         "values": {
-          "config/mode": {"auto": 0, "heat": 1, "off": 2}
+          "config/mode": {
+            "auto": 0,
+            "heat": 1,
+            "off": 2
+          }
         }
       },
       "items": [
@@ -51,20 +63,48 @@
         },
         {
           "name": "config/battery",
-          "parse": {"fn": "tuya", "dpid": 21, "eval": "Item.val = Attr.val;"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 21,
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "config/heatsetpoint",
-          "parse": {"fn": "tuya", "dpid": 2, "eval": "Item.val = Attr.val * 10;"},
-          "write": {"fn": "tuya", "dpid": 2, "dt": "0x2b", "eval": "Item.val / 10;"},
-          "read": {"fn": "tuya"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 2,
+            "eval": "Item.val = Attr.val * 10;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 2,
+            "dt": "0x2b",
+            "eval": "Item.val / 10;"
+          },
+          "read": {
+            "fn": "tuya"
+          }
         },
         {
           "name": "config/locked",
-          "parse": {"fn": "tuya", "dpid": 7, "eval": "Item.val = Attr.val;"},
-          "write": {"fn": "tuya", "dpid": 7, "dt": "0x10", "eval": "Item.val;"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 7,
+            "eval": "Item.val = Attr.val;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 7,
+            "dt": "0x10",
+            "eval": "Item.val;"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "config/on"
@@ -74,37 +114,93 @@
         },
         {
           "name": "config/windowopen_set",
-          "parse": {"fn": "tuya", "dpid": 18, "eval": "Item.val = Attr.val;"},
-          "write": {"fn": "tuya", "dpid": 18, "dt": "0x10", "eval": "Item.val;"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 18,
+            "eval": "Item.val = Attr.val;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 18,
+            "dt": "0x10",
+            "eval": "Item.val;"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "config/mode",
           "values": [
-              ["auto", 0], ["heat", 1], ["off", 2]
+            [
+              "auto",
+              0
+            ],
+            [
+              "heat",
+              1
+            ],
+            [
+              "off",
+              2
+            ]
           ],
-          "parse": {"fn": "tuya", "dpid": 106, "eval": "if (Attr.val == 0) { Item.val = 'auto' } else if (Attr.val == 1) { Item.val = 'heat' } else { Item.val = 'off' }"},
-          "write": {"fn": "tuya", "dpid": 106, "dt": "0x30", "eval": "if (Item.val == 'auto') { 0 } else if (Item.val == 'heat') { 1 } else { 2 }"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 106,
+            "eval": "if (Attr.val == 0) { Item.val = 'auto' } else if (Attr.val == 1) { Item.val = 'heat' } else { Item.val = 'off' }"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 106,
+            "dt": "0x30",
+            "eval": "if (Item.val == 'auto') { 0 } else if (Item.val == 'heat') { 1 } else { 2 }"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "config/preset",
-          "parse": {"fn": "tuya", "dpid": 4, "script": "tuya_trv_preset.js"},
-          "write": {"fn": "tuya", "dpid": 4, "dt": "0x30", "script": "tuya_trv_preset_set.js"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 4,
+            "script": "tuya_trv_preset.js"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 4,
+            "dt": "0x30",
+            "script": "tuya_trv_preset_set.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/temperature",
-          "parse": {"fn": "tuya", "dpid": 3, "eval": "Item.val = Attr.val * 10;"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 3,
+            "eval": "Item.val = Attr.val * 10;"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/valve",
-          "parse": {"fn": "tuya", "dpid": 109, "eval": "Item.val = Attr.val > 5;"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 109,
+            "eval": "Item.val = Attr.val > 5;"
+          },
+          "read": {
+            "fn": "none"
+          }
         }
       ]
     }

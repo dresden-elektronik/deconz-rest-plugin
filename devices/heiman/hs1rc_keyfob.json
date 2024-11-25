@@ -1,8 +1,16 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "5e3b0947-9e85-4919-94f9-6c277820cb8f",
-  "manufacturername": ["HEIMAN", "Heiman", "HEIMAN"],
-  "modelid": ["RC-EF-3.0", "RC_V14", "RC-EM"],
+  "manufacturername": [
+    "HEIMAN",
+    "Heiman",
+    "HEIMAN"
+  ],
+  "modelid": [
+    "RC-EF-3.0",
+    "RC_V14",
+    "RC-EM"
+  ],
   "vendor": "Heiman",
   "product": "Remote controller (HS1RC)",
   "sleeper": true,

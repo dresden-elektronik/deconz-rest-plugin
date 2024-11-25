@@ -126,8 +126,14 @@
             "mf": "0x115f"
           },
           "values": [
-            ["\"decoupled\"", "Decoupled Mode"],
-            ["\"coupled\"", "Coupled Mode"]
+            [
+              "\"decoupled\"",
+              "Decoupled Mode"
+            ],
+            [
+              "\"coupled\"",
+              "Coupled Mode"
+            ]
           ],
           "default": "coupled"
         },

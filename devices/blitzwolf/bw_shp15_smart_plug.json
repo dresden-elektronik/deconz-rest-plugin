@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "90a67336-789a-4284-89a9-6f07bcbd2c9a",
-  "manufacturername": ["_TZ3000_mraovvmm", "_TZ3000_u5u4cakc"],
-  "modelid": ["TS011F", "TS011F"],
+  "manufacturername": [
+    "_TZ3000_mraovvmm",
+    "_TZ3000_u5u4cakc"
+  ],
+  "modelid": [
+    "TS011F",
+    "TS011F"
+  ],
   "vendor": "BlitzWolf",
   "product": "Power monitoring 16A 3680W EU plug (BW-SHP15)",
   "sleeper": false,
@@ -36,8 +42,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -96,7 +113,13 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          }
         },
         {
           "name": "attr/type"
@@ -165,7 +188,13 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          }
         },
         {
           "name": "attr/type"
@@ -181,8 +210,18 @@
         },
         {
           "name": "state/consumption",
-          "read": {"at": "0x0000", "cl": "0x0702", "ep": 0, "fn": "zcl:attr" },
-          "parse": {"at": "0x0000", "cl": "0x0702", "ep": 0, "eval": "Item.val = Attr.val * 10"},
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0702",
+            "ep": 0,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0702",
+            "ep": 0,
+            "eval": "Item.val = Attr.val * 10"
+          },
           "refresh.interval": 300
         },
         {

@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "955538c2-6cb3-4e73-8a48-248c94aab6a1",
-  "manufacturername": ["Sinope Technologies", "Sinope Technologies"],
-  "modelid": ["TH1123ZB", "TH1124ZB"],
+  "manufacturername": [
+    "Sinope Technologies",
+    "Sinope Technologies"
+  ],
+  "modelid": [
+    "TH1123ZB",
+    "TH1124ZB"
+  ],
   "product": "Smart thermostat for electric heating (TH1123ZB/TH1124ZB)",
   "sleeper": false,
   "status": "Gold",
@@ -70,14 +76,14 @@
             "mf": "0x119c",
             "eval": "Item.val = Attr.val;",
             "fn": "zcl:attr"
-            },
+          },
           "read": {
             "at": "0x0400",
             "cl": "0x0201",
             "ep": 1,
             "mf": "0x119c",
             "fn": "zcl:attr"
-            },
+          },
           "write": {
             "at": "0x0400",
             "cl": "0x0201",
@@ -86,7 +92,7 @@
             "dt": "0x30",
             "mf": "0x119c",
             "eval": "Item.val"
-            },
+          },
           "default": true
         },
         {

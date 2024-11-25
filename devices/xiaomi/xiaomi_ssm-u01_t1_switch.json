@@ -65,7 +65,7 @@
         }
       ]
     },
-     {
+    {
       "type": "$TYPE_POWER_SENSOR",
       "restapi": "/sensors",
       "uuid": [
@@ -333,8 +333,14 @@
             "mf": "0x115f"
           },
           "values": [
-            ["\"momentary\"", "Momentary mode"],
-            ["\"rocker\"", "Rocker mode"]
+            [
+              "\"momentary\"",
+              "Momentary mode"
+            ],
+            [
+              "\"rocker\"",
+              "Rocker mode"
+            ]
           ],
           "default": "rocker"
         },
@@ -366,8 +372,14 @@
             "mf": "0x115f"
           },
           "values": [
-            ["\"compatibility\"", "Default mode for Xiaomi devices"],
-            ["\"zigbee\"", "Closer to zigbee standard"]
+            [
+              "\"compatibility\"",
+              "Default mode for Xiaomi devices"
+            ],
+            [
+              "\"zigbee\"",
+              "Closer to zigbee standard"
+            ]
           ],
           "default": "compatibility"
         },

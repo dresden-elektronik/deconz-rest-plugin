@@ -1,8 +1,24 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "d333ea82-790f-42e4-ac3b-c255f67a95be",
-  "manufacturername": ["_TZ3000_gbm10jnj", "_TZ3000_sj7jbgks", "_TZ3000_w8jwkczz", "_TZ3000_famkxci2", "_TZ3000_w3c7ouru", "_TZ3000_yw5tvzsk", "_TZ3000_pkeqinnt"],
-  "modelid": ["TS0043", "TS0043", "TS0043", "TS0043", "TS0043", "TS0043", "TS0043"],
+  "manufacturername": [
+    "_TZ3000_gbm10jnj",
+    "_TZ3000_sj7jbgks",
+    "_TZ3000_w8jwkczz",
+    "_TZ3000_famkxci2",
+    "_TZ3000_w3c7ouru",
+    "_TZ3000_yw5tvzsk",
+    "_TZ3000_pkeqinnt"
+  ],
+  "modelid": [
+    "TS0043",
+    "TS0043",
+    "TS0043",
+    "TS0043",
+    "TS0043",
+    "TS0043",
+    "TS0043"
+  ],
   "vendor": "Tuya",
   "product": "3-gang remote (TS0043)",
   "sleeper": false,
@@ -38,8 +54,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
