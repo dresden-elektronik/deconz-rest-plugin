@@ -1,231 +1,231 @@
 {
-    "schema": "devcap1.schema.json",
-    "uuid": "a417ba23-2ea6-417e-9093-8110edb20413",
-    "manufacturername": [
-        "LIDL Silvercrest",
-        "_TZ3000_1obwwnmq"
-    ],
-    "modelid": [
-        "HG06338",
-        "TS011F"
-    ],
-    "vendor": "Lidl",
-    "product": "SilverCrest power strip 3 AC (16A) with 4 USB (HG06338)",
-    "sleeper": false,
-    "status": "Gold",
-    "subdevices": [
+  "schema": "devcap1.schema.json",
+  "uuid": "a417ba23-2ea6-417e-9093-8110edb20413",
+  "manufacturername": [
+    "LIDL Silvercrest",
+    "_TZ3000_1obwwnmq"
+  ],
+  "modelid": [
+    "HG06338",
+    "TS011F"
+  ],
+  "vendor": "Lidl",
+  "product": "SilverCrest power strip 3 AC (16A) with 4 USB (HG06338)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
         {
-            "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
-            "restapi": "/lights",
-            "uuid": [
-                "$address.ext",
-                "0x01"
-            ],
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername",
-                    "static": "LIDL Silvercrest"
-                },
-                {
-                    "name": "attr/modelid",
-                    "static": "HG06338"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion",
-                    "parse": {
-                        "fn": "zcl:attr",
-                        "ep": "0x01",
-                        "cl": "0x0000",
-                        "at": "0x0001",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "fn": "zcl:attr",
-                        "ep": "0x01",
-                        "cl": "0x0000",
-                        "at": "0x0001"
-                    },
-                    "refresh.interval": 86400
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "state/on",
-                    "refresh.interval": 360
-                },
-                {
-                    "name": "state/reachable"
-                }
-            ]
+          "name": "attr/id"
         },
         {
-            "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
-            "restapi": "/lights",
-            "uuid": [
-                "$address.ext",
-                "0x02"
-            ],
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername",
-                    "static": "LIDL Silvercrest"
-                },
-                {
-                    "name": "attr/modelid",
-                    "static": "HG06338"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion",
-                    "parse": {
-                        "fn": "zcl:attr",
-                        "ep": "0x01",
-                        "cl": "0x0000",
-                        "at": "0x0001",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "fn": "none"
-                    }
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "state/on",
-                    "refresh.interval": 360
-                },
-                {
-                    "name": "state/reachable"
-                }
-            ]
+          "name": "attr/lastannounced"
         },
         {
-            "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
-            "restapi": "/lights",
-            "uuid": [
-                "$address.ext",
-                "0x03"
-            ],
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername",
-                    "static": "LIDL Silvercrest"
-                },
-                {
-                    "name": "attr/modelid",
-                    "static": "HG06338"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion",
-                    "parse": {
-                        "fn": "zcl:attr",
-                        "ep": "0x01",
-                        "cl": "0x0000",
-                        "at": "0x0001",
-                        "eval": "Item.val = Attr.val"
-                    },
-                    "read": {
-                        "fn": "none"
-                    }
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "state/on",
-                    "refresh.interval": 360
-                },
-                {
-                    "name": "state/reachable"
-                }
-            ]
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "static": "LIDL Silvercrest"
+        },
+        {
+          "name": "attr/modelid",
+          "static": "HG06338"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/reachable"
         }
-    ],
-    "bindings": [
+      ]
+    },
+    {
+      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x02"
+      ],
+      "items": [
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0006",
-            "report": [
-                {
-                    "at": "0x0000",
-                    "dt": "0x10",
-                    "min": 1,
-                    "max": 300
-                }
-            ]
+          "name": "attr/id"
         },
         {
-            "bind": "unicast",
-            "src.ep": 2,
-            "cl": "0x0006",
-            "report": [
-                {
-                    "at": "0x0000",
-                    "dt": "0x10",
-                    "min": 1,
-                    "max": 300
-                }
-            ]
+          "name": "attr/lastannounced"
         },
         {
-            "bind": "unicast",
-            "src.ep": 3,
-            "cl": "0x0006",
-            "report": [
-                {
-                    "at": "0x0000",
-                    "dt": "0x10",
-                    "min": 1,
-                    "max": 300
-                }
-            ]
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "static": "LIDL Silvercrest"
+        },
+        {
+          "name": "attr/modelid",
+          "static": "HG06338"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/reachable"
         }
-    ]
+      ]
+    },
+    {
+      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x03"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "static": "LIDL Silvercrest"
+        },
+        {
+          "name": "attr/modelid",
+          "static": "HG06338"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    }
+  ]
 }

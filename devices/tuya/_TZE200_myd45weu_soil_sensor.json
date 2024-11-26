@@ -1,8 +1,18 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "2c91cde2-7329-4c70-bf90-59af861796ff",
-  "manufacturername": ["_TZE200_myd45weu", "_TZE200_9cqcpkgb", "_TZE200_ga1maeof", "_TZE204_myd45weu"],
-  "modelid": ["TS0601", "TS0601", "TS0601", "TS0601"],
+  "manufacturername": [
+    "_TZE200_myd45weu",
+    "_TZE200_9cqcpkgb",
+    "_TZE200_ga1maeof",
+    "_TZE204_myd45weu"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601"
+  ],
   "vendor": "Tuya",
   "product": "Tuya Soil Sensor (TS0601)",
   "sleeper": true,

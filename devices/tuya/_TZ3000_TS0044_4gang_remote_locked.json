@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "1ca9db80-e00c-4d5d-84b2-7451b19d6e46",
-  "manufacturername": ["_TZ3000_a4xycprs", "_TZ3000_u3nv1jwk"],
-  "modelid": ["TS0044", "TS0044"],
+  "manufacturername": [
+    "_TZ3000_a4xycprs",
+    "_TZ3000_u3nv1jwk"
+  ],
+  "modelid": [
+    "TS0044",
+    "TS0044"
+  ],
   "vendor": "Tuya",
   "product": "4-gang remote (TS0044)",
   "comment": "Locked by Tuya",

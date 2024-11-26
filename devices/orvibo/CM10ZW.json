@@ -149,31 +149,46 @@
         }
       ]
     }
-    ],
-    "bindings":  [
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0006",
-            "report": [
-                {"at": "0x0000", "dt": "0x10", "min": 5, "max": 300 }
-            ]
-        },
-        {
-            "bind": "unicast",
-            "src.ep": 2,
-            "cl": "0x0006",
-            "report": [
-                {"at": "0x0000", "dt": "0x10", "min": 5, "max": 300 }
-            ]
-        },
-        {
-            "bind": "unicast",
-            "src.ep": 3,
-            "cl": "0x0006",
-            "report": [
-                {"at": "0x0000", "dt": "0x10", "min": 5, "max": 300 }
-            ]
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 5,
+          "max": 300
         }
-    ]
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 5,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 5,
+          "max": 300
+        }
+      ]
+    }
+  ]
 }

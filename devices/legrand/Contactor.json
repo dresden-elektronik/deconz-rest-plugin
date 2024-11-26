@@ -69,7 +69,10 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"auto": 4, "manu" : 3}
+          "config/mode": {
+            "auto": 4,
+            "manu": 3
+          }
         }
       },
       "items": [

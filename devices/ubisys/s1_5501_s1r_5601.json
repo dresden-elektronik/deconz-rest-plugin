@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "d275912e-9490-4deb-9225-c17b882703ae",
-  "manufacturername": ["ubisys", "ubisys"],
-  "modelid": ["S1 (5501)", "S1-R (5601)"],
+  "manufacturername": [
+    "ubisys",
+    "ubisys"
+  ],
+  "modelid": [
+    "S1 (5501)",
+    "S1-R (5601)"
+  ],
   "vendor": "ubisys",
   "product": "Power switch (S1 (5501)/S1-R (5601))",
   "sleeper": false,
@@ -79,7 +85,11 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"momentary": 0, "rocker": 1, "custom": 2}
+          "config/mode": {
+            "momentary": 0,
+            "rocker": 1,
+            "custom": 2
+          }
         }
       },
       "items": [
@@ -138,11 +148,20 @@
             "eval": "if (Item.val == 'momentary') { '01004841020006000D0206000206010D03060002' } else if (Item.val == 'rocker') { '01004841020006000D0206000206000302060002' } else if (Item.val.slice(0,7) == 'custom_') { '010048' + Item.val.slice(7, Item.val.length) }",
             "fc": "0x10"
           },
-          "default" : "momentary",
+          "default": "momentary",
           "values": [
-            ["\"momentary\"", "Momentary mode"],
-            ["\"rocker\"", "Rocker mode"],
-            ["\"custom_010048....\"", "Custom mode"]
+            [
+              "\"momentary\"",
+              "Momentary mode"
+            ],
+            [
+              "\"rocker\"",
+              "Rocker mode"
+            ],
+            [
+              "\"custom_010048....\"",
+              "Custom mode"
+            ]
           ]
         },
         {

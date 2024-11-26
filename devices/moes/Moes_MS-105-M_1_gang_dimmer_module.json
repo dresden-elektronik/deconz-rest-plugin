@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "09286594-6296-427e-9919-8eb9c31ac189",
-  "manufacturername": ["_TZE200_la2c2uo9", "_TZE204_dcnsggvz"],
-  "modelid": ["TS0601", "TS0601"],
+  "manufacturername": [
+    "_TZE200_la2c2uo9",
+    "_TZE204_dcnsggvz"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601"
+  ],
   "vendor": "Moes",
   "product": "1-gang dimmer module (ZM-105-M)",
   "sleeper": false,
@@ -36,8 +42,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -52,15 +69,37 @@
         },
         {
           "name": "state/on",
-          "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = Attr.val;" },
-          "write": {"fn": "tuya", "dpid": 1, "dt": "0x10", "eval": "Item.val == 1 ? 1 : 0;"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 1,
+            "eval": "Item.val = Attr.val;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 1,
+            "dt": "0x10",
+            "eval": "Item.val == 1 ? 1 : 0;"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/bri",
-          "parse": {"fn": "tuya", "dpid": 2, "eval": "Item.val = (Attr.val / 1000.0) * 254.0;"},
-          "write": {"fn": "tuya", "dpid": 2, "dt": "0x2b", "eval": "(Item.val / 254.0) * 1000.0;"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 2,
+            "eval": "Item.val = (Attr.val / 1000.0) * 254.0;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 2,
+            "dt": "0x2b",
+            "eval": "(Item.val / 254.0) * 1000.0;"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/reachable"
