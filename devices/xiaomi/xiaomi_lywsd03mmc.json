@@ -1,200 +1,206 @@
 {
-    "schema": "devcap1.schema.json",
-    "uuid": "ab855acd-56bb-45df-a127-b796c4b3e547",
-    "manufacturername": ["Xiaomi", "Xiaomi"],
-    "modelid": ["LYWSD03MMC", "LYWSD03MMC-z"],
-    "vendor": "Xiaomi Mi",
-    "product": "Temperature and humidity sensor with LCD (LYWSD03MMC)",
-    "sleeper": false,
-    "status": "Gold",
-    "subdevices": [
+  "schema": "devcap1.schema.json",
+  "uuid": "ab855acd-56bb-45df-a127-b796c4b3e547",
+  "manufacturername": [
+    "Xiaomi",
+    "Xiaomi"
+  ],
+  "modelid": [
+    "LYWSD03MMC",
+    "LYWSD03MMC-z"
+  ],
+  "vendor": "Xiaomi Mi",
+  "product": "Temperature and humidity sensor with LCD (LYWSD03MMC)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_HUMIDITY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0405"
+      ],
+      "items": [
         {
-            "type": "$TYPE_HUMIDITY_SENSOR",
-            "restapi": "/sensors",
-            "uuid": [
-                "$address.ext",
-                "0x01",
-                "0x0405"
-            ],
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/battery",
-                    "refresh.interval": 86400,
-                    "read": {
-                        "at": "0x0021",
-                        "cl": "0x0001",
-                        "ep": 1,
-                        "fn": "zcl:attr"
-                    },
-                    "parse": {
-                        "at": "0x0021",
-                        "cl": "0x0001",
-                        "ep": 1,
-                        "eval": "Item.val = Attr.val / 2",
-                        "fn": "zcl:attr"
-                    },
-                    "default": 0
-                },
-                {
-                    "name": "config/offset",
-                    "default": 0
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/humidity"
-                },
-                {
-                    "name": "state/lastupdated"
-                }
-            ]
+          "name": "attr/id"
         },
         {
-            "type": "$TYPE_TEMPERATURE_SENSOR",
-            "restapi": "/sensors",
-            "uuid": [
-                "$address.ext",
-                "0x01",
-                "0x0402"
-            ],
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/battery",
-                    "refresh.interval": 7255,
-                    "read": {
-                        "at": "0x0021",
-                        "cl": "0x0001",
-                        "ep": 1,
-                        "fn": "zcl:attr"
-                    },
-                    "parse": {
-                        "at": "0x0021",
-                        "cl": "0x0001",
-                        "ep": 1,
-                        "eval": "Item.val = Attr.val / 2",
-                        "fn": "zcl:attr"
-                    },
-                    "default": 0
-                },
-                {
-                    "name": "config/offset",
-                    "default": 0
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/lastupdated"
-                },
-                {
-                    "name": "state/temperature"
-                }
-            ]
-        }
-    ],
-    "bindings": [
+          "name": "attr/lastannounced"
+        },
         {
-            "bind": "unicast",
-            "src.ep": 1,
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0021",
             "cl": "0x0001",
-            "report": [
-                {
-                    "at": "0x0021",
-                    "dt": "0x20",
-                    "min": 3200,
-                    "max": 3600,
-                    "change": "0x00000002"
-                }
-            ]
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
+          },
+          "default": 0
         },
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0402",
-            "report": [
-                {
-                    "at": "0x0000",
-                    "dt": "0x29",
-                    "min": 10,
-                    "max": 300,
-                    "change": "0x0000000A"
-                }
-            ]
+          "name": "config/offset",
+          "default": 0
         },
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0405",
-            "report": [
-                {
-                    "at": "0x0000",
-                    "dt": "0x21",
-                    "min": 10,
-                    "max": 300,
-                    "change": "0x00000032"
-                }
-            ]
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/humidity"
+        },
+        {
+          "name": "state/lastupdated"
         }
-    ]
+      ]
+    },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "refresh.interval": 7255,
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 3200,
+          "max": 3600,
+          "change": "0x00000002"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0402",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 10,
+          "max": 300,
+          "change": "0x0000000A"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0405",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 10,
+          "max": 300,
+          "change": "0x00000032"
+        }
+      ]
+    }
+  ]
 }

@@ -115,7 +115,11 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"momentary": 0, "rocker": 1, "custom": 2}
+          "config/mode": {
+            "momentary": 0,
+            "rocker": 1,
+            "custom": 2
+          }
         }
       },
       "items": [
@@ -174,11 +178,20 @@
             "eval": "if (Item.val == 'momentary') { '01004841040006000D020201000600070202010206010D0202010106010702020102' } else if (Item.val == 'rocker') { '01004841040006000D020201000600030202010206010D0202010106010302020102' } else if (Item.val.slice(0,7) == 'custom_') { '010048' + Item.val.slice(7, Item.val.length) }",
             "fc": "0x10"
           },
-          "default" : "momentary",
+          "default": "momentary",
           "values": [
-            ["\"momentary\"", "All inputs in momentary mode"],
-            ["\"rocker\"", "All inputs in rocker mode"],
-            ["\"custom_010048....\"", "Custom mode"]
+            [
+              "\"momentary\"",
+              "All inputs in momentary mode"
+            ],
+            [
+              "\"rocker\"",
+              "All inputs in rocker mode"
+            ],
+            [
+              "\"custom_010048....\"",
+              "Custom mode"
+            ]
           ]
         },
         {

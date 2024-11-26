@@ -1,8 +1,16 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "fc4a79fe-ccd4-4973-b167-ceba1e0d8db2",
-  "manufacturername": ["_TZE200_pay2byax", "_TZE200_kltffuzl", "_TZE200_fwoorn8y"],
-  "modelid": ["TS0601", "TS0601", "TS0601"],
+  "manufacturername": [
+    "_TZE200_pay2byax",
+    "_TZE200_kltffuzl",
+    "_TZE200_fwoorn8y"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601",
+    "TS0601"
+  ],
   "vendor": "Tuya",
   "product": "Open/close sensor (ZG-102Z/TM001-ZA/TM081)",
   "sleeper": true,
@@ -37,8 +45,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -48,8 +67,14 @@
         },
         {
           "name": "config/battery",
-          "parse": {"fn": "tuya", "dpid": 2, "eval" : "Item.val = Attr.val;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 2,
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         },
         {
@@ -63,8 +88,14 @@
         },
         {
           "name": "state/open",
-          "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = Attr.val;" },
-          "read": {"fn": "tuya"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 1,
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "tuya"
+          },
           "default": false
         }
       ]

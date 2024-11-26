@@ -29,7 +29,9 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"auto": 1}
+          "config/mode": {
+            "auto": 1
+          }
         }
       },
       "items": [

@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "c2c9821b-310d-4d66-887e-49ca30163591",
-  "manufacturername": ["_TZ3000_ksw8qtmt", "_TZ3000_2putqrmw"],
-  "modelid": ["TS011F", "TS011F"],
+  "manufacturername": [
+    "_TZ3000_ksw8qtmt",
+    "_TZ3000_2putqrmw"
+  ],
+  "modelid": [
+    "TS011F",
+    "TS011F"
+  ],
   "vendor": "Nous",
   "product": "Smart zigbee socket (A1Z)",
   "sleeper": false,
@@ -36,8 +42,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -86,8 +103,16 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -145,8 +170,16 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"

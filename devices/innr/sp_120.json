@@ -1,254 +1,254 @@
 {
-    "schema": "devcap1.schema.json",
-    "uuid": "5a2c2e2d-c5b6-41c6-977a-3d4aeb327499",
-    "manufacturername": "innr",
-    "modelid": "SP 120",
-    "vendor": "Innr",
-    "product": "Smart plug (SP 120)",
-    "sleeper": false,
-    "status": "Gold",
-    "path": "/devices/innr/sp_120.json",
-    "subdevices": [
+  "schema": "devcap1.schema.json",
+  "uuid": "5a2c2e2d-c5b6-41c6-977a-3d4aeb327499",
+  "manufacturername": "innr",
+  "modelid": "SP 120",
+  "vendor": "Innr",
+  "product": "Smart plug (SP 120)",
+  "sleeper": false,
+  "status": "Gold",
+  "path": "/devices/innr/sp_120.json",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
         {
-            "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
-            "restapi": "/lights",
-            "uuid": [
-                "$address.ext",
-                "0x01"
-            ],
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "state/alert"
-                },
-                {
-                    "name": "state/on",
-                    "refresh.interval": 360
-                },
-                {
-                    "name": "state/reachable"
-                }
-            ]
+          "name": "attr/id"
         },
         {
-            "type": "$TYPE_CONSUMPTION_SENSOR",
-            "restapi": "/sensors",
-            "uuid": [
-                "$address.ext",
-                "0x01",
-                "0x0702"
-            ],
-            "fingerprint": {
-                "endpoint": "0x01",
-                "profile": "0xc05e",
-                "device": "0x0010",
-                "in": [
-                    "0x0006",
-                    "0x0008",
-                    "0x0702"
-                ],
-                "out": [
-                    "0x0019"
-                ]
-            },
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/consumption",
-                    "refresh.interval": 360,
-                    "parse": {
-                        "at": "0x0000",
-                        "cl": "0x0702",
-                        "ep": 1,
-                        "eval": "Item.val = Attr.val * 10;"
-                    }
-                },
-                {
-                    "name": "state/lastupdated"
-                }
-            ]
+          "name": "attr/lastannounced"
         },
         {
-            "type": "$TYPE_POWER_SENSOR",
-            "restapi": "/sensors",
-            "uuid": [
-                "$address.ext",
-                "0x01",
-                "0x0b04"
-            ],
-            "fingerprint": {
-                "endpoint": "0x01",
-                "profile": "0xc05e",
-                "device": "0x0010",
-                "in": [
-                    "0x0B04"
-                ]
-            },
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/current",
-                    "refresh.interval": 360
-                },
-                {
-                    "name": "state/lastupdated"
-                },
-                {
-                    "name": "state/power",
-                    "refresh.interval": 360
-                },
-                {
-                    "name": "state/voltage",
-                    "refresh.interval": 360
-                }
-            ]
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/reachable"
         }
-    ],
-    "bindings": [
+      ]
+    },
+    {
+      "type": "$TYPE_CONSUMPTION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0702"
+      ],
+      "fingerprint": {
+        "endpoint": "0x01",
+        "profile": "0xc05e",
+        "device": "0x0010",
+        "in": [
+          "0x0006",
+          "0x0008",
+          "0x0702"
+        ],
+        "out": [
+          "0x0019"
+        ]
+      },
+      "items": [
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0006",
-            "report": [
-                {
-                    "at": "0x0000",
-                    "dt": "0x10",
-                    "min": 1,
-                    "max": 300
-                }
-            ]
+          "name": "attr/id"
         },
         {
-            "bind": "unicast",
-            "src.ep": 1,
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/consumption",
+          "refresh.interval": 360,
+          "parse": {
+            "at": "0x0000",
             "cl": "0x0702",
-            "report": [
-                {
-                    "at": "0x0000",
-                    "dt": "0x25",
-                    "min": 1,
-                    "max": 300,
-                    "change": "0x0000000A"
-                }
-            ]
+            "ep": 1,
+            "eval": "Item.val = Attr.val * 10;"
+          }
         },
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0B04",
-            "report": [
-                {
-                    "at": "0x0505",
-                    "dt": "0x21",
-                    "min": 1,
-                    "max": 300,
-                    "change": "0x00000001"
-                },
-                {
-                    "at": "0x0508",
-                    "dt": "0x21",
-                    "min": 1,
-                    "max": 300,
-                    "change": "0x00000064"
-                },
-                {
-                    "at": "0x050B",
-                    "dt": "0x29",
-                    "min": 1,
-                    "max": 300,
-                    "change": "0x00000001"
-                }
-            ]
+          "name": "state/lastupdated"
         }
-    ]
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0b04"
+      ],
+      "fingerprint": {
+        "endpoint": "0x01",
+        "profile": "0xc05e",
+        "device": "0x0010",
+        "in": [
+          "0x0B04"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/current",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/voltage",
+          "refresh.interval": 360
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0702",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x25",
+          "min": 1,
+          "max": 300,
+          "change": "0x0000000A"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0B04",
+      "report": [
+        {
+          "at": "0x0505",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0508",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000064"
+        },
+        {
+          "at": "0x050B",
+          "dt": "0x29",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
 }

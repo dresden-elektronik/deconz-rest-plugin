@@ -31,9 +31,14 @@
         "0x1000"
       ],
       "meta": {
-        "group.endpoints": [1],
+        "group.endpoints": [
+          1
+        ],
         "values": {
-          "config/mode": {"command": 0, "event": 1}
+          "config/mode": {
+            "command": 0,
+            "event": 1
+          }
         }
       },
       "fingerprint": {
@@ -133,8 +138,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -145,38 +161,85 @@
         {
           "name": "cap/color/ct/max",
           "public": false,
-          "read": {"fn": "none"},
+          "read": {
+            "fn": "none"
+          },
           "default": 500
         },
         {
           "name": "cap/color/ct/min",
           "public": false,
-          "read": {"fn": "none"},
+          "read": {
+            "fn": "none"
+          },
           "default": 153
         },
         {
-            "name": "config/battery",
-            "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
-            "read": {"fn": "none"}
+          "name": "config/battery",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "config/mode",
           "description": "Switch operation mode",
           "access": "R",
           "values": [
-            ["command", "Light OnOff/Dimmer commands"],
-            ["event", "Tuya Scene Commands"]
+            [
+              "command",
+              "Light OnOff/Dimmer commands"
+            ],
+            [
+              "event",
+              "Tuya Scene Commands"
+            ]
           ],
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0006", "at": "0x8004", "eval": "Item.val = ['command', 'event'][Attr.val]"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0006", "at": "0x8004"},
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0006",
+            "at": "0x8004",
+            "eval": "Item.val = ['command', 'event'][Attr.val]"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0006",
+            "at": "0x8004"
+          },
           "default": "command"
         },
         {
           "name": "config/group",
           "default": "auto",
-          "parse": {"fn": "zcl:cmd", "ep": 1, "cl": "0x0004", "cmd": "0x02", "script": "_TZ3000_TS004F_smart_knob_group_view.js"},
-          "read": {"fn": "zcl:cmd", "ep": 1, "cl": "0x0004", "cmd": "0x02", "eval": "'00'"},
-          "write": {"fn": "zcl:cmd", "ep": 1, "cl": "0x0004", "cmd": "0x00", "script": "_TZ3000_TS004F_smart_knob_group_add.js"},
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0x0004",
+            "cmd": "0x02",
+            "script": "_TZ3000_TS004F_smart_knob_group_view.js"
+          },
+          "read": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0x0004",
+            "cmd": "0x02",
+            "eval": "'00'"
+          },
+          "write": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0x0004",
+            "cmd": "0x00",
+            "script": "_TZ3000_TS004F_smart_knob_group_add.js"
+          },
           "refresh.interval": 86400
         },
         {
@@ -205,22 +268,46 @@
         {
           "name": "state/on",
           "public": false,
-          "parse": {"fn": "zcl:cmd", "ep": 1, "cl": "0x0006", "cmd": "any", "script": "_TZ3000_TS004F_smart_knob_on.js"},
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0x0006",
+            "cmd": "any",
+            "script": "_TZ3000_TS004F_smart_knob_on.js"
+          },
+          "read": {
+            "fn": "none"
+          },
           "awake": true
         },
         {
           "name": "state/bri",
           "public": false,
-          "parse": {"fn": "zcl:cmd", "ep": 1, "cl": "0x0008", "cmd": "0x02", "script": "_TZ3000_TS004F_smart_knob_bri.js"},
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0x0008",
+            "cmd": "0x02",
+            "script": "_TZ3000_TS004F_smart_knob_bri.js"
+          },
+          "read": {
+            "fn": "none"
+          },
           "awake": true
         },
         {
           "name": "state/ct",
           "public": false,
-          "parse": {"fn": "zcl:cmd", "ep": 1, "cl": "0x0300", "cmd": "any", "script": "_TZ3000_TS004F_smart_knob_ct.js"},
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0x0300",
+            "cmd": "any",
+            "script": "_TZ3000_TS004F_smart_knob_ct.js"
+          },
+          "read": {
+            "fn": "none"
+          },
           "awake": true
         }
       ]

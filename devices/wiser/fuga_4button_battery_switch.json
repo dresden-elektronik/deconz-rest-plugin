@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "6520f051-3aca-4197-8bb1-882398107fc9",
-  "manufacturername": ["Schneider Electric", "Schneider Electric"],
-  "modelid": ["FLS/AIRLINK/4", "FLS/SYSTEM-M/4"],
+  "manufacturername": [
+    "Schneider Electric",
+    "Schneider Electric"
+  ],
+  "modelid": [
+    "FLS/AIRLINK/4",
+    "FLS/SYSTEM-M/4"
+  ],
   "vendor": "Schneider Electric",
   "product": "LK Fuga Wiser wireless battery 2 or 4 button switch (550D6001/WDE002906)",
   "sleeper": true,
@@ -16,12 +22,27 @@
         "0x15",
         "0x0006"
       ],
-      "fingerprint": { "profile": "0x0104", "device": "0x000c", "endpoint": "0x15", "in": ["0x0000", "0x0001", "0x0006", "0x0008"] },
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x000c",
+        "endpoint": "0x15",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0006",
+          "0x0008"
+        ]
+      },
       "items": [
         {
-            "name": "config/battery",
-            "parse": {"ep": 21, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
-            "awake": true
+          "name": "config/battery",
+          "parse": {
+            "ep": 21,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "awake": true
         },
         {
           "name": "attr/id"
@@ -90,7 +111,15 @@
       "bind": "unicast",
       "src.ep": 21,
       "cl": "0x0001",
-      "report": [ {"at": "0x0021", "dt": "0x20", "min": 300, "max": 3600, "change": "0x01" } ]
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 300,
+          "max": 3600,
+          "change": "0x01"
+        }
+      ]
     }
   ]
 }

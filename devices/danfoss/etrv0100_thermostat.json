@@ -1,8 +1,22 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "76d8605f-9699-439f-bed0-52757d62cff1",
-  "manufacturername": ["Danfoss", "Danfoss", "D5X84YU", "D5X84YU", "Danfoss"],
-  "modelid": ["eTRV0100", "eTRV0103", "eT093WRO", "eT093WRG", "TRV001"],
+  "manufacturername": [
+    "Danfoss",
+    "Danfoss",
+    "D5X84YU",
+    "D5X84YU",
+    "Danfoss",
+    "Danfoss"
+  ],
+  "modelid": [
+    "eTRV0100",
+    "eTRV0103",
+    "eT093WRO",
+    "eT093WRG",
+    "TRV001",
+    "TRV003"
+  ],
   "vendor": "Danfoss",
   "product": "Ally radiator thermostat (014G2461)",
   "sleeper": false,
@@ -29,7 +43,10 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"off": 0, "heat": 1}
+          "config/mode": {
+            "off": 0,
+            "heat": 1
+          }
         }
       },
       "items": [
@@ -135,7 +152,10 @@
             "mf": "0x1246"
           },
           "values": [
-            [-8000, "Disabled"]
+            [
+              -8000,
+              "Disabled"
+            ]
           ],
           "default": -8000
         },
@@ -297,7 +317,10 @@
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
-          "range": [-250, 250],
+          "range": [
+            -250,
+            250
+          ],
           "default": 0
         },
         {

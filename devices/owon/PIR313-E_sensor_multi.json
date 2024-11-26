@@ -48,8 +48,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 84000,
-          "read": {"cl": "0x0000", "at": "0x0006", "ep": 1, "fn": "zcl:attr"},
-          "parse": {"cl": "0x0000", "at": "0x0006", "ep": 1, "eval": "Item.val = Attr.val", "fn": "zcl:attr"}
+          "read": {
+            "cl": "0x0000",
+            "at": "0x0006",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "cl": "0x0000",
+            "at": "0x0006",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "attr/type"
@@ -121,8 +132,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 84000,
-          "read": {"cl": "0x0000", "at": "0x0006", "ep": 1, "fn": "zcl:attr"},
-          "parse": {"cl": "0x0000", "at": "0x0006", "ep": 1, "eval": "Item.val = Attr.val", "fn": "zcl:attr"}
+          "read": {
+            "cl": "0x0000",
+            "at": "0x0006",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "cl": "0x0000",
+            "at": "0x0006",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "attr/type"
@@ -190,8 +212,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 84000,
-          "read": {"cl": "0x0000", "at": "0x0006", "ep": 1, "fn": "zcl:attr"},
-          "parse": {"cl": "0x0000", "at": "0x0006", "ep": 1, "eval": "Item.val = Attr.val", "fn": "zcl:attr"}
+          "read": {
+            "cl": "0x0000",
+            "at": "0x0006",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "cl": "0x0000",
+            "at": "0x0006",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "attr/type"
@@ -268,8 +301,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 84000,
-          "read": {"cl": "0x0000", "at": "0x0006", "ep": 1, "fn": "zcl:attr"},
-          "parse": {"cl": "0x0000", "at": "0x0006", "ep": 1, "eval": "Item.val = Attr.val", "fn": "zcl:attr"}
+          "read": {
+            "cl": "0x0000",
+            "at": "0x0006",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "cl": "0x0000",
+            "at": "0x0006",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "attr/type"

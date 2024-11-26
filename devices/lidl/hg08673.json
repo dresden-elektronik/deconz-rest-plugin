@@ -1,8 +1,16 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "6fc0fda8-a625-46fd-97ca-e985b79c73fd",
-  "manufacturername": ["_TZ3000_nkcobies","_TZ3000_j1v25l17","_TZ3000_ynmowqk2"],
-  "modelid": ["TS011F","TS011F","TS011F"],
+  "manufacturername": [
+    "_TZ3000_nkcobies",
+    "_TZ3000_j1v25l17",
+    "_TZ3000_ynmowqk2"
+  ],
+  "modelid": [
+    "TS011F",
+    "TS011F",
+    "TS011F"
+  ],
   "vendor": "Lidl",
   "product": "SilverCrest smart plug (HG08673)",
   "sleeper": false,
@@ -36,8 +44,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -95,7 +114,13 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          }
         },
         {
           "name": "attr/type"
@@ -161,7 +186,13 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          }
         },
         {
           "name": "attr/type"

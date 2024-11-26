@@ -58,7 +58,6 @@
             "ep": 1,
             "fn": "zcl:attr"
           }
-
         },
         {
           "name": "attr/type"

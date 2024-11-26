@@ -46,8 +46,14 @@
         },
         {
           "name": "config/battery",
-          "parse": {"fn": "tuya", "dpid": 14, "eval": "Item.val = Attr.val * 50;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 14,
+            "eval": "Item.val = Attr.val * 50;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         },
         {
@@ -64,8 +70,14 @@
         },
         {
           "name": "state/fire",
-          "parse": {"fn": "tuya", "dpid": 101, "eval": "Item.val = (Attr.val == 1);" },
-          "read": {"fn": "tuya"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 101,
+            "eval": "Item.val = (Attr.val == 1);"
+          },
+          "read": {
+            "fn": "tuya"
+          },
           "default": 0
         },
         {

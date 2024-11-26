@@ -163,7 +163,6 @@ static int DDF_MergeGenericBundleItems(DeviceDescription &ddf, DDF_ParseContext 
 static int DDF_ProcessSignatures(DDF_ParseContext *pctx, std::vector<U_ECC_PublicKeySecp256k1> &publicKeys, U_BStream *bs, uint32_t *bundleHash);
 static DeviceDescription::Item *DDF_GetItemMutable(const ResourceItem *item);
 static void DDF_UpdateItemHandlesForIndex(std::vector<DeviceDescription> &descriptions, uint loadCounter, size_t index);
-static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, uint loadCounter);
 static void DDF_TryCompileAndFixJavascript(QString *expr, const QString &path);
 DeviceDescription DDF_LoadScripts(const DeviceDescription &ddf);
 
@@ -1871,48 +1870,6 @@ static void DDF_UpdateItemHandlesForIndex(std::vector<DeviceDescription> &descri
     }
 }
 
-/*! Updates all DDF item handles to point to correct location.
-    \p loadCounter - the current load counter.
- */
-static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, uint loadCounter)
-{
-    for (size_t index = 0; index < descriptions.size(); index++)
-    {
-        DDF_UpdateItemHandlesForIndex(descriptions, loadCounter, index);
-    }
-
-    // int index = 0;
-    // U_ASSERT(loadCounter >= HND_MIN_LOAD_COUNTER);
-    // U_ASSERT(loadCounter <= HND_MAX_LOAD_COUNTER);
-
-    // ItemHandlePack handle;
-    // handle.description = 0;
-    // handle.loadCounter = loadCounter;
-
-    // for (DeviceDescription &ddf : descriptions)
-    // {
-    //     ddf.handle = index++;
-    //     handle.subDevice = 0;
-    //     for (auto &sub : ddf.subDevices)
-    //     {
-    //         handle.item = 0;
-
-    //         for (auto &item : sub.items)
-    //         {
-    //             item.handle = handle.handle;
-    //             U_ASSERT(handle.item < HND_MAX_ITEMS);
-    //             handle.item++;
-    //         }
-
-    //         U_ASSERT(handle.subDevice < HND_MAX_SUB_DEVS);
-    //         handle.subDevice++;
-    //     }
-
-    //     U_ASSERT(handle.description < HND_MAX_DESCRIPTIONS);
-    //     handle.description++;
-    // }
-}
-
 /*! Temporary workaround since DuktapeJS doesn't support 'let', try replace it with 'var'.
 
     The fix only applies if the JS doesn't compile and after the modified version successfully
@@ -2343,6 +2300,7 @@ void DeviceDescriptions::readAllRawJson()
 
                                     DBG_Printf(DBG_DDF, "DDF cache raw JSON DDF %s\n", pctx->filePath);
                                     d->descriptions.push_back(std::move(result));
+                                    DDF_UpdateItemHandlesForIndex(d->descriptions, d->loadCounter, d->descriptions.size() - 1);
                                 }
                             }
                         }
@@ -2363,8 +2321,6 @@ void DeviceDescriptions::readAllRawJson()
 
     if (!d->descriptions.empty())
     {
-        DDF_UpdateItemHandles(d->descriptions, d->loadCounter);
-
         for (auto &ddf : d->descriptions)
         {
             ddf = DDF_MergeGenericItems(d->genericItems, ddf);
