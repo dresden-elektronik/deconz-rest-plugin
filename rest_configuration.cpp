@@ -2400,10 +2400,6 @@ int DeRestPluginPrivate::restartApp(const ApiRequest &req, ApiResponse &rsp)
     rspItem["success"] = rspItemState;
     rsp.list.append(rspItem);
 
-    openDb();
-    saveDb();
-    closeDb();
-
     QTimer *restartTimer = new QTimer(this);
     restartTimer->setSingleShot(true);
     connect(restartTimer, SIGNAL(timeout()),
