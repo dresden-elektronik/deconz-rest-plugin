@@ -1711,6 +1711,12 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     {
         // Map the command to the mapped button and action.
         // PTM215ZE Friends of Hue switch.
+        // Button 1 == A0       Button 3 == B0
+        // Button 2 == A1       Button 4 == B1
+        // Button 5 == A0 + B0 (chord of 1 & 3)
+        // Button 6 == A1 + B0 (chord of 2 & 3)
+        // Button 7 == A0 + B1 (chord of 1 & 4)
+        // Button 8 == A1 + B1 (chord of 2 & 4)
         const quint32 buttonMapPTM215ZE[] = {
             0x12, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
             0x13, S_BUTTON_1, S_BUTTON_ACTION_SHORT_RELEASED,
@@ -1720,6 +1726,14 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             0x19, S_BUTTON_3, S_BUTTON_ACTION_SHORT_RELEASED,
             0x22, S_BUTTON_4, S_BUTTON_ACTION_INITIAL_PRESS,
             0x23, S_BUTTON_4, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x1A, S_BUTTON_5, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x1B, S_BUTTON_5, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x1C, S_BUTTON_6, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x1D, S_BUTTON_6, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x1E, S_BUTTON_7, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x1F, S_BUTTON_7, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x62, S_BUTTON_8, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x63, S_BUTTON_8, S_BUTTON_ACTION_SHORT_RELEASED,
             0
         };
 
