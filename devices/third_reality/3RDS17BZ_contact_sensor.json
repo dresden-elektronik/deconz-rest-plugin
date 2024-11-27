@@ -1,0 +1,142 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "91b9c12c-2b50-4efc-a23f-2d3042e60b73",
+  "manufacturername": "Third Reality, Inc",
+  "modelid": "3RDS17BZ",
+  "vendor": "Third Reality",
+  "product": "Contact Sensor (3RDS17BZ)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl:attr"
+          },
+          "awake": true,
+          "refresh.interval": 84600
+        },
+        {
+          "name": "config/delay",
+          "description": "Delay (in seconds) until opening is reported.",
+          "parse": {
+            "fn": "zcl:attr",
+            "mf": "0x1233",
+            "ep": 1,
+            "cl": "0xff01",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "mf": "0x1233",
+            "ep": 1,
+            "cl": "0xff01",
+            "at": "0x0000"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "mf": "0x1233",
+            "ep": 1,
+            "cl": "0xff01",
+            "at": "0x0000",
+            "dt": "0x21",
+            "eval": "Item.val"
+          }
+        },
+        {
+          "name": "config/enrolled"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery",
+          "awake": true
+        },
+        {
+          "name": "state/open",
+          "parse": {
+            "fn": "ias:zonestatus",
+            "mask": "alarm1"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0500",
+            "at": "0x0002"
+          },
+          "awake": true,
+          "refresh.interval": 84600
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001"
+    }
+  ]
+}
