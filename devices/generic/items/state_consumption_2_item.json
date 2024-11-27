@@ -1,7 +1,7 @@
 {
   "schema": "resourceitem1.schema.json",
   "id": "state/consumption_2",
-  "datatype": "UInt64",
+  "datatype": "Double",
   "access": "RW",
   "public": true,
   "description": "The measured consumption (in Wh).",
