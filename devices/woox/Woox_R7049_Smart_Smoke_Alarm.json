@@ -47,8 +47,19 @@
         {
           "name": "attr/swversion",
           "awake": true,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -74,7 +85,11 @@
         {
           "name": "state/fire",
           "awake": true,
-          "parse": {"dpid": 1, "eval": "Item.val = (Attr.val == 0 ? true : false);","fn": "tuya" },
+          "parse": {
+            "dpid": 1,
+            "eval": "Item.val = (Attr.val == 0 ? true : false);",
+            "fn": "tuya"
+          },
           "default": false
         },
         {
@@ -82,13 +97,21 @@
         },
         {
           "name": "state/lowbattery",
-          "parse": {"dpid": 14, "eval": "Item.val = (Attr.val == 0 ? true : false);", "fn": "tuya" },
+          "parse": {
+            "dpid": 14,
+            "eval": "Item.val = (Attr.val == 0 ? true : false);",
+            "fn": "tuya"
+          },
           "default": false
         },
         {
           "name": "state/test",
           "awake": true,
-          "parse": {"dpid": 8, "eval": "Item.val = (Attr.val == 0 ? false : true);", "fn": "tuya" },
+          "parse": {
+            "dpid": 8,
+            "eval": "Item.val = (Attr.val == 0 ? false : true);",
+            "fn": "tuya"
+          },
           "default": false
         }
       ]

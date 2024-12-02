@@ -1,14 +1,22 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "438898c5-16f6-44f4-9768-22ac33490d69",
-  "manufacturername": ["_TZE200_byzdayie", "_TZE200_fsb6zw01", "_TZE200_ewxhg6o9"],
-  "modelid": ["TS0601", "TS0601", "TS0601"],
+  "manufacturername": [
+    "_TZE200_byzdayie",
+    "_TZE200_fsb6zw01",
+    "_TZE200_ewxhg6o9"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601",
+    "TS0601"
+  ],
   "vendor": "Tuya",
   "product": "Single phase 65A DIN rail smart energy meter (TS0601)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
-      {
+    {
       "type": "$TYPE_ON_OFF_OUTPUT",
       "restapi": "/lights",
       "uuid": [
@@ -36,8 +44,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -47,9 +66,20 @@
         },
         {
           "name": "state/on",
-          "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = Attr.val;" },
-          "write": {"fn": "tuya", "dpid": 1, "dt": "0x10", "eval": "Item.val == 1 ? 1 : 0;"},
-          "read": {"fn": "tuya"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 1,
+            "eval": "Item.val = Attr.val;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 1,
+            "dt": "0x10",
+            "eval": "Item.val == 1 ? 1 : 0;"
+          },
+          "read": {
+            "fn": "tuya"
+          }
         },
         {
           "name": "state/reachable"
@@ -85,8 +115,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -106,8 +147,14 @@
         },
         {
           "name": "state/consumption",
-          "parse": {"fn": "tuya", "dpid": 17, "eval": "Item.val = Attr.val * 10;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 17,
+            "eval": "Item.val = Attr.val * 10;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         },
         {
@@ -144,8 +191,16 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -168,20 +223,38 @@
         },
         {
           "name": "state/current",
-          "parse": {"fn": "tuya", "dpid": 18, "eval": "Item.val = Attr.val / 1000;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 18,
+            "eval": "Item.val = Attr.val / 1000;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         },
         {
           "name": "state/voltage",
-          "parse": {"fn": "tuya", "dpid": 20, "eval": "Item.val = Attr.val / 10;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 20,
+            "eval": "Item.val = Attr.val / 10;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         },
         {
           "name": "state/power",
-          "parse": {"fn": "tuya", "dpid": 19, "eval": "Item.val = Attr.val / 10;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 19,
+            "eval": "Item.val = Attr.val / 10;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         }
       ]

@@ -76,7 +76,7 @@
           "name": "config/on"
         },
         {
-            "name": "config/pending"
+          "name": "config/pending"
         },
         {
           "name": "config/enrolled"

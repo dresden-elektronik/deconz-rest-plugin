@@ -113,7 +113,7 @@
             "eval": "3 - Item.val",
             "state.timeout": 2,
             "change.timeout": 3600
-            },
+          },
           "values": [
             [
               0,

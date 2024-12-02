@@ -18,9 +18,15 @@
       ],
       "meta": {
         "values": {
-          "config/mode": {"off": 0, "auto": 1, "heat": 4}
+          "config/mode": {
+            "off": 0,
+            "auto": 1,
+            "heat": 4
+          }
         },
-        "group.endpoints": [1]
+        "group.endpoints": [
+          1
+        ]
       },
       "items": [
         {
@@ -127,7 +133,10 @@
             "fn": "zcl:attr",
             "mf": "0x10f2"
           },
-          "range": [-1000, 1000]
+          "range": [
+            -1000,
+            1000
+          ]
         },
         {
           "name": "config/on"

@@ -306,7 +306,7 @@
     }
   ],
   "bindings": [
-      {
+    {
       "bind": "unicast",
       "src.ep": 112,
       "cl": "0x000F",
@@ -332,7 +332,7 @@
         }
       ]
     },
-      {
+    {
       "bind": "unicast",
       "src.ep": 114,
       "cl": "0x000F",
@@ -345,7 +345,7 @@
         }
       ]
     },
-       {
+    {
       "bind": "unicast",
       "src.ep": 115,
       "cl": "0x000F",

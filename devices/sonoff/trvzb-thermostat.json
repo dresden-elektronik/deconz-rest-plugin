@@ -27,7 +27,11 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"off": 0, "auto": 1, "heat": 4}
+          "config/mode": {
+            "off": 0,
+            "auto": 1,
+            "heat": 4
+          }
         }
       },
       "items": [
@@ -129,7 +133,10 @@
             "eval": "Item.val / 10;",
             "fn": "zcl:attr"
           },
-          "range": [-250, 250],
+          "range": [
+            -250,
+            250
+          ],
           "default": 0
         },
         {

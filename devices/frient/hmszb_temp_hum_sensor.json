@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "74183c57-8b6f-42e8-b564-ec4930f7596f",
-  "manufacturername": ["frient A/S", "frient A/S"],
-  "modelid": ["HMSZB-110", "HMSZB-120"],
+  "manufacturername": [
+    "frient A/S",
+    "frient A/S"
+  ],
+  "modelid": [
+    "HMSZB-110",
+    "HMSZB-120"
+  ],
   "vendor": "Frient",
   "product": "Temperature and humidity sensor (HMSZB-110/HMSZB-120)",
   "sleeper": true,
