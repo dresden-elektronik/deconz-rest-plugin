@@ -252,7 +252,15 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
 
             const ApiAttribute a = rid.toApi(map, event);
             QVariantMap *p = a.map;
-            (*p)[a.key] = item->toVariant();
+            if (rid.suffix == RAttrExtAddress)
+            {
+                const quint64 value = item->toNumber();
+                (*p)[a.key] = value;
+            }
+            else
+            {
+                (*p)[a.key] = item->toVariant();
+            }
 
             if (event && item->needPushChange())
             {
