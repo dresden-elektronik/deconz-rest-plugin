@@ -488,7 +488,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStatePresenceEvent));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeReal, QVariant::Double, RStatePressure));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeReal, QVariant::Double, RStatePressureBis));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, QVariant::Double, RStateProduction));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeReal, QVariant::Double, RStateProduction));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStateReplaceFilter));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RStateRotaryEvent));
