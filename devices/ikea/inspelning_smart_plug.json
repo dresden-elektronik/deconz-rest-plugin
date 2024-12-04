@@ -262,7 +262,7 @@
             "ep": 1,
             "cl": "0x0B04",
             "at": "0x050B",
-            "eval": "if (Attr.val != -32768) { Item.val = Attr.val / R.item('state/power_divisor').val }"
+            "eval": "if (Attr.val != -32768) { Item.val = Math.round(Attr.val / R.item('state/power_divisor').val) }"
           },
           "default": 0,
           "read": {
@@ -280,7 +280,7 @@
             "ep": 1,
             "cl": "0x0B04",
             "at": "0x0605",
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; R.item('state/power').val = R.item('state/power').val / R.item('state/power_divisor').val }"
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; R.item('state/power').val = Math.round(R.item('state/power').val / R.item('state/power_divisor').val) }"
           },
           "default": 1,
           "read": {
@@ -298,7 +298,7 @@
             "ep": 1,
             "cl": "0x0B04",
             "at": "0x0505",
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 10 }"
+            "eval": "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 10) }"
           },
           "default": 0,
           "read": {
