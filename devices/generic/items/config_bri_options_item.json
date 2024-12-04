@@ -3,7 +3,7 @@
   "id": "config/bri/options",
   "datatype": "UInt8",
   "access": "RW",
-  "public": true,
+  "public": false,
   "description": "Options.",
   "default": 0,
   "parse": {
