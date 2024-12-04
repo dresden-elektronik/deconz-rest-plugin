@@ -1,0 +1,22 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/power_divisor",
+  "datatype": "UInt16",
+  "access": "R",
+  "public": false,
+  "description": "AC Power Divisor to be applied to the Active Power attribute.",
+  "parse": {
+    "ep": 0,
+    "cl": "0x0B04",
+    "at": "0x0605",
+    "eval": "if (Attr.val != 65535) { Item.val = Attr.val }"
+  },
+  "default": 1,
+  "read": {
+    "fn": "zcl:attr",
+    "ep": 0,
+    "cl": "0x0B04",
+    "at": "0x0605"
+  },
+  "refresh.interval": 360
+}

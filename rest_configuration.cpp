@@ -1207,8 +1207,8 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
 
     // lights
     {
-        std::vector<LightNode>::const_iterator i = nodes.begin();
-        std::vector<LightNode>::const_iterator end = nodes.end();
+        std::vector<LightNode>::iterator i = nodes.begin();
+        std::vector<LightNode>::iterator end = nodes.end();
 
         for (; i != end; ++i)
         {
@@ -1266,8 +1266,8 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
 
     // sensors
     {
-        std::vector<Sensor>::const_iterator i = sensors.begin();
-        std::vector<Sensor>::const_iterator end = sensors.end();
+        std::vector<Sensor>::iterator i = sensors.begin();
+        std::vector<Sensor>::iterator end = sensors.end();
 
         for (; i != end; ++i)
         {
