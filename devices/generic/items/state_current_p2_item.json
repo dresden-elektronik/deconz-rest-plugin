@@ -1,7 +1,7 @@
 {
   "schema": "resourceitem1.schema.json",
   "id": "state/current_P2",
-  "datatype": "Double",
+  "datatype": "UInt16",
   "access": "RW",
   "public": true,
   "description": "The measured current on phase 2.",
