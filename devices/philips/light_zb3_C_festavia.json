@@ -3,11 +3,15 @@
   "uuid": "e7de8f0e-bf48-4ea0-b655-7e04fb6bdfa9",
   "manufacturername": [
     "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_PHILIPS",
     "$MF_PHILIPS"
   ],
   "modelid": [
     "LCX012",
-    "LCX012"
+    "LCX015",
+    "LCX012",
+    "LCX015"
   ],
   "vendor": "Philips",
   "product": "Hue festavia string lights",
