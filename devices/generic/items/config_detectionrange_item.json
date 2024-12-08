@@ -1,0 +1,13 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/detectionrange",
+  "datatype": "UInt32",
+  "access": "RW",
+  "public": true,
+  "range": [
+    0,
+    600
+  ],
+  "description": "The sensor detection range in cm.",
+  "default": 0
+}

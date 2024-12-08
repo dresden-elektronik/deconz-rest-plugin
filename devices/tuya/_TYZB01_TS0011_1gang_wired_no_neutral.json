@@ -1,0 +1,57 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "fcea0ffe-581e-4ccf-ae5a-188930ab14b8",
+  "manufacturername": "TYZB01_xfpdrwvc",
+  "modelid": "TS0011",
+  "vendor": "Tuya",
+  "product": "Light switch (TS0011)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on",
+          "description": "True when device is on; false when off.",
+          "refresh.interval": 5
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
+}

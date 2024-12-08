@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "1d0e1b23-c414-4ad4-bb8a-1736cb9f977e",
   "manufacturername": "_TZE200_2wg5qrjy",
   "modelid": "TS0601",
-  "vendor": "Mercator",
-  "product": "Mercator SSWM-DIMZ",
+  "vendor": "Royal Gardineer",
+  "product": "Water valve (ZX-7155-675)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -35,8 +36,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -51,9 +63,20 @@
         },
         {
           "name": "state/on",
-          "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = Attr.val;" },
-          "write": {"fn": "tuya", "dpid": 1, "dt": "0x10", "eval": "Item.val == 1 ? 1 : 0;"},
-          "read": {"fn": "tuya"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 1,
+            "eval": "Item.val = Attr.val;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 1,
+            "dt": "0x10",
+            "eval": "Item.val == 1 ? 1 : 0;"
+          },
+          "read": {
+            "fn": "tuya"
+          },
           "refresh.interval": 300
         },
         {

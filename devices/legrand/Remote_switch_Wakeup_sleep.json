@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "3666edf3-7d38-4c80-857b-94610b5ef239",
   "manufacturername": "Legrand",
   "modelid": "Remote switch Wake up / Sleep",
-  "product": "Remote switch Sleep / Wake - 064884",
+  "vendor": "Legrand",
+  "product": "Valena life scene switch wakeup and sleep (752x89/064884)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

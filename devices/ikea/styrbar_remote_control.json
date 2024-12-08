@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "a21e11e2-f595-4703-9cb2-83c89e1bb59e",
   "manufacturername": "$MF_IKEA",
   "modelid": "Remote Control N2",
-  "product": "STYRBAR remote control - E2002",
+  "vendor": "IKEA",
+  "product": "Styrbar remote control (E2002)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

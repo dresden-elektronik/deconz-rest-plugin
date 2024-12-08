@@ -1,0 +1,298 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "2ad3b0f4-f70a-4775-a1b1-b5cc4f927903",
+  "manufacturername": "$MF_IKEA",
+  "modelid": "VALLHORN Wireless Motion Sensor",
+  "vendor": "IKEA",
+  "product": "Vallhorn wireless motion sensor (E2134)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x02",
+        "0x0406"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0107",
+        "endpoint": "0x02",
+        "in": [
+          "0x0000",
+          "0x0003",
+          "0x0406"
+        ],
+        "out": [
+          "0x0406"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productname",
+          "static": "Vallhorn presence sensor"
+        },
+        {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/alert"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Math.round(Attr.val / 2)"
+          },
+          "default": 0,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/group",
+          "default": "auto"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "config/delay",
+          "default": 20,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "at": "0x0010",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "at": "0x0010"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "at": "0x0010",
+            "dt": "0x21",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "state/presence",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0406",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_LIGHT_LEVEL_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x02",
+        "0x0400"
+      ],
+      "fingerprint": {
+        "endpoint": "0x02",
+        "profile": "0x0104",
+        "device": "0x0106",
+        "in": [
+          "0x0400"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/productname",
+          "static": "Vallhorn light sensor"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/alert",
+          "default": "none"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "refresh.interval": 7300
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/tholddark"
+        },
+        {
+          "name": "config/tholdoffset"
+        },
+        {
+          "name": "state/dark"
+        },
+        {
+          "name": "state/daylight"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lightlevel",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 3,
+            "cl": "0x0400",
+            "at": "0x0000",
+            "script": "0400_lightlevel.js"
+          }
+        },
+        {
+          "name": "state/lux"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "cl": "0x0400",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 5,
+          "max": 300,
+          "change": "0x07d0"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0406",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x18",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 300,
+          "max": 2700,
+          "change": "0x01"
+        }
+      ]
+    }
+  ]
+}

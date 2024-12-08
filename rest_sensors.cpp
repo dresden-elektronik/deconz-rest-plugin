@@ -25,6 +25,7 @@
 #include "simple_metering.h"
 #include "thermostat.h"
 #include "thermostat_ui_configuration.h"
+#include "tuya.h"
 #include "utils/utils.h"
 
 /*! In a DDF a sub device can specify valid keyvalue pairs for a ResourceItem.suffix in the meta object.
@@ -961,6 +962,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
+                else if (rid.suffix == RConfigDetectionRange) // uint32
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.uinteger);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
                 else if (rid.suffix == RConfigSelfTest) // Boolean
                 {
                     if (devManaged && rsub)
@@ -1102,16 +1112,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                     }
-                    else if (sensor->modelId() == QLatin1String("TRV001") || sensor->modelId() == QLatin1String("eT093WRO"))
-                    {
-                        if (data.integer < -25) { data.integer = -25; }
-                        if (data.integer > 25)  { data.integer = 25; }
-
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, THERM_ATTRID_REGULATION_SETPOINT_OFFSET, deCONZ::Zcl8BitInt, data.integer))
-                        {
-                            updated = true;
-                        }
-                    }
                     else if (sensor->type() == "ZHAThermostat")
                     {
                         if (!devManaged)
@@ -1183,14 +1183,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             hostFlags &= ~0x04; // clear `boost` flag
                             hostFlags |=  0x10; // set `disable off` flag
 
-                            updated = true;
-                        }
-                    }
-                    else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") ||
-                             sensor->modelId() == QLatin1String("eT093WRO") || sensor->modelId() == QLatin1String("eTRV0103"))
-                    {
-                        if (addTaskThermostatCmd(task, VENDOR_DANFOSS, 0x40, data.integer, 0))
-                        {
                             updated = true;
                         }
                     }
@@ -1429,15 +1421,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                     updated = true;
                                 }
                             }
-                        }
-                    }
-                    else if (sensor->modelId().startsWith(QLatin1String("S1")) ||
-                             sensor->modelId().startsWith(QLatin1String("S2")) ||
-                             sensor->modelId().startsWith(QLatin1String("J1")))
-                    {
-                        if (addTaskUbisysConfigureSwitch(task))
-                        {
-                            updated = true;
                         }
                     }
                     else if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
@@ -1713,17 +1696,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigDisplayFlipped) // Boolean
                 {
-                    if (sensor->modelId() == QLatin1String("TRV001") ||
-                        sensor->modelId() == QLatin1String("eT093WRO"))
-                    {
-                        data.uinteger = data.boolean; // Use integer representation
-
-                        if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, THERM_UI_ATTRID_VIEWING_DIRECTION, deCONZ::Zcl8BitEnum, data.uinteger, VENDOR_DANFOSS))
-                        {
-                            updated = true;
-                        }
-                    }
-                    else if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
+                    if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                     {
                         if (data.boolean) { hostFlags |= 0x000002; } // set flipped
                         else              { hostFlags &= 0xffffed; } // clear flipped, clear disable off
@@ -1743,16 +1716,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigMountingMode) // Boolean
                 {
-                    if (!devManaged)
-                    {
-                        data.uinteger = data.boolean; // Use integer representation
-
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, THERM_ATTRID_MOUNTING_MODE_CONTROL, deCONZ::Zcl16BitInt, data.uinteger))
-                        {
-                            updated = true;
-                        }
-                    }
-                    else if (devManaged && rsub)
+                    if (devManaged && rsub)
                     {
                         change.addTargetValue(rid.suffix, data.boolean);
                         rsub->addStateChange(change);
@@ -1761,14 +1725,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigExternalTemperatureSensor) // Signed integer
                 {
-                    if (!devManaged)
-                    {
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, THERM_ATTRID_EXTERNAL_MEASUREMENT, deCONZ::Zcl16BitInt, data.integer))
-                        {
-                            updated = true;
-                        }
-                    }
-                    else if (devManaged && rsub)
+                    if (devManaged && rsub)
                     {
                         change.addTargetValue(rid.suffix, data.integer);
                         rsub->addStateChange(change);
@@ -1777,14 +1734,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigExternalWindowOpen) // Boolean
                 {
-                    if (!devManaged)
-                    {
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_DANFOSS, THERM_ATTRID_EXTERNAL_OPEN_WINDOW_DETECTED, deCONZ::ZclBoolean, data.boolean))
-                        {
-                            updated = true;
-                        }
-                    }
-                    else if (devManaged && rsub)
+                    if (devManaged && rsub)
                     {
                         change.addTargetValue(rid.suffix, data.boolean);
                         rsub->addStateChange(change);
@@ -1842,6 +1792,33 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                     else if (devManaged && rsub) // Managed by DDF ?
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigWindowOpenDetectionEnabled) // Boolean
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigRadiatorCovered) // Boolean
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigLoadBalancing) // Boolean
+                {
+                    if (devManaged && rsub)
                     {
                         change.addTargetValue(rid.suffix, data.boolean);
                         rsub->addStateChange(change);
@@ -2698,6 +2675,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     QVariantList xy;
     QVariantMap cap;
     QVariantMap measuredValue;
+    QVariantMap otau;
     QVariantMap config;
     const ResourceItem *ilcs = nullptr;
     const ResourceItem *ilca = nullptr;
@@ -2719,6 +2697,11 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
             sensor->type().startsWith(QLatin1String("ZGP")))
         {
             continue; // don't provide reachable for green power devices
+        }
+
+        if (rid.suffix == RAttrMode)
+        {
+            continue; // handled later on
         }
 
         if (strncmp(rid.suffix, "config/", 7) == 0)
@@ -2810,6 +2793,10 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
             {
                 measuredValue[key + 15] = item->toVariant();
             }
+            else if (strncmp(key, "otau/", 5) == 0)
+            {
+                otau[key + 5] = item->toVariant();
+            }
             else
             {
                 cap[key] = item->toVariant();
@@ -2819,6 +2806,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         else if (rid.suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
         else if (rid.suffix == RAttrProductId) { map["productid"] = item->toString(); }
         else if (rid.suffix == RAttrProductName) { map["productname"] = item->toString(); }
+        else if (rid.suffix == RAttrZoneType) { map["zonetype"] = item->toNumber(); }
     }
     if (iox && ioy && ioz)
     {
@@ -2932,6 +2920,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     map[QLatin1String("state")] = state;
     map[QLatin1String("config")] = config;
     if (!measuredValue.isEmpty()) cap[QLatin1String("measured_value")] = measuredValue;
+    if (!otau.isEmpty()) cap[QLatin1String("otau")] = otau;
     if (!cap.isEmpty()) map[QLatin1String("capabilities")] = cap;
 
     return true;
@@ -3213,6 +3202,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
             QVariantMap cap;
             QVariantMap measuredValue;
+            QVariantMap otau;
 
             for (int i = 0; i < sensor->itemCount(); i++)
             {
@@ -3229,6 +3219,10 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                         {
                             measuredValue[key + 15] = item->toVariant();
                         }
+                        else if (strncmp(key, "otau/", 5) == 0)
+                        {
+                            otau[key + 5] = item->toVariant();
+                        }
                         else
                         {
                             cap[key] = item->toVariant();
@@ -3241,6 +3235,10 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             if (!measuredValue.isEmpty())
             {
                 cap[QLatin1String("measured_value")] = measuredValue;
+            }
+            if (!otau.isEmpty())
+            {
+                cap[QLatin1String("otau")] = otau;
             }
             if (!cap.isEmpty())
             {
@@ -3270,6 +3268,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             map[QLatin1String("uniqueid")] = sensor->uniqueId();
 
             QVariantMap attr;
+            QVariantMap attrOtau;
 
             for (int i = 0; i < sensor->itemCount(); i++)
             {
@@ -3288,6 +3287,10 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 }
             }
 
+            if (!attrOtau.isEmpty())
+            {
+                attr["otau"] = attrOtau;
+            }
             if (!attr.isEmpty())
             {
                 map["attr"] = attr;
@@ -3918,308 +3921,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         return;
     }
 
-    // check for dresden elektronik devices
-    if (existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_DDEL))
-    {
-        if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
-            return;
-
-        if (ind.profileId() != HA_PROFILE_ID)
-            return;
-
-        SensorCommand cmd;
-        cmd.cluster = ind.clusterId();
-        cmd.endpoint = ind.srcEndpoint();
-        cmd.dstGroup = ind.dstAddress().group();
-        cmd.zclCommand = zclFrame.commandId();
-        cmd.zclCommandParameter = 0;
-
-        // filter
-        if (cmd.endpoint == 0x01 && cmd.cluster == ONOFF_CLUSTER_ID)
-        {
-            // on: Lighting and Scene Switch left button
-            DBG_Printf(DBG_INFO, "Lighting or Scene Switch left button\n");
-        }
-        else if (cmd.endpoint == 0x02 && cmd.cluster == ONOFF_CLUSTER_ID)
-        {
-            // on: Lighting Switch right button
-            DBG_Printf(DBG_INFO, "Lighting Switch right button\n");
-        }
-        else if (cmd.endpoint == 0x01 && cmd.cluster == SCENE_CLUSTER_ID && cmd.zclCommand == 0x05
-                 && zclFrame.payload().size() >= 3 && zclFrame.payload().at(2) == 0x04)
-        {
-            // recall scene: Scene Switch
-            cmd.zclCommandParameter = zclFrame.payload()[2]; // sceneId
-            DBG_Printf(DBG_INFO, "Scene Switch scene %u\n", cmd.zclCommandParameter);
-        }
-        else
-        {
-            return;
-        }
-
-        bool found = false;
-        for (size_t i = 0; i < sc->rxCommands.size(); i++)
-        {
-            if (sc->rxCommands[i] == cmd)
-            {
-                found = true;
-                break;
-            }
-        }
-
-        if (!found)
-        {
-            sc->rxCommands.push_back(cmd);
-        }
-
-        bool isLightingSwitch = false;
-        bool isSceneSwitch = false;
-        quint16 group1 = 0;
-        quint16 group2 = 0;
-
-        for (size_t i = 0; i < sc->rxCommands.size(); i++)
-        {
-            const SensorCommand &c = sc->rxCommands[i];
-            if (c.cluster == SCENE_CLUSTER_ID && c.zclCommandParameter == 0x04 && c.endpoint == 0x01)
-            {
-                group1 = c.dstGroup;
-                isSceneSwitch = true;
-                DBG_Printf(DBG_INFO, "Scene Switch group1 0x%04X\n", group1);
-                break;
-            }
-            else if (c.cluster == ONOFF_CLUSTER_ID && c.endpoint == 0x01)
-            {
-                group1 = c.dstGroup;
-            }
-            else if (c.cluster == ONOFF_CLUSTER_ID && c.endpoint == 0x02)
-            {
-                group2 = c.dstGroup;
-            }
-
-            if (!isSceneSwitch && group1 != 0 && group2 != 0)
-            {
-                if (group1 > group2)
-                {
-                    std::swap(group1, group2); // reorder
-                }
-                isLightingSwitch = true;
-                DBG_Printf(DBG_INFO, "Lighting Switch group1 0x%04X, group2 0x%04X\n", group1, group2);
-                break;
-            }
-        }
-
-        Sensor *s1 = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
-        Sensor *s2 = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02);
-
-        if (isSceneSwitch || isLightingSwitch)
-        {
-            Sensor sensorNode;
-            SensorFingerprint &fp = sensorNode.fingerPrint();
-            fp.endpoint = 0x01;
-            fp.deviceId = DEV_ID_ZLL_COLOR_CONTROLLER;
-            fp.profileId = HA_PROFILE_ID;
-            fp.inClusters.push_back(BASIC_CLUSTER_ID);
-            fp.inClusters.push_back(COMMISSIONING_CLUSTER_ID);
-            fp.outClusters.push_back(ONOFF_CLUSTER_ID);
-            fp.outClusters.push_back(LEVEL_CLUSTER_ID);
-            fp.outClusters.push_back(SCENE_CLUSTER_ID);
-
-            sensorNode.setNode(0);
-            sensorNode.address() = sc->address;
-            sensorNode.setType(QLatin1String("ZHASwitch"));
-            sensorNode.fingerPrint() = fp;
-            sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, COMMISSIONING_CLUSTER_ID));
-            sensorNode.setManufacturer(QLatin1String("dresden elektronik"));
-
-            ResourceItem *item;
-            item = sensorNode.item(RConfigOn);
-            item->setValue(true);
-
-            item = sensorNode.item(RConfigReachable);
-            item->setValue(true);
-
-            sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
-            sensorNode.updateStateTimestamp();
-
-            sensorNode.setNeedSaveDatabase(true);
-            updateSensorEtag(&sensorNode);
-
-            bool update = false;
-
-            if (!s1 && isSceneSwitch && searchSensorsState == SearchSensorsActive)
-            {
-                openDb();
-                sensorNode.setId(QString::number(getFreeSensorId()));
-                closeDb();
-                sensorNode.setMode(Sensor::ModeScenes);
-                sensorNode.setModelId(QLatin1String("Scene Switch"));
-                sensorNode.setName(QString("Scene Switch %1").arg(sensorNode.id()));
-                sensorNode.setNeedSaveDatabase(true);
-                sensors.push_back(sensorNode);
-                s1 = &sensors.back();
-                updateSensorEtag(s1);
-                update = true;
-                Event e(RSensors, REventAdded, sensorNode.id());
-                enqueueEvent(e);
-            }
-            else if (isLightingSwitch)
-            {
-                if (!s1 && searchSensorsState == SearchSensorsActive)
-                {
-                    openDb();
-                    sensorNode.setId(QString::number(getFreeSensorId()));
-                    closeDb();
-                    sensorNode.setMode(Sensor::ModeTwoGroups);
-                    sensorNode.setModelId(QLatin1String("Lighting Switch"));
-                    sensorNode.setName(QString("Lighting Switch %1").arg(sensorNode.id()));
-                    sensorNode.setNeedSaveDatabase(true);
-                    sensors.push_back(sensorNode);
-                    s1 = &sensors.back();
-                    updateSensorEtag(s1);
-                    update = true;
-                    Event e(RSensors, REventAdded, sensorNode.id());
-                    enqueueEvent(e);
-                }
-
-                if (!s2 && searchSensorsState == SearchSensorsActive)
-                {
-                    openDb();
-                    sensorNode.setId(QString::number(getFreeSensorId()));
-                    closeDb();
-                    sensorNode.setMode(Sensor::ModeTwoGroups);
-                    sensorNode.setName(QString("Lighting Switch %1").arg(sensorNode.id()));
-                    sensorNode.setNeedSaveDatabase(true);
-                    sensorNode.fingerPrint().endpoint = 0x02;
-                    sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, COMMISSIONING_CLUSTER_ID));
-                    sensors.push_back(sensorNode);
-                    s2 = &sensors.back();
-                    updateSensorEtag(s2);
-                    update = true;
-                    Event e(RSensors, REventAdded, sensorNode.id());
-                    enqueueEvent(e);
-                }
-            }
-
-            // check updated data
-            if (s1 && s1->modelId().isEmpty())
-            {
-                if      (isSceneSwitch)    { s1->setModelId(QLatin1String("Scene Switch")); }
-                else if (isLightingSwitch) { s1->setModelId(QLatin1String("Lighting Switch")); }
-                s1->setNeedSaveDatabase(true);
-                update = true;
-            }
-
-            if (s2 && s2->modelId().isEmpty())
-            {
-                if (isLightingSwitch) { s2->setModelId(QLatin1String("Lighting Switch")); }
-                s2->setNeedSaveDatabase(true);
-                update = true;
-            }
-
-            if (s1 && s1->manufacturer().isEmpty())
-            {
-                s1->setManufacturer(QLatin1String("dresden elektronik"));
-                s1->setNeedSaveDatabase(true);
-                update = true;
-            }
-
-            if (s2 && s2->manufacturer().isEmpty())
-            {
-                s2->setManufacturer(QLatin1String("dresden elektronik"));
-                s2->setNeedSaveDatabase(true);
-                update = true;
-            }
-
-            // create or update first group
-            Group *g = (s1 && group1 != 0) ? getGroupForId(group1) : 0;
-            if (!g && s1 && group1 != 0)
-            {
-                // delete older groups of this switch permanently
-                deleteOldGroupOfSwitch(s1, group1);
-
-                //create new switch group
-                Group group;
-                group.setAddress(group1);
-                group.addDeviceMembership(s1->id());
-                group.setName(QString("%1").arg(s1->name()));
-                updateGroupEtag(&group);
-                groups.push_back(group);
-                update = true;
-            }
-            else if (g && s1)
-            {
-                if (g->state() == Group::StateDeleted)
-                {
-                    g->setState(Group::StateNormal);
-                }
-
-                // check for changed device memberships
-                if (!g->m_deviceMemberships.empty())
-                {
-                    if (isLightingSwitch || isSceneSwitch) // only support one device member per group
-                    {
-                        if (g->m_deviceMemberships.size() > 1 || g->m_deviceMemberships.front() != s1->id())
-                        {
-                            g->m_deviceMemberships.clear();
-                        }
-                    }
-                }
-
-                if (g->addDeviceMembership(s1->id()))
-                {
-                    updateGroupEtag(g);
-                    update = true;
-                }
-            }
-
-            // create or update second group (if needed)
-            g = (s2 && group2 != 0) ? getGroupForId(group2) : 0;
-            if (!g && s2 && group2 != 0)
-            {
-                // delete older groups of this switch permanently
-                deleteOldGroupOfSwitch(s2, group2);
-
-                //create new switch group
-                Group group;
-                group.setAddress(group2);
-                group.addDeviceMembership(s2->id());
-                group.setName(QString("%1").arg(s2->name()));
-                updateGroupEtag(&group);
-                groups.push_back(group);
-            }
-            else if (g && s2)
-            {
-                if (g->state() == Group::StateDeleted)
-                {
-                    g->setState(Group::StateNormal);
-                }
-
-                // check for changed device memberships
-                if (!g->m_deviceMemberships.empty())
-                {
-                    if (isLightingSwitch || isSceneSwitch) // only support one device member per group
-                    {
-                        if (g->m_deviceMemberships.size() > 1 || g->m_deviceMemberships.front() != s2->id())
-                        {
-                            g->m_deviceMemberships.clear();
-                        }
-                    }
-                }
-
-                if (g->addDeviceMembership(s2->id()))
-                {
-                    updateGroupEtag(g);
-                    update = true;
-                }
-            }
-
-            if (update)
-            {
-                queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
-            }
-        }
-    }
-    else if (existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_IKEA))
+    if (existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_IKEA))
     {
         if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
             return;
@@ -4266,6 +3968,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
                         {
                             DBG_Printf(DBG_INFO, "ikea remote delete legacy rule %s\n", qPrintable(ri->name()));
                             ri->setState(Rule::StateDeleted);
+                            ri->setNeedSaveDatabase();
                             changed = true;
                         }
                     }

@@ -1,0 +1,196 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "90e437ea-e697-4490-8944-e0d8ef0dc1d0",
+  "manufacturername": [
+    "_TZE200_ztvwu4nk",
+    "_TZE204_5toc8efa",
+    "_TZE200_5toc8efa",
+    "_TZE200_ye5jkfsb",
+    "_TZE204_aoclfnxz",
+    "_TZE200_u9bfwha0"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601"
+  ],
+  "vendor": "Moes",
+  "product": "Thermostat for Water/Gas Boiler (BHT-002)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_THERMOSTAT",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xef00"
+      ],
+      "meta": {
+        "values": {
+          "config/mode": {
+            "off": 0,
+            "heat": 1
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/heatsetpoint",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 16,
+            "eval": "Item.val = Attr.val * 100;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 16,
+            "dt": "0x2b",
+            "eval": "Item.val / 100;"
+          },
+          "read": {
+            "fn": "tuya"
+          },
+          "refresh.interval": 84000
+        },
+        {
+          "name": "config/locked",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 40,
+            "eval": "Item.val = Attr.val;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 40,
+            "dt": "0x10",
+            "eval": "Item.val;"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/mode",
+          "values": [
+            [
+              "off",
+              0
+            ],
+            [
+              "heat",
+              1
+            ]
+          ],
+          "parse": {
+            "fn": "tuya",
+            "dpid": 1,
+            "eval": "if (Attr.val == 0) { Item.val = 'off' } else { Item.val = 'heat' }"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 1,
+            "dt": "0x10",
+            "eval": "if (Item.val == 'off') { false } else { true }"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/preset",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 2,
+            "script": "../tuya/tuya_trv_preset.js"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 2,
+            "dt": "0x30",
+            "script": "../tuya/tuya_trv_preset_set.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 24,
+            "eval": "Item.val = Attr.val * 10;"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/valve",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 36,
+            "eval": "Item.val = Attr.val > 5;"
+          },
+          "read": {
+            "fn": "none"
+          }
+        }
+      ]
+    }
+  ]
+}

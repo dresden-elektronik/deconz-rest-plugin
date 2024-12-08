@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "4013c222-9aaf-4c19-9bb3-d3a2c57a8d31",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.switch.n1aeu1",
-  "vendor": "Xiaomi",
-  "product": "Aqara H1 single rocker switch (neutral wire) WS-EUK03",
+  "vendor": "Xiaomi Aqara",
+  "product": "H1 single rocker switch neutral wire (WS-EUK03)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -146,8 +147,14 @@
             "mf": "0x115f"
           },
           "values": [
-            ["\"decoupled\"", "Decoupled Mode"],
-            ["\"coupled\"", "Coupled Mode"] 
+            [
+              "\"decoupled\"",
+              "Decoupled Mode"
+            ],
+            [
+              "\"coupled\"",
+              "Coupled Mode"
+            ]
           ],
           "default": "coupled"
         },
@@ -179,8 +186,14 @@
             "mf": "0x115f"
           },
           "values": [
-            ["\"compatibility\"", "Default mode for Xiaomi devices"],
-            ["\"zigbee\"", "Closer to zigbee standard"] 
+            [
+              "\"compatibility\"",
+              "Default mode for Xiaomi devices"
+            ],
+            [
+              "\"zigbee\"",
+              "Closer to zigbee standard"
+            ]
           ],
           "default": "compatibility"
         },
@@ -212,8 +225,14 @@
             "mf": "0x115f"
           },
           "values": [
-            [true, "Device LED always on"],
-            [false, "Device LED off from 9pm - 9am"] 
+            [
+              true,
+              "Device LED always on"
+            ],
+            [
+              false,
+              "Device LED off from 9pm - 9am"
+            ]
           ],
           "default": true
         },

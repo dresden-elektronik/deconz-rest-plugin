@@ -5,7 +5,7 @@ The deCONZ REST plugin provides a REST-API to access Zigbee 3.0 (Z30), Zigbee Ho
 
 A list of supported Zigbee devices can be found on the [Supported Devices](https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/Supported-Devices) page.
 
-To communicate with Zigbee devices the [RaspBee](https://phoscon.de/raspbee?ref=gh) / [RaspBee&nbsp;II](https://phoscon.de/raspbee2?ref=gh) Zigbee shield for Raspberry Pi, or a [ConBee](https://phoscon.de/conbee?ref=gh) / [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB dongle is required.
+To communicate with Zigbee devices the [RaspBee](https://phoscon.de/raspbee?ref=gh) / [RaspBee&nbsp;II](https://phoscon.de/raspbee2?ref=gh) Zigbee shield for Raspberry Pi, or a [ConBee](https://phoscon.de/conbee?ref=gh) / [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) / [ConBee&nbsp;III](https://phoscon.de/conbee3?ref=gh) USB dongle is required.
 
 ### API Documentation
 
@@ -21,19 +21,19 @@ The Phoscon App is a browser based web application and supports lights, sensors 
 
 ### Release Schedule
 
-deCONZ beta releases are scheduled roughly once per week. After 2–3 betas a stable version is released and a new beta cycle begins. The stable release is usually published between 1st — 15th of the month.
+deCONZ beta releases are scheduled roughly once per week. After 1–3 betas a stable version is released and a new beta cycle begins.
 
-Current Beta: **v2.22.0-beta**  
-Current Stable: **v2.21.2**
+Current Beta: **v2.28.1-beta**  
+Current Stable: **v2.28.1**
 
-Next Beta: **v2.22.1-beta** Expected in May.
-Next Stable: **v2.22.x** Expected in May.
+Next Beta: **v2.29.0-beta** Expected in September.
+Next Stable: **v2.29.x** Expected in September.
 
 Installation
 ============
 
 ##### Supported platforms
-* Raspbian ~~Jessie~~, ~~Stretch~~, Buster and Bullseye
+* Raspbian ~~Jessie~~, ~~Stretch~~, Buster, Bullseye and Bookworm
 * Ubuntu ~~Xenial~~, Bionic, Focal Fossa and Jammy
 * Windows 7, 10, 11
 
@@ -44,6 +44,7 @@ You find the instructions for your platform and device on the Phoscon website:
 * [RaspBee&nbsp;II](https://phoscon.de/raspbee2/install?ref=gh)
 * [ConBee](https://phoscon.de/conbee/install?ref=gh)
 * [ConBee&nbsp;II](https://phoscon.de/conbee2/install?ref=gh)
+* [ConBee&nbsp;III](https://phoscon.de/conbee3/install?ref=gh)
 
 **Important:** If you're updating from a previous version **always make sure to create an backup** in the Phoscon App and read the changelog first.
 
@@ -97,6 +98,7 @@ Hardware requirements
 * [RaspBee&nbsp;II](https://phoscon.de/raspbee2?ref=gh) Zigbee shield for Raspberry Pi
 * [ConBee](https://phoscon.de/conbee?ref=gh) USB dongle for Raspberry Pi and PC
 * [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB dongle for Raspberry Pi and PC
+* [ConBee&nbsp;III](https://phoscon.de/conbee3?ref=gh) USB dongle for Raspberry Pi and PC
 
 3rd party libraries
 -------------------

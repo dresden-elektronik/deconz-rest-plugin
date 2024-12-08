@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "35e0da16-c0f6-46a9-a122-900404043bcb",
   "manufacturername": [
     "_TZ3000_d16y6col",
     "_TZ3000_ww9i3e0y",
@@ -10,15 +11,19 @@
     "_TZ3000_fxvjhdyl",
     "_TZ3000_eit7p838",
     "_TZ3000_t6jriawg",
-    "_TZ3000_85czd6fy",
     "_TYZB01_sqmd19i1",
     "_TYZB01_o63ssaah",
     "_TZ3000_it1hm1cr",
     "_TZ3000_upgcbody",
     "_TZ3000_k4ej3ww2",
-    "_TZ3000_awvmkayh"
+    "_TZ3000_awvmkayh",
+    "_TZ3000_kstbkt6a",
+    "_TZ3000_arw23zcs",
+    "_TZ3000_wuep9zng"
   ],
   "modelid": [
+    "TS0207",
+    "TS0207",
     "TS0207",
     "TS0207",
     "TS0207",
@@ -37,7 +42,7 @@
     "TS0207"
   ],
   "vendor": "Tuya",
-  "product": "Tuya water leak sensor",
+  "product": "Wwater leak sensor (TS0207)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

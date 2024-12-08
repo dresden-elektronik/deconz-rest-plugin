@@ -1,8 +1,16 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "_TZE200_bjawzodf",
-  "modelid": "TS0601",
-  "product": "Tuya multi sensor",
+  "uuid": "c7017086-082a-4c0b-baae-5a55171f3733",
+  "manufacturername": [
+    "_TZE200_bjawzodf",
+    "_TZE200_zl1kmjqx"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601"
+  ],
+  "vendor": "Tuya",
+  "product": "Tuya multi sensor (TS0601)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -35,8 +43,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -56,14 +75,26 @@
         },
         {
           "name": "state/humidity",
-          "parse": {"fn": "tuya", "dpid": 2, "eval": "Item.val = 10 * Attr.val + R.item('config/offset').val;" },
-          "read": {"fn": "tuya"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 2,
+            "eval": "Item.val = 10 * Attr.val + R.item('config/offset').val;"
+          },
+          "read": {
+            "fn": "tuya"
+          },
           "default": 0
         },
         {
           "name": "config/battery",
-          "parse": {"fn": "tuya", "dpid": 4, "eval": "Item.val = Attr.val;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 4,
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         },
         {
@@ -100,8 +131,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -115,8 +157,14 @@
         },
         {
           "name": "config/battery",
-          "parse": {"fn": "tuya", "dpid": 4, "eval": "Item.val = Attr.val;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 4,
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         },
         {
@@ -130,8 +178,14 @@
         },
         {
           "name": "state/temperature",
-          "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = 10 * Attr.val + R.item('config/offset').val;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 1,
+            "eval": "Item.val = 10 * Attr.val + R.item('config/offset').val;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         }
       ]

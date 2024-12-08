@@ -1,0 +1,167 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "aeb64a3c-50c7-45c7-9dca-6378a5004200",
+  "manufacturername": [
+    "_TZ3210_dse8ogfy",
+    "_TZ3210_j4pdtz9v"
+  ],
+  "modelid": [
+    "TS0001",
+    "TS0001"
+  ],
+  "vendor": "Tuya",
+  "product": "Adaprox fingerbot (TS0001)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_OUTPUT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "config/tuya_unlock"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_BATTERY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0001"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/battery",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 105,
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/delay",
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 103,
+            "dt": "0x2b",
+            "eval": "Item.val;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 103,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 1
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ]
+}

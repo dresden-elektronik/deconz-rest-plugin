@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "c8b0f213-303a-41c7-980f-fca9ef952953",
   "manufacturername": "ubisys",
   "modelid": "J1 (5502)",
   "vendor": "ubisys",
-  "product": "J1 (5502) cover controller",
+  "product": "Cover controller (J1 (5502))",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -112,6 +113,15 @@
           "0x0102"
         ]
       },
+      "meta": {
+        "values": {
+          "config/mode": {
+            "momentary": 0,
+            "rocker": 1,
+            "custom": 2
+          }
+        }
+      },
       "items": [
         {
           "name": "attr/id"
@@ -146,11 +156,42 @@
         },
         {
           "name": "config/mode",
-          "default" : "momentary",
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x0001",
+            "cl": "0xFC00",
+            "ep": "0xE8",
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "cl": "0xFC00",
+            "cmd": "0x01",
+            "ep": "0xE8",
+            "eval": "let m = ''; for (var i = 4; i < ZclFrame.payloadSize; i++) { m += ('00' + ZclFrame.at(i).toString(16)).slice(-2); } m = m.toUpperCase(); if ( m == '41040006000D020201000600070202010206010D0202010106010702020102') { Item.val = 'momentary'; } else if ( m == '41040006000D020201000600030202010206010D0202010106010302020102') { Item.val = 'rocker'; } else { Item.val = 'custom_' + m; }",
+            "fn": "zcl:cmd"
+          },
+          "write": {
+            "fn": "zcl:cmd",
+            "ep": "0xE8",
+            "cl": "0xFC00",
+            "cmd": "0x02",
+            "eval": "if (Item.val == 'momentary') { '01004841040006000D020201000600070202010206010D0202010106010702020102' } else if (Item.val == 'rocker') { '01004841040006000D020201000600030202010206010D0202010106010302020102' } else if (Item.val.slice(0,7) == 'custom_') { '010048' + Item.val.slice(7, Item.val.length) }",
+            "fc": "0x10"
+          },
+          "default": "momentary",
           "values": [
-            ["\"momentary\"", "Momentary mode"],
-            ["\"rocker\"", "Rocker mode"],
-            ["\"custom\"", "Custom mode"]
+            [
+              "\"momentary\"",
+              "All inputs in momentary mode"
+            ],
+            [
+              "\"rocker\"",
+              "All inputs in rocker mode"
+            ],
+            [
+              "\"custom_010048....\"",
+              "Custom mode"
+            ]
           ]
         },
         {

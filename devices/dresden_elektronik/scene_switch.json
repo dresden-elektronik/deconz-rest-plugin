@@ -1,0 +1,190 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "57f972c5-ead9-4ee2-be54-2b89b0deedf2",
+  "manufacturername": "dresden elektronik",
+  "modelid": "Scene Switch",
+  "vendor": "dresden elektronik",
+  "product": "Multifunctional wireless switch (Scene switch)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x1000"
+      ],
+      "fingerprint": {
+        "profile": "0xC05E",
+        "device": "0x0800",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x1000"
+        ],
+        "out": [
+          "0x0006",
+          "0x0008",
+          "0x0005"
+        ]
+      },
+      "buttons": {
+        "1": {
+          "name": "Top Left"
+        },
+        "2": {
+          "name": "Bottom Left"
+        },
+        "3": {
+          "name": "Scene 1"
+        },
+        "4": {
+          "name": "Scene 2"
+        },
+        "5": {
+          "name": "Scene 3"
+        },
+        "6": {
+          "name": "Scene 4"
+        }
+      },
+      "buttonevents": {
+        "1001": {
+          "action": "HOLD",
+          "button": 1
+        },
+        "1002": {
+          "action": "SHORT_RELEASE",
+          "button": 1
+        },
+        "1003": {
+          "action": "LONG_RELEASE",
+          "button": 1
+        },
+        "2001": {
+          "action": "HOLD",
+          "button": 2
+        },
+        "2002": {
+          "action": "SHORT_RELEASE",
+          "button": 2
+        },
+        "2003": {
+          "action": "LONG_RELEASE",
+          "button": 2
+        },
+        "3002": {
+          "action": "SHORT_RELEASE",
+          "button": 3
+        },
+        "4002": {
+          "action": "SHORT_RELEASE",
+          "button": 4
+        },
+        "5002": {
+          "action": "SHORT_RELEASE",
+          "button": 5
+        },
+        "6002": {
+          "action": "SHORT_RELEASE",
+          "button": 6
+        }
+      },
+      "meta": {
+        "group.endpoints": [
+          1
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/group",
+          "default": "65535"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent",
+          "awake": true
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/on",
+          "public": false,
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0x0006",
+            "cmd": "any",
+            "script": "scene_switch_on.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/bri",
+          "public": false,
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0x0008",
+            "cmd": "any",
+            "script": "scene_switch_bri.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/sat",
+          "public": false,
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0x0005",
+            "cmd": "any",
+            "script": "scene_switch_scenes.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        }
+      ]
+    }
+  ]
+}

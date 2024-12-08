@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "e42353b6-fa6c-4c47-82d1-61d5dbc13102",
   "manufacturername": "Siglis",
   "modelid": "zigfred uno",
-  "product": "zigfred uno",
+  "vendor": "Siglis",
+  "product": "Wall switch (zigfred uno)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

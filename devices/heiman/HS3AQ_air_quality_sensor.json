@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "b90bdc10-b593-4ea1-b837-757cb7cf1d33",
   "manufacturername": "HEIMAN",
   "modelid": "HS3AQ-EFA-3.0",
-  "product": "HHS3AQ carbondioxide detector",
+  "vendor": "Heiman",
+  "product": "Air quality monitor (HS3AQ)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

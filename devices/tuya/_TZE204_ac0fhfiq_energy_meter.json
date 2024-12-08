@@ -1,0 +1,192 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "ad471d48-8ab4-4d20-a854-56f8423f568d",
+  "manufacturername": "_TZE204_ac0fhfiq",
+  "modelid": "TS0601",
+  "vendor": "Tuya",
+  "product": "BiDirectional zigbee energy meter (TS0601)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_CONSUMPTION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0702"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "read": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "script": "tuya_swversion.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/consumption",
+          "read": {
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 1,
+            "eval": "Item.val = Attr.val * 10;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/consumption_2",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 2,
+            "eval": "Item.val = Attr.val * 10;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0b04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "read": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "script": "tuya_swversion.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/current",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 6,
+            "eval": "Item.val = ((ZclFrame.at(8) << 16) | (ZclFrame.at(9) << 8) | ZclFrame.at(10)) / 1000;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 101,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/voltage",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 6,
+            "eval": "Item.val = ((ZclFrame.at(6) << 8) | ZclFrame.at(7)) / 10;",
+            "fn": "tuya"
+          },
+          "default": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,9 +1,20 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["eWeLink","SONOFF"],
-  "modelid": ["TH01","SNZB-02D"],
-  "vendor": "SONOFF",
-  "product": "SNZB-02 multisensor",
+  "uuid": "52815a37-6180-4ab8-83ef-021d75496a7b",
+  "manufacturername": [
+    "eWeLink",
+    "SONOFF",
+    "SONOFF",
+    "eWeLink"
+  ],
+  "modelid": [
+    "TH01",
+    "SNZB-02D",
+    "SNZB-02P",
+    "SNZB-02P"
+  ],
+  "vendor": "Sonoff",
+  "product": "Temperature And Humidity Sensor (SNZB-02)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -204,40 +215,50 @@
       ]
     }
   ],
-	"bindings": [{
-		"bind": "unicast",
-		"src.ep": 1,
-		"dst.ep": 1,
-		"cl": "0x0001",
-		"report": [{
-			"at": "0x0021",
-			"dt": "0x20",
-			"min": 3600,
-			"max": 7200,
-			"change": "0x00000002"
-		}]
-	}, {
-		"bind": "unicast",
-		"src.ep": 1,
-		"dst.ep": 1,
-		"cl": "0x0405",
-		"report": [{
-			"at": "0x0000",
-			"dt": "0x21",
-			"min": 5,
-			"max": 1800,
-			"change": "0x00000064"
-		}]
-	}, {
-		"bind": "unicast",
-		"src.ep": 1,
-		"cl": "0x0402",
-		"report": [{
-			"at": "0x0000",
-			"dt": "0x29",
-			"min": 5,
-			"max": 1800,
-			"change": "0x0000000A"
-		}]
-	}]
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 3600,
+          "max": 7200,
+          "change": "0x00000002"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0405",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 60,
+          "max": 600,
+          "change": "0x00000064"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0402",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 60,
+          "max": 600,
+          "change": "0x0000001E"
+        }
+      ]
+    }
+  ]
 }

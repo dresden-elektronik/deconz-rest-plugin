@@ -1,0 +1,103 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "8890ee18-d1c9-4319-9c7a-634bb1d02ecc",
+  "manufacturername": "_TZ3000_iaxvag8w",
+  "modelid": "TS130F",
+  "vendor": "Tuya",
+  "product": "Standard covering (TS130F)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_WINDOW_COVERING_DEVICE",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/lift",
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0102",
+            "ep": 1,
+            "eval": "Item.val = 100 - Attr.val;",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "state/open",
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0102",
+            "ep": 1,
+            "eval": "Item.val = Attr.val > 1",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0102",
+      "report": [
+        {
+          "at": "0x0008",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
+}

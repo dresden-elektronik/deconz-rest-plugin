@@ -1,14 +1,17 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "d699395b-4e78-4649-b9db-1c537041b70d",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.plug.mmeu01",
-  "vendor": "Xiaomi",
-  "product": "Mijia smart plug ZNCZ04LM",
+  "vendor": "Xiaomi Mi",
+  "product": "Smart plug (ZNCZ04LM)",
   "sleeper": false,
   "status": "Gold",
   "comment": "DDF for device firmwares equal or below 0.0.0_0022",
   "matchexpr": "(R.endpoints.indexOf(0x15) !== -1) && (R.endpoints.indexOf(0x16) !== -1);",
-  "md:known_issues": [ "xiaomi_known_issues_plugfw.md" ],
+  "md:known_issues": [
+    "xiaomi_known_issues_firmware_update.md"
+  ],
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",

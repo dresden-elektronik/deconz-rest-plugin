@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "7bb7c15c-9129-40f4-9c8a-617d847f5ed9",
   "manufacturername": "PLAID SYSTEMS",
   "modelid": "PS-SPRZMS-SLP3",
   "vendor": "Plaid Systems",
-  "product": "Spruce Soil sensor",
+  "product": "Spruce Soil sensor (PS-SPRZMS-SLP3)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -51,7 +52,12 @@
             "ep": 1,
             "eval": "const vmin = 2000; const vmax = 3000; let bat = Attr.val; if (bat > vmax) { bat = vmax; } else if (bat < vmin) { bat = vmin; } bat = ((bat - vmin) / (vmax - vmin)) * 100; if (bat > 100) { bat = 100; } else if (bat <= 0)  { bat = 1; } Item.val = bat;"
           },
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0000"},
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0000"
+          },
           "refresh.interval": 3700,
           "default": 0
         },
@@ -117,7 +123,12 @@
             "ep": 1,
             "eval": "const vmin = 2000; const vmax = 3000; let bat = Attr.val; if (bat > vmax) { bat = vmax; } else if (bat < vmin) { bat = vmin; } bat = ((bat - vmin) / (vmax - vmin)) * 100; if (bat > 100) { bat = 100; } else if (bat <= 0)  { bat = 1; } Item.val = bat;"
           },
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0000"},
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0000"
+          },
           "refresh.interval": 3700,
           "default": 0
         },

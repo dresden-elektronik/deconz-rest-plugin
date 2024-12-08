@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "07aafb01-be70-4a9b-8cb4-7939014cd107",
   "manufacturername": "sengled",
   "modelid": "E1D-G73",
   "vendor": "Sengled",
-  "product": "Smart Window and Door Sensor",
+  "product": "Smart window and door sensor (E1D-G73)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

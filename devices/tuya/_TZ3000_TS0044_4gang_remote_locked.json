@@ -1,0 +1,142 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "1ca9db80-e00c-4d5d-84b2-7451b19d6e46",
+  "manufacturername": [
+    "_TZ3000_a4xycprs",
+    "_TZ3000_u3nv1jwk"
+  ],
+  "modelid": [
+    "TS0044",
+    "TS0044"
+  ],
+  "vendor": "Tuya",
+  "product": "4-gang remote (TS0044)",
+  "comment": "Locked by Tuya",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0006"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "refresh.interval": 86400,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/tuya_unlock"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent"
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 64500,
+          "max": 65500,
+          "change": "0x00000002"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "dst.ep": 1,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "dst.ep": 1,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 4,
+      "dst.ep": 1,
+      "cl": "0x0006"
+    }
+  ]
+}

@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "d0cde800-0de6-4189-b5c7-bda17882ee0f",
   "manufacturername": "GLEDOPTO",
   "modelid": "GL-SD-002",
-  "product": "GL-SD-002",
+  "vendor": "Gledopto",
+  "product": "Switch module (GL-SD-002)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

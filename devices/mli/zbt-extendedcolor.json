@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["MLI"],
-  "modelid": ["ZBT-ExtendedColor"],
-  "product": "Tint by Mueller Light GU10 spot",
+  "uuid": "62a57ed7-8ddd-4e86-bd8f-03f7822a50cd",
+  "manufacturername": [
+    "MLI"
+  ],
+  "modelid": [
+    "ZBT-ExtendedColor"
+  ],
+  "vendor": "Müller Licht",
+  "product": "Tint GU10 spot",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -99,7 +105,7 @@
           "name": "config/on/startup"
         },
         {
-         "name": "state/alert"
+          "name": "state/alert"
         },
         {
           "name": "state/on",
@@ -112,61 +118,129 @@
         {
           "name": "state/colormode",
           "values": [
-            ["\"ct\"", "color temperature"],
-            ["\"effect\"", "dynamic effect"],
-        		["\"hs\"", "hue and saturation"],
-        		["\"xy\"", "CIE xy color space coordinates"]
-        	],
+            [
+              "\"ct\"",
+              "color temperature"
+            ],
+            [
+              "\"effect\"",
+              "dynamic effect"
+            ],
+            [
+              "\"hs\"",
+              "hue and saturation"
+            ],
+            [
+              "\"xy\"",
+              "CIE xy color space coordinates"
+            ]
+          ],
           "parse": {
-            "fn": "zcl:attr", "ep": "0x01", "cl": "0x0300", "at": "0x4001",
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x4001",
             "eval": "if (Item.val !== 'effect') Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
           },
           "read": {
-            "fn": "zcl:attr", "ep": "0x01", "cl": "0x0300", "at": ["0x4001", "0x0007", "0x0003", "0x0004", "0x4002", "0x0000", "0x0001"]
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": [
+              "0x4001",
+              "0x0007",
+              "0x0003",
+              "0x0004",
+              "0x4002",
+              "0x0000",
+              "0x0001"
+            ]
           },
           "refresh.interval": 365
         },
         {
           "name": "state/ct",
-          "read": { "fn": "none" }
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/x",
-          "read": { "fn": "none" }
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/y",
-          "read": { "fn": "none" }
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/effect",
           "values": [
-            ["\"none\"", "no effect is active"],
-            ["\"colorloop\"", "colorloop through hue values"],
-            ["\"sunset\"", "sunset special scene"],
-            ["\"party\"", "party special scene"],
-            ["\"worklight", "worklight special scene"],
-            ["\"campfire", "campfire special scene"],
-            ["\"romance", "romance special scene"],
-            ["\"nightlight", "nightlight special scene"]
+            [
+              "\"none\"",
+              "no effect is active"
+            ],
+            [
+              "\"colorloop\"",
+              "colorloop through hue values"
+            ],
+            [
+              "\"sunset\"",
+              "sunset special scene"
+            ],
+            [
+              "\"party\"",
+              "party special scene"
+            ],
+            [
+              "\"worklight",
+              "worklight special scene"
+            ],
+            [
+              "\"campfire",
+              "campfire special scene"
+            ],
+            [
+              "\"romance",
+              "romance special scene"
+            ],
+            [
+              "\"nightlight",
+              "nightlight special scene"
+            ]
           ],
           "parse": {
-            "fn": "zcl:attr", "ep": "0x01", "cl": "0x0300", "at": "0x4002",
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x4002",
             "eval": "if (Item.val === 'none' || Item.val === 'colorloop') Item.val = Attr.val ? 'colorloop' : 'none'"
           },
-          "read": { "fn": "none" }
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/hue",
           "parse": {
-            "fn": "zcl:attr", "ep": "0x01", "cl": "0x0300", "at": "0x0000",
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": "0x0000",
             "eval": "Item.val = Attr.val"
           },
-          "read": { "fn": "none" }
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/sat",
-          "read": { "fn": "none" }
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/reachable"
@@ -180,7 +254,12 @@
       "src.ep": 1,
       "cl": "0x0006",
       "report": [
-        { "at": "0x0000", "dt": "0x10", "min": 1, "max": 300 }
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
       ]
     },
     {
@@ -188,7 +267,13 @@
       "src.ep": 1,
       "cl": "0x0008",
       "report": [
-        { "at": "0x0000", "dt": "0x20", "min": 1, "max": 300, "change": 1 }
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": 1
+        }
       ]
     },
     {
@@ -196,13 +281,54 @@
       "src.ep": 1,
       "cl": "0x0300",
       "report": [
-        { "at": "0x0000", "dt": "0x20", "min": 1, "max": 300, "change": 1 },
-        { "at": "0x0001", "dt": "0x20", "min": 1, "max": 300, "change": 1 },
-        { "at": "0x0003", "dt": "0x21", "min": 1, "max": 300, "change": 1 },
-        { "at": "0x0004", "dt": "0x21", "min": 1, "max": 300, "change": 1 },
-        { "at": "0x0007", "dt": "0x21", "min": 1, "max": 300, "change": 1 },
-        { "at": "0x4001", "dt": "0x30", "min": 1, "max": 300 },
-        { "at": "0x4002", "dt": "0x20", "min": 1, "max": 300, "change": 1 }
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": 1
+        },
+        {
+          "at": "0x0001",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": 1
+        },
+        {
+          "at": "0x0003",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": 1
+        },
+        {
+          "at": "0x0004",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": 1
+        },
+        {
+          "at": "0x0007",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": 1
+        },
+        {
+          "at": "0x4001",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300
+        },
+        {
+          "at": "0x4002",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": 1
+        }
       ]
     },
     {
@@ -210,7 +336,14 @@
       "src.ep": 1,
       "cl": "0x0000",
       "report": [
-        { "mf": "0x121b", "at": "0x4005", "dt": "0x20", "min": 1, "max": 300, "change": 1 }
+        {
+          "mf": "0x121b",
+          "at": "0x4005",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": 1
+        }
       ]
     }
   ]

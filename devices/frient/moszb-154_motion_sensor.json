@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "ae54681f-9243-47b3-95f2-58b1a3c19451",
   "manufacturername": "frient A/S",
   "modelid": "MOSZB-154",
-  "vendor": "Develco Products",
-  "product": "MOSZB-154 motion sensor pro",
+  "vendor": "Frient",
+  "product": "Motion sensor pro (MOSZB-154)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -357,7 +358,10 @@
             "fn": "zcl:attr",
             "mf": "0x1015"
           },
-          "range": [20, 65535],
+          "range": [
+            20,
+            65535
+          ],
           "default": 20
         },
         {

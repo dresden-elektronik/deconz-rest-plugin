@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "a29c3216-a9eb-49ae-a62b-c604c3167b41",
   "manufacturername": "BOSCH",
   "modelid": "RBSH-TRV0-ZB-EU",
   "vendor": "Bosch",
-  "product": "Thermostat II",
+  "product": "Thermostat II (BTH-RA)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -28,7 +29,11 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"auto": 0, "heat": 1, "off": 5}
+          "config/mode": {
+            "auto": 0,
+            "heat": 1,
+            "off": 5
+          }
         }
       },
       "items": [
@@ -102,13 +107,42 @@
           "write": {
             "at": "0x400B",
             "cl": "0x0204",
-            "dt": "0x30",
+            "dt": "0x20",
             "ep": 1,
             "eval": "Item.val",
             "fn": "zcl:attr",
             "mf": "0x1209"
           },
           "default": false
+        },
+        {
+          "name": "config/externalsensortemp",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x4040",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "parse": {
+            "at": "0x4040",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "write": {
+            "at": "0x4040",
+            "cl": "0x0201",
+            "dt": "0x29",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "default": 0
         },
         {
           "name": "config/externalwindowopen",
@@ -209,7 +243,15 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/schedule"
+          "name": "config/schedule",
+          "refresh.interval": 3660,
+          "read": {
+            "fn": "zcl:cmd",
+            "ep": "0x01",
+            "cl": "0x0201",
+            "cmd": "0x02",
+            "eval": "'7F01'"
+          }
         },
         {
           "name": "config/schedule_on",

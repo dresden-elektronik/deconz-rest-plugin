@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "d9e2a290-e2b4-42de-bd95-4b46b4f0a142",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.switch.n0agl1",
-  "vendor": "Xiaomi",
-  "product": "Aqara T1 single rocker switch (with neutral wire) SSM-U01",
+  "vendor": "Xiaomi Aqara",
+  "product": "T1 single rocker switch with neutral wire (SSM-U01)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -64,7 +65,7 @@
         }
       ]
     },
-     {
+    {
       "type": "$TYPE_POWER_SENSOR",
       "restapi": "/sensors",
       "uuid": [
@@ -123,9 +124,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature"
         },
         {
           "name": "state/current",
@@ -233,9 +231,6 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/temperature"
-        },
-        {
           "name": "state/consumption",
           "refresh.interval": 300,
           "read": {
@@ -338,8 +333,14 @@
             "mf": "0x115f"
           },
           "values": [
-            ["\"momentary\"", "Momentary mode"],
-            ["\"rocker\"", "Rocker mode"] 
+            [
+              "\"momentary\"",
+              "Momentary mode"
+            ],
+            [
+              "\"rocker\"",
+              "Rocker mode"
+            ]
           ],
           "default": "rocker"
         },
@@ -371,8 +372,14 @@
             "mf": "0x115f"
           },
           "values": [
-            ["\"compatibility\"", "Default mode for Xiaomi devices"],
-            ["\"zigbee\"", "Closer to zigbee standard"] 
+            [
+              "\"compatibility\"",
+              "Default mode for Xiaomi devices"
+            ],
+            [
+              "\"zigbee\"",
+              "Closer to zigbee standard"
+            ]
           ],
           "default": "compatibility"
         },

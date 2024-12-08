@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "0f0290cb-4791-49c2-8b6b-a1a519163c74",
   "manufacturername": "lk",
   "modelid": "ZBT-CCTLight-D0106",
-  "product": "Linkind A60 LED Tunable White Bulb 800 lumen",
+  "vendor": "AiDot Linkind",
+  "product": "A60 LED Tunable White Bulb 800 lumen (D0106)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

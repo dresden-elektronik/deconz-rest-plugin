@@ -1,14 +1,21 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["ubisys", "ubisys"],
-  "modelid": ["S1 (5501)", "S1-R (5601)"],
+  "uuid": "d275912e-9490-4deb-9225-c17b882703ae",
+  "manufacturername": [
+    "ubisys",
+    "ubisys"
+  ],
+  "modelid": [
+    "S1 (5501)",
+    "S1-R (5601)"
+  ],
   "vendor": "ubisys",
-  "product": "S1 (5501) / S1-R (5601) power switch",
+  "product": "Power switch (S1 (5501)/S1-R (5601))",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "type": "$TYPE_ON_OFF_OUTPUT",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -76,6 +83,15 @@
           "0x0008"
         ]
       },
+      "meta": {
+        "values": {
+          "config/mode": {
+            "momentary": 0,
+            "rocker": 1,
+            "custom": 2
+          }
+        }
+      },
       "items": [
         {
           "name": "attr/id"
@@ -109,7 +125,44 @@
           "default": "auto"
         },
         {
-          "name": "config/mode"
+          "name": "config/mode",
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x0001",
+            "cl": "0xFC00",
+            "ep": "0xE8",
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "cl": "0xFC00",
+            "cmd": "0x01",
+            "ep": "0xE8",
+            "eval": "let m = ''; for (var i = 4; i < ZclFrame.payloadSize; i++) { m += ('00' + ZclFrame.at(i).toString(16)).slice(-2); } m = m.toUpperCase(); if ( m == '41020006000D0206000206010D03060002') { Item.val = 'momentary'; } else if ( m == '41020006000D0206000206000302060002') { Item.val = 'rocker'; } else { Item.val = 'custom_' + m; }",
+            "fn": "zcl:cmd"
+          },
+          "write": {
+            "fn": "zcl:cmd",
+            "ep": "0xE8",
+            "cl": "0xFC00",
+            "cmd": "0x02",
+            "eval": "if (Item.val == 'momentary') { '01004841020006000D0206000206010D03060002' } else if (Item.val == 'rocker') { '01004841020006000D0206000206000302060002' } else if (Item.val.slice(0,7) == 'custom_') { '010048' + Item.val.slice(7, Item.val.length) }",
+            "fc": "0x10"
+          },
+          "default": "momentary",
+          "values": [
+            [
+              "\"momentary\"",
+              "Momentary mode"
+            ],
+            [
+              "\"rocker\"",
+              "Rocker mode"
+            ],
+            [
+              "\"custom_010048....\"",
+              "Custom mode"
+            ]
+          ]
         },
         {
           "name": "config/on"

@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "c4d31091-6713-4c79-af25-5e9830d1e9a0",
   "manufacturername": "ubisys",
   "modelid": "C4 (5504)",
   "vendor": "ubisys",
-  "product": "C4 (5504) control unit",
+  "product": "Control unit (C4 (5504))",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -49,8 +50,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x4000", "eval": "Item.val = Attr.val"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x4000"},
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x4000",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x4000"
+          },
           "refresh.interval": 180
         },
         {

@@ -1,0 +1,101 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "cc3b7ff9-2867-4f6a-af90-fd40441a0304",
+  "manufacturername": "Schneider Electric",
+  "modelid": "1GANG/SHUTTER/1",
+  "vendor": "Schneider Electric",
+  "product": "Merten Wiser cover controller (MEG5113-0300)",
+  "sleeper": false,
+  "status": "Silver",
+  "subdevices": [
+    {
+      "type": "$TYPE_WINDOW_COVERING_DEVICE",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x05"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/bri"
+        },
+        {
+          "name": "state/lift",
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0102",
+            "ep": 5,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "state/on",
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0102",
+            "ep": 5,
+            "eval": "if(Attr.val == 100) { Item.val = true; } else { Item.val = false; }",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "state/open",
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0102",
+            "ep": 5,
+            "eval": "Item.val = Attr.val < 100",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 5,
+      "cl": "0x0102",
+      "report": [
+        {
+          "at": "0x0008",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
+}

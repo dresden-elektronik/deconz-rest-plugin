@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "316cc916-be3f-43e3-956c-ac379e6da4c3",
   "manufacturername": "Develco Products A/S",
   "modelid": "IOMZB-110",
-  "product": "IOMZB-110 switch module",
+  "vendor": "Develco Products",
+  "product": "Dry contact IO-module (IOMZB-110)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -304,7 +306,7 @@
     }
   ],
   "bindings": [
-      {
+    {
       "bind": "unicast",
       "src.ep": 112,
       "cl": "0x000F",
@@ -330,7 +332,7 @@
         }
       ]
     },
-      {
+    {
       "bind": "unicast",
       "src.ep": 114,
       "cl": "0x000F",
@@ -343,7 +345,7 @@
         }
       ]
     },
-       {
+    {
       "bind": "unicast",
       "src.ep": 115,
       "cl": "0x000F",

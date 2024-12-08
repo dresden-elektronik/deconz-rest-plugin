@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "f2700e57-348a-470a-83bc-b4fccdeff4f8",
   "manufacturername": "OSRAM",
   "modelid": "CLA60 TW OSRAM",
-  "product": "CLA60 TW OSRAM",
+  "vendor": "Osram",
+  "product": "Smart+ classic E27 tunable white (4058075816534)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

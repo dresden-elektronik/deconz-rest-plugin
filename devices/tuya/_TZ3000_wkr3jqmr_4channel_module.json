@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "3a7cad20-0c89-4f6a-b629-dd696f59eab8",
   "manufacturername": "_TZ3000_wkr3jqmr",
   "modelid": "TS0004",
-  "product": "Tuya 4 output module",
+  "vendor": "Tuya",
+  "product": "4 output module (TS0004)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -33,10 +35,21 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",                   
+          "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -85,10 +98,21 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",                   
+          "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -104,7 +128,7 @@
         }
       ]
     },
-   {
+    {
       "type": "$TYPE_ON_OFF_OUTPUT",
       "restapi": "/lights",
       "uuid": [
@@ -131,10 +155,21 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",                   
+          "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -150,7 +185,7 @@
         }
       ]
     },
-   {
+    {
       "type": "$TYPE_ON_OFF_OUTPUT",
       "restapi": "/lights",
       "uuid": [
@@ -177,10 +212,21 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",                   
+          "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"

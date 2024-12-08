@@ -1,12 +1,16 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "17905b83-4763-44bd-bed5-a7c898601c6d",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_magnet",
-  "vendor": "Xiaomi",
-  "product": "Mijia open/close sensor MCCGQ01LM",
+  "vendor": "Xiaomi Mi",
+  "product": "Open/close sensor (MCCGQ01LM)",
   "sleeper": true,
   "status": "Gold",
-  "md:known_issues": [ "xiaomi_known_issues1.md", "xiaomi_known_issues_mccqg01lm.md" ],
+  "md:known_issues": [
+    "xiaomi_known_issues_sticky_parents.md",
+    "xiaomi_known_issues_difficult_pairing.md"
+  ],
   "subdevices": [
     {
       "type": "$TYPE_OPEN_CLOSE_SENSOR",
@@ -44,9 +48,16 @@
           "name": "attr/name"
         },
         {
-            "name": "attr/swversion",
-            "read": {"cl": "0x0000", "at": "0x0006"},
-            "parse": {"cl": "0x0000", "at": "0x0006", "eval": "Item.val = Attr.val"}
+          "name": "attr/swversion",
+          "read": {
+            "cl": "0x0000",
+            "at": "0x0006"
+          },
+          "parse": {
+            "cl": "0x0000",
+            "at": "0x0006",
+            "eval": "Item.val = Attr.val"
+          }
         },
         {
           "name": "attr/type"
@@ -56,7 +67,13 @@
         },
         {
           "name": "config/battery",
-          "parse": {"fn": "xiaomi:special", "ep": 1, "at": "0xff02", "idx": "0x01", "script": "xiaomi_battery.js"}
+          "parse": {
+            "fn": "xiaomi:special",
+            "ep": 1,
+            "at": "0xff02",
+            "idx": "0x01",
+            "script": "xiaomi_battery.js"
+          }
         },
         {
           "name": "config/on"
@@ -69,7 +86,13 @@
         },
         {
           "name": "state/open",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0006", "at": "0x0000", "eval": "Item.val = Attr.val != 0"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0006",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val != 0"
+          }
         }
       ]
     }

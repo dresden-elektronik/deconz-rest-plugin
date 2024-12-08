@@ -67,6 +67,10 @@ DDF_EditorDialog::DDF_EditorDialog(DeviceWidget *parent) :
     hotReload->setShortcut(tr("Ctrl+R"));
     connect(hotReload, &QAction::triggered, parent, &DeviceWidget::hotReload);
 
+    QAction *close = fileMenu->addAction(tr("&Close"));
+    close->setShortcut(QKeySequence::Close);
+    connect(close, &QAction::triggered, this, &QMainWindow::close);
+
     QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
     QAction *docAction = helpMenu->addAction(tr("DDF documentation"));
     connect(docAction, &QAction::triggered, [](){
@@ -396,26 +400,19 @@ void DeviceWidget::saveAsDDF()
 
 void DeviceWidget::hotReload()
 {
-    const DeviceDescription &ddf = d->ddfWindow->editor->ddf();
-    if (!ddf.isValid())
-    {
-        return;
-    }
     auto *dd = DeviceDescriptions::instance();
-    dd->put(ddf);
 
     for (const std::unique_ptr<Device> &dev : *d->devices)
     {
-        const auto &ddf0 = dd->get(&*dev);
-
-        if (ddf0.handle == ddf.handle)
+        if (d->curNode.ext() == dev->key())
         {
-            DBG_Printf(DBG_INFO, "Hot reload device: %s\n", dev->item(RAttrUniqueId)->toCString());
-            dev->handleEvent(Event(RDevices, REventDDFReload, 0, dev->key()));
+            dd->reloadAllRawJsonAndBundles(dev.get());
+            QString mfname = dev->item(RAttrManufacturerName)->toString();
+            QString modelid = dev->item(RAttrModelId)->toString();
+            d->ddfWindow->showMessage(tr("DDF reloading devices matching: %1 / %2").arg(mfname, modelid));
+            break;
         }
     }
-
-    d->ddfWindow->showMessage(tr("DDF reloaded for devices"));
 }
 
 void DeviceWidget::enablePermitJoin()

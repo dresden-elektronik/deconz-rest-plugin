@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "c6f3115f-9219-41d0-b318-b3ec1a18b586",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.motion.ac02",
-  "vendor": "Xiaomi",
-  "product": "Aqara P1 presence sensor RTCGQ14LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "P1 presence sensor (RTCGQ14LM)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -106,7 +107,10 @@
             "mf": "0x115F",
             "state.timeout": 2
           },
-          "range": [1, 200],
+          "range": [
+            1,
+            200
+          ],
           "default": 30
         },
         {
@@ -140,8 +144,14 @@
             "state.timeout": 2
           },
           "values": [
-            [true, "Device flashes on presence"],
-            [false, "Device gives no visual feedback on presence"]
+            [
+              true,
+              "Device flashes on presence"
+            ],
+            [
+              false,
+              "Device gives no visual feedback on presence"
+            ]
           ],
           "default": false
         },
@@ -182,9 +192,18 @@
             "state.timeout": 2
           },
           "values": [
-            [1, "Low"],
-            [2, "Medium"],
-            [3, "High"]
+            [
+              1,
+              "Low"
+            ],
+            [
+              2,
+              "Medium"
+            ],
+            [
+              3,
+              "High"
+            ]
           ],
           "default": 3
         },
@@ -307,8 +326,14 @@
             "state.timeout": 2
           },
           "values": [
-            [true, "Device flashes on presence"],
-            [false, "Device gives no visual feedback on presence"]
+            [
+              true,
+              "Device flashes on presence"
+            ],
+            [
+              false,
+              "Device gives no visual feedback on presence"
+            ]
           ],
           "default": false
         },

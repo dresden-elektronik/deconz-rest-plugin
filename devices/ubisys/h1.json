@@ -1,0 +1,268 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "3a22aa89-e2e1-4586-aad9-c35dbe031b46",
+  "manufacturername": "ubisys",
+  "modelid": "H1",
+  "vendor": "ubisys",
+  "product": "Heating regulator (H1)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_THERMOSTAT",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0201"
+      ],
+      "meta": {
+        "values": {
+          "config/mode": {
+            "off": 0,
+            "auto": 1,
+            "heat": 4
+          }
+        },
+        "group.endpoints": [
+          1
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/checkin"
+        },
+        {
+          "name": "config/group",
+          "default": "auto"
+        },
+        {
+          "name": "config/heatsetpoint",
+          "refresh.interval": 3660
+        },
+        {
+          "name": "config/mode",
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x001C",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x001C",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 1) { Item.val = 'auto' } else if (Attr.val == 4) { Item.val = 'heat' };",
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x001C",
+            "cl": "0x0201",
+            "dt": "0x10",
+            "ep": 1,
+            "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'auto') { 1 } else if (Item.val == 'heat') { 4 };",
+            "fn": "zcl:attr"
+          },
+          "default": "heat"
+        },
+        {
+          "name": "config/offset",
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x0003",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x10f2"
+          },
+          "parse": {
+            "at": "0x0003",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val * 100;",
+            "fn": "zcl:attr",
+            "mf": "0x10f2"
+          },
+          "write": {
+            "at": "0x0003",
+            "cl": "0x0201",
+            "dt": "0x30",
+            "ep": 1,
+            "eval": "parseInt(Item.val / 100);",
+            "fn": "zcl:attr",
+            "mf": "0x10f2"
+          },
+          "range": [
+            -1000,
+            1000
+          ]
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/schedule",
+          "refresh.interval": 3660,
+          "read": {
+            "fn": "zcl:cmd",
+            "ep": "0x01",
+            "cl": "0x0201",
+            "cmd": "0x02",
+            "eval": "'7F01'"
+          }
+        },
+        {
+          "name": "config/schedule_on",
+          "static": true
+        },
+        {
+          "name": "config/unoccupiedheatsetpoint",
+          "refresh.interval": 3660,
+          "default": 1600
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/on",
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val > 3;",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/temperature",
+          "refresh.interval": 3660,
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "state/utc",
+          "refresh.interval": 3660
+        },
+        {
+          "name": "state/valve",
+          "refresh.interval": 3660
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 3600,
+          "max": 43200,
+          "change": "0x00000002"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0201",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 60,
+          "max": 300,
+          "change": "0x00000064"
+        },
+        {
+          "at": "0x0008",
+          "dt": "0x20",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0012",
+          "dt": "0x29",
+          "min": 1,
+          "max": 3600,
+          "change": "0x00000064"
+        },
+        {
+          "at": "0x0014",
+          "dt": "0x29",
+          "min": 1,
+          "max": 3600,
+          "change": "0x00000064"
+        },
+        {
+          "at": "0x001C",
+          "dt": "0x30",
+          "min": 1,
+          "max": 3600
+        }
+      ]
+    },
+    {
+      "bind": "groupcast",
+      "config.group": 0,
+      "src.ep": 1,
+      "cl": "0x0201"
+    }
+  ]
+}

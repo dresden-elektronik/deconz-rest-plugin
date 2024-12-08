@@ -1,0 +1,171 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI DDF Bundles
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+    paths:
+    - 'devices/**'
+
+  pull_request:
+    types: [opened, synchronize]
+    branches: [ master ]
+    paths:
+      - 'devices/**'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      uploadArtifact:
+        description: Build an artifact for the DDF
+        required: true
+        default: true
+        type: boolean
+      uploadOnStore:
+        description: Upload the DDF on the store
+        required: true
+        default: false
+        type: boolean
+      bundlerSignatureKeys:
+        description: Comma seperated list of private keys to sign the bundle with
+        required: false
+        default: ''
+        type: string
+      bundlerOutputDirectoryFormat:
+        description: Format of the output directory structure
+        required: true
+        default: 'flat'
+        type: choice
+        options:
+          - 'flat'
+          - 'source-tree'
+      bundlerOutputFileFormat:
+        description: Format of the output files names
+        required: true
+        default: 'hash'
+        type: choice
+        options:
+          - 'hash'
+          - 'name'
+          - 'name-hash'
+      bundlerFileModifiedMethod:
+        description: Method to use to get the file modification time
+        required: true
+        default: 'gitlog'
+        type: choice
+        options:
+          - 'gitlog'
+          - 'mtime'
+          - 'ctime'
+      validationStrict:
+        description: Enable strict validation
+        required: true
+        default: false
+        type: boolean
+      validationEnforceUUID:
+        description: Enforce UUID in the DDF
+        required: true
+        default: true
+        type: boolean
+      autoCommitUUID:
+        description: Enable auto update of UUID
+        required: true
+        default: true
+        type: boolean
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "ci-ddf-bundles"
+  ci-ddf-bundles:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    name: CI DDF Bundles
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run DDF Workflow Dispatch
+        if: github.event_name == 'workflow_dispatch'
+        uses: deconz-community/ddf-tools-action@v1
+        with:
+          mode: manual
+          source-devices-path: 'devices'
+
+          # Bundler options
+          bundler-sign-keys: ${{ inputs.bundlerSignatureKeys }}
+          bundler-output-directory-format: ${{ inputs.bundlerOutputDirectoryFormat }}
+          bundler-output-file-format: ${{ inputs.bundlerOutputFileFormat }}
+          bundler-file-modified-method: ${{ inputs.bundlerFileModifiedMethod }}
+
+          # Bundler Validation options
+          bundler-validation-strict: ${{ inputs.validationStrict }}
+          bundler-validation-enforce-uuid: ${{ inputs.validationEnforceUUID && !inputs.autoCommitUUID }}
+
+          # UUID automatic generation
+          auto-commit-uuid: ${{ inputs.autoCommitUUID }}
+
+          # Github artifact
+          upload-artifact-enabled: ${{ inputs.uploadArtifact == true }}
+          upload-artifact-filter: 'added,modified,unchanged'
+          upload-artifact-retention-days: 7
+
+          # DDF Store
+          upload-store-enabled: ${{ inputs.uploadOnStore == true }}
+          upload-store-status: 'beta'
+          upload-store-url: 'https://ddf.cryonet.io'
+          upload-store-token: ${{ secrets.STORE_TOKEN }}
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run DDF Push Action
+        if: github.event_name == 'push'
+        uses: deconz-community/ddf-tools-action@v1
+        with:
+          mode: push
+          source-devices-path: 'devices'
+
+          # UUID automatic generation
+          auto-commit-uuid: 'true'
+          bundler-validation-enforce-uuid: 'false'
+
+          # Github artifact
+          upload-artifact-enabled: false
+
+          # DDF Store
+          upload-store-enabled: true
+          upload-store-status: 'beta'
+          upload-store-url: 'https://ddf.cryonet.io'
+          upload-store-token: ${{ secrets.STORE_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run DDF Pull Request Interaction
+        if: github.event_name == 'pull_request'
+        uses: deconz-community/ddf-tools-action@v1
+        with:
+          mode: pull_request
+          source-devices-path: 'devices'
+
+          # Github artifact
+          upload-artifact-enabled: true
+          upload-artifact-filter: 'added,modified'
+          upload-artifact-retention-days: 30
+
+          # DDF Store
+          # Bundles are uploaded only on the push event when the PR is merged
+          upload-store-enabled: false
+
+          # Validation
+          bundler-validation-enforce-uuid: 'false'
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

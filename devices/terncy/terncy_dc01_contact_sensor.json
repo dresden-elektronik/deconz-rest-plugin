@@ -1,8 +1,13 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "ae49b1d3-2ad4-432e-8a59-474edd3a9fb8",
   "manufacturername": "Sunricher",
   "modelid": "TERNCY-DC01",
-  "product": "TERNCY-DC01 contact sensor",
+  "vendor": "Terncy",
+  "product": "Door sensor (TERNCY-DC01)",
+  "md:info": [
+    "terncy_dc01_contact_sensor_pairing.md"
+  ],
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

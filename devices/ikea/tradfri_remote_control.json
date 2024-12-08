@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "dadf3618-a75d-4e65-9675-6c44e22c584d",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI remote control",
-  "product": "TRADFRI remote control - E1810",
+  "vendor": "IKEA",
+  "product": "Tradfri remote control (E1810)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

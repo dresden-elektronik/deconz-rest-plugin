@@ -1,20 +1,27 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "5c48148f-ac93-414a-b564-064d40567c0b",
   "manufacturername": [
     "$MF_PHILIPS",
     "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY"
   ],
   "modelid": [
     "LWA001",
+    "LWA028",
     "LWE002",
     "LWA001",
+    "LWA028",
     "LWE002"
   ],
+  "vendor": "Philips",
   "product": "Hue white light",
   "sleeper": false,
   "status": "Gold",
+  "matchexpr": "R.hasCluster(0x0b,0xfc03)",
   "subdevices": [
     {
       "type": "$TYPE_DIMMABLE_LIGHT",
@@ -64,10 +71,20 @@
             "ep": "0x0b",
             "cl": "0x0000",
             "at": "0x0005"
-          }
+          },
+          "refresh.interval": 86400
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productid"
@@ -114,6 +131,9 @@
           "name": "cap/bri/move_with_onoff"
         },
         {
+          "name": "cap/color/effects"
+        },
+        {
           "name": "cap/on/off_with_effect"
         },
         {
@@ -155,16 +175,6 @@
         },
         {
           "name": "state/effect",
-          "values": [
-            [
-              "\"none\"",
-              "no effect is active"
-            ],
-            [
-              "\"candle\"",
-              "candlelight dynamic effect"
-            ]
-          ],
           "read": {
             "fn": "none"
           }

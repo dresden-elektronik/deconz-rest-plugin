@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "833cf9e4-5d14-407a-a3c4-deff36c22a49",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI bulb E27 WW 806lm",
-  "product": "TRADFRI bulb E27 WW 806lm",
+  "vendor": "IKEA",
+  "product": "Tradfri LED bulb E27 806 lumen, smart wireless dimmable/white spectrum globe (LED1836G9)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -55,11 +57,11 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -92,7 +94,7 @@
           "at": "0x0000",
           "dt": "0x10",
           "min": 1,
-          "max": 1800
+          "max": 300
         }
       ]
     },
@@ -105,8 +107,8 @@
         {
           "at": "0x0000",
           "dt": "0x20",
-          "min": 5,
-          "max": 1800,
+          "min": 1,
+          "max": 300,
           "change": "0x00000001"
         }
       ]

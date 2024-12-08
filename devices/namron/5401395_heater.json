@@ -1,9 +1,24 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["NAMRON AS", "NAMRON AS"],
-  "modelid": ["5401395", "5401399"],
+  "uuid": "6f36f014-8ed9-40ea-9301-05d55797bd3e",
+  "manufacturername": [
+    "NAMRON AS",
+    "NAMRON AS",
+    "NAMRON AS",
+    "NAMRON AS",
+    "NAMRON AS",
+    "NAMRON AS"
+  ],
+  "modelid": [
+    "5401395",
+    "5401399",
+    "5401393",
+    "5401397",
+    "5401392",
+    "5401396"
+  ],
   "vendor": "Namron",
-  "product": "Panel Heater 1000W White/Black",
+  "product": "Panel heater",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -153,7 +168,20 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/power"
+          "name": "state/power",
+          "refresh.interval": 365,
+          "read": {
+            "at": "0x050b",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x050b",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "Item.val = Attr.val/10"
+          }
         },
         {
           "name": "state/voltage"
@@ -213,14 +241,22 @@
         },
         {
           "name": "state/consumption",
-          "default": 0
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0702",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0702",
+            "ep": 1,
+            "eval": "Item.val = Attr.val*100"
+          },
+          "refresh.interval": 365
         },
         {
           "name": "state/lastupdated"
-        },
-        {
-          "name": "state/power",
-          "default": 0
         }
       ]
     }
@@ -237,6 +273,20 @@
           "dt": "0x30",
           "min": 60,
           "max": 3600
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0702",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x25",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
         }
       ]
     },

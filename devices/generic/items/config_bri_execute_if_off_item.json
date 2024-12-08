@@ -10,22 +10,15 @@
     "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0008",
-    "at": "0x000f",
+    "at": "0x000F",
     "eval": "Item.val = (Attr.val & 0x01) !== 0"
   },
-  "read": {
-    "fn": "zcl:attr",
-    "ep": 0,
-    "cl": "0x0008",
-    "at": "0x000f"
-  },
-  "refresh.interval": 3600,
   "write": {
     "fn": "zcl:attr",
     "ep": 0,
     "cl": "0x0008",
-    "at": "0x000f",
+    "at": "0x000F",
     "dt": "0x18",
-    "eval": "Item.val ? 0x01 : 0x00"
+    "eval": "Item.val ? R.item('config/bri/options').val | 0x01 : R.item('config/bri/options').val & ~0x01"
   }
 }

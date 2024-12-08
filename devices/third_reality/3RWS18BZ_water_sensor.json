@@ -1,13 +1,15 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "825c658a-7923-45d9-87a5-1fa36eb2cfa8",
   "manufacturername": "Third Reality, Inc",
   "modelid": "3RWS18BZ",
-  "product": "3RWS18BZ",
+  "vendor": "Third Reality",
+  "product": "Water leak sensor (3RWS18BZ)",
   "sleeper": true,
   "status": "Silver",
   "subdevices": [
     {
-      "type": "ZHAWater",
+      "type": "$TYPE_WATER_LEAK_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -101,7 +103,7 @@
           "dt": "0x20",
           "min": 7200,
           "max": 14400,
-          "change":"0x00000002"
+          "change": "0x00000002"
         }
       ]
     }

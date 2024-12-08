@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "525e56e1-3fe2-4462-bea1-790f6499e476",
   "manufacturername": [
     "$MF_PHILIPS",
     "$MF_PHILIPS",
@@ -40,9 +41,11 @@
     "LLC014",
     "LLC013"
   ],
+  "vendor": "Philips",
   "product": "Hue color ambiance light",
   "sleeper": false,
   "status": "Gold",
+  "matchexpr": "R.hasCluster(0x0b,0xfc03)",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_LIGHT",
@@ -92,10 +95,20 @@
             "ep": "0x0b",
             "cl": "0x0000",
             "at": "0x0005"
-          }
+          },
+          "refresh.interval": 86400
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/swversion"

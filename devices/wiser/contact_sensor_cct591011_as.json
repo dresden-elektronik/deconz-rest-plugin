@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "5ee1ec56-058c-409e-a0b1-21dc4254203c",
   "manufacturername": "Schneider Electric",
   "modelid": "CCT591011_AS",
-  "vendor": "LK Wiser",
-  "product": "Contact sensor CCT591011_AS",
+  "vendor": "Schneider Electric",
+  "product": "LK Wiser door and windows sensor (550B1023)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

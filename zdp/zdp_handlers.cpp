@@ -343,13 +343,18 @@ void ZDP_HandleNodeDescriptorRequest(const deCONZ::ApsDataIndication &ind, deCON
     }
 
     quint16 mfCode = VENDOR_DDEL;
+    // Force old school Zigbee join/re-join without APS level per device link keys for now via Node Descriptor
+    // server mask. Since the random generated per device link keys aren't stored or backuped anywhere,
+    // this caused problems for rejoining devices of some brands and perhaps battery drain.
+    // For proper support of per device APS link keys we need further code to store them in database and
+    // forward to firmware.
     quint16 serverMask = 0x0040; // compatible with stack revisions below version 21
     QByteArray ndRaw;
 
     if (!self->nodeDescriptor().isNull())
     {
         ndRaw = self->nodeDescriptor().toByteArray();
-        serverMask = static_cast<quint16>(self->nodeDescriptor().serverMask()) & 0xFFFF;
+        // serverMask = static_cast<quint16>(self->nodeDescriptor().serverMask()) & 0xFFFF;
     }
     else // fallback if not known
     {

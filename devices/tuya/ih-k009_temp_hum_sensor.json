@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "5f124e57-55fc-42c8-821f-c89854d1f031",
   "manufacturername": "_TZ3000_dowj6gyi",
   "modelid": "TS0201",
   "vendor": "Tuya",
-  "product": "IH-K009",
+  "product": "Temperature and Humidity Sensor (IH-K009)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -36,8 +37,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -106,8 +118,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"

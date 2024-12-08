@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "93b3e200-6a52-4ee6-9e0d-54e84536895c",
   "manufacturername": [
     "$MF_SIGNIFY",
     "$MF_PHILIPS"
@@ -8,6 +9,7 @@
     "SOC001",
     "SOC001"
   ],
+  "vendor": "Philips",
   "product": "Hue secure contact sensor",
   "status": "Gold",
   "sleeper": false,
@@ -47,6 +49,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productname",

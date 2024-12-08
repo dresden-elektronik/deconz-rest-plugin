@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "1bb80228-e651-4a46-990b-f738ddd28d4a",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_wleak.aq1",
-  "vendor": "Xiaomi",
-  "product": "Aqara Water Leak Sensor SJCGQ11LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "Water leak sensor (SJCGQ11LM)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -79,17 +80,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature",
-          "awake": true,
-          "parse": {
-            "fn": "xiaomi:special",
-            "mf": "0x115F",
-            "at": "0xFF01",
-            "idx": "0x03",
-            "eval": "Item.val = Attr.val * 100"
-          }
         },
         {
           "name": "state/lastupdated"

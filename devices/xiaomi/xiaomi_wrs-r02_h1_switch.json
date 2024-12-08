@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "7608923f-e09a-46ba-86e5-f22498b668bf",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.remote.b28ac1",
-  "vendor": "Xiaomi",
-  "product": "Aqara H1 dual rocker wireless remote switch WRS-R02",
+  "vendor": "Xiaomi Aqara",
+  "product": "H1 dual rocker wireless remote switch (WRS-R02)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -87,6 +88,7 @@
         {
           "name": "config/clickmode",
           "awake": true,
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0125",
             "cl": "0xfcc0",
@@ -114,14 +116,21 @@
             "state.timeout": 2
           },
           "values": [
-            ["\"highspeed\"", "Buttons emit only single click events, but fast"],
-            ["\"multiclick\"", "Emits single, double and treble presses"] 
+            [
+              "\"highspeed\"",
+              "Buttons emit only single click events, but fast"
+            ],
+            [
+              "\"multiclick\"",
+              "Emits single, double and treble presses"
+            ]
           ],
           "default": "multiclick"
         },
         {
           "name": "config/devicemode",
           "awake": true,
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0009",
             "cl": "0xfcc0",
@@ -149,8 +158,14 @@
             "state.timeout": 2
           },
           "values": [
-            ["\"compatibility\"", "Default mode for Xiaomi devices"],
-            ["\"zigbee\"", "Closer to zigbee standard"] 
+            [
+              "\"compatibility\"",
+              "Default mode for Xiaomi devices"
+            ],
+            [
+              "\"zigbee\"",
+              "Closer to zigbee standard"
+            ]
           ],
           "default": "compatibility"
         },

@@ -1,0 +1,360 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "33388168-a300-4ce4-9544-3ee317dd1fd4",
+  "manufacturername": "icasa",
+  "modelid": "ICZB-IW21D",
+  "product": "Zigbee Dimmer PRO",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_DIMMABLE_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/alert/trigger_effect"
+        },
+        {
+          "name": "cap/bri/move_with_onoff"
+        },
+        {
+          "name": "cap/on/off_with_effect"
+        },
+        {
+          "name": "config/bri/execute_if_off",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0008",
+            "at": [
+              "0x000f",
+              "0x0010",
+              "0x0011",
+              "0x4000"
+            ]
+          },
+          "refresh.interval": 3600
+        },
+        {
+          "name": "config/bri/on_level",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/bri/onoff_transitiontime",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/bri/startup",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/on/startup"
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/bri",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_CONSUMPTION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0702"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/consumption",
+          "description": "Electrical consumption (in Wh).",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0702",
+            "at": "0x0000",
+            "eval": "Item.val = Math.round(Attr.val / 3600)"
+          },
+          "refresh.interval": 360,
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0B04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/current",
+          "description": "Electrical current (in mA).",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0B04",
+            "at": [
+              "0x0505",
+              "0x0508",
+              "0x050B"
+            ]
+          },
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "description": "Electrical power (in W).",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0B04",
+            "at": "0x050B",
+            "eval": "if (Attr.val !== -32768) { Item.val = Math.round(Attr.val / 10) }"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/voltage",
+          "description": "Voltage (in V).",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0B04",
+            "at": "0x0505",
+            "eval": "if (Attr.val !== 65536) { Item.val = Math.round(Attr.val / 10) }"
+          },
+          "read": {
+            "fn": "none"
+          }
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0008",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x01"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0702",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x25",
+          "min": 1,
+          "max": 300,
+          "change": "0x000000000E10"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0B04",
+      "report": [
+        {
+          "at": "0x0505",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x000A"
+        },
+        {
+          "at": "0x0508",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0064"
+        },
+        {
+          "at": "0x050B",
+          "dt": "0x29",
+          "min": 1,
+          "max": 300,
+          "change": "0x000A"
+        }
+      ]
+    }
+  ]
+}

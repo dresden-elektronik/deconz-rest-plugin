@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "6c139639-5743-497d-b7b9-9d5f03d1ddde",
   "manufacturername": [
     "$MF_PHILIPS",
     "$MF_PHILIPS"
@@ -8,6 +9,7 @@
     "RWL021",
     "RWL020"
   ],
+  "vendor": "Philips",
   "product": "Hue dimmer switch",
   "status": "Gold",
   "sleeper": true,
@@ -112,6 +114,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productname",

@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "91302945-48e9-448e-94c9-4aa1286441dc",
   "manufacturername": "Schneider Electric",
   "modelid": "CH/DIMMER/1",
-  "product": "40/300-Series Module Dimmer",
+  "vendor": "Schneider Electric",
+  "product": "Wiser 40/300-series module dimmer (41EPBDWCLMZ/354PBDMBTZ)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

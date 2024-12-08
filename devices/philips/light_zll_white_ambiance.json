@@ -1,0 +1,212 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "38d455c1-f1d6-43ea-81ec-df46b7a6ddc3",
+  "manufacturername": [
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY"
+  ],
+  "modelid": [
+    "LTW001",
+    "LTW010",
+    "LTW012",
+    "LTW001",
+    "LTW010",
+    "LTW012"
+  ],
+  "vendor": "Philips",
+  "product": "Hue white ambiance light",
+  "sleeper": false,
+  "status": "Gold",
+  "matchexpr": "R.hasCluster(0x0b,0xfc03)",
+  "subdevices": [
+    {
+      "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x0b"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0004",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0004"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/modelid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0005",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0000",
+            "at": "0x0005"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
+          "name": "attr/productid"
+        },
+        {
+          "name": "attr/swconfigid"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/alert/trigger_effect"
+        },
+        {
+          "name": "cap/bri/min_dim_level"
+        },
+        {
+          "name": "cap/bri/move_with_onoff"
+        },
+        {
+          "name": "cap/color/capabilities"
+        },
+        {
+          "name": "cap/color/ct/max"
+        },
+        {
+          "name": "cap/color/ct/min"
+        },
+        {
+          "name": "cap/color/effects"
+        },
+        {
+          "name": "cap/on/off_with_effect"
+        },
+        {
+          "name": "config/bri/startup"
+        },
+        {
+          "name": "config/color/ct/startup"
+        },
+        {
+          "name": "config/on/startup"
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/on",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0xfc03",
+            "mf": "0x100b",
+            "at": "0x0002",
+            "script": "fc03_state.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0xfc03",
+            "mf": "0x100b",
+            "at": "0x0002"
+          },
+          "refresh.interval": 5
+        },
+        {
+          "name": "state/bri",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/ct",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/colormode",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0300",
+            "at": "0x4001",
+            "eval": "if (Item.val !== 'effect' && Attr.val <= 3) Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0300",
+            "at": [
+              "0x4001",
+              "0x4002",
+              "0x4000",
+              "0x0001"
+            ]
+          },
+          "refresh.interval": 60
+        },
+        {
+          "name": "state/effect",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0300",
+            "at": "0x4002",
+            "eval": "if (Item.val === 'none' || Item.val === 'colorloop') Item.val = Attr.val ? 'colorloop' : 'none'"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
+}

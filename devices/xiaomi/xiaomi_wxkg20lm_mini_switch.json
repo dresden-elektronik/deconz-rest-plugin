@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "8095c9c6-3a3d-42c4-81bb-ef3b11660d35",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.remote.acn007",
-  "vendor": "Xiaomi",
-  "product": "Aqara wireless mini switch WXKG20LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "Wireless mini switch (WXKG20LM)",
   "sleeper": true,
   "status": "Silver",
   "subdevices": [

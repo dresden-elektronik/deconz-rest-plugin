@@ -1,11 +1,22 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "a0a48701-fe78-46e4-b0e3-696815188cef",
   "manufacturername": [
     "$MF_PHILIPS",
     "$MF_PHILIPS",
     "$MF_PHILIPS",
     "$MF_PHILIPS",
     "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
@@ -14,19 +25,31 @@
   ],
   "modelid": [
     "LTA001",
+    "LTA009",
     "LTE002",
     "LTG002",
+    "LTG005",
+    "LTU001",
+    "LTV001",
     "LTV002",
+    "915005996501",
     "915005997701",
     "LTA001",
+    "LTA009",
     "LTE002",
     "LTG002",
+    "LTG005",
+    "LTU001",
+    "LTV001",
     "LTV002",
+    "915005996501",
     "915005997701"
   ],
+  "vendor": "Philips",
   "product": "Hue white ambiance light",
   "sleeper": false,
   "status": "Gold",
+  "matchexpr": "R.hasCluster(0x0b,0xfc03)",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
@@ -76,10 +99,20 @@
             "ep": "0x0b",
             "cl": "0x0000",
             "at": "0x0005"
-          }
+          },
+          "refresh.interval": 86400
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productid"
@@ -135,10 +168,19 @@
           "name": "cap/color/ct/min"
         },
         {
+          "name": "cap/color/effects"
+        },
+        {
           "name": "cap/on/off_with_effect"
         },
         {
+          "name": "config/bri/couple_ct"
+        },
+        {
           "name": "config/bri/execute_if_off"
+        },
+        {
+          "name": "config/bri/options"
         },
         {
           "name": "config/bri/startup"
@@ -220,16 +262,6 @@
         },
         {
           "name": "state/effect",
-          "values": [
-            [
-              "\"none\"",
-              "no effect is active"
-            ],
-            [
-              "\"candle\"",
-              "candlelight dynamic effect"
-            ]
-          ],
           "read": {
             "fn": "none"
           }

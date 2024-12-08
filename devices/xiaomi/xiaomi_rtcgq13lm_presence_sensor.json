@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "55fea19c-d877-45da-b7e1-13ebaafc8050",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.motion.agl04",
-  "vendor": "Xiaomi",
-  "product": "Aqara high precision motion sensor RTCGQ13LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "High precision motion sensor (RTCGQ13LM)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -107,7 +108,10 @@
             "mf": "0x115F",
             "state.timeout": 2
           },
-          "range": [1, 65535],
+          "range": [
+            1,
+            65535
+          ],
           "default": 30
         },
         {
@@ -147,9 +151,18 @@
             "state.timeout": 2
           },
           "values": [
-            [1, "Low"],
-            [2, "Medium"],
-            [3, "High"]
+            [
+              1,
+              "Low"
+            ],
+            [
+              2,
+              "Medium"
+            ],
+            [
+              3,
+              "High"
+            ]
           ],
           "default": 3
         },

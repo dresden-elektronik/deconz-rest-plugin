@@ -151,6 +151,11 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     if (node->mgmtBindSupported())
     {
     }
+    else if (!node->mgmtBindSupported())
+    {
+        node->clearRead(READ_BINDING_TABLE);
+        return false;
+    }
     else if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DDEL))
     {
     }
@@ -158,9 +163,6 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     {
     }
     else if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DEVELCO))
-    {
-    }
-    else if (r && r->item(RAttrModelId)->toString().startsWith(QLatin1String("FLS-")))
     {
     }
     else
@@ -199,7 +201,7 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
         bindingTableReaderTimer->start();
     }
 
-    return false;
+    return true;
 }
 
 /*! Handle bind table confirm.
@@ -1250,8 +1252,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
         else if (modelId.startsWith(QLatin1String("SLR2")) || // Hive
-                 modelId == QLatin1String("SLR1b") ||         // Hive
-                 modelId.startsWith(QLatin1String("TH112")))  // Sinope
+                 modelId == QLatin1String("SLR1b"))           // Hive
         {
             rq.dataType = deCONZ::Zcl16BitInt;
             rq.attributeId = 0x0000;       // local temperature
@@ -1329,86 +1330,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange16bit = 50;
 
             return sendConfigureReportingRequest(bt, {rq});
-        }
-        else if (modelId == QLatin1String("iTRV")) // Drayton Wiser Radiator Thermostat
-        {
-            rq.dataType = deCONZ::Zcl16BitInt;
-            rq.attributeId = 0x0000;         // Local Temperature
-            rq.minInterval = 1;
-            rq.maxInterval = 600;
-            rq.reportableChange16bit = 50;
-
-            ConfigureReportingRequest rq2;
-            rq2.dataType = deCONZ::Zcl8BitUint;
-            rq2.attributeId = 0x0008;        // Pi heating demand
-            rq2.minInterval = 60;
-            rq2.maxInterval = 3600;
-            rq2.reportableChange8bit = 1;
-
-            ConfigureReportingRequest rq3;
-            rq3.dataType = deCONZ::Zcl16BitInt;
-            rq3.attributeId = 0x0011;        // Occupied cooling setpoint
-            rq3.minInterval = 1;
-            rq3.maxInterval = 600;
-            rq3.reportableChange16bit = 50;
-
-            ConfigureReportingRequest rq4;
-            rq4.dataType = deCONZ::Zcl16BitInt;
-            rq4.attributeId = 0x0012;        // Occupied heating setpoint
-            rq4.minInterval = 1;
-            rq4.maxInterval = 600;
-            rq4.reportableChange16bit = 50;
-
-            ConfigureReportingRequest rq5;
-            rq5.dataType = deCONZ::Zcl8BitEnum;
-            rq5.attributeId = 0x001C;        // Thermostat mode
-            rq5.minInterval = 1;
-            rq5.maxInterval = 600;
-            rq5.reportableChange8bit = 0xff;
-
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
-        }
-        else if (modelId == QLatin1String("TRV001") ||   // Hive TRV
-                 modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
-        {
-            rq.dataType = deCONZ::Zcl16BitInt;
-            rq.attributeId = 0x0000;       // local temperature
-            rq.minInterval = 60;
-            rq.maxInterval = 3600;
-            rq.reportableChange16bit = 50;
-
-            ConfigureReportingRequest rq2;
-            rq2.dataType = deCONZ::Zcl8BitUint;
-            rq2.attributeId = 0x0008;        // Pi heating demand
-            rq2.minInterval = 60;
-            rq2.maxInterval = 43200;
-            rq2.reportableChange8bit = 1;
-
-            ConfigureReportingRequest rq3;
-            rq3.dataType = deCONZ::Zcl16BitInt;
-            rq3.attributeId = 0x0012;        // Occupied heating setpoint
-            rq3.minInterval = 1;
-            rq3.maxInterval = 43200;
-            rq3.reportableChange16bit = 1;
-
-            ConfigureReportingRequest rq4;
-            rq4.dataType = deCONZ::Zcl8BitEnum;
-            rq4.attributeId = 0x4000;        // eTRV Open Window detection
-            rq4.minInterval = 1;
-            rq4.maxInterval = 43200;
-            rq4.reportableChange8bit = 0xff;
-            rq4.manufacturerCode = VENDOR_DANFOSS;
-
-            ConfigureReportingRequest rq5;
-            rq5.dataType = deCONZ::ZclBoolean;
-            rq5.attributeId = 0x4012;        // Mounting mode active
-            rq5.minInterval = 1;
-            rq5.maxInterval = 43200;
-            rq5.reportableChange8bit = 0xff;
-            rq5.manufacturerCode = VENDOR_DANFOSS;
-
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3}) || // Use OR because of manuf. specific attributes
-                   sendConfigureReportingRequest(bt, {rq4, rq5});
         }
         else if (sensor && (modelId == QLatin1String("0x8020") || // Danfoss RT24V Display thermostat
                             modelId == QLatin1String("0x8021") || // Danfoss RT24V Display thermostat with floor sensor
@@ -1493,37 +1414,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
-        else if (modelId.startsWith(QLatin1String("TH112"))) // Sinope Thermostat TH1123ZB & TH1124ZB
-        {
-            rq.dataType = deCONZ::Zcl16BitInt;
-            rq.attributeId = 0x0000;         // Local Temperature
-            rq.minInterval = 1;
-            rq.maxInterval = 600;
-            rq.reportableChange16bit = 10;
-
-            ConfigureReportingRequest rq2;
-            rq2.dataType = deCONZ::Zcl16BitInt;
-            rq2.attributeId = 0x0001;        // Outdoor temperature
-            rq2.minInterval = 1;
-            rq2.maxInterval = 600;
-            rq2.reportableChange8bit = 10;
-
-            ConfigureReportingRequest rq3;
-            rq3.dataType = deCONZ::Zcl8BitUint;
-            rq3.attributeId = 0x0008;        // Pi heating demand
-            rq3.minInterval = 60;
-            rq3.maxInterval = 3600;
-            rq3.reportableChange8bit = 1;
-
-            ConfigureReportingRequest rq4;
-            rq4.dataType = deCONZ::Zcl16BitInt;
-            rq4.attributeId = 0x0012;        // Occupied heating setpoint
-            rq4.minInterval = 1;
-            rq4.maxInterval = 600;
-            rq4.reportableChange16bit = 50;
-
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
-        }
         else if (modelId == QLatin1String("TH1300ZB")) // Sinope thermostat
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1598,30 +1488,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID)
     {
-        if (modelId == QLatin1String("TRV001") ||   // Hive TRV
-            modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
-        {
-            rq.dataType = deCONZ::Zcl8BitEnum;
-            rq.attributeId = 0x0001;       // Keypad Lockout
-            rq.minInterval = 1;
-            rq.maxInterval = 43200;
-            rq.reportableChange8bit = 0xff;
-
-            ConfigureReportingRequest rq2;
-            rq2.dataType = deCONZ::Zcl8BitEnum;
-            rq2.attributeId = 0x4000;        // Viewing Direction
-            rq2.minInterval = 1;
-            rq2.maxInterval = 43200;
-            rq2.reportableChange8bit = 0xff;
-            rq2.manufacturerCode = VENDOR_DANFOSS;
-
-            return sendConfigureReportingRequest(bt, {rq}) || // Use OR because of manuf. specific attributes
-                   sendConfigureReportingRequest(bt, {rq2});
-        }
-        else if (modelId == QLatin1String("SORB") ||               // Stelpro Orleans Fan
+        if (modelId == QLatin1String("SORB") ||               // Stelpro Orleans Fan
                  modelId == QLatin1String("TH1300ZB") ||           // Sinope thermostat
                  modelId == QLatin1String("PR412C") ||             // Owon thermostat
-                 modelId == QLatin1String("iTRV") ||               // Drayton Wiser Radiator Thermostat
                  modelId.startsWith(QLatin1String("3157100")) ||   // Centralite pearl
                  modelId.startsWith(QLatin1String("STZB402")))     // Stelpro baseboard thermostat
         {
@@ -1631,20 +1500,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;
             rq.reportableChange8bit = 0xff;
 
-            return sendConfigureReportingRequest(bt, {rq});
-        }
-    }
-    else if (bt.binding.clusterId == DIAGNOSTICS_CLUSTER_ID)
-    {
-        if (modelId == QLatin1String("TRV001") ||   // Hive TRV
-            modelId == QLatin1String("eT093WRO"))   // POPP smart thermostat
-        {
-            rq.dataType = deCONZ::Zcl16BitBitMap;
-            rq.attributeId = 0x4000;        // SW error code
-            rq.minInterval = 1;
-            rq.maxInterval = 43200;
-            rq.reportableChange16bit = 0xffff;
-            rq.manufacturerCode = VENDOR_DANFOSS;
             return sendConfigureReportingRequest(bt, {rq});
         }
     }
@@ -1713,9 +1568,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 7200;       // value used by Hue bridge
             rq.reportableChange8bit = 0; // value used by Hue bridge
         }
-        else if (modelId == QLatin1String("eT093WRO") || // POPP smart thermostat
-                 modelId == QLatin1String("TRV001") ||   // Hive TRV
-                 modelId == QLatin1String("0x8020") ||   // Danfoss RT24V Display thermostat
+        else if (modelId == QLatin1String("0x8020") ||   // Danfoss RT24V Display thermostat
                  modelId == QLatin1String("0x8021") ||   // Danfoss RT24V Display thermostat with floor sensor
                  modelId == QLatin1String("0x8030") ||   // Danfoss RTbattery Display thermostat
                  modelId == QLatin1String("0x8031") ||   // Danfoss RTbattery Display thermostat with infrared
@@ -1965,8 +1818,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq2.reportableChange16bit = 125; // 1 V
         }
         else if (modelId.startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
-                 modelId.startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                 modelId.startsWith(QLatin1String("TH112")))                // Sinope Thermostats
+                 modelId.startsWith(QLatin1String("Micro Smart Dimmer")))   // Sunricher Micro Smart Dimmer
         {
             rq2.reportableChange16bit = 10; // 1 V
         }
@@ -2224,16 +2076,6 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
     if (!apsCtrl || !lightNode || !lightNode->address().hasExt())
     {
         return;
-    }
-
-    // prevent binding action if otau was busy recently
-    if (otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
-    {
-        if (lightNode->modelId().startsWith(QLatin1String("FLS-")))
-        {
-            DBG_Printf(DBG_INFO, "don't check binding for attribute reporting of %s (otau busy)\n", qPrintable(lightNode->name()));
-            return;
-        }
     }
 
     Device *device = DEV_GetDevice(m_devices, lightNode->address().ext());
@@ -2595,8 +2437,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("easyCodeTouch_v1") ||
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
-        sensor->modelId().startsWith(QLatin1String("Remote Control N2")) || // STYRBAR
-        sensor->modelId().startsWith(QLatin1String("KADRILJ")) ||
         sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         // OSRAM
         sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
@@ -2687,7 +2527,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
         // Sinope
         sensor->modelId().startsWith(QLatin1String("WL4200")) || // water leak sensor
-        sensor->modelId().startsWith(QLatin1String("TH112")) || // thermostat
         sensor->modelId().startsWith(QLatin1String("TH1300ZB")) || // thermostat
         //LifeControl smart plug
         sensor->modelId() == QLatin1String("RICI01") ||
@@ -2784,7 +2623,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("SLR1b") ||
         sensor->modelId() == QLatin1String("SLT2") ||
         sensor->modelId() == QLatin1String("SLT3") ||
-        sensor->modelId() == QLatin1String("TRV001") ||
         // Sengled
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
         sensor->modelId().startsWith(QLatin1String("E1D-")) ||
@@ -2793,8 +2631,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Linkind
         sensor->modelId() == QLatin1String("ZB-MotionSensor-D0003") ||
         sensor->modelId() == QLatin1String("ZB-DoorSensor-D0003") ||
-        // Drayton
-        sensor->modelId() == QLatin1String("iTRV") ||
         // LK Wiser
         sensor->modelId() == QLatin1String("CCT591011_AS") ||
         sensor->modelId() == QLatin1String("CCT592011_AS") ||
@@ -2862,8 +2698,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("0x8031") ||
         sensor->modelId() == QLatin1String("0x8034") ||
         sensor->modelId() == QLatin1String("0x8035") ||
-        // POPP
-        sensor->modelId() == QLatin1String("eT093WRO") ||
         // Swann
         sensor->modelId() == QLatin1String("SWO-MOS1PA") ||
         // LIDL
@@ -3004,7 +2838,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             }
             else if (sensor->modelId().startsWith(QLatin1String("MOSZB-1")) ||
                      sensor->modelId().startsWith(QLatin1String("FLSZB-1")) ||
-                     sensor->modelId().startsWith(QLatin1String("HMSZB-1")) ||
                      sensor->modelId() == QLatin1String("MotionSensor51AU") ||
                      sensor->modelId() == QLatin1String("Zen-01") ||
                      sensor->modelId() == QLatin1String("ISW-ZPR1-WP13") ||
@@ -3104,18 +2937,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         else if (*i == THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID)
         {
             val = sensor->getZclValue(*i, 0x0001); // Keypad lockout
-        }
-        else if (*i == DIAGNOSTICS_CLUSTER_ID)
-        {
-            if (sensor->modelId() == QLatin1String("TRV001") ||   // Hive TRV
-                sensor->modelId() == QLatin1String("eT093WRO"))   // POPP smart thermostat
-            {
-                val = sensor->getZclValue(*i, 0x4000); // SW error code
-            }
-            else
-            {
-                continue;
-            }
         }
         else if (*i == SAMJIN_CLUSTER_ID)
         {
@@ -3351,9 +3172,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     }
     // IKEA
     else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
-             sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
-             // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
-             sensor->modelId().startsWith(QLatin1String("Remote Control N2")))
+             sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);

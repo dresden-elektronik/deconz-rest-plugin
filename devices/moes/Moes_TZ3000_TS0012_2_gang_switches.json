@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "1c23b01a-f9c0-4131-aa84-d1539f03f2e5",
   "manufacturername": "_TZ3000_18ejxno0",
   "modelid": "TS0012",
-  "product": "2 gang switches",
+  "vendor": "Moes",
+  "product": "2 gang switches (TS0012)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -62,9 +64,9 @@
           "name": "state/on",
           "refresh.interval": 5
         },
-	{
-	 "name": "config/tuya_unlock"
-	},
+        {
+          "name": "config/tuya_unlock"
+        },
         {
           "name": "state/reachable"
         }

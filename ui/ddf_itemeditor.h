@@ -59,6 +59,7 @@ public:
 public Q_SLOTS:
     void parseParamChanged();
     void readParamChanged();
+    void writeParamChanged();
     void attributeChanged();
     void functionChanged(const QString &text);
     void droppedUrl(const QUrl &url);

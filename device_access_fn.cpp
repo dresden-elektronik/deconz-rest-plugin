@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2024 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -9,6 +9,7 @@
  */
 
 #include <QTimeZone>
+#include "deconz/u_assert.h"
 #include "device_access_fn.h"
 #include "device_descriptions.h"
 #include "device_js/device_js.h"
@@ -16,6 +17,8 @@
 #include "resource.h"
 #include "zcl/zcl.h"
 
+
+#define CMD_ID_ANY 0x100
 #define TIME_CLUSTER_ID     0x000A
 
 #define TIME_ATTRID_TIME                    0x0000
@@ -199,8 +202,16 @@ static ZCL_Param getZclParam(const QVariantMap &param)
 
     if (param.contains(QLatin1String("cmd"))) // optional
     {
-        result.commandId = variantToUint(param["cmd"], UINT8_MAX, &ok);
-        result.hasCommandId = ok ? 1 : 0;
+        if (param["cmd"].toString() == QLatin1String("any"))
+        {
+            result.commandId = CMD_ID_ANY;
+            result.hasCommandId = 1;
+        }
+        else
+        {
+            result.commandId = variantToUint(param["cmd"], UINT32_MAX, &ok);
+            result.hasCommandId = ok ? 1 : 0;
+        }
     }
     else
     {
@@ -270,15 +281,25 @@ quint8 resolveAutoEndpoint(const Resource *r)
 {
     quint8 result = AutoEndpoint;
 
-    // hack to get endpoint. todo find better solution
-    const auto ls = r->item(RAttrUniqueId)->toString().split('-', SKIP_EMPTY_PARTS);
-    if (ls.size() >= 2)
+    U_ASSERT(r);
+    if (r)
     {
-        bool ok = false;
-        uint ep = ls[1].toUInt(&ok, 16);
-        if (ok && ep < BroadcastEndpoint)
+        const ResourceItem *itemUniqueId = r->item(RAttrUniqueId);
+
+        U_ASSERT(itemUniqueId);
+        if (itemUniqueId)
         {
-            result = ep;
+            // hack to get endpoint. todo find better solution
+            const auto ls = itemUniqueId->toString().split('-', SKIP_EMPTY_PARTS);
+            if (ls.size() >= 2)
+            {
+                bool ok = false;
+                uint ep = ls[1].toUInt(&ok, 16);
+                if (ok && ep < BroadcastEndpoint)
+                {
+                    result = ep;
+                }
+            }
         }
     }
 
@@ -525,9 +546,16 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
             return result;
         }
 
-        if (param.hasCommandId && param.commandId != zclFrame.commandId())
+        if (param.hasCommandId)
         {
-            return result;
+            if (param.commandId == CMD_ID_ANY)
+            {
+
+            }
+            else if (param.commandId != zclFrame.commandId())
+            {
+                return result;
+            }
         }
         else if (!param.hasCommandId && param.attributeCount == 0)
         {
@@ -564,7 +592,10 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
         return result;
     }
     
-    if (!zclParam.hasCommandId && zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId)
+    if (!zclParam.hasCommandId &&
+         zclFrame.isProfileWideCommand() &&
+         zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId &&
+         zclFrame.commandId() != deCONZ::ZclReportAttributesId)
     {
         return result;
     }
@@ -581,9 +612,16 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
 
     if (zclParam.attributeCount == 0) // attributes are optional
     {
-        if (zclParam.hasCommandId && zclParam.commandId != zclFrame.commandId())
+        if (zclParam.hasCommandId)
         {
-            return result;
+            if (zclParam.commandId == CMD_ID_ANY)
+            {
+
+            }
+            else if (zclParam.commandId != zclFrame.commandId())
+            {
+                return result;
+            }
         }
         
         if (evalZclFrame(r, item, ind, zclFrame, parseParameters))
@@ -719,6 +757,12 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
         switch (dataType)
         {
         case TuyaDataTypeRaw:
+        {
+            // Not setting value because need to much ressource.
+            zclDataType = deCONZ::ZclCharacterString;
+        }
+        break;
+            
         case TuyaDataTypeString:
             return result; // TODO implement?
 
@@ -1700,7 +1744,14 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
 
     if (param.endpoint == AutoEndpoint)
     {
-        param.endpoint = resolveAutoEndpoint(r);
+        if (r->prefix() == RDevices)
+        {
+            param.endpoint = item->readEndpoint();
+        }
+        else
+        {
+            param.endpoint = resolveAutoEndpoint(r);
+        }
 
         if (param.endpoint == AutoEndpoint)
         {

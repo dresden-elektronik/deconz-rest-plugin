@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "8e815937-47fb-47c8-a20b-db46f9a6c2c7",
   "manufacturername": "ROBB smarrt",
   "modelid": "ROB_200-017-0",
-  "product": "Smart plug 3680 Watt",
+  "vendor": "ROBB smarrt",
+  "product": "Smart plug 3680W (ROB_200-017-0)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

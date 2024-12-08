@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "b6e5fb8d-50ee-4c6a-9526-01ef58219853",
   "manufacturername": [
     "$MF_IKEA",
     "$MF_IKEA",
@@ -12,6 +13,8 @@
     "PRAKTLYSING cellular blind",
     "TREDANSEN block-out cellul blind"
   ],
+  "vendor": "IKEA",
+  "product": "Blinds (FYRTUR/KADRILJ/PRAKTLYSING/TREDANSEN)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

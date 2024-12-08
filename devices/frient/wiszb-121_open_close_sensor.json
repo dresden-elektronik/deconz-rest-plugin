@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "7a0b8719-70b6-42d5-b430-14d38f87bfd4",
   "manufacturername": "frient A/S",
   "modelid": "WISZB-121",
-  "vendor": "Develco Products",
-  "product": "WISZB-121 open/close sensor",
+  "vendor": "Frient",
+  "product": "Entry sensor (WISZB-121)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

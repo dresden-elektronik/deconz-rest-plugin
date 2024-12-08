@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "50a7905a-8eee-4ed7-bc4b-7c6b19bbe68b",
   "manufacturername": "LK",
   "modelid": "A001082",
-  "vendor": "Linkind",
-  "product": "Zigbee Water Leak Sensor",
+  "vendor": "AiDot Linkind",
+  "product": "Water leak sensor (LS21001)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

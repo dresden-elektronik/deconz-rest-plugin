@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "93faf7ca-97e1-4d92-857b-7c311ddab4f7",
   "manufacturername": "Schneider Electric",
   "modelid": "SOCKET/OUTLET/2",
-  "product": "SOCKET/OUTLET/2",
+  "vendor": "Schneider Electric",
+  "product": "Elko smart socket double 16A plus PW (EKO09738)",
   "sleeper": false,
   "status": "Bronze",
   "subdevices": [

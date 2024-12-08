@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "85009be3-61c1-4c97-a12b-ca646f7952bb",
   "manufacturername": "_TZE200_dwcarsat",
   "modelid": "TS0601",
   "vendor": "Tuya",
-  "product": "Smart Air House keeper",
+  "product": "Smart Air House keeper (TS0601)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -97,14 +98,30 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "cap/measured_value/max",
+          "static": 65535
+        },
+        {
+          "name": "cap/measured_value/min",
+          "static": 0
+        },
+        {
+          "name": "cap/measured_value/quantity",
+          "static": "level"
+        },
+        {
+          "name": "cap/measured_value/substance",
+          "static": "tVOC"
+        },
+        {
+          "name": "cap/measured_value/unit",
+          "static": "ppb"
+        },
+        {
           "name": "config/on"
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "cap/measured_value/unit",
-          "static": "PPB"
         },
         {
           "name": "state/measured_value",
@@ -213,14 +230,30 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "cap/measured_value/max",
+          "static": 65535
+        },
+        {
+          "name": "cap/measured_value/min",
+          "static": 0
+        },
+        {
+          "name": "cap/measured_value/quantity",
+          "static": "level"
+        },
+        {
+          "name": "cap/measured_value/substance",
+          "static": "Formaldehyde"
+        },
+        {
+          "name": "cap/measured_value/unit",
+          "static": "ppm"
+        },
+        {
           "name": "config/on"
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "cap/measured_value/unit",
-          "static": "PPM"
         },
         {
           "name": "state/measured_value",
@@ -270,14 +303,30 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "cap/measured_value/max",
+          "static": 65535
+        },
+        {
+          "name": "cap/measured_value/min",
+          "static": 0
+        },
+        {
+          "name": "cap/measured_value/quantity",
+          "static": "level"
+        },
+        {
+          "name": "cap/measured_value/substance",
+          "static": "CO"
+        },
+        {
+          "name": "cap/measured_value/unit",
+          "static": "ppb"
+        },
+        {
           "name": "config/on"
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "cap/measured_value/unit",
-          "static": "PPB"
         },
         {
           "name": "state/measured_value",
@@ -327,14 +376,30 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/on"
+          "name": "cap/measured_value/max",
+          "static": 65535
         },
         {
-          "name": "config/reachable"
+          "name": "cap/measured_value/min",
+          "static": 0
+        },
+        {
+          "name": "cap/measured_value/quantity",
+          "static": "density"
+        },
+        {
+          "name": "cap/measured_value/substance",
+          "static": "PM2.5"
         },
         {
           "name": "cap/measured_value/unit",
           "static": "ug/m^3"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
         },
         {
           "name": "state/measured_value",

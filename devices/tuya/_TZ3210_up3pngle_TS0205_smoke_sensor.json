@@ -1,0 +1,128 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "34e7ba38-6b11-4e13-9a82-110260b9f3c2",
+  "manufacturername": "_TZ3210_up3pngle",
+  "modelid": "TS0205",
+  "vendor": "Tuya",
+  "product": "Smoke sensor (TS0205)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_FIRE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0500"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "config/enrolled"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/fire"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery"
+        },
+        {
+          "name": "state/test"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 600,
+          "max": 43200,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500"
+    }
+  ]
+}

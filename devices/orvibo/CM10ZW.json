@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "0f74c8d3-085d-4a91-9464-ae9db879ef27",
   "manufacturername": "ORVIBO",
   "modelid": "396483ce8b3f4e0d8e9d79079a35a420",
   "vendor": "Orvibo",
-  "product": "ORVIBO Zigbee Dry Contact CM10ZW",
+  "product": "Dry contact (CM10ZW)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -148,31 +149,46 @@
         }
       ]
     }
-    ],
-    "bindings":  [
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0006",
-            "report": [
-                {"at": "0x0000", "dt": "0x10", "min": 5, "max": 300 }
-            ]
-        },
-        {
-            "bind": "unicast",
-            "src.ep": 2,
-            "cl": "0x0006",
-            "report": [
-                {"at": "0x0000", "dt": "0x10", "min": 5, "max": 300 }
-            ]
-        },
-        {
-            "bind": "unicast",
-            "src.ep": 3,
-            "cl": "0x0006",
-            "report": [
-                {"at": "0x0000", "dt": "0x10", "min": 5, "max": 300 }
-            ]
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 5,
+          "max": 300
         }
-    ]
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 2,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 5,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 3,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 5,
+          "max": 300
+        }
+      ]
+    }
+  ]
 }

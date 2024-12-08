@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "778be623-5395-4a1a-9e8a-48c3149f6828",
   "manufacturername": "LiXee",
   "modelid": "ZLinky_TIC",
-  "product": "ZLinky_TIC Standard+Base",
+  "vendor": "LiXee",
+  "product": "ZLinky_TIC mode standard base",
   "sleeper": false,
   "status": "Draft",
   "subdevices": [

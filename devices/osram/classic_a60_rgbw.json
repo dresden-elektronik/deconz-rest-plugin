@@ -1,9 +1,12 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "5769d071-f5e7-4f13-a894-cece8f801c25",
   "manufacturername": "OSRAM",
   "modelid": "Classic A60 RGBW",
-  "product": "Classic A60 RGBW",
+  "vendor": "Osram",
+  "product": "Lightify classic A60 RGBW",
   "sleeper": false,
+  "supportsMgmtBind": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -97,107 +100,55 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 365
+          "refresh.interval": 20
         },
         {
           "name": "state/colormode",
-          "refresh.interval": 365
+          "refresh.interval": 20
         },
         {
           "name": "state/ct",
-          "refresh.interval": 365
+          "refresh.interval": 20
         },
         {
           "name": "state/effect",
-          "refresh.interval": 365,
+          "refresh.interval": 60,
           "default": "none"
         },
         {
-          "name": "state/hue"
+          "name": "state/hue",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 3,
+            "cl": "0x0300",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val * 256"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 3,
+            "cl": "0x0300",
+            "at": "0x0000"
+          },
+          "refresh.interval": 20
         },
         {
           "name": "state/on",
-          "refresh.interval": 365
+          "refresh.interval": 20
         },
         {
           "name": "state/reachable"
         },
         {
           "name": "state/sat",
-          "refresh.interval": 365
+          "refresh.interval": 20
         },
         {
           "name": "state/x",
-          "refresh.interval": 365
+          "refresh.interval": 20
         },
         {
           "name": "state/y"
-        }
-      ]
-    }
-  ],
-  "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 3,
-      "dst.ep": 1,
-      "cl": "0x0006",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x10",
-          "min": 1,
-          "max": 300
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 3,
-      "dst.ep": 1,
-      "cl": "0x0008",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x20",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 3,
-      "dst.ep": 1,
-      "cl": "0x0300",
-      "report": [
-        {
-          "at": "0x0007",
-          "dt": "0x21",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
-        },
-        {
-          "at": "0x0003",
-          "dt": "0x21",
-          "min": 1,
-          "max": 300,
-          "change": "0x0000000A"
-        },
-        {
-          "at": "0x0004",
-          "dt": "0x21",
-          "min": 1,
-          "max": 300,
-          "change": "0x0000000A"
-        },
-        {
-          "at": "0x0008",
-          "dt": "0x30",
-          "min": 1,
-          "max": 300
         }
       ]
     }

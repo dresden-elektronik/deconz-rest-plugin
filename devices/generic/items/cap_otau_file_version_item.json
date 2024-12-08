@@ -1,0 +1,16 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "cap/otau/file_version",
+  "datatype": "UInt32",
+  "access": "R",
+  "public": true,
+  "implicit": false,
+  "description": "Firmware file version.",
+  "parse": {
+    "fn": "zcl:cmd",
+    "ep": 255,
+    "cl": "0x0019",
+    "cmd": "0x01",
+    "eval": "if (ZclFrame.payloadSize >= 9) Item.val = ZclFrame.at(8) << 24 | ZclFrame.at(7) << 16 | ZclFrame.at(6) << 8 | ZclFrame.at(5)"
+  }
+}

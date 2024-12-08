@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "240fb1b8-8965-4549-a7eb-df13c38678e1",
   "manufacturername": "Third Reality, Inc",
   "modelid": "3RMS16BZ",
-  "product": "Wireless Motion Sensor",
+  "vendor": "Third Reality",
+  "product": "Motion Sensor, Pet Friendly (3RMS16BZ)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -74,7 +76,7 @@
           "name": "config/on"
         },
         {
-            "name": "config/pending"
+          "name": "config/pending"
         },
         {
           "name": "config/enrolled"

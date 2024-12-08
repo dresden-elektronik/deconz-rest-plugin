@@ -1,9 +1,10 @@
-
 {
   "schema": "devcap1.schema.json",
+  "uuid": "27bc348d-0253-40be-9983-b93d33636e3f",
   "manufacturername": "Computime",
   "modelid": "SS909ZB",
-  "product": "Salus PS600 Temperature Sensor",
+  "vendor": "Salus",
+  "product": "Pipe temperature sensor (PS600)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

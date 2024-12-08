@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "6ed73563-62f9-4ff2-99e7-feb6755209f1",
   "manufacturername": [
     "_TZE200_ztc6ggyl",
     "_TZE204_ztc6ggyl",
@@ -14,7 +15,8 @@
     "TS0601",
     "TS0601"
   ],
-  "product": "Tuya MmwRadar Human Presence Detector",
+  "vendor": "Tuya",
+  "product": "MmwRadar Human Presence Detector (TS0601)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "bc0e6601-5492-4a98-b5e8-687923af249b",
   "manufacturername": "$MF_IKEA",
   "modelid": "SYMFONISK Sound Controller",
-  "product": "SYMFONISK Sound Controller - E1744",
+  "vendor": "IKEA",
+  "product": "Symfonisk sound controller (E1744)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

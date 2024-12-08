@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "be154dd8-8225-4a88-b4a0-49c8b4dacbd6",
   "manufacturername": "Legrand",
   "modelid": "Wireless Scenes Command",
-  "product": "Wireless Scenes Command",
+  "vendor": "Legrand",
+  "product": "Wireless 4 scenes control switch celiane (0 677 55/56/57)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -64,7 +66,7 @@
           "parse": {
             "cl": "0x0005",
             "cmd": "0x05",
-            "eval": "Item.val = (ZclFrame.at(0) + 18) * -1000 + 2"
+            "eval": "Item.val = ((ZclFrame.at(0) << 24 >> 24) + 18) * -1000 + 2"
           }
         },
         {

@@ -1,5 +1,7 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "36df5973-1a5f-497e-9b3d-0078a5178432",
+  "ddfvalidate": false,
   "manufacturername": [
     "Danalock",
     "Danalock"
@@ -8,7 +10,8 @@
     "V3-BTZBE",
     "V3-BTZB"
   ],
-  "product": "Danalock V3",
+  "vendor": "Danalock",
+  "product": "V3 smart lock (V3-BTZB/V3-BTZBE)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -129,7 +132,7 @@
           "parse": {
             "cl": "0x0001",
             "at": "0x0021",
-            "eval": "Item.val = Attr.val"
+            "eval": "Item.val = Attr.val / 2"
           },
           "read": {
             "cl": "0x0001",

@@ -1,14 +1,15 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "1ace8d48-1cd9-42bb-92a1-1ae158715bb5",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_magnet.aq2",
-  "vendor": "Xiaomi",
-  "product": "Aqara open/close sensor MCCGQ11LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "Open/close sensor (MCCGQ11LM)",
   "sleeper": true,
   "status": "Gold",
   "md:known_issues": [
-    "xiaomi_known_issues1.md",
-    "xiaomi_known_issues_mccqg01lm.md"
+    "xiaomi_known_issues_sticky_parents.md",
+    "xiaomi_known_issues_difficult_pairing.md"
   ],
   "subdevices": [
     {
@@ -85,16 +86,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature",
-          "awake": true,
-          "parse": {
-            "fn": "xiaomi:special",
-            "at": "0xFF01",
-            "idx": "0x03",
-            "eval": "Item.val = Attr.val * 100"
-          }
         },
         {
           "name": "state/lastupdated"

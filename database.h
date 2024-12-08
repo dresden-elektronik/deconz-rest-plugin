@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2024 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -20,6 +20,10 @@
 #include <utils/bufstring.h>
 
 #define DB_MAX_UNIQUEID_SIZE 31
+
+namespace deCONZ {
+    class Address;
+}
 
 struct DB_Secret
 {
@@ -67,10 +71,19 @@ class Resource;
 class ResourceItem;
 
 
+ // TODO(mpi) deprecated for DB_ResourceItem2
 struct DB_ResourceItem
 {
     BufString<64> name;
     QVariant value;
+    qint64 timestampMs = 0; // milliseconds since Epoch
+};
+
+struct DB_ResourceItem2
+{
+    BufString<64> name;
+    unsigned valueSize;
+    char value[160];
     qint64 timestampMs = 0; // milliseconds since Epoch
 };
 
@@ -82,10 +95,36 @@ struct DB_LegacyItem
     BufString<128> value;
 };
 
+struct DB_ZclValue
+{
+    int64_t data;
+    int deviceId;
+    uint16_t clusterId;
+    uint16_t attrId;
+    uint8_t endpoint;
+
+    // internal
+    uint8_t loaded;
+};
+
+struct DB_IdentifierPair
+{
+    unsigned modelIdAtomIndex;
+    unsigned mfnameAtomIndex;
+};
+
+int DB_StoreDevice(const deCONZ::Address &addr);
+
 int DB_GetSubDeviceItemCount(QLatin1String uniqueId);
-bool DB_StoreSubDevice(const QString &parentUniqueId, const QString &uniqueId);
-bool DB_StoreSubDeviceItem(const Resource *sub, const ResourceItem *item);
-bool DB_StoreSubDeviceItems(const Resource *sub);
+bool DB_LoadZclValue(DB_ZclValue *val);
+bool DB_StoreZclValue(const DB_ZclValue *val);
+bool DB_StoreSubDevice(const char *uniqueId);
+bool DB_StoreDeviceItem(int deviceId, const DB_ResourceItem2 &item);
+bool DB_LoadDeviceItems(int deviceId, std::vector<DB_ResourceItem2> &items);
+bool DB_ResourceItem2DbItem(const ResourceItem *rItem, DB_ResourceItem2 *dbItem);
+std::vector<DB_IdentifierPair> DB_LoadIdentifierPairs();
+bool DB_StoreSubDeviceItem(const Resource *sub, ResourceItem *item);
+bool DB_StoreSubDeviceItems(Resource *sub);
 std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(QLatin1String deviceUniqueId);
 std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(QLatin1String uniqueId);
 bool DB_LoadLegacySensorValue(DB_LegacyItem *litem);

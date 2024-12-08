@@ -12,19 +12,23 @@ if (attrid === 0x0002) {
       const mode = ZclFrame.at(i + 1) << 8 | ZclFrame.at(i)
       i += 2
       len -= 2
-      if ([0x000B, 0x000F, 0x00AB, 0x014B].indexOf(mode) >= 0 && len >= 2) {
+      if ((mode & 0x0001) !== 0 && len >= 1) {
         R.item('state/on').val = ZclFrame.at(i) !== 0
-        R.item('state/bri').val = ZclFrame.at(i + 1)
-        i += 2
-        len -= 2
+        i += 1
+        len -= 1
       }
-      if (mode === 0x000F && len >= 2) {
+      if ((mode & 0x0002) !== 0 && len >= 1) {
+        R.item('state/bri').val = ZclFrame.at(i)
+        i += 1
+        len -= 1
+      }
+      if ((mode & 0x0004) !== 0 && len >= 2) {
         R.item('state/ct').val = ZclFrame.at(i + 1) << 8 | ZclFrame.at(i)
         R.item('state/colormode').val = 'ct'
         i += 2
         len -= 2
       }
-      if ([0x000B, 0x000F, 0x00AB, 0x014B].indexOf(mode) >= 0 && len >= 4) {
+      if ((mode & 0x0008) !== 0 && len >= 4) {
         R.item('state/x').val = ZclFrame.at(i + 1) << 8 | ZclFrame.at(i)
         R.item('state/y').val = ZclFrame.at(i + 3) << 8 | ZclFrame.at(i + 2)
         i += 4
@@ -33,7 +37,7 @@ if (attrid === 0x0002) {
           R.item('state/colormode').val = 'xy'
         }
       }
-      if (mode === 0x00AB && len >= 2) {
+      if ((mode & 0x00A0) !== 0 && len >= 2) {
         const effect = ZclFrame.at(i + 1) << 8 | ZclFrame.at(i)
         i += 2
         len -= 2
@@ -42,7 +46,7 @@ if (attrid === 0x0002) {
             R.item('state/effect').val = 'candle'
             break
           case 0x8002:
-            R.item('state/effect').val = 'fireplace'
+            R.item('state/effect').val = 'fire'
             break
           case 0x8003:
             R.item('state/effect').val = 'prism'
@@ -50,14 +54,29 @@ if (attrid === 0x0002) {
           case 0x8009:
             R.item('state/effect').val = 'sunrise'
             break
-          case 0x800a:
+          case 0x800A:
             R.item('state/effect').val = 'sparkle'
             break
-          case 0x800b:
+          case 0x800B:
             R.item('state/effect').val = 'opal'
             break
-          case 0x800c:
+          case 0x800C:
             R.item('state/effect').val = 'glisten'
+            break
+          case 0x800D:
+            R.item('state/effect').val = 'sunset'
+            break
+          case 0x800E:
+            R.item('state/effect').val = 'underwater'
+            break
+          case 0x800F:
+            R.item('state/effect').val = 'cosmos'
+            break
+          case 0x8010:
+            R.item('state/effect').val = 'sunbeam'
+            break
+          case 0x8011:
+            R.item('state/effect').val = 'enchant'
             break
           default:
             R.item('state/effect').val = '0x' + effect.toString(16)
@@ -69,7 +88,7 @@ if (attrid === 0x0002) {
           R.item('state/effect').val = 'none'
         }
       }
-      if (mode === 0x014B && len >= 2) {
+      if ((mode & 0x0140) !== 0 && len >= 2) {
         const vLen = ZclFrame.at(i)
         i++
         len--

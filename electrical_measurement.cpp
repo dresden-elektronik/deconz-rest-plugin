@@ -1,3 +1,4 @@
+#include <math.h>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "device.h"
@@ -150,8 +151,7 @@ void DeRestPluginPrivate::handleElectricalMeasurementClusterIndication(const deC
                     else if (modelId == QLatin1String("RICI01") ||                                     // LifeControl Smart Plug
                              modelId.startsWith(QLatin1String("outlet")) ||                            // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                              modelId.startsWith(QLatin1String("ROB_200")) ||                           // ROBB Smarrt micro dimmer
-                             modelId.startsWith(QLatin1String("Micro Smart Dimmer")) ||                // Sunricher Micro Smart Dimmer
-                             modelId.startsWith(QLatin1String("TH112")))                               // Sinope Thermostats
+                             modelId.startsWith(QLatin1String("Micro Smart Dimmer")))                  // Sunricher Micro Smart Dimmer
                     {
                         voltage = static_cast<quint16>(round((double)voltage / 10.0)); // 0.1V -> V
                         DDF_AnnoteZclParse(sensor, item, ind.srcEndpoint(), ind.clusterId(), attrId, "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 10); } ");

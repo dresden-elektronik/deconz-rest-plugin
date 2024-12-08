@@ -1,8 +1,19 @@
+/*
+ * Copyright (c) 2021-2024 dresden elektronik ingenieurtechnik gmbh.
+ * All rights reserved.
+ *
+ * The software in this package is published under the terms of the BSD
+ * style license a copy of which has been included with this distribution in
+ * the LICENSE.txt file.
+ *
+ */
+
+#include "deconz/u_library_ex.h"
+#include "deconz/u_memory.h"
 #include "crypto/mmohash.h"
 
 #ifdef HAS_OPENSSL
 
-#include <QLibrary>
 #include <openssl/evp.h>
 
 #define AES_BLOCK_SIZE 16
@@ -29,7 +40,7 @@ static bool aesMmoHash(unsigned char *result, unsigned char *data, unsigned data
         unsigned char block[AES_BLOCK_SIZE];
         unsigned char encrypted_block[AES_BLOCK_SIZE * 2] = {0};
 
-        memcpy(&block[0], &data[0], AES_BLOCK_SIZE);
+        U_memcpy(&block[0], &data[0], AES_BLOCK_SIZE);
 
         int outlen = 0;
         if (lib_EVP_EncryptUpdate(lib_ctx, &encrypted_block[0], &outlen, &block[0], AES_BLOCK_SIZE) != 1)
@@ -98,18 +109,19 @@ static unsigned short ccit_crc16(unsigned char *data_p, unsigned short length)
 */
 bool CRYPTO_GetMmoHashFromInstallCode(const std::string &hexString, std::vector<unsigned char> &result)
 {
-#ifdef Q_OS_WIN
-    QLibrary libCrypto(QLatin1String("libcrypto-1_1.dll"));
-#else
-    QLibrary libCrypto("crypto");
-#endif
+    void *libCrypto = U_library_open_ex("libcrypto");
 
-    lib_EVP_CIPHER_CTX_new = (EVP_CIPHER_CTX *(*)(void))libCrypto.resolve("EVP_CIPHER_CTX_new");
-    lib_EVP_EncryptInit = (void (*)(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type, const unsigned char *key, const unsigned char *iv))libCrypto.resolve("EVP_EncryptInit");
-    lib_EVP_EncryptUpdate = (int (*)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl, const unsigned char *in, int inl))libCrypto.resolve("EVP_EncryptUpdate");
-    lib_EVP_EncryptFinal_ex = (int (*)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl))libCrypto.resolve("EVP_EncryptFinal_ex");
-    lib_EVP_CIPHER_CTX_free = (void (*)(EVP_CIPHER_CTX *ctx))libCrypto.resolve("EVP_CIPHER_CTX_free");
-    lib_EVP_aes_128_ecb = (const EVP_CIPHER *(*)(void))libCrypto.resolve("EVP_aes_128_ecb");
+    if (!libCrypto)
+    {
+        return false;
+    }
+
+    lib_EVP_CIPHER_CTX_new = (EVP_CIPHER_CTX *(*)(void))U_library_symbol(libCrypto, "EVP_CIPHER_CTX_new");
+    lib_EVP_EncryptInit = (void (*)(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type, const unsigned char *key, const unsigned char *iv))U_library_symbol(libCrypto, "EVP_EncryptInit");
+    lib_EVP_EncryptUpdate = (int (*)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl, const unsigned char *in, int inl))U_library_symbol(libCrypto, "EVP_EncryptUpdate");
+    lib_EVP_EncryptFinal_ex = (int (*)(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl))U_library_symbol(libCrypto, "EVP_EncryptFinal_ex");
+    lib_EVP_CIPHER_CTX_free = (void (*)(EVP_CIPHER_CTX *ctx))U_library_symbol(libCrypto, "EVP_CIPHER_CTX_free");
+    lib_EVP_aes_128_ecb = (const EVP_CIPHER *(*)(void))U_library_symbol(libCrypto, "EVP_aes_128_ecb");
 
     if (!lib_EVP_CIPHER_CTX_new || !lib_EVP_EncryptInit || !lib_EVP_EncryptUpdate || !lib_EVP_EncryptFinal_ex || !lib_EVP_CIPHER_CTX_free | !lib_EVP_aes_128_ecb)
     {
@@ -193,7 +205,7 @@ bool CRYPTO_GetMmoHashFromInstallCode(const std::string &hexString, std::vector<
     if (AES_BLOCK_SIZE - moreDataLength < 3)
     {
         aesMmoHash(hashResult, &temp[0], AES_BLOCK_SIZE);
-        memset(&temp[0], 0x00, sizeof(temp));
+        U_memset(&temp[0], 0x00, sizeof(temp));
     }
 
     temp[AES_BLOCK_SIZE - 2] = (dataLength >> 5) & 0xFF;

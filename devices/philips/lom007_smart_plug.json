@@ -1,13 +1,19 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "408ae252-d9bd-4a5a-92e1-2c945a73dde8",
   "manufacturername": [
     "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY",
     "$MF_SIGNIFY"
   ],
   "modelid": [
+    "LOM001",
     "LOM007",
+    "LOM001",
     "LOM007"
   ],
+  "vendor": "Philips",
   "product": "Hue smart plug",
   "sleeper": false,
   "status": "Gold",
@@ -60,10 +66,20 @@
             "ep": "0x0b",
             "cl": "0x0000",
             "at": "0x0005"
-          }
+          },
+          "refresh.interval": 86400
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productid"

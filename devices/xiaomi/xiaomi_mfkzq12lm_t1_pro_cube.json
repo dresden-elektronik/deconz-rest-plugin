@@ -1,9 +1,14 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["$MF_LUMI"],
-  "modelid": ["lumi.remote.cagl02"],
-  "vendor": "Xiaomi",
-  "product": "Aqara T1 Pro Cube MFKZQ12LM",
+  "uuid": "f601e062-83a5-4ad1-b2e3-e15af0c6fc70",
+  "manufacturername": [
+    "$MF_LUMI"
+  ],
+  "modelid": [
+    "lumi.remote.cagl02"
+  ],
+  "vendor": "Xiaomi Aqara",
+  "product": "T1 pro cube (MFKZQ12LM)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -75,9 +80,10 @@
             "script": "xiaomi_battery.js"
           }
         },
-                {
+        {
           "name": "config/devicemode",
           "awake": true,
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0148",
             "cl": "0xfcc0",
@@ -104,8 +110,14 @@
             "state.timeout": 2
           },
           "values": [
-            ["\"scene\"", "Use 6 sides and gestures rotate, shake, hold"],
-            ["\"action\"", "Use 6 sides and gestures flip 90, flip 180, rotate, push, double tap, shake, trigger after 1 minute inactivity"] 
+            [
+              "\"scene\"",
+              "Use 6 sides and gestures rotate, shake, hold"
+            ],
+            [
+              "\"action\"",
+              "Use 6 sides and gestures flip 90, flip 180, rotate, push, double tap, shake, trigger after 1 minute inactivity"
+            ]
           ],
           "default": "action"
         },
@@ -230,8 +242,14 @@
             "state.timeout": 2
           },
           "values": [
-            ["\"scene\"", "Use 6 sides and gestures rotate, shake, hold"],
-            ["\"action\"", "Use 6 sides and gestures flip 90, flip 180, rotate, push, double tap, shake, trigger after 1 minute inactivity"] 
+            [
+              "\"scene\"",
+              "Use 6 sides and gestures rotate, shake, hold"
+            ],
+            [
+              "\"action\"",
+              "Use 6 sides and gestures flip 90, flip 180, rotate, push, double tap, shake, trigger after 1 minute inactivity"
+            ]
           ],
           "default": "action"
         },

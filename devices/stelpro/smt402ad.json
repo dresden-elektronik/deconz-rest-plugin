@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "f1c4277b-f0bc-4d08-93ae-5010230b66ec",
   "manufacturername": "Stelpro",
   "modelid": "SMT402AD",
-  "product": "SMT402AD Thermostat",
+  "vendor": "Stelpro",
+  "product": "Thermostat (SMT402AD)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -189,7 +191,7 @@
         "0x19",
         "0x0405"
       ],
-       "fingerprint": {
+      "fingerprint": {
         "profile": "0x0104",
         "device": "0x0301",
         "endpoint": "0x19",

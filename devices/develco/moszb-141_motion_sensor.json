@@ -1,9 +1,16 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["Develco Products A/S", "frient A/S"],
-  "modelid": ["MOSZB-141", "MOSZB-141"],
+  "uuid": "ee657811-3f43-499e-8f71-05ff152d3940",
+  "manufacturername": [
+    "Develco Products A/S",
+    "frient A/S"
+  ],
+  "modelid": [
+    "MOSZB-141",
+    "MOSZB-141"
+  ],
   "vendor": "Develco Products",
-  "product": "MOSZB-141 motion sensor",
+  "product": "Motion sensor (MOSZB-141)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -357,7 +364,10 @@
             "fn": "zcl:attr",
             "mf": "0x1015"
           },
-          "range": [20, 65535],
+          "range": [
+            20,
+            65535
+          ],
           "default": 20
         },
         {

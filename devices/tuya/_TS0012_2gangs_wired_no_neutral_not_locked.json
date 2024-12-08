@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "dae97704-62d0-42d6-8652-d8ea6020a0de",
   "manufacturername": "_TZ3000_lupfd8zu",
   "modelid": "TS0012",
-  "product": "Tuya 2 gangs wired without neutral",
+  "vendor": "Tuya",
+  "product": "Tuya 2 gangs wired without neutral (TS0012)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -1,10 +1,10 @@
-
 {
   "schema": "devcap1.schema.json",
+  "uuid": "e8f3e015-6c02-478c-a51e-7730a86293cc",
   "manufacturername": "_TZE200_dq1mfjug",
   "modelid": "TS0601",
   "vendor": "Tuya",
-  "product": "Smoke sensor",
+  "product": "Smoke sensor (TS0601)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -46,8 +46,14 @@
         },
         {
           "name": "config/battery",
-          "parse": {"fn": "tuya", "dpid": 14, "eval": "Item.val = Attr.val * 50;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 14,
+            "eval": "Item.val = Attr.val * 50;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         },
         {
@@ -64,8 +70,14 @@
         },
         {
           "name": "state/fire",
-          "parse": {"fn": "tuya", "dpid": 101, "eval": "Item.val = (Attr.val == 1);" },
-          "read": {"fn": "tuya"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 101,
+            "eval": "Item.val = (Attr.val == 1);"
+          },
+          "read": {
+            "fn": "tuya"
+          },
           "default": 0
         },
         {

@@ -1,0 +1,185 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "eafcb72b-f595-4cf0-a4a5-7958798d4253",
+  "manufacturername": "_TZE200_9yapgbuv",
+  "modelid": "TS0601",
+  "vendor": "Tuya",
+  "product": "Temperature humidity sensor (TS0601)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_HUMIDITY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0405"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/humidity",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 2,
+            "eval": "Item.val = (100 * Attr.val) + R.item('config/offset').val;"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 3,
+            "eval": "if (Attr.val == 0) { Item.val=25 } else if (Attr.val == 1) { Item.val=50 } else { Item.val=100 }"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 3,
+            "eval": "if (Attr.val == 0) { Item.val=25 } else if (Attr.val == 1) { Item.val=50 } else { Item.val=100 }"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 1,
+            "eval": "Item.val = (10 * Attr.val) + R.item('config/offset').val;"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        }
+      ]
+    }
+  ]
+}

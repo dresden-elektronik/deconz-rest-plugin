@@ -1,8 +1,15 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "Sinope Technologies",
-  "modelid": "TH1124ZB",
-  "product": "TH1124ZB",
+  "uuid": "955538c2-6cb3-4e73-8a48-248c94aab6a1",
+  "manufacturername": [
+    "Sinope Technologies",
+    "Sinope Technologies"
+  ],
+  "modelid": [
+    "TH1123ZB",
+    "TH1124ZB"
+  ],
+  "product": "Smart thermostat for electric heating (TH1123ZB/TH1124ZB)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -55,9 +62,10 @@
         },
         {
           "name": "config/heatsetpoint",
+          "refresh.interval": 360,
           "default": 0
         },
-	{
+        {
           "name": "config/resetpresence",
           "refresh.interval": 300,
           "description": "Use it to address Occupancy specific attribute.\nfalse = Unoccupied\ntrue = Occupied",
@@ -68,14 +76,14 @@
             "mf": "0x119c",
             "eval": "Item.val = Attr.val;",
             "fn": "zcl:attr"
-            },
+          },
           "read": {
             "at": "0x0400",
             "cl": "0x0201",
             "ep": 1,
             "mf": "0x119c",
             "fn": "zcl:attr"
-            },
+          },
           "write": {
             "at": "0x0400",
             "cl": "0x0201",
@@ -84,7 +92,7 @@
             "dt": "0x30",
             "mf": "0x119c",
             "eval": "Item.val"
-            },
+          },
           "default": true
         },
         {
@@ -107,7 +115,7 @@
         },
         {
           "name": "config/unoccupiedheatsetpoint",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "read": {
             "at": "0x0014",
             "cl": "0x0201",
@@ -123,8 +131,8 @@
             "fn": "zcl:attr",
             "mf": "0x119c"
           },
-            "write": {
-	    "at": "0x0014",
+          "write": {
+            "at": "0x0014",
             "cl": "0x0201",
             "dt": "0x29",
             "ep": 1,
@@ -226,30 +234,24 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
-        },
-        {
-          "name": "state/temperature",
-          "default": 0
-        },
-       {
-          "name": "state/valve",
-          "description": "PI Heating Demand. If below 10, then device is Idle, else device is Heating.",
-          "refresh.interval": 300,
-          "read": {
-            "at": "0x0008",
-            "cl": "0x0201",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
           "parse": {
             "at": "0x0008",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val > 3;",
             "fn": "zcl:attr"
           },
-          "default": 0
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/temperature",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/valve",
+          "refresh.interval": 360
         }
       ]
     },
@@ -411,6 +413,42 @@
     }
   ],
   "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0201",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000032"
+        },
+        {
+          "at": "0x0001",
+          "dt": "0x29",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000032"
+        },
+        {
+          "at": "0x0008",
+          "dt": "0x20",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0012",
+          "dt": "0x29",
+          "min": 1,
+          "max": 3600,
+          "change": "0x00000001"
+        }
+      ]
+    },
     {
       "bind": "unicast",
       "src.ep": 1,

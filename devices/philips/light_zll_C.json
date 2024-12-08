@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "793888d6-2257-45e3-b4c5-9c792a5bc47f",
   "manufacturername": [
     "$MF_PHILIPS",
     "$MF_PHILIPS",
@@ -9,6 +10,8 @@
     "$MF_PHILIPS",
     "$MF_PHILIPS",
     "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
@@ -24,6 +27,7 @@
     "LCT015",
     "LCT016",
     "LCT011",
+    "LCT024",
     "LLC020",
     "LST002",
     "LCT012",
@@ -32,13 +36,16 @@
     "LCT015",
     "LCT016",
     "LCT011",
+    "LCT024",
     "LLC020",
     "LST002",
     "LCT012"
   ],
+  "vendor": "Philips",
   "product": "Hue white and color ambiance light",
   "sleeper": false,
   "status": "Gold",
+  "matchexpr": "R.hasCluster(0x0b,0xfc03)",
   "subdevices": [
     {
       "type": "$TYPE_EXTENDED_COLOR_LIGHT",
@@ -88,10 +95,20 @@
             "ep": "0x0b",
             "cl": "0x0000",
             "at": "0x0005"
-          }
+          },
+          "refresh.interval": 86400
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productid"
@@ -241,28 +258,6 @@
         },
         {
           "name": "state/effect",
-          "values": [
-            [
-              "\"none\"",
-              "no effect is active"
-            ],
-            [
-              "\"colorloop\"",
-              "colorloop through hue values"
-            ],
-            [
-              "\"candle\"",
-              "candlelight dynamic effect"
-            ],
-            [
-              "\"fireplace\"",
-              "fireplace dynamic effect"
-            ],
-            [
-              "\"prism\"",
-              "prism dynamic effect"
-            ]
-          ],
           "parse": {
             "fn": "zcl:attr",
             "ep": "0x0b",

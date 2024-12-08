@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "28edf641-4709-484c-b0c7-c8255154348a",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI SHORTCUT Button",
-  "product": "TRADFRI SHORTCUT Button - E1812",
+  "vendor": "IKEA",
+  "product": "Tradfri shortcut button (E1812)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

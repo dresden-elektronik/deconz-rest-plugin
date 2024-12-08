@@ -1,0 +1,121 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "df910571-c59a-47a7-8564-b61daadd1370",
+  "manufacturername": "Namron AS",
+  "modelid": "4512762",
+  "vendor": "Namron",
+  "product": "Open/close sensor (4512762)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0500"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "eval": "Item.val = Attr.val / 2"
+          }
+        },
+        {
+          "name": "config/checkin"
+        },
+        {
+          "name": "config/enrolled"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/open",
+          "awake": true
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 300,
+          "max": 43200,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
+}

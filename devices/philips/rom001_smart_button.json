@@ -1,13 +1,19 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "7c9fd37f-ecb0-4cb1-b3d7-6bcae1ecc5ee",
   "manufacturername": [
     "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_PHILIPS",
     "$MF_PHILIPS"
   ],
   "modelid": [
     "ROM001",
-    "ROM001"
+    "RDM003",
+    "ROM001",
+    "RDM003"
   ],
+  "vendor": "Philips",
   "product": "Hue smart button",
   "status": "Gold",
   "sleeper": true,
@@ -72,6 +78,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productname",

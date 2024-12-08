@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "027828c2-c94a-44fc-ac44-b948e50174e1",
   "manufacturername": "frient A/S",
   "modelid": "HESZB-120",
-  "vendor": "Develco Products",
-  "product": "HESZB-120 heat sensor",
+  "vendor": "Frient",
+  "product": "Intelligent heat alarm (HESZB-120)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -193,7 +194,7 @@
       ]
     },
     {
-      "type": "Warning device",
+      "type": "$TYPE_WARNING_DEVICE",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -244,7 +245,18 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "state/alert"
+          "name": "state/alert",
+          "description": "Start warning command payload has 5 Bytes. Byte 1: Options. 0x17 = Warning mode 1 (burglar), Strobe, Very high sound. Byte 2-3: Duration, Byte 4: Strobe duty cycle, Byte 5: Strobe level",
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "cl": "0x0502",
+            "cmd": "0x00",
+            "ep": "0x01",
+            "eval": "if (Item.val=='select') { '1701000000' } else if (Item.val=='none') { '0000000000' }",
+            "fn": "zcl:cmd"
+          }
         },
         {
           "name": "state/reachable"

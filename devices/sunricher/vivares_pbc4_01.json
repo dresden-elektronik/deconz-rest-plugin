@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "79821f3d-00a0-4e4d-811b-bb1357a6aeed",
   "manufacturername": "Sunricher",
   "modelid": "VIVARES_PBC4_01",
   "vendor": "Sunricher",
-  "product": "C4 control unit",
+  "product": "Push button coupler C4 (SR-ZG2833PAC-C4)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -49,8 +50,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x4000", "eval": "Item.val = Attr.val"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x4000"},
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x4000",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x4000"
+          },
           "refresh.interval": 180
         },
         {

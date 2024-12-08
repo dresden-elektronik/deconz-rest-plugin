@@ -1,12 +1,14 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "da98ceeb-581b-4e7f-ac9b-8bc4a6eb9975",
   "manufacturername": [
     "_TZ3000_gjnozsaz",
     "_TZ3000_w0qqde0g",
     "_TZ3000_zloso4jk",
     "_TZ3000_rdfh8cfs",
     "_TZ3000_fgwhjm9j",
-    "_TZ3000_waho4jtj"
+    "_TZ3000_waho4jtj",
+    "_TZ3000_xzhnra8x"
   ],
   "modelid": [
     "TS011F",
@@ -14,9 +16,11 @@
     "TS011F",
     "TS011F",
     "TS011F",
+    "TS011F",
     "TS011F"
   ],
-  "product": "NEO NAS-WR01B Smart Plug",
+  "vendor": "Neo",
+  "product": "Smart plug 16A with power monitoring EU (NAS-WR01B)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -48,8 +52,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -99,8 +114,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -159,8 +185,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"

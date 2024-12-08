@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "9b705c23-87d1-4a69-8f2f-10f452a6bdf9",
   "manufacturername": "Legrand",
   "modelid": "Master remote SW Home / Away",
-  "product": "Master remote SW Home / Away",
+  "vendor": "Legrand",
+  "product": "Home and Away wireless master switch celiane (064873)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

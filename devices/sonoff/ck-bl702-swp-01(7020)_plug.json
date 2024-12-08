@@ -1,0 +1,173 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "53f3ec54-fa3f-4479-8312-aecdf3c52ac2",
+  "manufacturername": "eWeLink",
+  "modelid": "CK-BL702-SWP-01(7020)",
+  "vendor": "eWeLink",
+  "product": "Smart Plug (eWeLink)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SMART_PLUG",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xFC11"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/current",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x7004",
+            "cl": "0xFC11",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x7004",
+            "cl": "0xFC11",
+            "ep": 1,
+            "eval": "Item.val = Attr.val"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x7006",
+            "cl": "0xFC11",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x7006",
+            "cl": "0xFC11",
+            "ep": 1,
+            "eval": "Item.val = Attr.val*0.001"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/voltage",
+          "refresh.interval": 300,
+          "read": {
+            "at": "0x7005",
+            "cl": "0xFC11",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x7005",
+            "cl": "0xFC11",
+            "ep": 1,
+            "eval": "Item.val = Attr.val*0.001"
+          },
+          "default": 0
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    }
+  ]
+}

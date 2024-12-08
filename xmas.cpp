@@ -3,6 +3,7 @@
  * Handle LIDL Melinera Smart LED lightstrip (for Xmas tree).
  */
 
+#include <math.h>
 #include "de_web_plugin_private.h"
 #include "utils/utils.h"
 
@@ -32,6 +33,7 @@ const QStringList RStateEffectValuesXmasLightStrip({
     "updown", "vintage", "fading", "collide",
     "strobe", "sparkles", "carnival", "glow"
 });
+#define R_EFFECT_NONE               0
 
 static void initTask(TaskItem &task, quint8 seq)
 {

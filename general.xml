@@ -389,6 +389,85 @@
             <value name="0x02 - Indicate motion detection" value="1"></value>
           </attribute>
         </attribute-set>
+        
+        
+        
+        <attribute-set id="0x9000" description="Sunricher specific" mfcode="0x1224">
+          <attribute id="0x8806" name="Dimming brightness curve" type="u8" default="0x00" access="rw" required="m" mfcode="0x1224">
+            <description>Works after reset power of the device.
+              0: linear,
+              15: logarithmic with gamma value 1.5,
+              18: logarithmic with gamma value 1.8</description>
+          </attribute>
+          <attribute id="0x8903" name="Motion sensor daylight sensor lux threshold" type="u16" default="0x0000" access="rw" required="m" mfcode="0x1224">
+            <description>2 bytes, only when the detected lux is lower than the threshold, turning on the light is permitted. For instance, with value 0x0000, this function does not work.</description>
+          </attribute>
+          <attribute id="0x8904" name="Motion sensor operation mode" type="u8" default="0x00" access="rw" required="m" mfcode="0x1224">
+            <description>0: means auto mode,
+              1: means manual mode
+              
+              Auto mode means that when a motion is detected, the device will output PWM according to the set brightness threshold, and delay time.
+              PWM status needs to be reported to the gateway.
+              
+              Manual mode means that PWM output is controlled and determined by the gateway or the wireless switch, not associated with motion detection.</description>
+          </attribute>
+          <attribute id="0x8905" name="Motion sensor sensitivity setting" type="u8" default="0x01" access="rw" required="m" mfcode="0x1224">
+            <description>Works after reset power of the device. 1 byte, data range 0-15, 0 is the highest sensitivity, 15 is the lowest sensitivity.</description>
+          </attribute>
+          <attribute id="0x8906" name="Motion sensor microwave detection" type="u8" default="0x01" access="rw" required="m" mfcode="0x1224">
+            <description>Works after reset power of the device.
+              0: disabled,
+              1: enabled.</description>
+          </attribute>
+          <attribute id="0x8907" name="Send ON/OFF command to the touchlink devices" type="u8" default="0x01" access="rw" required="m" mfcode="0x1224">
+            <description>Works after reset power of the device. Configuration of whether to send ON/OFF command to the touchlink devices and binding devices.
+              0=do not send,
+              1=send</description>
+          </attribute>
+          <attribute id="0x890C" name="Brightness module" type="u8" default="0x01" access="rw" required="m" mfcode="0x1224">
+            <description>0=disabled,
+              1=enabled</description>
+          </attribute>
+          <attribute id="0x8902" name="Light on time" type="u16" default="0x003C" access="rw" required="m" mfcode="0x1224">
+            <description>Light on time (the first delay time).
+              Works after reset power of the device. When motion sensor mode is set as auto mode, and motion is detected, after the person leaves, light on time of the device.
+              2 bytes, unit is second.</description>
+          </attribute>
+          <attribute id="0x8908" name="Brightness of PWM output when motion detected" type="u16" default="0x0000" access="rw" required="m" mfcode="0x1224">
+            <description>Configuration of the brightness value of PWM output when motion detected, this brightness value is controlled through PWM output working as PID
+              closed loop control to achieve the constant light output. Value range is 0-1000LUX, 0LUX means this attribute is disabled, and PWM output when motion 
+              detected is not associated with the brightness value.</description>
+          </attribute>
+          <attribute id="0x8909" name="PWM output percentage when motion detected" type="u8" default="0xfe" access="rw" required="m" mfcode="0x1224">
+            <description>Configuration of PWM output percentage when motion detected. Value Range is 0-254, which means 0-100%.
+              When configured PID closed loop control brightness LUX is 0, PWM output of the device is according to this value.</description>
+          </attribute>
+          <attribute id="0x890A" name="Light on time (status 2nd delay)" type="u8" default="0x00" access="rw" required="m" mfcode="0x1224">
+            <description>After the light on time expires, the light status within the duration of 2nd delay time. Value Range is 0-254, which means 0-100%.</description>
+          </attribute>
+          <attribute id="0x8901" name="Light on time (duration 2nd delay)" type="u16" default="0x003C" access="rw" required="m" mfcode="0x1224">
+            <description>After the light on time expires, the duration of 2nd delay time. Value range is 0-65536s.</description>
+          </attribute>
+          <attribute id="0x890B" name="Light status after expiration 2nd delay time" type="u8" default="0x00" access="rw" required="m" mfcode="0x1224">
+            <description>After the 2nd delay time expires, the status of the light. Value Range is 0-254, which means 0-100%.</description>
+          </attribute>
+          <attribute id="0x890D" name="Linearity error ratio coefficient of LUX measurement (M)" type="u16" default="0x03E8" access="rw" required="m" mfcode="0x1224">
+            <description>Default value is 1000, which means 1000 per mill. When increase the value of M, LUX measurement value will be magnified linearly.
+              When decrease the value of M, LUX measurement value will be minified linearly. For instance, modify M value as 1001, LUX measurement value will be magnified
+              to 1.001 times. Modify M value as 500, LUX measurement value will be magnified to 0.5 times.</description>
+          </attribute>
+          <attribute id="0x890E" name="Fixed deviation of LUX measurement" type="s16" default="0x0000" access="rw" required="m" mfcode="0x1224">
+            <description>For instance, if we need to increase the measurement value by 100LUX, then this parameter value will be +100.
+              If we need to decrease the measurement value by 100LUX, then this parameter value will be -100.
+</description>
+          </attribute>
+        </attribute-set>
+        <attribute-set id="0x9000" description="Sunricher specific" mfcode="0x1224">
+          <attribute id="0x9001" name="Light PWM Frequency" type="u16" default="0x0CE4" access="rw" required="m" mfcode="0x1224">
+            <description>Works after reset power of the device, the device that directly outputs PWM can be configured,
+              DO NOT set the PWM frequency too high which will affect the dimming resolution.</description>
+          </attribute>
+        </attribute-set>
         <attribute-set id="0xe000" description="Schneider specific" mfcode="0x105e">
           <attribute id="0xe001" name="Application FW Version" type="cstring" access="r" required="o" mfcode="0x105e"></attribute>
           <attribute id="0xe002" name="Application HW Version" type="cstring" access="r" required="o" mfcode="0x105e"></attribute>
@@ -817,7 +896,7 @@
           <attribute id="0x8000" name="Button Press" type="u8" access="r" required="o"/>
         </attribute-set>
         <attribute-set id="0x8001" description="Tuya special">
-          <attribute id="0x8001" name="Back Light mode" type="enum8" default="0" required="o" access="r">
+          <attribute id="0x8001" name="Back Light mode" type="enum8" default="0" required="o" access="rw">
             <value name="Mode 1-Off" value="0"></value>
             <value name="Mode 2-Light when On" value="1"></value>
             <value name="Mode 3-Light when Off" value="2"></value>
@@ -885,6 +964,19 @@
             <attribute id="0x0002" type="u16" name="Off wait time" required="m" default="0x0000">
               <description>Length of time (in 1/10ths second) that the lamp shall remain off.</description>
             </attribute>
+          </payload>
+        </command>
+        <!-- Develco manufacturer specific -->
+        <command id="00" dir="recv" name="Safe Mode Off" required="o" mfcode="0x1015">
+          <description>The 'Safe mode off' functionality is the same as "Safe mode on" the only different is relay entering off state instead of on state.</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="SafeModeTime in Minutes" required="m" default="0x00"/>
+          </payload>
+        </command>
+        <command id="01" dir="recv" name="Safe Mode On" required="o" mfcode="0x1015">
+          <description>If 'Safe mode On' command is sent to a relay with value 10 minutes, the relay will enter the safe mode after 10 minutes and force the relay to turn ON. If a standard OFF command from the On/Off cluster is sent within the first 10 minutes. The timer is restarted and the relay will not turn ON before the new 10 minute time has timed out. Sending the standard OFF command regularly within the 10 minute time interval will prevent the relay to enter safe mode ON state.</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="SafeModeTime in Minutes" required="m" default="0x00"/>
           </payload>
         </command>
       </server>
@@ -957,6 +1049,7 @@
         </attribute>
         <attribute id = "0x000f" name="Options" type="bmp8" access="rw" required="o">
           <value name="Execute If Off" value="0"></value>
+          <value name="Couple Color Temp To Level" value="1"></value>
         </attribute>
         <attribute id = "0x0010" name="OnOff Transistion Time" type="u16" range="0x0000,0xffff" access="rw" required="o" default="0x0000">
           <description>The OnOffTransitionTime attribute represents the time taken to move to or from the target level when On of Off commands are received by an On/Off cluster on the same endpoint. It is specified in 1/10ths of a second. The actual time taken should be as close to OnOffTransitionTime as the device is able.</description>
@@ -2122,7 +2215,32 @@
               101-254: Tilt position before movement is restored.</description>
           </attribute>
         </attribute-set>
-        <attribute-set id="0x1000" description="Ubisys specific" mfcode="0x10f2">
+        <attribute-set id="0x0000" description="Ubisys specific" mfcode="0x10f2">
+          <attribute id="0x0000" name="Window Covering Type" type="enum8" default="0x00" access="rw" required="m" mfcode="0x10f2">
+            <value name="Rollershade" value="0"></value>
+            <value name="Rollershade - 2 Motor" value="1"></value>
+            <value name="Rollershade – Exterior" value="2"></value>
+            <value name="Rollershade - Exterior - 2 Motor" value="3"></value>
+            <value name="Drapery" value="4"></value>
+            <value name="Awning" value="5"></value>
+            <value name="Shutter" value="6"></value>
+            <value name="Tilt Blind - Tilt Only" value="7"></value>
+            <value name="Tilt Blind - Lift and Tilt" value="8"></value>
+            <value name="Projector Screen" value="9"></value>
+          </attribute>
+          <attribute id="0x0007" name="Config and Status" type="bmp8" default="0x03" access="rw" required="m" mfcode="0x10f2">
+            <value name="Operational" value="0"></value>
+            <value name="Online" value="1"></value>
+            <value name="Commands Reversed" value="2"></value>
+            <value name="Lift control is Closed Loop" value="3"></value>
+            <value name="Tilt control is Closed Loop" value="4"></value>
+            <value name="Lift: Encoder Controlled" value="5"></value>
+            <value name="Tilt: Encoder Controlled" value="6"></value>
+          </attribute>
+          <attribute id="0x0010" name="Installed Open Limit – Lift" type="u16" default="0x0000" access="rw" required="m" mfcode="0x10f2"></attribute>
+          <attribute id="0x0011" name="Installed Closed Limit – Lift" type="u16" default="0xffff" access="rw" required="m" mfcode="0x10f2"></attribute>
+          <attribute id="0x0012" name="Installed Open Limit – Tilt" type="u16" default="0x0000" access="rw" required="m" mfcode="0x10f2"></attribute>
+          <attribute id="0x0013" name="Installed Open Limit – Tilt" type="u16" default="0xffff" access="rw" required="m" mfcode="0x10f2"></attribute>
           <attribute id="0x1000" name="Turnaround Guard Time" type="u8" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
           <attribute id="0x1001" name="Lift to Tilt Transition Steps" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
           <attribute id="0x1002" name="Total Steps" type="u16" default="0" required="m" access="rw" mfcode="0x10f2"></attribute>
@@ -2317,7 +2435,44 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0081" name="Unknown" type="s16" access="r" required="o"/>
           <attribute id="0x0082" name="Unknown (Heat Setpoint?)" type="s16" access="r" required="o"/>
         </attribute-set>
-     	<!-- Sinope manufacturer specific -->
+        <!-- ubisys manufacturer specific -->
+        <attribute-set id="0x0000" description="Ubisys specific" mfcode="0x10f2">
+          <attribute id="0x0000" name="Unknown" type="u16" access="rw" required="m" mfcode="0x10f2"></attribute>
+          <attribute id="0x0001" name="Unknown" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0002" name="Unknown" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0004" name="Unknown" type="s16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0009" name="Unknown" type="u16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x000a" name="Unknown" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x000b" name="Unknown" type="s8" access="r" required="m" mfcode="0x10f2"></attribute>
+          <attribute id="0x000c" name="Unknown" type="s8" access="r" required="m" mfcode="0x10f2"></attribute>
+          <attribute id="0x000d" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x000e" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x000f" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0010" name="TemperatureOffset" type="s8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0011" name="DefaultOccupiedHeatingSetpoint" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0012" name="VacationMode" type="bool" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0013" name="RemoteTemperature" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0014" name="RemoteTemperatureValidDuration" type="88" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0015" name="DetectOpenWindow" type="bmp8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0016" name="OpenWindowState" type="bmp8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0017" name="OpenWindowSensitivity" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0018" name="OpenWindowDetectionPeriod" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0019" name="OpenWindowTimeout" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001a" name="HeatingDemandLowerBound" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001b" name="HeatingDemandUpperBound" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001c" name="Season" type="enum8" access="rw" required="m" mfcode="0x10f2">
+              <value name="winter" value="0x00"></value>
+              <value name="summer" value="0x01"></value>
+          </attribute>
+          <attribute id="0x001d" name="BackupHeatingDemand" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001e" name="AlternateBackupHeatingDemand" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0020" name="ProportionalGain" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0021" name="ProportionalShift" type="s8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0022" name="IntegralFactor" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x1000" name="ValveDrivePosition0" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x1001" name="ValveDrivePosition100 " type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+        </attribute-set>
+        <!-- Sinope manufacturer specific -->
         <attribute-set id="0x0400" description="Sinope specific" mfcode="0x119c">
           <attribute id="0x0400" name="Occupancy" type="enum8" access="rw" required="m" mfcode="0x119c">
               <value name="Unoccupied" value="0x00"></value>
@@ -2567,7 +2722,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
             <value name="3" value="0x03"></value>
             <value name="4" value="0x04"></value>
           </attribute>
-          <attribute id="0x4040" name="Unknown" type="s16" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x4040" name="External Measured Room Sensor" type="s16" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4041" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
             <value name="0" value="0x00"></value>
             <value name="1" value="0x01"></value>
@@ -2683,6 +2838,37 @@ Note: It does not clear or delete previous weekly schedule programming configura
         </command>
         <command id="0x03" dir="recv" name="Clear Weekly Schedule" required="o"></command>
         <command id="0x04" dir="recv" name="Get Relay Status Log" required="o"></command>
+        <!-- Danfoss manufacturer specific -->
+        <command id="0x40" dir="recv" name="Set Heating Setpoint" required="o" mfcode="0x1246">
+          <description>Set immediately:
+The actuator will make a large movement to minimize reaction time.
+
+Mimic Occupied Heating Setpoint Behavior:
+The behavior will be the same as setting the attribute "Occupied Heating Setpoint" to the same value.
+
+Preserve Displayed Setpoint:
+Displayed setpoint is not affected, but regulated setpoint will change. Can be used for Forecast functionality.</description>
+          <payload>
+            <attribute id="0x0000" type="enum8" name="Setpoint Type" required="m">
+              <value name="Set immediately" value="0"/>
+              <value name="Mimic Occupied Heating Setpoint Behavior" value="1"/>
+              <value name="Preserve Displayed Setpoint" value="2"/>
+            </attribute>
+            <attribute id="0x0001" type="u16" name="Heating Setpoint" required="m"/>
+          </payload>
+        </command>
+        <command id="0x41" dir="recv" name="Danfoss Test Command" required="o" mfcode="0x1246"></command>
+        <command id="0x42" dir="recv" name="Preheat" required="o" mfcode="0x1246">
+          <description>Request eTRV to enter pre-heat if in schedule mode and if other eTRV in same room has triggeed pre-heat.</description>
+          <payload>
+            <attribute id="0x0000" type="enum8" name="Type" required="m">
+              <value name="Force Preheat" value="0"></value>
+            </attribute>
+            <attribute id="0x0001" type="u32" name="Timestamp" required="m">
+              <description>Timestamp received from other eTRV in the same room that went into preheat.</description>
+            </attribute>
+          </payload>
+        </command>
       </server>
       <client>
         <command id="0x00" dir="recv" name="Get Weekly Schedule Response" required="o">
@@ -2855,9 +3041,14 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0002" name="Remaining Time" type="u16" access="r" range="0x0000,0xfffe" default="0x0000" required="o"></attribute>
           <attribute id="0x0003" name="Current X" type="u16" access="r" range="0x0000,0xfeff" default="0x61eb" required="m"></attribute>
           <attribute id="0x0004" name="Current Y" type="u16" access="r" range="0x0000,0xfeff" default="0x607b" required="m"></attribute>
-          <!--
-          <attribute id="0x0003" mfcode="0x100b" name="Hue StartUp Current X" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
-          <attribute id="0x0004" mfcode="0x100b" name="Hue StartUp Current Y" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
+          <!-- Haven't yet seen any lights supporting these
+          <attribute id="0x0005" name="Drift Compensation" type="enum8" access="r" required="o">
+            <value name="None" value="0x00"></value>
+            <value name="Other / Unknown" value="0x01"></value>
+            <value name="Temperature monitoring" value="0x02"></value>
+            <value name="Optical luminance monitoring and feedback" value="0x03"></value>
+	        </attribute>
+          <attribute id="0x0006" name="Compensation Text" type="cstring" access="r" required="o"></attribute>
           -->
           <attribute id="0x0007" name="Color Temperature Mireds" type="u16" access="r" range="0x0000,0xfeff" default="0" required="m"></attribute>
           <attribute id="0x0008" name="Color Mode" type="enum8" access="r" range="0x00,0x02" default="0x01" required="o">
@@ -2890,7 +3081,10 @@ Note: It does not clear or delete previous weekly schedule programming configura
           </attribute>
           <attribute id="0x400b" name="Color Temperature Min Mireds" type="u16" access="r" range="0x0000,0xfeff" default="0" required="m"></attribute>
           <attribute id="0x400c" name="Color Temperature Max Mireds" type="u16" access="r" range="0x0000,0xfeff" default="0xfeff" required="m"></attribute>
+          <attribute id="0x400d" name="Couple Color Temp To Min Mireds" type="u16" access="r" range="0x0000,0xfeff" required="m"></attribute>
           <attribute id="0x4010" name="StartUp Color Temperature Mireds" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
+          <attribute id="0x0003" mfcode="0x100b" name="Hue StartUp Current X" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
+          <attribute id="0x0004" mfcode="0x100b" name="Hue StartUp Current Y" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
         </attribute-set>
         <attribute-set id="0x0010" description="Defined Primaries Information">
           <attribute id="0x0010" name="Number of Primaries" type="u8" access="r" range="0x00,0x06" required="o"></attribute>
@@ -3361,10 +3555,10 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0030" name="Sensitivity" type="u8" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
           <attribute id="0x0031" name="Sensitivity max." type="u8" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
         </attribute-set>
-        <attribute-set id="0xfc00" description="Develco Specific" mfcode="0x1015">
-          <attribute id="0xfc00" name="ArmThreshold_MinTemperature" type="s16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
-          <attribute id="0xfc01" name="ArmThreshold_MaxTemperature" type="s16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
-          <attribute id="0xfc02" name="Target Level" type="u16" access="rw" range="0x0002,0xfffd" required="m" mfcode="0x1015"></attribute>
+        <attribute-set id="0x0000" description="Develco Specific" mfcode="0x1015">
+          <attribute id="0x0000" name="ArmThreshold_MinTemperature" type="s16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
+          <attribute id="0x0001" name="ArmThreshold_MaxTemperature" type="s16" access="rw" range="0x954d,0x7ffe" required="m" mfcode="0x1015"></attribute>
+          <attribute id="0x0002" name="Target Level" type="u16" access="rw" range="0x0002,0xfffd" required="m" mfcode="0x1015"></attribute>
         </attribute-set>
       </server>
       <client>
@@ -4982,6 +5176,8 @@ These devices can operate on either battery or mains power, and can have a wide 
           </payload>
         </command>
       </server>
+      <client>
+      </client>
     </cluster>
 
     <cluster id="0xfc01" name="Hue Entertainment" mfcode="0x100b">
@@ -5008,19 +5204,25 @@ These devices can operate on either battery or mains power, and can have a wide 
     </cluster>
 
     <cluster id="0xfc03" name="Hue Effects" mfcode="0x100b">
-      <description>Hue-specific cluster for Hue white and color ambiance lights.</description>
+      <description>Hue-specific cluster for Hue lights.</description>
       <server>
         <command id="0x00" dir="recv" name="Set Effect" vendor="0x100b" required="m">
           <payload>
-            <attribute id="0x0000" type="u16" name="Command" showas="hex" default="0x0021" required="o"></attribute>
-            <attribute id="0x0001" type="bool" name="Enable" required="m"></attribute>
-            <attribute id="0x0002" type="enum8" name="Effect" required="m">
+            <attribute id="0x0000" type="u16" name="Command" showas="hex" default="0x0020" required="o"></attribute>
+            <attribute id="0x0001" type="enum8" name="Effect" required="m">
               <value name="None" value="0x00"/>
               <value name="Candle" value="0x01"/>
-              <value name="Fireplace" value="0x02"/>
-              <value name="Loop" value="0x03"/>
+              <value name="Fire" value="0x02"/>
+              <value name="Prism" value="0x03"/>
               <value name="Sunrise" value="0x09"/>
               <value name="Sparkle" value="0x0a"/>
+              <value name="Opal" value="0x0b"/>
+              <value name="Glisten" value="0x0c"/>
+              <value name="Sunset" value="0x0d"/>
+              <value name="Underwater" value="0x0e"/>
+              <value name="Cosmos" value="0x0f"/>
+              <value name="Sunbeam" value="0x10"/>
+              <value name="Enchant" value="0x11"/>
             </attribute>
           </payload>
         </command>
@@ -5036,10 +5238,17 @@ These devices can operate on either battery or mains power, and can have a wide 
         </attribute>
         <attribute id="0x0011" name="Effects" type="bmp64" mfcode="0x100b" access="r" required="o">
           <value name="Candle" value="0x01"/>
-          <value name="Fireplace" value="0x02"/>
-          <value name="Loop" value="0x03"/>
+          <value name="Fire" value="0x02"/>
+          <value name="Prism" value="0x03"/>
           <value name="Sunrise" value="0x09"/>
           <value name="Sparkle" value="0x0a"/>
+          <value name="Opal" value="0x0b"/>
+          <value name="Glisten" value="0x0c"/>
+          <value name="Sunset" value="0x0d"/>
+          <value name="Underwater" value="0x0e"/>
+          <value name="Cosmos" value="0x0f"/>
+          <value name="Sunbeam" value="0x10"/>
+          <value name="Enchant" value="0x11"/>
         </attribute>
         <attribute id="0x0012" name="Gradient Unknown 12" type="bmp32" mfcode="0x100b" access="r" required="o">
           <value name="Unknown 00" value="0x00"/>
@@ -5060,6 +5269,24 @@ These devices can operate on either battery or mains power, and can have a wide 
         <attribute id="0x0035" name="Gradient Unknown 35" type="u8" mfcode="0x100b" access="r" required="o"></attribute>
         <attribute id="0x0036" name="Gradient Max Segments" type="u8" mfcode="0x100b" access="r" required="o"></attribute>
       </server>
+      <client>
+      </client>
+    </cluster>
+
+    <cluster id="0xfc04" name="Hue Unknown" mfcode="0x100b">
+      <description>Hue-specific cluster.</description>
+      <server>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
+    <cluster id="0xfc06" name="Hue Unknown" mfcode="0x100b">
+      <description>Hue-specific cluster.</description>
+      <server>
+      </server>
+      <client>
+      </client>
     </cluster>
 
     <!-- Hue for Lutron Aurora -->
@@ -5500,6 +5727,18 @@ Contactor > On/off=0003 - HP/HC=0004</description>
       </client>
     </cluster>
 	  
+    <!-- SONOFF -->
+    <cluster id="0xfc11" name="Sonoff specific" mfcode="0x1286">
+      <description>Cluster for light sensor</description>
+      <server>
+        <attribute id="0x2001" name="Brightness" type="u8" access="r" required="m" mfcode="0x1286">
+          <description></description>
+        </attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+	  
     <!-- Leviton -->
     <cluster id="0x8007" name="Leviton Specific Load Cluster" mfcode="0x109b">
       <description>Additional features implemented in Leviton’s DG6HD.</description>
@@ -5738,7 +5977,9 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x000C" name="Unknown" type="ostring" access="rw" required="m"></attribute>
           <attribute id="0x000D" name="Unknown" type="u8" access="rw" required="m"></attribute>
           <attribute id="0x00E4" name="Unknown" type="u32" access="rw" required="m"></attribute>
-          <attribute id="0x00E8" name="Unknown" type="bool" access="rw" required="m"></attribute>
+          <attribute id="0x00E8" name="Device Running" type="bool" access="rw" required="m">
+            <description>Set to false to reboot the device.</description>
+          </attribute>
           <attribute id="0x00E9" name="Unknown" type="u8" access="rw" required="m"></attribute>
           <attribute id="0x00EA" name="Unknown" type="ostring" access="rw" required="m"></attribute>
           <attribute id="0x00EB" name="Unknown" type="u16" access="rw" required="m"></attribute>
@@ -5798,6 +6039,20 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x0155" name="Report Grid" type="u8" access="rw" required="m"></attribute>
           <attribute id="0x0156" name="Set Edge" type="u32" access="rw" required="m"></attribute>
           <attribute id="0x0157" name="Reset Presence" type="u8" access="w" required="m"></attribute>
+          <attribute id="0x0159" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015A" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015B" name="Detection Range" type="u32" access="rw" required="m">
+            <description>Detection Range in cm, from 0 to 600, in increments of 30.</description>
+          </attribute>
+          <attribute id="0x015C" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015D" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015E" name="Unknown" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x015F" name="Position" type="u32" access="r" required="m">
+            <description>Distance to detected person, in cm.</description>
+          </attribute>
+          <attribute id="0x0160" name="Occupancy" type="u8" access="r" required="m">
+            <description>4 = Occupancy; 2 = No occupancy.</description>
+          </attribute>
           <attribute id="0x0200" name="Child lock off" type="u8" access="rw" required="m">
             <description>Child lock off: 0 - false, 1 - true</description>
           </attribute>
@@ -6011,6 +6266,35 @@ Contactor > On/off=0003 - HP/HC=0004</description>
         <attribute id="0x0001" name="Motion alert reset" type="u16" mfcode="0x1209" access="rw" required="m"></attribute>
         <attribute id="0x0002" name="Device setup time" type="u16" mfcode="0x1209" access="rw" required="m"></attribute>
         <attribute id="0x0003" name="Audio alert on motion" type="bool" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x1209" access="r" required="m"></attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
+    <cluster id="0xfca0" name="Bosch specific" mfcode="0x1209">
+      <description>Bosch specific attributes.</description>
+      <server>
+        <attribute id="0x0000" name="Device mode" type="enum8" mfcode="0x1209" access="rw" required="m">
+          <value name="Disabled" value="0x00"></value>
+          <value name="Shutter" value="0x01"></value>
+          <value name="Light" value="0x04"></value>
+        </attribute>
+        <attribute id="0x0001" name="Switch type" type="enum8" mfcode="0x1209" access="rw" required="m">
+          <value name="Undefined" value="0x00"></value>
+          <value name="Momentary" value="0x01"></value>
+          <value name="Momentary (sides switched)" value="0x02"></value>
+          <value name="Rocker" value="0x03"></value>
+          <value name="Rocker (sides switched)" value="0x04"></value>
+        </attribute>
+        <attribute id="0x0002" name="Calibration opening time" type="u32" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0003" name="Calibration closing time" type="u32" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0008" name="Child lock" type="bool" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0013" name="Motor state" type="enum8" mfcode="0x1209" access="r" required="m">
+          <value name="Idle" value="0x00"></value>
+          <value name="Opening" value="0x01"></value>
+          <value name="Closing" value="0x02"></value>
+        </attribute>
         <attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x1209" access="r" required="m"></attribute>
       </server>
       <client>

@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "a13006cd-e75e-4693-aaa4-dfae5aabba52",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.switch.l0agl1",
-  "vendor": "Xiaomi",
-  "product": "Aqara T1 single rocker switch (no neutral wire) SSM-U02",
+  "vendor": "Xiaomi Aqara",
+  "product": "T1 single rocker switch no neutral wire (SSM-U02)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -146,8 +147,14 @@
             "mf": "0x115f"
           },
           "values": [
-            ["\"momentary\"", "Momentary mode"],
-            ["\"rocker\"", "Rocker mode"] 
+            [
+              "\"momentary\"",
+              "Momentary mode"
+            ],
+            [
+              "\"rocker\"",
+              "Rocker mode"
+            ]
           ],
           "default": "rocker"
         },
@@ -179,8 +186,14 @@
             "mf": "0x115f"
           },
           "values": [
-            ["\"compatibility\"", "Default mode for Xiaomi devices"],
-            ["\"zigbee\"", "Closer to zigbee standard"] 
+            [
+              "\"compatibility\"",
+              "Default mode for Xiaomi devices"
+            ],
+            [
+              "\"zigbee\"",
+              "Closer to zigbee standard"
+            ]
           ],
           "default": "compatibility"
         },

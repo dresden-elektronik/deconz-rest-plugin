@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "7d2b2eb7-d0f7-42a1-a792-cfa74c40d435",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI open/close remote",
-  "product": "TRADFRI open/close remote - E1766",
+  "vendor": "IKEA",
+  "product": "Tradfri open/close remote (E1766)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

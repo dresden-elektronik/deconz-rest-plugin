@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "a6d2c96b-43b7-4e6b-9884-350191c770bb",
   "manufacturername": "_TZ3000_hkkkuk7k",
   "modelid": "TS0012",
-  "product": "Tuya 2 output module",
+  "vendor": "Tuya",
+  "product": "2 output module (TS0012)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "ba595349-3541-41d6-a79f-965115d547a7",
   "manufacturername": "Phoscon",
   "modelid": "Hive",
-  "product": "Hive",
+  "vendor": "dresden elektronik",
+  "product": "Portable ambient light (Phoscon Hive)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -31,6 +33,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/swversion"

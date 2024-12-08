@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "4cb8ab04-0f78-4867-883a-204b8e8bcebc",
   "manufacturername": "OSRAM",
   "modelid": "Classic A60 TW",
-  "product": "Classic A60 TW",
+  "vendor": "Osram",
+  "product": "Lightify classic A 60 TW",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

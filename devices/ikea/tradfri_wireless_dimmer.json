@@ -1,8 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "5405897a-0084-45bc-8150-533acd5b7fb3",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI wireless dimmer",
-  "product": "TRADFRI wireless dimmer - E1724",
+  "vendor": "IKEA",
+  "product": "Tradfri wireless dimmer (E1724)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

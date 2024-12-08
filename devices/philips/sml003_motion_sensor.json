@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "1d56b2c1-1f23-4361-b887-f1a0153fa1ef",
   "manufacturername": [
     "$MF_PHILIPS",
     "$MF_SIGNIFY"
@@ -40,40 +41,22 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0000",
-            "at": "0x0004",
-            "eval": "Item.val = Attr.val"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0000",
-            "at": "0x0004"
-          },
-          "refresh.interval": 86400
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0000",
-            "at": "0x0005",
-            "eval": "Item.val = Attr.val"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0000",
-            "at": "0x0005"
-          }
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productname",
@@ -296,6 +279,15 @@
           "name": "attr/name"
         },
         {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
           "name": "attr/productname",
           "static": "Hue light sensor"
         },
@@ -398,6 +390,15 @@
           "name": "attr/name"
         },
         {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
           "name": "attr/productname",
           "static": "Hue temp. sensor"
         },
@@ -496,7 +497,7 @@
             "ep": 2,
             "cl": "0x0402",
             "at": "0x0000",
-            "eval": "Item.val = (Attr.val - R.item('config/offset').val) / 100"
+            "eval": "Item.val = (Attr.val + R.item('config/offset').val) / 100"
           },
           "read": {
             "fn": "zcl:attr",

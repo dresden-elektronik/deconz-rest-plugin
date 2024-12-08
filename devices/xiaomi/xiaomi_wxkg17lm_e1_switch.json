@@ -1,10 +1,11 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "18f34296-3284-4d97-9765-85d3f09c7962",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.remote.acn004",
   "matchexpr": "R.endpoints.length === 3",
-  "vendor": "Xiaomi",
-  "product": "Aqara E1 dual rocker wireless switch WXKG17LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "E1 dual rocker wireless switch (WXKG17LM)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -109,8 +110,14 @@
             "state.timeout": 2
           },
           "values": [
-            ["\"highspeed\"", "Buttons emit only single click events, but fast"],
-            ["\"multiclick\"", "Emits single, double and treble presses"] 
+            [
+              "\"highspeed\"",
+              "Buttons emit only single click events, but fast"
+            ],
+            [
+              "\"multiclick\"",
+              "Emits single, double and treble presses"
+            ]
           ],
           "default": "multiclick"
         },
@@ -143,8 +150,14 @@
             "state.timeout": 2
           },
           "values": [
-            ["\"compatibility\"", "Default mode for Xiaomi devices"],
-            ["\"zigbee\"", "Closer to zigbee standard"] 
+            [
+              "\"compatibility\"",
+              "Default mode for Xiaomi devices"
+            ],
+            [
+              "\"zigbee\"",
+              "Closer to zigbee standard"
+            ]
           ],
           "default": "compatibility"
         },

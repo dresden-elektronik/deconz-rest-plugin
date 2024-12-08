@@ -1,14 +1,15 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "5d354301-8bb8-4c5f-9741-edcccc367510",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_natgas",
-  "vendor": "Xiaomi",
-  "product": "Mijia Honeywell gas leak detector JTQJ-BF-01LM/BW",
+  "vendor": "Xiaomi Mi",
+  "product": "Honeywell gas leak detector (JTQJ-BF-01LM/BW)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "ZHACarbonMonoxide",
+      "type": "$TYPE_CARBONMONOXIDE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -110,8 +111,14 @@
             "mf": "0x115F"
           },
           "values": [
-            [true, "Initiate self-test"],
-            [false, "Self-test not initiated"]
+            [
+              true,
+              "Initiate self-test"
+            ],
+            [
+              false,
+              "Self-test not initiated"
+            ]
           ]
         },
         {
@@ -143,9 +150,18 @@
             "mf": "0x115F"
           },
           "values": [
-            [0, "Low"],
-            [1, "Medium"],
-            [2, "High"]
+            [
+              0,
+              "Low"
+            ],
+            [
+              1,
+              "Medium"
+            ],
+            [
+              2,
+              "High"
+            ]
           ],
           "default": 1
         },

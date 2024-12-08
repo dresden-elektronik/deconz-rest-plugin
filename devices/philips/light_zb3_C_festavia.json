@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "e7de8f0e-bf48-4ea0-b655-7e04fb6bdfa9",
   "manufacturername": [
     "$MF_SIGNIFY",
     "$MF_PHILIPS"
@@ -8,9 +9,11 @@
     "LCX012",
     "LCX012"
   ],
-  "product": "Hue Festavia",
+  "vendor": "Philips",
+  "product": "Hue festavia string lights",
   "sleeper": false,
   "status": "Gold",
+  "matchexpr": "R.hasCluster(0x0b,0xfc03)",
   "subdevices": [
     {
       "type": "$TYPE_EXTENDED_COLOR_LIGHT",
@@ -65,6 +68,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productid"
@@ -162,7 +174,13 @@
           "name": "cap/on/off_with_effect"
         },
         {
+          "name": "config/bri/couple_ct"
+        },
+        {
           "name": "config/bri/execute_if_off"
+        },
+        {
+          "name": "config/bri/options"
         },
         {
           "name": "config/bri/startup"
@@ -280,44 +298,6 @@
         },
         {
           "name": "state/effect",
-          "values": [
-            [
-              "\"none\"",
-              "no effect is active"
-            ],
-            [
-              "\"colorloop\"",
-              "colorloop through hue values"
-            ],
-            [
-              "\"candle\"",
-              "candlelight dynamic effect"
-            ],
-            [
-              "\"fireplace\"",
-              "fireplace dynamic effect"
-            ],
-            [
-              "\"prism\"",
-              "prism dynamic effect"
-            ],
-            [
-              "\"sunrise\"",
-              "sunrise dynamic effect"
-            ],
-            [
-              "\"sparkle\"",
-              "sparkle dynamic effect"
-            ],
-            [
-              "\"opal\"",
-              "opal dynamic effect"
-            ],
-            [
-              "\"glisten\"",
-              "glisten dynamic effect"
-            ]
-          ],
           "parse": {
             "fn": "zcl:attr",
             "ep": "0x0b",

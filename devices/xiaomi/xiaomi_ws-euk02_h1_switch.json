@@ -1,9 +1,10 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "ec6892b3-359f-4e7d-9665-da3435259b07",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.switch.l2aeu1",
-  "vendor": "Xiaomi",
-  "product": "Aqara H1 dual rocker switch (no neutral wire) WS-EUK02",
+  "vendor": "Xiaomi Aqara",
+  "product": "H1 dual rocker switch no neutral wire (WS-EUK02)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -204,8 +205,14 @@
             "mf": "0x115f"
           },
           "values": [
-            ["\"compatibility\"", "Default mode for Xiaomi devices"],
-            ["\"zigbee\"", "Closer to zigbee standard"] 
+            [
+              "\"compatibility\"",
+              "Default mode for Xiaomi devices"
+            ],
+            [
+              "\"zigbee\"",
+              "Closer to zigbee standard"
+            ]
           ],
           "default": "compatibility"
         },
@@ -237,8 +244,14 @@
             "mf": "0x115f"
           },
           "values": [
-            [true, "Device LED always on"],
-            [false, "Device LED off from 9pm - 9am"] 
+            [
+              true,
+              "Device LED always on"
+            ],
+            [
+              false,
+              "Device LED off from 9pm - 9am"
+            ]
           ],
           "default": true
         },

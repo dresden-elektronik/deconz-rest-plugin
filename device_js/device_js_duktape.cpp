@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2022-2024 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -10,129 +10,29 @@
 
 #ifdef USE_DUKTAPE_JS_ENGINE
 
-#include <assert.h>
 #include <unistd.h>
 
 #include "duktape.h"
 #include "device_js.h"
+#include "deconz/u_assert.h"
+#include "deconz/u_arena.h"
+#include "deconz/u_memory.h"
 #include "deconz/aps.h"
 #include "deconz/dbg_trace.h"
 #include "device.h"
 #include "resource.h"
 #include "utils/utils.h"
 
-#ifdef DECONZ_DEBUG_BUILD
-#if _MSC_VER
-  #define U_ASSERT(c) if (!(c)) __debugbreak()
-#elif __GNUC__
-  #define U_ASSERT(c) if (!(c)) __builtin_trap()
-#else
-  #define U_ASSERT assert
-#endif
-#else // release build
-  #define U_ASSERT DBG_Assert
-#endif
+#define U_UNUSED(x) (void)x
+#define DJS_GLOBAL_ITEM_MAGIC -777
+
+#define DJS_SENTINAL_ALLOCATED 0xAAAAAAAA
+#define DJS_SENTINAL_FREED     0x55555555
 
 static DeviceJs *_djs = nullptr; // singleton
 static DeviceJsPrivate *_djsPriv = nullptr; // singleton
 
-#define DJS_GLOBAL_ITEM_MAGIC -777
-
-/* TODO move arena code to utils module */
-
-#define U_KILO_BYTES(n) ((n) * 1000)
-#define U_MEGA_BYTES(n) ((n) * 1000 * 1000)
-
-#define U_UNUSED(x) (void)x
-
-#define U_ARENA_ALIGN_1  1
-#define U_ARENA_ALIGN_8  8
-#define U_ARENA_INVALID_PTR 0xFFFFFFFFU
-#define U_ARENA_SIZE_MASK 0x7FFFFFFFU
-#define U_ARENA_STATIC_MEM_FLAG 0x80000000U
-
-typedef struct U_Arena
-{
-    void *buf;
-    uint32_t size;
-    /* STATIC_MEM_FLAG is set in _total_size when the memory is not
-       owned by the arena.
-     */
-    uint32_t _total_size;
-} U_Arena;
-
-void *U_memalign(void *p, unsigned align)
-{
-    uintptr_t num;
-    uintptr_t algn;
-    void *p1;
-
-    U_ASSERT(align == 1 || align == 8 || align == 16 || align == 32 || align == 64);
-
-    num = (uintptr_t)p;
-    algn = align;
-    p1 = (void*)((num + (algn - 1)) & ~(algn - 1));
-
-    U_ASSERT(p <= p1);
-    return p1;
-}
-
-void U_InitArena(U_Arena *arena, uint32_t size)
-{
-    U_ASSERT((size & U_ARENA_SIZE_MASK) == size);
-    arena->size = 0;
-    arena->_total_size = size;
-    arena->buf = malloc(size);
-    memset(arena->buf, 0, size);
-}
-
-void *U_AllocArena(U_Arena *arena, uint32_t size, unsigned alignment)
-{
-    uint8_t *p;
-    uint8_t *end;
-    uint64_t *size_hdr;
-
-    U_ASSERT(arena->buf);
-    U_ASSERT(arena->_total_size > 0);
-
-    U_ASSERT((arena->_total_size - (arena->size + 32)) > size); // enough space #1
-    if ((arena->_total_size - (arena->size + 32)) < size)
-    {
-        return NULL;
-    }
-
-    p = (uint8_t*)arena->buf;
-    p += arena->size;
-    p = (uint8_t*)U_memalign(p, alignment);
-
-    // embed size header before memory, 8 bytes is a bit wasteful, but easy for now
-    size_hdr = (uint64_t*)p;
-    *size_hdr = size;
-    p += sizeof(*size_hdr);
-
-    end = (uint8_t*)arena->buf;
-    end += (arena->_total_size & U_ARENA_SIZE_MASK);
-
-    if ((end - p) > size)
-    {
-        arena->size = (uint32_t)(p - (uint8_t*)arena->buf);
-        arena->size += size;
-        return p;
-    }
-
-    U_ASSERT(0 && "U_AllocArena() mem exhausted");
-
-    return NULL;
-}
-
-void U_FreeArena(U_Arena *arena)
-{
-    U_ASSERT(arena->buf);
-    if ((arena->_total_size & U_ARENA_STATIC_MEM_FLAG) == 0)
-        free(arena->buf);
-
-    memset(arena, 0, sizeof(*arena));
-}
+static unsigned statFreed;
 
 class DeviceJsPrivate
 {
@@ -182,9 +82,19 @@ void *U_duk_alloc(void *udata, duk_size_t size)
     void *ptr;
     U_ASSERT(size > 0 && "expected size > 0");
 
-    ptr = U_AllocArena(&_djsPriv->arena, size, U_ARENA_ALIGN_8);
+    ptr = U_AllocArena(&_djsPriv->arena, size + 8, U_ARENA_ALIGN_8);
+    U_ASSERT(ptr && "U_duk_alloc out of memory");
+    if (!ptr)
+    {
+        return NULL;
+    }
+    U_ASSERT(((uintptr_t)ptr & 0x7) == 0); // must be 8 byte aligned boundary
+    // put size before data for realloc
+    uint32_t *hdr = (uint32_t*)ptr;
+    hdr[0] = size;
+    hdr[1] = DJS_SENTINAL_ALLOCATED; // mark allocated
 
-	return ptr;
+    return (void*)((uint8_t*)ptr + 8);
 }
 
 void U_duk_free(void *udata, void *ptr)
@@ -192,30 +102,33 @@ void U_duk_free(void *udata, void *ptr)
     U_UNUSED(udata);
     if (ptr)
     {
-        // arena allocator doesn't free ...
-    }
-    else
-    {
-        //printf("%s (NULL pointer!)\n", __FUNCTION__);
-        //U_ASSERT(0 && "NULL_PTR_FREE");
+        U_ASSERT(((uintptr_t)ptr & 0x7) == 0); // must be 8 byte aligned boundary
+        uint32_t *hdr = (uint32_t*)ptr;
+        hdr -= 2;
+        U_ASSERT(hdr[1] == DJS_SENTINAL_ALLOCATED);
+        statFreed += hdr[0];
+        hdr[1] = DJS_SENTINAL_FREED; // mark as free
+        // arena allocator doesn't really free ...
+        // TODO(mpi): We could keep a free list to reduce memory consumption further in
+        //            in low spec setups in future.
     }
 }
 
-void *U_duk_realloc(void *udata, void *ptr, duk_size_t size)
+void *U_duk_realloc(void *udata, void *ptr, duk_size_t new_size)
 {
 	uint8_t *p;
     uint8_t *beg;
     uint8_t *end;
-    uint64_t *size_hdr;
+    uint32_t *hdr;
     void *p_new;
-    uint64_t sz;
+    uint32_t bytes_to_copy;
 
     if (ptr == NULL)
     {
-        return U_duk_alloc(udata, size);
+        return U_duk_alloc(udata, new_size);
     }
 
-    if (size == 0)
+    if (new_size == 0)
     {
         /* man realloc:
            If size is equal to zero, and ptr is not NULL, then the call is equivalent to free(ptr)
@@ -237,17 +150,27 @@ void *U_duk_realloc(void *udata, void *ptr, duk_size_t size)
     }
 
     {
-        size_hdr = (uint64_t*)&p[-8];
-        p_new = U_duk_alloc(udata, size);
+        U_ASSERT(((uintptr_t)p & 0x7) == 0); // must be aligned to 8 byte boundary
+        hdr = (uint32_t*)ptr;
+        hdr -= 2;
+        U_ASSERT(hdr[1] == DJS_SENTINAL_ALLOCATED);
 
-        sz = size < *size_hdr ? size : *size_hdr;
-        memcpy(p_new, p, sz);
+        if (hdr[1] == DJS_SENTINAL_ALLOCATED && new_size <= hdr[0])
+        {
+            // buffer already large enough
+            return ptr;
+        }
+
+        p_new = U_duk_alloc(udata, new_size);
+
+        bytes_to_copy = new_size <= *hdr ? new_size : *hdr;
+        U_ASSERT(bytes_to_copy <= new_size);
+        U_memcpy(p_new, p, bytes_to_copy);
 
         U_duk_free(udata, ptr);
         ptr = p_new;
     }
 
-    // printf("%s: %u bytes\n", __FUNCTION__, (unsigned)size);
     return ptr;
 }
 
@@ -349,11 +272,78 @@ static duk_ret_t DJS_GetResourceEndpoints(duk_context *ctx)
     return 1;  /* one return value */
 }
 
+static duk_ret_t DJS_GetResourceHasCluster(duk_context *ctx)
+{
+    int ep;
+    int cluster;
+    int side = 0;
+    int nargs = duk_get_top(ctx);
+
+    if (nargs < 2)
+    {
+        return duk_type_error(ctx, "R.hasCluster(ep,cluster[,side]) invalid arguments");
+    }
+
+    if (duk_is_number(ctx, 0) == 0)
+    {
+        return duk_type_error(ctx, "R.hasCluster(ep,cluster[,side]) ep MUST be a number");
+    }
+    ep = duk_to_int(ctx, 0);
+
+    if (duk_is_number(ctx, 1) == 0)
+    {
+        return duk_type_error(ctx, "R.hasCluster(ep,cluster,side) cluster MUST be a number");
+    }
+    cluster = duk_to_int(ctx, 1);
+
+    if (nargs == 3)
+    {
+        if (duk_is_number(ctx, 2) == 0)
+        {
+            return duk_type_error(ctx, "R.hasCluster(ep,cluster,side) side MUST be a number");
+        }
+        side = duk_to_int(ctx, 2);
+    }
+
+    if (_djsPriv->resource)
+    {
+        const deCONZ::Node *node = getResourceCoreNode(_djsPriv->resource);
+        if (node)
+        {
+            const deCONZ::SimpleDescriptor *sd = nullptr;
+
+            for (size_t i = 0; i < node->simpleDescriptors().size(); i++)
+            {
+                sd = &node->simpleDescriptors()[i];
+                if (sd->endpoint() != ep)
+                {
+                    continue;
+                }
+
+                const auto &clusters = (side == 0) ? sd->inClusters() : sd->outClusters();
+
+                for (size_t j = 0; j < clusters.size(); j++)
+                {
+                    if (clusters[j].id() == cluster)
+                    {
+                        duk_push_boolean(ctx, 1);
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+
+    duk_push_boolean(ctx, 0);
+    return 1;  /* one return value */
+}
+
 /* Creates 'R' global scope object. */
 static void DJS_InitGlobalResource(duk_context *ctx)
 {
     const duk_function_list_entry my_module_funcs[] = {
         { "item", DJS_GetResourceItem, 1 /* 1 arg */ },
+        { "hasCluster", DJS_GetResourceHasCluster, DUK_VARARGS /* 2..3 args */ },
         { NULL, NULL, 0 }
     };
 
@@ -1053,7 +1043,7 @@ void DJS_InitDuktape(DeviceJsPrivate *d)
     // snaphot of the memory state to jump back on reset()
     d->initial_context.reserve(d->arena.size);
     d->initial_context.resize(d->arena.size);
-    memcpy(d->initial_context.data(), d->arena.buf, d->arena.size);
+    U_memcpy(d->initial_context.data(), d->arena.buf, d->arena.size);
 }
 
 DeviceJs::DeviceJs() :
@@ -1195,7 +1185,7 @@ JsEvalResult DeviceJs::evaluate(const QString &expr)
 
     if (DBG_IsEnabled(DBG_JS))
     {
-        DBG_Printf(DBG_JS, "DJS result  %s, memory peak: %u bytes\n", duk_safe_to_string(ctx, -1), d->arena.size);
+        DBG_Printf(DBG_JS, "DJS result  %s, memory peak: %lu bytes, freed: %u\n", duk_safe_to_string(ctx, -1), d->arena.size - (unsigned)d->initial_context.size(), statFreed);
     }
 
     duk_pop(ctx);
@@ -1220,6 +1210,12 @@ JsEvalResult DeviceJs::testCompile(const QString &expr)
     d->errFatal = 0;
     d->isReset = false;
 
+    ResourceItemDescriptor rInvalidItemDescriptor;
+
+    if (!getResourceItemDescriptor(RInvalidSuffix, rInvalidItemDescriptor))
+    {
+        return result;
+    }
     ResourceItem dummyItem(rInvalidItemDescriptor);
     d->ritem = &dummyItem;
 
@@ -1294,6 +1290,7 @@ void DeviceJs::reset()
     d->result = {};
     d->errString.clear();
 
+    statFreed = 0;
     U_ASSERT(d->dukContext);
     U_ASSERT(d->arena.size > 0);
     U_ASSERT(d->initial_context.size() > 0);
@@ -1305,7 +1302,7 @@ void DeviceJs::reset()
 
     // DBG_MEASURE_START(DJS_Reset);
 
-    memcpy(d->arena.buf, d->initial_context.data(), d->initial_context.size());
+    U_memcpy(d->arena.buf, d->initial_context.data(), d->initial_context.size());
     d->arena.size = d->initial_context.size();
 
     // DBG_MEASURE_END(DJS_Reset);
