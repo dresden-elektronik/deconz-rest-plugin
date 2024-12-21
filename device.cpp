@@ -2154,7 +2154,7 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
 
     addItem(DataTypeBool, RStateReachable);
     addItem(DataTypeBool, RCapSleeper);
-    addItem(DataTypeUInt64, RAttrExtAddress);
+    addItem(DataTypeUInt64, RAttrExtAddress)->setIsPublic(false);
     addItem(DataTypeUInt16, RAttrNwkAddress);
     addItem(DataTypeString, RAttrUniqueId)->setValue(generateUniqueId(key, 0, 0));
     addItem(DataTypeString, RAttrManufacturerName);

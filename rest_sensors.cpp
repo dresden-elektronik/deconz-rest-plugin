@@ -2687,15 +2687,7 @@ bool DeRestPluginPrivate::sensorToMap(Sensor *sensor, QVariantMap &map, const Ap
 
             const ApiAttribute a = rid.toApi(map, event);
             QVariantMap *p = a.map;
-            if (rid.suffix == RAttrExtAddress)
-            {
-                const quint64 value = item->toNumber();
-                (*p)[a.key] = value;
-            }
-            else
-            {
-                (*p)[a.key] = item->toVariant();
-            }
+            (*p)[a.key] = item->toVariant();
 
             if (event && item->needPushChange())
             {
