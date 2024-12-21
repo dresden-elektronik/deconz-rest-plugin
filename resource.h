@@ -31,6 +31,17 @@ enum ApiDataType
     DataTypeTimePattern
 };
 
+class ApiAttribute
+{
+    public:
+        QVariantMap *map;
+        QString key, top;
+        ApiAttribute(QVariantMap *m, QString k, QString t) :
+            map(m),
+            key(k),
+            top(t) { }
+};
+
 struct R_Stats
 {
     size_t toString = 0;
@@ -185,6 +196,7 @@ extern const char *RStateOrientationZ;
 extern const char *RStatePM2_5; // Deprecated
 extern const char *RStatePanel;
 extern const char *RStatePower;
+extern const char *RStatePowerDivisor;
 extern const char *RStatePresence;
 extern const char *RStatePresenceEvent;
 extern const char *RStatePressure;
@@ -429,6 +441,7 @@ public:
     double validMin = 0;
     double validMax = 0;
     quint16 flags = 0;
+    ApiAttribute toApi(QVariantMap &attr, bool event = false) const;
 };
 
 class Resource;
