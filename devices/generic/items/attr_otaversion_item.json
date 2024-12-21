@@ -3,7 +3,7 @@
   "id": "attr/otaversion",
   "datatype": "UInt32",
   "access": "R",
-  "public": true,
+  "public": false,
   "implicit": false,
   "description": "OTA cluster file version.",
   "parse": {
