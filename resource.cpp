@@ -40,6 +40,7 @@ const char *REventPermitjoinDisabled = "event/permit.join.disabled";
 const char *REventPermitjoinEnabled = "event/permit.join.enabled";
 const char *REventPermitjoinRunning = "event/permit.join.running";
 const char *REventPoll = "event/poll";
+const char *REventPollDone = "event/poll.done";
 const char *REventSimpleDescriptor = "event/simple.descriptor";
 const char *REventStartTimer = "event/start.timer";
 const char *REventStateEnter = "event/state.enter";

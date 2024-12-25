@@ -20,6 +20,7 @@
 #define TICK_INTERVAL_JOIN 500
 #define TICK_INTERVAL_IDLE 1000
 #define TICK_INTERVAL_IDLE_OTAU 6000
+#define TICK_INTERVAL_POLL_TIMOUT 10000
 
 extern int DEV_ApsQueueSize();
 extern bool DEV_OtauBusy();
@@ -37,6 +38,7 @@ typedef void (*DT_StateHandler)(DeviceTickPrivate *d, const Event &event);
 static void DT_StateInit(DeviceTickPrivate *d, const Event &event);
 static void DT_StateJoin(DeviceTickPrivate *d, const Event &event);
 static void DT_StateIdle(DeviceTickPrivate *d, const Event &event);
+static void DT_StatePoll(DeviceTickPrivate *d, const Event &event);
 
 class DeviceTickPrivate
 {
@@ -48,6 +50,9 @@ public:
     QTimer *timer = nullptr;
     size_t devIter = 0;
     const DeviceContainer *devices = nullptr;
+    // for logging
+    DeviceKey curDeviceKey = 0;
+    bool curDeviceManaged = false;
 };
 
 /*! Constructor.
@@ -120,31 +125,37 @@ static void DT_StateInit(DeviceTickPrivate *d, const Event &event)
 {
     if (event.resource() == RLocal && event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_INFO, "DEV Tick.Init: booted after %lld seconds\n", DEV_TICK_BOOT_TIME);
+        DBG_Printf(DBG_DEV, "DEV Tick.Init: booted after %ld seconds\n", (long)DEV_TICK_BOOT_TIME);
         DT_SetState(d, DT_StateIdle);
     }
 }
 
 /*! Emits REventPoll to the next device in DT_StateIdle.
  */
-static void DT_PollNextIdleDevice(DeviceTickPrivate *d)
+static bool DT_PollNextIdleDevice(DeviceTickPrivate *d)
 {
     const auto devCount = d->devices->size();
 
     if (devCount == 0)
     {
-        return;
+        return false;
     }
 
     d->devIter %= devCount;
 
     const auto &device = d->devices->at(d->devIter);
+    d->devIter++;
     Q_ASSERT(device);
+
     if (device->reachable())
     {
+        d->curDeviceKey = device->key();
+        d->curDeviceManaged = device->managed();
         emit d->q->eventNotify(Event(device->prefix(), REventPoll, 0, device->key()));
+        return true;
     }
-    d->devIter++;
+
+    return false;
 }
 
 /*! This state is active while Permit Join is disabled for normal idle operation.
@@ -165,7 +176,11 @@ static void DT_StateIdle(DeviceTickPrivate *d, const Event &event)
             int timeout = DEV_OtauBusy() ? TICK_INTERVAL_IDLE_OTAU : TICK_INTERVAL_IDLE;
             if (DA_ApsUnconfirmedRequests() < 4)
             {
-                DT_PollNextIdleDevice(d);
+                if (DT_PollNextIdleDevice(d))
+                {
+                    DT_SetState(d, DT_StatePoll);
+                    return;
+                }
             }
             DT_StartTimer(d, timeout);
         }
@@ -177,6 +192,38 @@ static void DT_StateIdle(DeviceTickPrivate *d, const Event &event)
         {
             DT_StopTimer(d);
         }
+    }
+}
+
+/*! Wait for poll state to finish either by timeout or device signaling that nothing needs to be polled.
+ */
+static void DT_StatePoll(DeviceTickPrivate *d, const Event &event)
+{
+    if (event.what() == REventPermitjoinEnabled)
+    {
+        DT_SetState(d, DT_StateJoin);
+    }
+    else if (event.resource() == RLocal)
+    {
+        if (event.what() == REventStateTimeout)
+        {
+            DT_SetState(d, DT_StateIdle);
+        }
+        else if (event.what() == REventStateEnter)
+        {
+            DBG_Printf(DBG_DEV, "DEV Tick: poll enter " FMT_MAC ", managed = %d\n", FMT_MAC_CAST(d->curDeviceKey), d->curDeviceManaged);
+            DT_StartTimer(d, TICK_INTERVAL_POLL_TIMOUT);
+        }
+        else if (event.what() == REventStateLeave)
+        {
+            DBG_Printf(DBG_DEV, "DEV Tick: poll leave " FMT_MAC "\n", FMT_MAC_CAST(d->curDeviceKey));
+            DT_StopTimer(d);
+        }
+    }
+    else if (event.resource() == RDevices && event.what() == REventPollDone)
+    {
+        DBG_Printf(DBG_DEV, "DEV Tick: poll done " FMT_MAC "\n", FMT_MAC_CAST(d->curDeviceKey));
+        DT_SetState(d, DT_StateIdle);
     }
 }
 
@@ -197,7 +244,7 @@ static void DT_RegisterJoiningDevice(DeviceTickPrivate *d, DeviceKey deviceKey, 
         dev.deviceKey = deviceKey;
         dev.macCapabilities = macCapabilities;
         d->joinDevices.push_back(dev);
-        DBG_Printf(DBG_INFO, "DEV Tick: fast poll 0x%016llX, mac capabilities: 0x%02X\n", deviceKey, macCapabilities);
+        DBG_Printf(DBG_DEV, "DEV Tick: fast poll " FMT_MAC ", mac capabilities: 0x%02X\n", FMT_MAC_CAST(deviceKey), macCapabilities);
     }
 }
 
@@ -233,7 +280,7 @@ static void DT_StateJoin(DeviceTickPrivate *d, const Event &event)
     }
     else if (event.what() == REventDeviceAnnounce)
     {
-        DBG_Printf(DBG_INFO, "DEV Tick.Join: %s\n", event.what());
+        DBG_Printf(DBG_DEV, "DEV Tick.Join: %s\n", event.what());
         DT_RegisterJoiningDevice(d, event.deviceKey(), static_cast<quint8>(event.num()));
     }
     else if (event.resource() == RLocal)

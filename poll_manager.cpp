@@ -198,6 +198,13 @@ void PollManager::pollTimerFired()
     {
         pollState = StateIdle;
         timer->start(50);
+
+        // Notify the DeviceTick manager that legacy code is done polling.
+        Device *device = DEV_GetDevice(plugin->m_devices, dstAddr.ext());
+        if (device)
+        {
+            emit device->eventNotify(Event(device->prefix(), REventPollDone, 0, device->key()));
+        }
         emit done();
         return;
     }
