@@ -61,6 +61,7 @@ extern const char *REventPermitjoinEnabled;
 extern const char *REventPermitjoinDisabled;
 extern const char *REventPermitjoinRunning;
 extern const char *REventPoll;
+extern const char *REventPollDone;
 extern const char *REventDDFReload;
 extern const char *REventDDFInitRequest;
 extern const char *REventDDFInitResponse;
