@@ -1,9 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "NAMRON AS",
-  "modelid": "4512770",
+  "manufacturername": ["NAMRON AS", "NAMRON AS"],
+  "modelid": ["4512770","4512771"], 
   "vendor": "NAMRON",
-  "product": "4in1(4512770)",
+  "product": "4in1-MultiSensor",
   "sleeper": true,
   "status": "Gold",
   "path": "/devices/namron/4512770-4in1.json",
