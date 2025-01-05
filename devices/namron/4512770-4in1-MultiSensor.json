@@ -1,7 +1,13 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": ["NAMRON AS", "NAMRON AS"],
-  "modelid": ["4512770","4512771"], 
+  "manufacturername": [
+    "NAMRON AS",
+    "NAMRON AS"
+  ],
+  "modelid": [
+    "4512770",
+    "4512771"
+  ],
   "vendor": "NAMRON",
   "product": "4in1-MultiSensor",
   "sleeper": true,
