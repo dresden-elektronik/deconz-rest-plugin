@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "e8cc4eba-5ec0-4cc5-91c7-4edd19c94438",
-  "manufacturername": "BOSCH",
+  "manufacturername": "Bosch",
   "modelid": "RBSH-RTH0-ZB-EU",
   "vendor": "Bosch",
   "product": "Room thermostat II 230V (BTH-RM230Z)",
@@ -270,6 +270,10 @@
             "fn": "zcl:attr",
             "mf": "0x1209"
           }
+        },	  
+        {
+          "name": "state/on",
+          "refresh.interval": 5
         }
       ]
     },
