@@ -219,7 +219,7 @@
         {
           "name": "state/on",
           "parse": {
-            "dpid": 3,
+            "dpid": 4,
             "eval": "Item.val = Attr.val > 1",
             "fn": "tuya"
           },
