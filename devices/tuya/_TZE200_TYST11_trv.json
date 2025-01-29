@@ -104,7 +104,7 @@
           "parse": {
             "fn": "tuya",
             "dpid": 21,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val"
           },
           "read": {
             "fn": "none"
@@ -132,13 +132,13 @@
           "parse": {
             "fn": "tuya",
             "dpid": 7,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val"
           },
           "write": {
             "fn": "tuya",
             "dpid": 7,
             "dt": "0x10",
-            "eval": "Item.val;"
+            "eval": "Item.val"
           },
           "read": {
             "fn": "none"
@@ -172,13 +172,13 @@
           "parse": {
             "fn": "tuya",
             "dpid": 20,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val"
           },
           "write": {
             "fn": "tuya",
             "dpid": 20,
             "dt": "0x10",
-            "eval": "Item.val;"
+            "eval": "Item.val"
           },
           "read": {
             "fn": "none"
@@ -189,13 +189,13 @@
           "parse": {
             "fn": "tuya",
             "dpid": 18,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val"
           },
           "write": {
             "fn": "tuya",
             "dpid": 18,
             "dt": "0x10",
-            "eval": "Item.val;"
+            "eval": "Item.val"
           },
           "read": {
             "fn": "none"
@@ -206,7 +206,7 @@
           "parse": {
             "fn": "tuya",
             "dpid": 19,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val"
           },
           "read": {
             "fn": "none"
@@ -215,6 +215,17 @@
         },
         {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "state/on",
+          "parse": {
+            "dpid": 3,
+            "eval": "Item.val = Attr.val > 1",
+            "fn": "tuya"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/temperature",
