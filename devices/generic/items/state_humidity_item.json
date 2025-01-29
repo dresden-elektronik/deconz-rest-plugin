@@ -4,7 +4,7 @@
   "datatype": "UInt16",
   "access": "R",
   "public": true,
-  "description": "The current relative humidity in percent.",
+  "description": "The current relative humidity in 0.01 percent.",
   "parse": {
     "at": "0x0000",
     "cl": "0x0405",

@@ -4,5 +4,5 @@
   "datatype": "Int16",
   "access": "R",
   "public": false,
-  "description": "The current air pressure (mBar)."
+  "description": "The current air pressure (hPa)."
 }

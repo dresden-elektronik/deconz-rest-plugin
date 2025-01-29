@@ -3,7 +3,7 @@
   "id": "cap/on/off_with_effect",
   "datatype": "Bool",
   "access": "R",
-  "public": true,
+  "public": false,
   "description": "Device supports the _Off with Effect_ command.",
   "static": true
 }
