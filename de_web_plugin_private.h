@@ -1321,7 +1321,6 @@ public:
     void handleMacDataRequest(const deCONZ::NodeEvent &event);
     void addLightNode(const deCONZ::Node *node);
     void setLightNodeStaticCapabilities(LightNode *lightNode);
-    void updatedLightNodeEndpoint(const deCONZ::NodeEvent &event);
     void nodeZombieStateChanged(const deCONZ::Node *node);
     LightNode *updateLightNode(const deCONZ::NodeEvent &event);
     LightNode *getLightNodeForAddress(const deCONZ::Address &addr, quint8 endpoint = 0);

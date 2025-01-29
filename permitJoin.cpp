@@ -90,16 +90,6 @@ void DeRestPluginPrivate::permitJoinTimerFired()
                 i++;
             }
         }
-        else if ((gwPermitJoinDuration % 15) == 0) // TODO bad this needs to go
-        {
-            for (LightNode &l : nodes)
-            {
-                if (l.isAvailable() && l.modelId().isEmpty())
-                {
-                    queuePollNode(&l);
-                }
-            }
-        }
 
         updateEtag(gwConfigEtag); // update Etag so that webApp can count down permitJoin duration
     }
