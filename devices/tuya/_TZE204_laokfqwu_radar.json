@@ -1,20 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "6ed73563-62f9-4ff2-99e7-feb6755209f1",
-  "manufacturername": [
-    "_TZE200_ztc6ggyl",
-    "_TZE204_ztc6ggyl",
-    "_TZE200_ar0slwnd",
-    "_TZE200_sfiy5tfs",
-    "_TZE200_mrf6vtua"
-  ],
-  "modelid": [
-    "TS0601",
-    "TS0601",
-    "TS0601",
-    "TS0601",
-    "TS0601"
-  ],
+  "manufacturername": "_TZE204_laokfqwu",
+  "modelid": "TS0601",
   "vendor": "Tuya",
   "product": "MmwRadar Human Presence Detector (TS0601)",
   "sleeper": false,
@@ -95,7 +82,7 @@
             "fn": "none"
           },
           "parse": {
-            "dpid": 104,
+            "dpid": 103,
             "script": "../generic/illuminance_cluster/lux_to_lightlevel.js",
             "fn": "tuya"
           },
@@ -160,13 +147,13 @@
             "fn": "none"
           },
           "write": {
-            "dpid": 101,
+            "dpid": 105,
             "dt": "0x2b",
             "eval": "Item.val;",
             "fn": "tuya"
           },
           "parse": {
-            "dpid": 101,
+            "dpid": 105,
             "eval": "Item.val = Attr.val;",
             "fn": "tuya"
           },
@@ -183,13 +170,13 @@
             "fn": "none"
           },
           "write": {
-            "dpid": 102,
+            "dpid": 106,
             "dt": "0x2b",
             "eval": "Item.val;",
             "fn": "tuya"
           },
           "parse": {
-            "dpid": 102,
+            "dpid": 106,
             "eval": "Item.val = Attr.val;",
             "fn": "tuya"
           },
