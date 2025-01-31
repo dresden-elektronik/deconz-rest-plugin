@@ -1,10 +1,8 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "9c445b95-57d9-4364-8c29-09f556659886",
   "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRI bulb GU10 WW 400lm",
-  "vendor": "IKEA",
-  "product": "Tradfri LED bulb GU10 400 lumen, dimmable/warm white (LED1837R5)",
+  "modelid": "TRADFRIbulbE27WWclear250lm",
+  "product": "TRÅDFRI LED bulb E27 250lm warm white clear chandelier",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -45,14 +43,17 @@
         },
         {
           "name": "state/alert",
+          "description": "The currently active alert effect.",
           "default": "none"
         },
         {
           "name": "state/bri",
+          "description": "The current brightness.",
           "refresh.interval": 360
         },
         {
           "name": "state/on",
+          "description": "True when device is on; false when off.",
           "refresh.interval": 360
         },
         {

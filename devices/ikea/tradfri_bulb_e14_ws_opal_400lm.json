@@ -6,7 +6,7 @@
   "vendor": "IKEA",
   "product": "Tradfri LED bulb E14 400 lumen (LED1536G5)",
   "sleeper": false,
-  "status": "Bronze",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
@@ -17,32 +17,154 @@
       ],
       "items": [
         {
-          "name": "cap/color/capabilities"
+          "name": "attr/id"
         },
         {
-          "name": "cap/color/ct/max"
+          "name": "attr/lastannounced"
         },
         {
-          "name": "cap/color/ct/min"
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/bri/move_with_onoff",
+          "static": true
+        },
+        {
+          "name": "cap/color/capabilities",
+          "refresh.interval": 86400
+        },
+        {
+          "name": "cap/color/ct/max",
+          "static": 454
+        },
+        {
+          "name": "cap/color/ct/min",
+          "static": 250
+        },
+        {
+          "name": "cap/on/off_with_effect",
+          "static": true
         },
         {
           "name": "state/alert",
           "default": "none"
         },
         {
-          "name": "state/bri"
+          "name": "state/bri",
+          "refresh.interval": 360
         },
         {
-          "name": "state/colormode"
+          "name": "state/colormode",
+          "refresh.interval": 360
         },
         {
-          "name": "state/ct"
+          "name": "state/ct",
+          "refresh.interval": 360
         },
         {
-          "name": "state/on"
+          "name": "state/on",
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0000",
+      "report": [
+        {
+          "at": "0x4000",
+          "dt": "0x42",
+          "min": 0,
+          "max": 65535
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0008",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000005"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0300",
+      "report": [
+        {
+          "at": "0x0007",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1800,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0003",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1795,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0004",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1795,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0008",
+          "dt": "0x30",
+          "min": 1,
+          "max": 1800
         }
       ]
     }
