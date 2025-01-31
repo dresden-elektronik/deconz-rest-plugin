@@ -49,16 +49,16 @@
         },
         {
           "name": "cap/color/capabilities",
-          "static": 16
+          "refresh.interval": 86400
         },
         {
           "name": "cap/color/ct/max",
-          "refresh.interval": 84000,
+          "refresh.interval": 86400,
           "default": "0xfeff"
         },
         {
           "name": "cap/color/ct/min",
-          "refresh.interval": 84000,
+          "refresh.interval": 86400,
           "default": 0
         },
         {

@@ -54,12 +54,12 @@
         {
           "name": "cap/color/ct/max",
           "refresh.interval": 86400,
-          "static": 454
+          "default": "0xfeff"
         },
         {
           "name": "cap/color/ct/min",
           "refresh.interval": 86400,
-          "static": 250
+          "default": 0
         },
         {
           "name": "cap/on/off_with_effect",
