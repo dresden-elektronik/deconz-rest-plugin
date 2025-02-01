@@ -46,7 +46,7 @@
         },
         {
           "name": "cap/color/capabilities",
-          "static": 16
+          "refresh.interval": 86400
         },
         {
           "name": "cap/color/ct/max",
