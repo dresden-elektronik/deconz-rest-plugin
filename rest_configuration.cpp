@@ -1792,8 +1792,8 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         if (seconds > 0)
         {
-            startSearchLights();
-            startSearchSensors();
+            startSearchLights(gwPermitJoinDuration);
+            startSearchSensors(gwPermitJoinDuration);
         }
 
         QVariantMap rspItem;
