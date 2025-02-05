@@ -714,9 +714,9 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
 
         if (iasState == IAS_STATE_READ)
         {
-            DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Read IAS zone state and CIE address...\n", sensor->address().ext());
+            DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Read IAS zone state, type and CIE address...\n", sensor->address().ext());
 
-            if (readAttributes(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, {IAS_ZONE_STATE, IAS_CIE_ADDRESS}))
+            if (readAttributes(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, {IAS_ZONE_STATE, IAS_ZONE_TYPE, IAS_CIE_ADDRESS}))
             {
                 queryTime = queryTime.addSecs(1);
                 IAS_SetState(sensor, itemIasState, IAS_STATE_WAIT_READ);
