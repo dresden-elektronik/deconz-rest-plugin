@@ -157,6 +157,7 @@ const char *RStateOrientationZ = "state/orientation_z";
 const char *RStatePM2_5 = "state/pm2_5";
 const char *RStatePanel = "state/panel";
 const char *RStatePower = "state/power";
+const char *RStatePowerDivisor = "state/power_divisor";
 const char *RStatePresence = "state/presence";
 const char *RStatePresenceEvent = "state/presenceevent";
 const char *RStatePressure = "state/pressure";
@@ -295,9 +296,9 @@ const char *RConfigHostFlags = "config/hostflags";
 const char *RConfigHumiMaxThreshold = "config/humiditymaxthreshold";
 const char *RConfigHumiMinThreshold = "config/humidityminthreshold";
 const char *RConfigInterfaceMode = "config/interfacemode";
-const char *RConfigLastChangeAmount = "config/lastchange_amount";
-const char *RConfigLastChangeSource = "config/lastchange_source";
-const char *RConfigLastChangeTime = "config/lastchange_time";
+const char *RConfigLastChangeAmount = "config/lastchange/amount";
+const char *RConfigLastChangeSource = "config/lastchange/source";
+const char *RConfigLastChangeTime = "config/lastchange/time";
 const char *RConfigLat = "config/lat";
 const char *RConfigLedIndication = "config/ledindication";
 const char *RConfigLoadBalancing = "config/loadbalancing";
@@ -482,6 +483,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStatePM2_5));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStatePanel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePower));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStatePowerDivisor));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStatePresence));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStatePresenceEvent));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePressure, 0, 32767));
@@ -1496,6 +1498,45 @@ QVariant ResourceItem::toVariant() const
     }
 
     return QVariant();
+}
+
+/*! Return a pointer to the submap and the key where this ResourceItemDescriptor is to be reported. */
+ApiAttribute ResourceItemDescriptor::toApi(QVariantMap &attr, bool event) const
+{
+    QStringList keys = QString(suffix).split(QLatin1String("/"), SKIP_EMPTY_PARTS);
+    DBG_Assert(keys.length() > 1);
+    QString key, top;
+
+    QVariantMap *p = &attr;
+    while (!keys.isEmpty())
+    {
+        key = keys.takeFirst();
+        if (top.isNull())
+        {
+            if (key == QLatin1String("attr") && !event)
+            {
+                continue;
+            }
+            if (key == QLatin1String("cap"))
+            {
+                key = QLatin1String("capabilities");
+            }
+            top = key;
+        }
+        if (!keys.isEmpty())
+        {
+            if ((*p)[key].isNull())
+            {
+                (*p)[key] = QVariantMap();
+                p = (QVariantMap *) &((*p)[key]);
+            }
+            else if ((*p)[key].type() == QVariant::Map)
+            {
+                p = (QVariantMap *) &((*p)[key]);
+            }
+        }
+    }
+    return ApiAttribute(p, key, top);
 }
 
 /*! Marks the resource item as involved in a rule. */

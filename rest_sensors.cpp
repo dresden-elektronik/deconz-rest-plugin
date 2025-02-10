@@ -391,7 +391,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         if      (type == QLatin1String("CLIPAlarm")) { item = sensor.addItem(DataTypeBool, RStateAlarm); item->setValue(false); }
         else if (type == QLatin1String("CLIPBattery")) { item = sensor.addItem(DataTypeUInt8, RStateBattery); item->setValue(100); }
         else if (type == QLatin1String("CLIPCarbonMonoxide")) { item = sensor.addItem(DataTypeBool, RStateCarbonMonoxide); item->setValue(false); }
-        else if (type == QLatin1String("CLIPConsumption")) { item = sensor.addItem(DataTypeUInt64, RStateConsumption); item->setValue(0); }
+        else if (type == QLatin1String("CLIPConsumption")) { item = sensor.addItem(DataTypeReal, RStateConsumption); item->setValue(0); }
         else if (type == QLatin1String("CLIPDaylightOffset")) { item = sensor.addItem(DataTypeInt16, RConfigOffset); item->setValue(0);
                                                                 item = sensor.addItem(DataTypeString, RConfigMode);
                                                                 item = sensor.addItem(DataTypeTime, RStateLocaltime); }
@@ -407,12 +407,12 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                                                             item = sensor.addItem(DataTypeUInt16, RConfigTholdDark); item->setValue(R_THOLDDARK_DEFAULT);
                                                             item = sensor.addItem(DataTypeUInt16, RConfigTholdOffset); item->setValue(R_THOLDOFFSET_DEFAULT); }
         else if (type == QLatin1String("CLIPOpenClose")) { item = sensor.addItem(DataTypeBool, RStateOpen); item->setValue(false); }
-        else if (type == QLatin1String("CLIPPower")) { item = sensor.addItem(DataTypeInt16, RStatePower); item->setValue(0);
-                                                       item = sensor.addItem(DataTypeUInt16, RStateVoltage); item->setValue(0);
-                                                       item = sensor.addItem(DataTypeUInt16, RStateCurrent); item->setValue(0); }
+        else if (type == QLatin1String("CLIPPower")) { item = sensor.addItem(DataTypeReal, RStatePower); item->setValue(0);
+                                                       item = sensor.addItem(DataTypeReal, RStateVoltage); item->setValue(0);
+                                                       item = sensor.addItem(DataTypeReal, RStateCurrent); item->setValue(0); }
         else if (type == QLatin1String("CLIPPresence")) { item = sensor.addItem(DataTypeBool, RStatePresence); item->setValue(false);
                                                           item = sensor.addItem(DataTypeUInt16, RConfigDuration); item->setValue(60); }
-        else if (type == QLatin1String("CLIPPressure")) { item = sensor.addItem(DataTypeInt16, RStatePressure); item->setValue(0); }
+        else if (type == QLatin1String("CLIPPressure")) { item = sensor.addItem(DataTypeReal, RStatePressure); item->setValue(0); }
         else if (type == QLatin1String("CLIPSwitch")) { item = sensor.addItem(DataTypeInt32, RStateButtonEvent); item->setValue(0); }
         else if (type == QLatin1String("CLIPTemperature")) { item = sensor.addItem(DataTypeInt16, RStateTemperature); item->setValue(0);
                                                              item = sensor.addItem(DataTypeInt16, RConfigOffset); item->setValue(0); }
@@ -2658,56 +2658,91 @@ int DeRestPluginPrivate::getNewSensors(const ApiRequest &req, ApiResponse &rsp)
     \return true - on success
             false - on error
  */
-bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, const ApiRequest &req)
+bool DeRestPluginPrivate::sensorToMap(Sensor *sensor, QVariantMap &map, const ApiRequest &re, bool event)
 {
     if (!sensor)
     {
         return false;
     }
 
-    QVariantMap state;
-    const ResourceItem *iox = nullptr;
-    const ResourceItem *ioy = nullptr;
-    const ResourceItem *ioz = nullptr;
-    QVariantList orientation;
-    const ResourceItem *ix = nullptr;
-    const ResourceItem *iy = nullptr;
-    QVariantList xy;
-    QVariantMap cap;
-    QVariantMap measuredValue;
-    QVariantMap otau;
-    QVariantMap config;
-    const ResourceItem *ilcs = nullptr;
-    const ResourceItem *ilca = nullptr;
-    const ResourceItem *ilct = nullptr;
-    QVariantMap lastchange;
+    const bool all = !event || gwWebSocketNotifyAll;
+    QVariantMap needPush;
+
+    Device *device = static_cast<Device *>(sensor->parentResource());
+    if (device)
+    {
+        for (int i = 0; i < device->itemCount(); i++)
+        {
+            ResourceItem *item = device->itemForIndex(static_cast<size_t>(i));
+            DBG_Assert(item);
+            if (!item->isPublic() || item->descriptor().suffix == RStateReachable)
+            {
+                continue;
+            }
+            if (!(all || item->needPushChange()))
+            {
+                continue;
+            }
+            const ResourceItemDescriptor &rid = item->descriptor();
+
+            const ApiAttribute a = rid.toApi(map, event);
+            QVariantMap *p = a.map;
+            (*p)[a.key] = item->toVariant();
+
+            if (event && item->needPushChange())
+            {
+                 needPush[a.top] = true;
+                 // TODO: handle clearNeedPush on device level
+                 item->clearNeedPush();
+            }
+        }
+    }
+
+    ResourceItem *iox = nullptr;
+    ResourceItem *ioy = nullptr;
+    ResourceItem *ioz = nullptr;
+    ResourceItem *ix = nullptr;
+    ResourceItem *iy = nullptr;
 
     for (int i = 0; i < sensor->itemCount(); i++)
     {
-        const ResourceItem *item = sensor->itemForIndex(static_cast<size_t>(i));
+        ResourceItem *item = sensor->itemForIndex(static_cast<size_t>(i));
         DBG_Assert(item);
-        const ResourceItemDescriptor &rid = item->descriptor();
-
         if (!item->isPublic())
         {
             continue;
         }
+        const ResourceItemDescriptor &rid = item->descriptor();
 
-        if (rid.suffix == RConfigReachable &&
-            sensor->type().startsWith(QLatin1String("ZGP")))
+        if (rid.suffix == RConfigReachable && sensor->type().startsWith(QLatin1String("ZGP")))
         {
             continue; // don't provide reachable for green power devices
         }
 
-        if (rid.suffix == RAttrMode)
+        if (rid.suffix == RAttrMode && (sensor->mode() == Sensor::ModeNone || !(sensor->type().endsWith(QLatin1String("Switch")))))
         {
-            continue; // handled later on
+            continue;
         }
 
-        if (strncmp(rid.suffix, "config/", 7) == 0)
+             if (rid.suffix == RStateOrientationX) { iox = item; }
+        else if (rid.suffix == RStateOrientationY) { ioy = item; }
+        else if (rid.suffix == RStateOrientationZ) { ioz = item; }
+        else if (rid.suffix == RStateX) { ix = item; }
+        else if (rid.suffix == RStateY) { iy = item; }
+        else
         {
-            const char *key = item->descriptor().suffix + 7;
-            if (rid.suffix == RConfigPending)
+            if (!(all || item->needPushChange()))
+            {
+                continue;
+            }
+
+            const ApiAttribute a = rid.toApi(map, event);
+            QVariantMap *p = a.map;
+            QString key = a.key;
+
+                 if (rid.suffix == RConfigLastChangeSource) { (*p)[key] = RConfigLastChangeSourceValues[item->toNumber()]; }
+            else if (rid.suffix == RConfigLastChangeTime) { (*p)[key] = item->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ssZ"); }
+            else if (rid.suffix == RConfigPending)
             {
                 QVariantList pending;
                 auto value = item->toNumber();
@@ -2720,208 +2755,92 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
                 {
                     pending.append(QLatin1String("sensitivity"));
                 }
-                config[key] = pending;
-            }
-            else if (rid.suffix == RConfigLastChangeSource)
-            {
-                ilcs = item;
-            }
-            else if (rid.suffix == RConfigLastChangeAmount)
-            {
-                ilca = item;
-            }
-            else if (rid.suffix == RConfigLastChangeTime)
-            {
-                ilct = item;
+                (*p)[key] = pending;
             }
             else if (rid.suffix == RConfigSchedule)
             {
                 QVariantMap schedule;
                 deserialiseThermostatSchedule(item->toString(), &schedule);
-                config[key] = schedule;
+                (*p)[key] = schedule;
             }
-            else
-            {
-                config[key] = item->toVariant();
-            }
-        }
-        else if (strncmp(rid.suffix, "state/", 6) == 0)
-        {
-            const char *key = item->descriptor().suffix + 6;
-
-            if (rid.suffix == RStateLastUpdated)
+            else if (rid.suffix == RStateLastUpdated)
             {
                 if (!item->lastSet().isValid() || item->lastSet().date().year() < 2000)
                 {
-                    state[key] = QLatin1String("none");
+                    (*p)[key] = QLatin1String("none");
                 }
                 else
                 {
-                    state[key] = item->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ss.zzz");
+                    (*p)[key] = item->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ss.zzz");
                 }
             }
-            else if (rid.suffix == RStateOrientationX)
-            {
-                iox = item;
-            }
-            else if (rid.suffix == RStateOrientationY)
-            {
-                ioy = item;
-            }
-            else if (rid.suffix == RStateOrientationZ)
-            {
-                ioz = item;
-            }
-            else if (rid.suffix == RStateX)
-            {
-                ix = item;
-            }
-            else if (rid.suffix == RStateY)
-            {
-                iy = item;
-            }
-            else
-            {
-                state[key] = item->toVariant();
-            }
-        }
-        else if (strncmp(rid.suffix, "cap/", 4) == 0)
-        {
-            const char *key = item->descriptor().suffix + 4;
+            else { (*p)[key] = item->toVariant(); }
 
-            if (strncmp(key, "measured_value/", 15) == 0)
+            if (event && item->needPushChange())
             {
-                measuredValue[key + 15] = item->toVariant();
-            }
-            else if (strncmp(key, "otau/", 5) == 0)
-            {
-                otau[key + 5] = item->toVariant();
-            }
-            else
-            {
-                cap[key] = item->toVariant();
+                needPush[a.top] = true;
+                item->clearNeedPush();
             }
         }
-        else if (rid.suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
-        else if (rid.suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
-        else if (rid.suffix == RAttrProductId) { map["productid"] = item->toString(); }
-        else if (rid.suffix == RAttrProductName) { map["productname"] = item->toString(); }
-        else if (rid.suffix == RAttrZoneType) { map["zonetype"] = item->toNumber(); }
     }
+
     if (iox && ioy && ioz)
     {
-        orientation.append(iox->toNumber());
-        orientation.append(ioy->toNumber());
-        orientation.append(ioz->toNumber());
-        state[QLatin1String("orientation")] = orientation;
+        if (all || iox->needPushChange() || ioy->needPushChange() || ioz->needPushChange())
+        {
+            ApiAttribute a = iox->descriptor().toApi(map, event);
+            QVariantMap *p = a.map;
+            QVariantList orientation;
+
+            orientation.append(iox->toNumber());
+            orientation.append(ioy->toNumber());
+            orientation.append(ioz->toNumber());
+            (*p)[QLatin1String("orientation")] = orientation;
+
+            if (event && (iox->needPushChange() || ioy->needPushChange() || ioz->needPushChange()))
+            {
+                needPush[a.top] = true;
+                iox->clearNeedPush();
+                ioy->clearNeedPush();
+                ioz->clearNeedPush();
+            }
+        }
     }
+
     if (ix && iy)
     {
-        xy.append(round(ix->toNumber() / 6.5535) / 10000.0);
-        xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
-        state[QLatin1String("xy")] = xy;
-    }
-    if (ilcs && ilca && ilct)
-    {
-        lastchange[QLatin1String("source")] = RConfigLastChangeSourceValues[ilcs->toNumber()];
-        lastchange[QLatin1String("amount")] = ilca->toNumber();
-        lastchange[QLatin1String("time")] = ilct->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ssZ");
-        config[QLatin1String("lastchange")] = lastchange;
-    }
+        if (all || ix->needPushChange() || iy->needPushChange())
+        {
+            ApiAttribute a = ix->descriptor().toApi(map, event);
+            QVariantMap *p = a.map;
+            QVariantList xy;
 
-    //sensor
-    map[QLatin1String("name")] = sensor->name();
-    map[QLatin1String("type")] = sensor->type();
+            xy.append(round(ix->toNumber() / 6.5535) / 10000.0);
+            xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
+            (*p)[QLatin1String("xy")] = xy;
 
-    if (req.path.size() > 2 && req.path[2] == QLatin1String("devices"))
-    {
-        // don't add in sub device
-    }
-    else
-    {
-        if (!sensor->modelId().isEmpty())
-        {
-            map[QLatin1String("modelid")] = sensor->modelId();
-        }
-        if (!sensor->manufacturer().isEmpty())
-        {
-            map[QLatin1String("manufacturername")] = sensor->manufacturer();
-        }
-        if (!sensor->swVersion().isEmpty() && !sensor->type().startsWith(QLatin1String("ZGP")))
-        {
-            map[QLatin1String("swversion")] = sensor->swVersion();
-        }
-        if (sensor->fingerPrint().endpoint != INVALID_ENDPOINT)
-        {
-            map[QLatin1String("ep")] = sensor->fingerPrint().endpoint;
-        }
-        QString etag = sensor->etag;
-        etag.remove('"'); // no quotes allowed in string
-        map[QLatin1String("etag")] = etag;
-    }
-
-    // whitelist, HueApp crashes on ZHAAlarm and ZHAPressure
-    if (req.mode == ApiModeHue)
-    {
-        if (!(sensor->type() == QLatin1String("Daylight") ||
-              sensor->type() == QLatin1String("CLIPGenericFlag") ||
-              sensor->type() == QLatin1String("CLIPGenericStatus") ||
-              sensor->type() == QLatin1String("CLIPSwitch") ||
-              sensor->type() == QLatin1String("CLIPOpenClose") ||
-              sensor->type() == QLatin1String("CLIPPresence") ||
-              sensor->type() == QLatin1String("CLIPTemperature") ||
-              sensor->type() == QLatin1String("CLIPHumidity") ||
-              sensor->type() == QLatin1String("CLIPLightlevel") ||
-              sensor->type() == QLatin1String("ZGPSwitch") ||
-              sensor->type() == QLatin1String("ZHASwitch") ||
-              sensor->type() == QLatin1String("ZHAOpenClose") ||
-              sensor->type() == QLatin1String("ZHAPresence") ||
-              sensor->type() == QLatin1String("ZHATemperature") ||
-              sensor->type() == QLatin1String("ZHAHumidity") ||
-              sensor->type() == QLatin1String("ZHALightLevel")))
-        {
-            return false;
-        }
-        // mimic Hue Dimmer Switch
-        if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer") ||
-            sensor->modelId() == QLatin1String("lumi.sensor_switch.aq2"))
-        {
-            map[QLatin1String("manufacturername")] = QLatin1String("Philips");
-            map[QLatin1String("modelid")] = QLatin1String("RWL021");
-        }
-        // mimic Hue motion sensor
-        else if (false)
-        {
-            map[QLatin1String("manufacturername")] = QLatin1String("Philips");
-            map[QLatin1String("modelid")] = QLatin1String("SML001");
+            if (event && (ix->needPushChange() || iy->needPushChange()))
+            {
+                needPush[a.top] = true;
+                ix->clearNeedPush();
+                iy->clearNeedPush();
+            }
         }
     }
 
-    if (req.mode != ApiModeNormal &&
-        sensor->manufacturer().startsWith(QLatin1String("Philips")) &&
-        sensor->type().startsWith(QLatin1String("ZHA")))
+    if (event)
     {
-        QString type = sensor->type();
-        type.replace(QLatin1String("ZHA"), QLatin1String("ZLL"));
-        map[QLatin1String("type")] = type;
+        map[QLatin1String("_push")] = needPush;
+        return true;
     }
 
-    if (sensor->mode() != Sensor::ModeNone &&
-        sensor->type().endsWith(QLatin1String("Switch")))
+    if (sensor->fingerPrint().endpoint != INVALID_ENDPOINT)
     {
-        map[QLatin1String("mode")] = (double)sensor->mode();
+        map[QLatin1String("ep")] = sensor->fingerPrint().endpoint;
     }
 
-    const ResourceItem *item = sensor->item(RAttrUniqueId);
-    if (item)
-    {
-        map[QLatin1String("uniqueid")] = item->toString();
-    }
-    map[QLatin1String("state")] = state;
-    map[QLatin1String("config")] = config;
-    if (!measuredValue.isEmpty()) cap[QLatin1String("measured_value")] = measuredValue;
-    if (!otau.isEmpty()) cap[QLatin1String("otau")] = otau;
-    if (!cap.isEmpty()) map[QLatin1String("capabilities")] = cap;
+    QString etag = sensor->etag;
+    map[QLatin1String("etag")] = etag.remove('"');
 
     return true;
 }
@@ -2939,7 +2858,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
     }
 
     Device *device = DEV_ParentDevice(sensor);
-
     if (device && device->managed())
     {
         if (e.what() == RStatePresence || e.what() == RStateVibration)
@@ -2963,345 +2881,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         sensorCheckFast = CHECK_SENSOR_FAST_ROUNDS;
     }
 
-    // push sensor state updates through websocket
-    if (strncmp(e.what(), "state/", 6) == 0)
-    {
-        ResourceItem *item = sensor->item(e.what());
-        if (item && item->isPublic())
-        {
-            if (item->descriptor().suffix == RStatePresence && item->toBool())
-            {
-                globalLastMotion = item->lastSet(); // remember
-            }
-
-            if (e.what() == RStateBattery)
-            {
-                DEV_ForwardNodeChange(device, QLatin1String(e.what()), QString::number(item->toNumber()));
-            }
-
-            if (!(item->needPushSet() || item->needPushChange()))
-            {
-                return; // already pushed
-            }
-
-            QVariantMap map;
-            map[QLatin1String("t")] = QLatin1String("event");
-            map[QLatin1String("e")] = QLatin1String("changed");
-            map[QLatin1String("r")] = QLatin1String("sensors");
-            map[QLatin1String("id")] = e.id();
-            map[QLatin1String("uniqueid")] = sensor->uniqueId();
-            QVariantMap state;
-            ResourceItem *iox = nullptr;
-            ResourceItem *ioy = nullptr;
-            ResourceItem *ioz = nullptr;
-            ResourceItem *ix = nullptr;
-            ResourceItem *iy = nullptr;
-
-            for (int i = 0; i < sensor->itemCount(); i++)
-            {
-                item = sensor->itemForIndex(i);
-                const ResourceItemDescriptor &rid = item->descriptor();
-
-                if (strncmp(rid.suffix, "state/", 6) == 0)
-                {
-                    const char *key = item->descriptor().suffix + 6;
-
-                    if (rid.suffix == RStateOrientationX)
-                    {
-                        iox = item;
-                    }
-                    else if (rid.suffix == RStateOrientationY)
-                    {
-                        ioy = item;
-                    }
-                    else if (rid.suffix == RStateOrientationZ)
-                    {
-                        ioz = item;
-                    }
-                    else if (rid.suffix == RStateX)
-                    {
-                        ix = item;
-                    }
-                    else if (rid.suffix == RStateY)
-                    {
-                        iy = item;
-                    }
-                    else if (item->isPublic() && (gwWebSocketNotifyAll || rid.suffix == RStateButtonEvent || item->needPushChange()))
-                    {
-                        state[key] = item->toVariant();
-                        item->clearNeedPush();
-                    }
-                }
-            }
-
-            if (iox && ioy && ioz)
-            {
-                if (gwWebSocketNotifyAll || iox->needPushChange() || ioy->needPushChange() || ioz->needPushChange())
-                {
-                    iox->clearNeedPush();
-                    ioy->clearNeedPush();
-                    ioz->clearNeedPush();
-
-                    QVariantList orientation;
-                    orientation.append(iox->toNumber());
-                    orientation.append(ioy->toNumber());
-                    orientation.append(ioz->toNumber());
-                    state[QLatin1String("orientation")] = orientation;
-                }
-            }
-
-            if (ix && iy)
-            {
-                if (gwWebSocketNotifyAll || ix->needPushChange() || iy->needPushChange())
-                {
-                    ix->clearNeedPush();
-                    iy->clearNeedPush();
-
-                    QVariantList xy;
-                    xy.append(round(ix->toNumber() / 6.5535) / 10000.0);
-                    xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
-                    state[QLatin1String("xy")] = xy;
-                }
-            }
-
-            if (!state.isEmpty())
-            {
-                map[QLatin1String("state")] = state;
-                webSocketServer->broadcastTextMessage(Json::serialize(map));
-                updateSensorEtag(sensor);
-                plugin->saveDatabaseItems |= DB_SENSORS;
-                plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-            }
-        }
-    }
-    else if (strncmp(e.what(), "config/", 7) == 0)
-    {
-        ResourceItem *item = sensor->item(e.what());
-        if (item && item->isPublic())
-        {
-            if (e.what() == RConfigGroup)
-            {
-                checkSensorBindingsForClientClusters(sensor);
-            }
-
-            if (e.what() == RConfigBattery)
-            {
-                DEV_ForwardNodeChange(device, QLatin1String(e.what()), QString::number(item->toNumber()));
-            }
-
-            if (!(item->needPushSet() || item->needPushChange()))
-            {
-                return; // already pushed
-            }
-
-            QVariantMap map;
-            map[QLatin1String("t")] = QLatin1String("event");
-            map[QLatin1String("e")] = QLatin1String("changed");
-            map[QLatin1String("r")] = QLatin1String("sensors");
-            map[QLatin1String("id")] = e.id();
-            map[QLatin1String("uniqueid")] = sensor->uniqueId();
-            QVariantMap config;
-            ResourceItem *ilcs = nullptr;
-            ResourceItem *ilca = nullptr;
-            ResourceItem *ilct = nullptr;
-
-            for (int i = 0; i < sensor->itemCount(); i++)
-            {
-                item = sensor->itemForIndex(i);
-                const ResourceItemDescriptor &rid = item->descriptor();
-
-                if (strncmp(rid.suffix, "config/", 7) == 0)
-                {
-                    const char *key = item->descriptor().suffix + 7;
-
-                    if (rid.suffix == RConfigLastChangeSource)
-                    {
-                        ilcs = item;
-                    }
-                    else if (rid.suffix == RConfigLastChangeAmount)
-                    {
-                        ilca = item;
-                    }
-                    else if (rid.suffix == RConfigLastChangeTime)
-                    {
-                        ilct = item;
-                    }
-                    else if (item->isPublic() && (gwWebSocketNotifyAll || item->needPushChange()))
-                    {
-                        if (rid.suffix == RConfigSchedule)
-                        {
-                            QVariantMap schedule;
-                            deserialiseThermostatSchedule(item->toString(), &schedule);
-                            config[key] = schedule;
-                        }
-                        else if (rid.suffix == RConfigPending)
-                        {
-                            QVariantList pending;
-                            auto value = item->toNumber();
-
-                            if (value & R_PENDING_DELAY)
-                            {
-                                pending.append(QLatin1String("delay"));
-                            }
-                            if (value & R_PENDING_SENSITIVITY)
-                            {
-                                pending.append(QLatin1String("sensitivity"));
-                            }
-                            config[key] = pending;
-                        }
-                        else
-                        {
-                            config[key] = item->toVariant();
-                        }
-                        item->clearNeedPush();
-                    }
-                }
-            }
-            if (ilcs && ilca && ilct)
-            {
-                if (gwWebSocketNotifyAll || ilcs->needPushChange() || ilca->needPushChange() || ilct->needPushChange())
-                {
-                    ilcs->clearNeedPush();
-                    ilca->clearNeedPush();
-                    ilct->clearNeedPush();
-
-                    QVariantMap lastchange;
-                    lastchange[QLatin1String("source")] = RConfigLastChangeSourceValues[ilcs->toNumber()];
-                    lastchange[QLatin1String("amount")] = ilca->toNumber();
-                    lastchange[QLatin1String("time")] = ilct->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ssZ");
-                    config[QLatin1String("lastchange")] = lastchange;
-                }
-            }
-
-            if (!config.isEmpty())
-            {
-                map[QLatin1String("config")] = config;
-                webSocketServer->broadcastTextMessage(Json::serialize(map));
-                updateSensorEtag(sensor);
-                plugin->saveDatabaseItems |= DB_SENSORS;
-                plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-            }
-        }
-    }
-    else if (strncmp(e.what(), "cap/", 4) == 0)
-    {
-        ResourceItem *item = sensor->item(e.what());
-        if (item && item->isPublic())
-        {
-            if (!(item->needPushSet() || item->needPushChange()))
-            {
-                return; // already pushed
-            }
-
-            QVariantMap map;
-            map[QLatin1String("t")] = QLatin1String("event");
-            map[QLatin1String("e")] = QLatin1String("changed");
-            map[QLatin1String("r")] = QLatin1String("sensors");
-            map[QLatin1String("id")] = e.id();
-            map[QLatin1String("uniqueid")] = sensor->uniqueId();
-
-            QVariantMap cap;
-            QVariantMap measuredValue;
-            QVariantMap otau;
-
-            for (int i = 0; i < sensor->itemCount(); i++)
-            {
-                item = sensor->itemForIndex(i);
-                const ResourceItemDescriptor &rid = item->descriptor();
-
-                if (strncmp(rid.suffix, "cap/", 4) == 0)
-                {
-                    const char *key = item->descriptor().suffix + 4;
-
-                    if (gwWebSocketNotifyAll || item->needPushChange())
-                    {
-                        if (strncmp(key, "measured_value/", 15) == 0)
-                        {
-                            measuredValue[key + 15] = item->toVariant();
-                        }
-                        else if (strncmp(key, "otau/", 5) == 0)
-                        {
-                            otau[key + 5] = item->toVariant();
-                        }
-                        else
-                        {
-                            cap[key] = item->toVariant();
-                        }
-                        item->clearNeedPush();
-                    }
-                }
-            }
-
-            if (!measuredValue.isEmpty())
-            {
-                cap[QLatin1String("measured_value")] = measuredValue;
-            }
-            if (!otau.isEmpty())
-            {
-                cap[QLatin1String("otau")] = otau;
-            }
-            if (!cap.isEmpty())
-            {
-                map[QLatin1String("capabilities")] = cap;
-                webSocketServer->broadcastTextMessage(Json::serialize(map));
-                updateSensorEtag(sensor);
-                plugin->saveDatabaseItems |= DB_SENSORS;
-                plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-            }
-        }
-    }
-    else if (strncmp(e.what(), "attr/", 5) == 0)
-    {
-        ResourceItem *item = sensor->item(e.what());
-        if (item && item->isPublic())
-        {
-            if (!(item->needPushSet() || item->needPushChange()))
-            {
-                return; // already pushed
-            }
-
-            QVariantMap map;
-            map[QLatin1String("t")] = QLatin1String("event");
-            map[QLatin1String("e")] = QLatin1String("changed");
-            map[QLatin1String("r")] = QLatin1String("sensors");
-            map[QLatin1String("id")] = e.id();
-            map[QLatin1String("uniqueid")] = sensor->uniqueId();
-
-            QVariantMap attr;
-            QVariantMap attrOtau;
-
-            for (int i = 0; i < sensor->itemCount(); i++)
-            {
-                item = sensor->itemForIndex(i);
-                const ResourceItemDescriptor &rid = item->descriptor();
-
-                if (strncmp(rid.suffix, "attr/", 5) == 0)
-                {
-                    const char *key = item->descriptor().suffix + 5;
-
-                    if (gwWebSocketNotifyAll || item->needPushChange())
-                    {
-                        attr[key] = item->toVariant();
-                        item->clearNeedPush();
-                    }
-                }
-            }
-
-            if (!attrOtau.isEmpty())
-            {
-                attr["otau"] = attrOtau;
-            }
-            if (!attr.isEmpty())
-            {
-                map["attr"] = attr;
-                webSocketServer->broadcastTextMessage(Json::serialize(map));
-                updateSensorEtag(sensor);
-                plugin->saveDatabaseItems |= DB_SENSORS;
-                plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-            }
-        }
-    }
-    else if (e.what() == REventAdded)
+    if (e.what() == REventAdded)
     {
         checkSensorGroup(sensor);
         checkSensorBindingsForAttributeReporting(sensor);
@@ -3313,44 +2893,44 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         res[QLatin1String("name")] = sensor->name();
         searchSensorsResult[sensor->id()] = res;
 
+        QVariantMap smap;
+        QHttpRequestHeader hdr;  // dummy
+        QStringList path;  // dummy
+        ApiRequest req(hdr, path, nullptr, QLatin1String("")); // dummy
+        req.mode = ApiModeNormal;
+        sensorToMap(sensor, smap, req);
+        // smap[QLatin1String("id")] = sensor->id(); // huh?
+
         QVariantMap map;
         map[QLatin1String("t")] = QLatin1String("event");
         map[QLatin1String("e")] = QLatin1String("added");
         map[QLatin1String("r")] = QLatin1String("sensors");
-
-        QVariantMap smap;
-
-        QHttpRequestHeader hdr;  // dummy
-        QStringList path;  // dummy
-        ApiRequest req(hdr, path, nullptr, QLatin1String("")); // dummy
-
-        req.mode = ApiModeNormal;
-        sensorToMap(sensor, smap, req);
         map[QLatin1String("id")] = sensor->id();
         map[QLatin1String("uniqueid")] = sensor->uniqueId();
-        smap[QLatin1String("id")] = sensor->id();
         map[QLatin1String("sensor")] = smap;
-
         webSocketServer->broadcastTextMessage(Json::serialize(map));
+        return;
     }
-    else if (e.what() == REventDeleted)
+
+    if (e.what() == REventDeleted)
     {
         deleteGroupsWithDeviceMembership(e.id());
+
+        // QVariantMap smap;  // huh?
+        // smap[QLatin1String("id")] = e.id(); // huh?
 
         QVariantMap map;
         map[QLatin1String("t")] = QLatin1String("event");
         map[QLatin1String("e")] = QLatin1String("deleted");
         map[QLatin1String("r")] = QLatin1String("sensors");
-
-        QVariantMap smap;
         map[QLatin1String("id")] = e.id();
         map[QLatin1String("uniqueid")] = sensor->uniqueId();
-        smap[QLatin1String("id")] = e.id();
-        map[QLatin1String("sensor")] = smap;
-
+        // map[QLatin1String("sensor")] = smap; // huh?
         webSocketServer->broadcastTextMessage(Json::serialize(map));
+        return;
     }
-    else if (e.what() == REventValidGroup)
+
+    if (e.what() == REventValidGroup)
     {
         checkOldSensorGroups(sensor);
 
@@ -3411,6 +2991,59 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 checkSensorBindingsForClientClusters(sensor);
             }
         }
+        return;
+    }
+
+    ResourceItem *item = sensor->item(e.what());
+    if (!item || !item->isPublic())
+    {
+        return;
+    }
+
+    if (e.what() == RConfigBattery || e.what() == RStateBattery)
+    {
+        DEV_ForwardNodeChange(device, QLatin1String(e.what()), QString::number(item->toNumber()));
+    }
+    else if (e.what() == RConfigGroup)
+    {
+        checkSensorBindingsForClientClusters(sensor);
+    }
+    else if (e.what() == RStatePresence && item->toBool())
+    {
+        globalLastMotion = item->lastSet(); // remember
+    }
+
+    if (!(item->needPushSet() || item->needPushChange()))
+    {
+        return; // already pushed
+    }
+
+    QVariantMap smap;
+    QHttpRequestHeader hdr;  // dummy
+    QStringList path;  // dummy
+    ApiRequest req(hdr, path, nullptr, QLatin1String("")); // dummy
+    req.mode = ApiModeNormal;
+    sensorToMap(sensor, smap, req, true);
+
+    bool pushed = false;
+    QVariantMap needPush = smap[QLatin1String("_push")].toMap();
+    for (QVariantMap::const_iterator it = needPush.cbegin(), end = needPush.cend(); it != end; ++it)
+    {
+        QVariantMap map;
+        map[QLatin1String("t")] = QLatin1String("event");
+        map[QLatin1String("e")] = QLatin1String("changed");
+        map[QLatin1String("r")] = QLatin1String("sensors");
+        map[QLatin1String("id")] = e.id();
+        map[QLatin1String("uniqueid")] = sensor->uniqueId();
+        map[it.key()] = smap[it.key()];
+        webSocketServer->broadcastTextMessage(Json::serialize(map));
+        pushed = true;
+    }
+    if (pushed)
+    {
+        updateSensorEtag(sensor);
+        plugin->saveDatabaseItems |= DB_SENSORS;
+        plugin->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
     }
 }
 
