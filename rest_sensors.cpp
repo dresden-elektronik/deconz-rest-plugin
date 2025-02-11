@@ -3177,7 +3177,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     item = sensor->item(RStateButtonEvent);
                     quint32 btn = item ? static_cast<quint32>(item->toNumber()) : 0;
                     const quint32 action = btn & 0x03;
-                    if (btn >= S_BUTTON_1 && btn <= S_BUTTON_6 && action == S_BUTTON_ACTION_INITIAL_PRESS)
+                    if (btn >= S_BUTTON_1 && btn <= S_BUTTON_8 && action == S_BUTTON_ACTION_INITIAL_PRESS)
                     {
                         btn &= ~0x03;
                         item->setValue(btn + S_BUTTON_ACTION_HOLD);

@@ -12,3 +12,4 @@ ui_device_widget.h
 .devcontainer
 build*
 
+.DS_Store
