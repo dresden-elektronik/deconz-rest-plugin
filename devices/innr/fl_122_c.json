@@ -1,0 +1,175 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "innr",
+  "modelid": "FL 122 C",
+  "product": "FL 122 C",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_EXTENDED_COLOR_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/alert/trigger_effect"
+        },
+        {
+          "name": "cap/bri/move_with_onoff"
+        },
+        {
+          "name": "cap/color/capabilities"
+        },
+        {
+          "name": "cap/color/ct/max"
+        },
+        {
+          "name": "cap/color/ct/min"
+        },
+        {
+          "name": "cap/color/xy/blue_x"
+        },
+        {
+          "name": "cap/color/xy/blue_y"
+        },
+        {
+          "name": "cap/color/xy/green_x"
+        },
+        {
+          "name": "cap/color/xy/green_y"
+        },
+        {
+          "name": "cap/color/xy/red_x"
+        },
+        {
+          "name": "cap/color/xy/red_y"
+        },
+        {
+          "name": "cap/on/off_with_effect"
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/bri"
+        },
+        {
+          "name": "state/colormode"
+        },
+        {
+          "name": "state/ct"
+        },
+        {
+          "name": "state/effect"
+        },
+        {
+          "name": "state/hue"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        },
+        {
+          "name": "state/sat"
+        },
+        {
+          "name": "state/x"
+        },
+        {
+          "name": "state/y"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0000",
+      "report": [
+        {
+          "at": "0x4000",
+          "dt": "0x42",
+          "min": 0,
+          "max": 0
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0008",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 0,
+          "max": 0
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0300",
+      "report": [
+        {
+          "at": "0x0007",
+          "dt": "0x21",
+          "min": 0,
+          "max": 0
+        },
+        {
+          "at": "0x0003",
+          "dt": "0x21",
+          "min": 0,
+          "max": 0
+        },
+        {
+          "at": "0x0004",
+          "dt": "0x21",
+          "min": 0,
+          "max": 0
+        },
+        {
+          "at": "0x0008",
+          "dt": "0x30",
+          "min": 0,
+          "max": 0
+        }
+      ]
+    }
+  ]
+}
