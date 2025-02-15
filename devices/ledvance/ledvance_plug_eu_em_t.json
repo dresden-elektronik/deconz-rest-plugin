@@ -1,9 +1,15 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "LEDVANCE",
-  "modelid": "PLUG EU EM T",
+  "manufacturername": [
+    "LEDVANCE",
+    "LEDVANCE"
+  ],
+  "modelid": [
+    "PLUG EU EM T",
+    "PLUG COMPACT EU EM T"
+  ],
   "vendor": "LEDVANCE",
-  "product": "PLUG EU EM T",
+  "product": "PLUG (COMPACT) EU EM T",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -32,32 +38,6 @@
         },
         {
           "name": "attr/name"
-        },
-        {
-          "name": "cap/otau/file_version"
-        },
-        {
-          "name": "cap/otau/image_type"
-        },
-        {
-          "name": "cap/otau/manufacturer_code"
-        },
-        {
-          "name": "attr/productid",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0000",
-            "at": "0x000A",
-            "eval": "Item.val = Attr.val"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0000",
-            "at": "0x000A"
-          },
-          "refresh.interval": 86400
         },
         {
           "name": "attr/swversion"
@@ -298,7 +278,7 @@
             "ep": 1,
             "cl": "0x0B04",
             "at": "0x0505",
-            "eval": "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 10) }"
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val }"
           },
           "default": 0,
           "read": {
