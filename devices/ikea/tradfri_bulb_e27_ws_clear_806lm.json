@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "e4776ddf-be28-4f6e-8984-bad49a78d38b",
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI bulb E27 WS clear 806lm",
   "vendor": "IKEA",
