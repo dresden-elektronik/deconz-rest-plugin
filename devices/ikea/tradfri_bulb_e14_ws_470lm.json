@@ -1,15 +1,15 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "9c445b95-57d9-4364-8c29-09f556659886",
+  "uuid": "6456154c-04be-493a-b321-0ee6bbc5a77d",
   "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRI bulb GU10 WW 400lm",
+  "modelid": "TRADFRI bulb E14 WS 470lm",
   "vendor": "IKEA",
-  "product": "Tradfri LED bulb GU10 400 lumen, dimmable/warm white (LED1837R5)",
+  "product": "TRADFRI bulb E14 WS 470 lumen, dimmable white spectrum opal white (LED1835C6)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_DIMMABLE_LIGHT",
+      "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -44,11 +44,39 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "cap/bri/move_with_onoff",
+          "static": true
+        },
+        {
+          "name": "cap/color/capabilities",
+          "refresh.interval": 86400
+        },
+        {
+          "name": "cap/color/ct/max",
+          "static": 454
+        },
+        {
+          "name": "cap/color/ct/min",
+          "static": 250
+        },
+        {
+          "name": "cap/on/off_with_effect",
+          "static": true
+        },
+        {
           "name": "state/alert",
           "default": "none"
         },
         {
           "name": "state/bri",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/colormode",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/ct",
           "refresh.interval": 360
         },
         {
@@ -101,7 +129,42 @@
           "dt": "0x20",
           "min": 1,
           "max": 300,
+          "change": "0x00000005"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0300",
+      "report": [
+        {
+          "at": "0x0007",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1800,
           "change": "0x00000001"
+        },
+        {
+          "at": "0x0003",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1795,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0004",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1795,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0008",
+          "dt": "0x30",
+          "min": 1,
+          "max": 1800
         }
       ]
     }

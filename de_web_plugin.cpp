@@ -45,6 +45,7 @@
 #include "ui/device_widget.h"
 #include "gateway_scanner.h"
 #include "ias_ace.h"
+#include "ias_zone.h"
 #include "json.h"
 #include "poll_control.h"
 #include "poll_manager.h"
@@ -1533,84 +1534,6 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
             continue;
         }
 
-        if (conf.dstAddressMode() == deCONZ::ApsNwkAddress &&
-            task.req.dstAddressMode() == deCONZ::ApsNwkAddress &&
-            !isSameAddress(conf.dstAddress(), task.req.dstAddress()))
-        {
-            DBG_Printf(DBG_INFO, "warn APSDE-DATA.confirm: 0x%02X nwk mismatch\n", conf.id());
-            //continue;
-        }
-
-        QDateTime now = QDateTime::currentDateTime();
-
-        if (conf.status() != deCONZ::ApsSuccessStatus)
-        {
-            DBG_Printf(DBG_INFO, "0x%016llX error APSDE-DATA.confirm: 0x%02X on task\n", task.req.dstAddress().ext(), conf.status());
-        }
-        else if (task.req.dstAddressMode() == deCONZ::ApsGroupAddress &&
-                 (task.req.clusterId() == ONOFF_CLUSTER_ID ||
-                  task.req.clusterId() == LEVEL_CLUSTER_ID ||
-                  task.req.clusterId() == COLOR_CLUSTER_ID))
-        {
-            quint16 groupId = task.req.dstAddress().group();
-            quint16 attrId = 0x0000;
-            if (task.req.clusterId() == COLOR_CLUSTER_ID)
-            {
-                attrId = 0x0003; // currentX
-            }
-
-            for (LightNode &l : nodes)
-            {
-                if (gwPermitJoinDuration > 0)
-                {
-                    break;
-                }
-
-                if (!l.isAvailable() ||
-                    !l.lastRx().isValid() /*||
-                    l.manufacturerCode() == VENDOR_IKEA ||
-                    l.manufacturerCode() == VENDOR_OSRAM ||
-                    l.manufacturerCode() == VENDOR_OSRAM_STACK ||
-                    l.manufacturer().startsWith(QLatin1String("IKEA")) ||
-                    l.manufacturer().startsWith(QLatin1String("OSRAM"))*/)
-                {
-                    continue;
-                }
-
-
-                // fast poll lights which don't support or have active ZCL reporting
-                const NodeValue &val = l.getZclValue(ONOFF_CLUSTER_ID, attrId);
-                if ((!val.timestampLastReport.isValid() || val.timestampLastReport.secsTo(now) > (60 * 5)) &&
-                    isLightNodeInGroup(&l, groupId))
-                {
-                    DBG_Printf(DBG_INFO_L2, "\t0x%016llX force poll\n", l.address().ext());
-                    queuePollNode(&l);
-                }
-            }
-        }
-        else if (task.lightNode && gwPermitJoinDuration == 0)
-        {
-            switch (task.taskType)
-            {
-            case TaskSendOnOffToggle:
-            case TaskSetLevel:
-            case TaskSetXyColor:
-            case TaskSetEnhancedHue:
-            case TaskSetSat:
-            case TaskSetColorTemperature:
-            case TaskSetHue:
-            case TaskSetHueAndSaturation:
-            case TaskIncColorTemperature:
-                {
-                    DBG_Printf(DBG_INFO, "\t0x%016llX force poll (2)\n", task.lightNode->address().ext());
-                    queuePollNode(task.lightNode);
-                }
-                break;
-            default:
-                break;
-            }
-        }
-
         if (DBG_IsEnabled(DBG_INFO_L2))
         {
             DBG_Printf(DBG_INFO_L2, "Erase task req-id: %u, type: %d zcl seqno: %u send time %d, profileId: 0x%04X, clusterId: 0x%04X\n",
@@ -1711,6 +1634,12 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     {
         // Map the command to the mapped button and action.
         // PTM215ZE Friends of Hue switch.
+        // Button 1 == A0       Button 3 == B0
+        // Button 2 == A1       Button 4 == B1
+        // Button 5 == A0 + B0 (chord of 1 & 3)
+        // Button 6 == A1 + B0 (chord of 2 & 3)
+        // Button 7 == A0 + B1 (chord of 1 & 4)
+        // Button 8 == A1 + B1 (chord of 2 & 4)
         const quint32 buttonMapPTM215ZE[] = {
             0x12, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
             0x13, S_BUTTON_1, S_BUTTON_ACTION_SHORT_RELEASED,
@@ -1720,6 +1649,14 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             0x19, S_BUTTON_3, S_BUTTON_ACTION_SHORT_RELEASED,
             0x22, S_BUTTON_4, S_BUTTON_ACTION_INITIAL_PRESS,
             0x23, S_BUTTON_4, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x1A, S_BUTTON_5, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x1B, S_BUTTON_5, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x1C, S_BUTTON_6, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x1D, S_BUTTON_6, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x1E, S_BUTTON_7, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x1F, S_BUTTON_7, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x62, S_BUTTON_8, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x63, S_BUTTON_8, S_BUTTON_ACTION_SHORT_RELEASED,
             0
         };
 
@@ -3129,7 +3066,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         lightNode.setHandle(R_CreateResourceHandle(&lightNode, nodes.size()));
         nodes.push_back(lightNode);
         lightNode2 = &nodes.back();
-        queuePollNode(lightNode2);
         device->addSubDevice(lightNode2);
 
         if (searchLightsState == SearchLightsActive || permitJoinFlag)
@@ -3267,45 +3203,6 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         lightNode->addItem(DataTypeUInt16, RStateHue);
         lightNode->addItem(DataTypeUInt8, RStateSat);
         lightNode->addItem(DataTypeString, RStateEffect)->setValue(QVariant("none"));
-    }
-}
-
-/*! Force polling if the node has updated simple descriptors in setup phase.
-    \param node - the base for the LightNode
-
-    TODO(mpi): This function can likely be removed entirely, after testing.
- */
-void DeRestPluginPrivate::updatedLightNodeEndpoint(const deCONZ::NodeEvent &event)
-{
-    if (DEV_TestManaged())
-    {
-        return;
-    }
-
-    if (!event.node())
-    {
-        return;
-    }
-
-    if (event.clusterId() != ZDP_SIMPLE_DESCRIPTOR_RSP_CLID)
-    {
-        return;
-    }
-
-    for (LightNode &lightNode : nodes)
-    {
-        if (lightNode.address().ext() != event.node()->address().ext())
-        {
-            continue;
-        }
-
-        if (event.endpoint() != lightNode.haEndpoint().endpoint())
-        {
-            continue;
-        }
-
-        lightNode.rx();
-        queuePollNode(&lightNode);
     }
 }
 
@@ -11937,7 +11834,6 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     case deCONZ::NodeEvent::UpdatedSimpleDescriptor:
     {
         addLightNode(event.node());
-        updatedLightNodeEndpoint(event);
         addSensorNode(event.node());
 
         if (!event.node())
@@ -13170,11 +13066,6 @@ void DeRestPluginPrivate::handleSceneClusterIndication(const deCONZ::ApsDataIndi
                 LightNode *lightNode = getLightNodeForId(ls->lid());
                 if (lightNode && lightNode->isAvailable() && lightNode->state() == LightNode::StateNormal)
                 {
-                    if (gwPermitJoinDuration == 0)
-                    {
-                        queuePollNode(lightNode);
-                    }
-
                     bool changed = false;
                     if (lightNode->hasColor())
                     {
@@ -14038,8 +13929,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
 
     SensorCandidate *sc = nullptr;
     {
-        std::vector<SensorCandidate>::iterator i = searchSensorsCandidates.begin();
-        std::vector<SensorCandidate>::iterator end = searchSensorsCandidates.end();
+        auto i = searchSensorsCandidates.begin();
+        const auto end = searchSensorsCandidates.end();
 
         for (; i != end; ++i)
         {
@@ -14056,7 +13947,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         return;
     }
 
-#if DECONZ_LIB_VERSION >= 0x010900
     // when macPoll = true core will handle ZDP descriptor queries
     bool macPoll = event && event->event() == deCONZ::NodeEvent::NodeMacDataRequest;
     if (macPoll)
@@ -14065,38 +13955,43 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         {
             return;
         }
-
-        DBG_Printf(DBG_INFO, "MAC poll fastEnddeviceProbe() 0x%016llX\n", sc->address.ext());
     }
-#else
-//    bool macPoll = false;
-#endif
+
+    Device *device = DEV_GetDevice(m_devices, fastProbeAddr.ext());
+    if (!device)
+    {
+        return;
+    }
+
+    // Device code already fetches ZDP descriptors and Basic cluster attributes (regardless of existing DDFs)
+    // proceed here only once this is done.
+    const QString manufacturer = device->item(RAttrManufacturerName)->toString();
+    const QString modelId = device->item(RAttrModelId)->toString();
+
+    if (manufacturer.isEmpty() || modelId.isEmpty())
+    {
+        // wait until Device fetches these
+        return;
+    }
+
+    if (!isDeviceSupported(device->node(), modelId))
+    {
+        return;
+    }
+
+    if (device->managed())
+    {
+        DBG_Printf(DBG_DDF, "DDF device %s / %s still listed in isDeviceSupported(), can potentially be removed!\n", qPrintable(manufacturer), qPrintable(modelId));
+    }
 
     {
         Sensor *sensor = getSensorNodeForAddress(sc->address);
-        const deCONZ::Node *node = sensor ? sensor->node() : nullptr;
+        const deCONZ::Node *node = device->node();
 
         if (sensor && sensor->deletedState() != Sensor::StateNormal)
         {
-            DBG_Printf(DBG_INFO, "don't use deleted sensor and node 0x%016llX as candidate\n", sc->address.ext());
+            DBG_Printf(DBG_INFO, "don't use deleted sensor " FMT_MAC " as candidate\n", FMT_MAC_CAST(sc->address.ext()));
             sensor = nullptr;
-            node = nullptr;
-        }
-
-        if (!node)
-        {
-            int i = 0;
-            const deCONZ::Node *n;
-
-            while (apsCtrl->getNode(i, &n) == 0)
-            {
-                if (fastProbeAddr.ext() == n->address().ext())
-                {
-                    node = n;
-                    break;
-                }
-                i++;
-            }
         }
 
         if (!node)
@@ -14106,97 +14001,10 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
 
         if (sc->timeout.isValid() && sc->timeout.elapsed() < 9000)
         {
-            DBG_Printf(DBG_INFO, "wait response fastEnddeviceProbe() 0x%016llX, elapsed %d ms\n", sc->address.ext(), sc->timeout.elapsed());
+            DBG_Printf(DBG_INFO, "wait response fastEnddeviceProbe() " FMT_MAC ", elapsed %d ms\n", FMT_MAC_CAST(sc->address.ext()), (int)sc->timeout.elapsed());
             return;
         }
 
-        bool hasNodeDescriptor = false;
-        bool hasActiveEndpoints = false;
-
-        for (auto const &ind : fastProbeIndications)
-        {
-            if      (ind.clusterId() == ZDP_NODE_DESCRIPTOR_RSP_CLID) { hasNodeDescriptor = true; }
-            else if (ind.clusterId() == ZDP_ACTIVE_ENDPOINTS_RSP_CLID) { hasActiveEndpoints = true; }
-        }
-
-        if (!hasNodeDescriptor)
-        {
-            if (DEV_TestManaged())
-            {
-                return; // Device code handles this
-            }
-
-            DBG_Printf(DBG_INFO, "[1] get node descriptor for 0x%016llx\n", sc->address.ext());
-
-            if (ZDP_NodeDescriptorReq(sc->address, apsCtrl))
-            {
-                queryTime = queryTime.addSecs(5);
-                sc->timeout.restart();
-                sc->waitIndicationClusterId = ZDP_NODE_DESCRIPTOR_RSP_CLID;
-            }
-            return;
-        }
-
-        sc->endpoints = node->endpoints();
-
-        if (!hasActiveEndpoints)
-        {
-            if (DEV_TestManaged())
-            {
-                return; // Device code handles this
-            }
-
-            DBG_Printf(DBG_INFO, "[2] get active endpoints for 0x%016llx\n", sc->address.ext());
-
-            if (ZDP_ActiveEndpointsReq(sc->address, apsCtrl))
-            {
-                queryTime = queryTime.addSecs(5);
-                sc->timeout.restart();
-                sc->waitIndicationClusterId = ZDP_ACTIVE_ENDPOINTS_RSP_CLID;
-            }
-            return;
-        }
-
-        // simple descriptor for endpoint 0x01
-        {
-            quint8 ep = 0;
-
-            for (size_t i = 0; i < node->endpoints().size(); i++)
-            {
-                ep = node->endpoints()[i]; // search
-
-                for (const auto &sd : node->simpleDescriptors())
-                {
-                    if (sd.endpoint() == ep && sd.deviceId() != 0xffff)
-                    {
-                        ep = 0;
-                        break;
-                    }
-                }
-
-                if (DEV_TestManaged())
-                {
-                    return; // Device code handles this
-                }
-
-                if (ep) // fetch
-                {
-                    DBG_Printf(DBG_INFO, "[3] get simple descriptor 0x%02X for 0x%016llx\n", ep, sc->address.ext());
-
-                    if (ZDP_SimpleDescriptorReq(sc->address, ep, apsCtrl))
-                    {
-                        queryTime = queryTime.addSecs(1);
-                        sc->timeout.restart();
-                        sc->waitIndicationClusterId = ZDP_SIMPLE_DESCRIPTOR_RSP_CLID;
-                    }
-
-                    return;
-                }
-            }
-        }
-
-        QString manufacturer;
-        QString modelId;
         QString swBuildId;
         QString dateCode;
         quint16 iasZoneType = 0;
@@ -14206,13 +14014,10 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
 
         if (sensor)
         {
-            manufacturer = sensor->manufacturer();
-            modelId = sensor->modelId();
             swBuildId = sensor->swVersion();
         }
 
         quint8 basicClusterEndpoint  = 0;
-        std::vector<quint16> unavailBasicAttr;
 
         for (const deCONZ::SimpleDescriptor &sd : node->simpleDescriptors())
         {
@@ -14227,39 +14032,41 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                             basicClusterEndpoint = sd.endpoint();
                         }
 
-                        if (!attr.isAvailable())
-                        {
-                            unavailBasicAttr.push_back(attr.id());
-                            continue;
-                        }
-                        else if (attr.lastRead() <= 0 && attr.dataType() == deCONZ::ZclCharacterString && attr.toString().isEmpty())
+                        if (attr.isAvailable() && attr.lastRead() >= 0 && attr.dataType() == deCONZ::ZclCharacterString && attr.toString().isEmpty())
                         {
                             // e.g. some devices return empty strings.
                             // Check read timestamp to make sure the attribute is read at least once.
-                            unavailBasicAttr.push_back(attr.id());
+                            if      (attr.id() == 0x0006) { dateCodeAvailable = false; }
+                            else if (attr.id() == 0x4000) { swBuildIdAvailable = false; }
+
                             continue;
                         }
 
-                        if (attr.id() == 0x0004 && manufacturer.isEmpty())
+                        if (attr.id() == 0x0006)
                         {
-                            manufacturer = attr.toString();
+                            dateCodeAvailable = attr.isAvailable();
+
+                            if (dateCode.isEmpty())
+                            {
+                                dateCode = attr.toString();
+                            }
                         }
-                        else if (attr.id() == 0x0005 && modelId.isEmpty())
+                        else if (attr.id() == 0x4000)
                         {
-                            modelId = attr.toString();
-                        }
-                        else if (attr.id() == 0x0006 && dateCode.isEmpty())
-                        {
-                            dateCode = attr.toString();
-                        }
-                        else if (attr.id() == 0x4000 && swBuildId.isEmpty())
-                        {
-                            swBuildId = attr.toString();
+                            swBuildIdAvailable = attr.isAvailable();
+                            if (swBuildId.isEmpty())
+                            {
+                                swBuildId = attr.toString();
+                            }
                         }
                     }
                     else if (cl.id() == IAS_ZONE_CLUSTER_ID)
                     {
-                        if (attr.id() == 0x0001 && attr.numericValue().u64 != 0) // Zone type
+                        if (attr.id() == IAS_ZONE_TYPE && !attr.isAvailable())
+                        {
+                            iasZoneType = 0xffff; // don't query twice
+                        }
+                        else if (attr.id() == IAS_ZONE_TYPE && attr.numericValue().u64 != 0) // Zone type
                         {
                             DBG_Assert(attr.numericValue().u64 <= UINT16_MAX);
                             iasZoneType = static_cast<quint16>(attr.numericValue().u64);
@@ -14272,14 +14079,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 }
             }
 
-            swBuildIdAvailable = std::find(unavailBasicAttr.cbegin(), unavailBasicAttr.cend(), 0x4000) == unavailBasicAttr.cend();
-            dateCodeAvailable = std::find(unavailBasicAttr.cbegin(), unavailBasicAttr.cend(), 0x0006) == unavailBasicAttr.cend();
-
             if ((sd.deviceId() == DEV_ID_IAS_ZONE || sd.deviceId() == DEV_ID_IAS_WARNING_DEVICE) && iasZoneType == 0)
             {
                 deCONZ::ApsDataRequest apsReq;
 
-                DBG_Printf(DBG_INFO, "[3.1] get IAS Zone type for 0x%016llx\n", sc->address.ext());
+                DBG_Printf(DBG_INFO, "[3.1] get IAS Zone type for " FMT_MAC "\n", FMT_MAC_CAST(sc->address.ext()));
 
                 // ZDP Header
                 apsReq.dstAddress() = sc->address;
@@ -14302,7 +14106,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
                     stream.setByteOrder(QDataStream::LittleEndian);
 
-                    stream << (quint16)0x0001; // IAS Zone type
+                    stream << (uint16_t)IAS_ZONE_TYPE; // IAS Zone type
                 }
 
                 { // ZCL frame
@@ -14327,43 +14131,23 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         }
 
         // manufacturer, model id, sw build id
-        if (!sensor || modelId.isEmpty() || manufacturer.isEmpty() || (swBuildId.isEmpty() && dateCode.isEmpty() && (dateCodeAvailable || swBuildIdAvailable)))
+        // TODO(mpi): this branch should be removed since it only queries swBuildId and DateCode which should be done via DDFs
+        if (!sensor || (swBuildId.isEmpty() && dateCode.isEmpty() && (dateCodeAvailable || swBuildIdAvailable)))
         {
-            if (!modelId.isEmpty() && !isDeviceSupported(node, modelId))
-            {
-                return;
-            }
-
             if (basicClusterEndpoint == 0)
             {
                 return;
             }
 
-            deCONZ::ApsDataRequest apsReq;
-            std::vector<quint16> attributes;
-
-            // ZDP Header
-            apsReq.dstAddress() = sc->address;
-            apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
-            apsReq.setDstEndpoint(basicClusterEndpoint);
-            apsReq.setSrcEndpoint(endpoint());
-            apsReq.setProfileId(HA_PROFILE_ID);
-            apsReq.setRadius(0);
-            apsReq.setClusterId(BASIC_CLUSTER_ID);
-            //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-
-            deCONZ::ZclFrame zclFrame;
-            zclFrame.setSequenceNumber(zclSeq++);
-            zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
-            zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                     deCONZ::ZclFCDirectionClientToServer |
-                                     deCONZ::ZclFCDisableDefaultResponse);
+            std::vector<uint16_t> attributes;
 
             bool skip = false;
 
-            if (thermostatClusterEndpoint > 0) // e.g. Eurotronic SPZB0001 thermostat
-            {  }
-            else if (iasZoneType > 0) // IAS motion and contact sensors
+            if (device->managed())
+            {
+                skip = true; // DDF handles extra Basic cluster attributes
+            }
+            else if (thermostatClusterEndpoint > 0) // e.g. Eurotronic SPZB0001 thermostat
             {  }
             else if (modelId.startsWith(QLatin1String("lumi.")) && node->nodeDescriptor().manufacturerCode() != VENDOR_XIAOMI) // older Xiaomi devices
             {
@@ -14383,16 +14167,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 // don't read these (Xiaomi, Trust, ...)
                 // response is empty or no response at all
             }
-            else if (manufacturer.isEmpty())
-            {
-                DBG_Printf(DBG_INFO, "[4.1] Get manufacturer code\n");
-                attributes.push_back(0x0004); // manufacturer
-            }
-            else if (modelId.isEmpty())
-            {
-                DBG_Printf(DBG_INFO, "[4.1] Get model ID\n");
-                attributes.push_back(0x0005); // model id
-            }
             else if (swBuildId.isEmpty() && dateCode.isEmpty())
             {
                 if (!swBuildIdAvailable && dateCodeAvailable)
@@ -14407,20 +14181,26 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 }
             }
 
-            { // filter for available basic cluster attributes
-                std::vector<quint16> tmp = attributes;
-                attributes.clear();
-                for (auto id: tmp)
-                {
-                    if (std::find(unavailBasicAttr.begin(), unavailBasicAttr.end(), id) == unavailBasicAttr.end())
-                    {
-                        attributes.push_back(id);
-                    }
-                }
-            }
-
             if (!attributes.empty())
             {
+                deCONZ::ApsDataRequest apsReq;
+                // ZDP Header
+                apsReq.dstAddress() = sc->address;
+                apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
+                apsReq.setDstEndpoint(basicClusterEndpoint);
+                apsReq.setSrcEndpoint(endpoint());
+                apsReq.setProfileId(HA_PROFILE_ID);
+                apsReq.setRadius(0);
+                apsReq.setClusterId(BASIC_CLUSTER_ID);
+                //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+
+                deCONZ::ZclFrame zclFrame;
+                zclFrame.setSequenceNumber(zclSeq++);
+                zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
+                zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                         deCONZ::ZclFCDirectionClientToServer |
+                                         deCONZ::ZclFCDisableDefaultResponse);
+
                 // payload
                 QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
                 stream.setByteOrder(QDataStream::LittleEndian);
@@ -14428,7 +14208,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 for (quint16 attrId : attributes)
                 {
                     stream << attrId;
-                    DBG_Printf(DBG_INFO, "[4.2] get basic cluster attr 0x%04X for 0x%016llx\n", attrId, sc->address.ext());
+                    DBG_Printf(DBG_INFO, "[4.2] get basic cluster attr 0x%04X for " FMT_MAC "\n", attrId, FMT_MAC_CAST(sc->address.ext()));
                 }
 
                 { // ZCL frame
@@ -14445,14 +14225,14 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     sc->waitIndicationClusterId = apsReq.clusterId();
                 }
             }
-            else if (!sensor)
+            else if (!device->managed() && !sensor)
             {
                 addSensorNode(node);
             }
             return;
         }
 
-        if (!sensor || searchSensorsState != SearchSensorsActive)
+        if (!sensor)
         {
             // do nothing
         }
@@ -16906,6 +16686,7 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
 
 void DEV_PollLegacy(Device *device)
 {
+    auto count = plugin->pollNodes.size();
     for (Resource *r : device->subDevices())
     {
         RestNodeBase *restNode = dynamic_cast<RestNodeBase*>(r);
@@ -16913,6 +16694,11 @@ void DEV_PollLegacy(Device *device)
         {
             plugin->queuePollNode(restNode);
         }
+    }
+
+    if (count == plugin->pollNodes.size()) // nothing was queued
+    {
+        emit device->eventNotify(Event(device->prefix(), REventPollDone, 0, device->key()));
     }
 }
 

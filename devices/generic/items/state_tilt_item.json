@@ -6,9 +6,9 @@
   "public": true,
   "range": [
     0,
-    254
+    100
   ],
-  "description": "The tilt state of a shutter or blind.",
+  "description": "The tilt percentage of a shutter or blind.",
   "parse": {
     "at": "0x0009",
     "cl": "0x0102",

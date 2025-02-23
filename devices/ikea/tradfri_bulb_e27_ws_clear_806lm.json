@@ -1,10 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "50f0db9d-c73d-4d65-aae1-64976334323f",
+  "uuid": "e4776ddf-be28-4f6e-8984-bad49a78d38b",
   "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRIbulbE27WSglobeopal1055lm",
+  "modelid": "TRADFRI bulb E27 WS clear 806lm",
   "vendor": "IKEA",
-  "product": "Tradfri LED bulb E27 1055 lumen, dimmable, white spectrum, opal white (LED2003G10)",
+  "product": "Tradfri LED bulb E27 806 lumen, dimmable, white spectrum, clear (LED1736G9)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -49,16 +49,14 @@
         },
         {
           "name": "cap/color/capabilities",
-          "static": 16
+          "refresh.interval": 86400
         },
         {
           "name": "cap/color/ct/max",
-          "refresh.interval": 84000,
           "default": "0xfeff"
         },
         {
           "name": "cap/color/ct/min",
-          "refresh.interval": 84000,
           "default": 0
         },
         {
@@ -71,19 +69,19 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/colormode",
-          "refresh.interval": 300
+          "refresh.interval": 360
         },
         {
           "name": "state/ct",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -95,6 +93,21 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0000",
+      "report": [
+        {
+          "at": "0x4000",
+          "dt": "0x42",
+          "min": 0,
+          "max": 65535
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0006",
       "report": [
         {
@@ -108,6 +121,7 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0008",
       "report": [
         {
@@ -115,21 +129,42 @@
           "dt": "0x20",
           "min": 1,
           "max": 300,
-          "change": "0x00000001"
+          "change": "0x00000005"
         }
       ]
     },
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0300",
       "report": [
         {
           "at": "0x0007",
           "dt": "0x21",
+          "min": 5,
+          "max": 1800,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0003",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1795,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0004",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1795,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0008",
+          "dt": "0x30",
           "min": 1,
-          "max": 300,
-          "change": "0x00000005"
+          "max": 1800
         }
       ]
     }

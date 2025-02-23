@@ -54,12 +54,12 @@
         {
           "name": "cap/color/ct/max",
           "refresh.interval": 86400,
-          "static": 454
+          "default": "0xfeff"
         },
         {
           "name": "cap/color/ct/min",
           "refresh.interval": 86400,
-          "static": 250
+          "default": 0
         },
         {
           "name": "cap/on/off_with_effect",
@@ -71,19 +71,19 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/colormode",
-          "refresh.interval": 300
+          "refresh.interval": 360
         },
         {
           "name": "state/ct",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -96,25 +96,79 @@
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
-      "cl": "0x0000"
+      "cl": "0x0000",
+      "report": [
+        {
+          "at": "0x4000",
+          "dt": "0x42",
+          "min": 0,
+          "max": 65535
+        }
+      ]
     },
     {
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
-      "cl": "0x0006"
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
     },
     {
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
-      "cl": "0x0008"
+      "cl": "0x0008",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000005"
+        }
+      ]
     },
     {
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
-      "cl": "0x0300"
+      "cl": "0x0300",
+      "report": [
+        {
+          "at": "0x0007",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1800,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0003",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1795,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0004",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1795,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0008",
+          "dt": "0x30",
+          "min": 1,
+          "max": 1800
+        }
+      ]
     }
   ]
 }

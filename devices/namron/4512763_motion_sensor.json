@@ -1,53 +1,15 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "1076594e-6f2f-42eb-bade-e1b41c7dbe78",
-  "manufacturername": [
-    "_TZ3000_n2egfsli",
-    "_TZ3000_n2egfsli",
-    "_TZ3000_oxslv1c9",
-    "_TZ3000_7tbsruql",
-    "_TZ3000_7d8yme6f",
-    "_TZ3000_rgchmad8",
-    "_TZ3000_bzxlofth",
-    "_TZ3000_au1rjicn",
-    "_TZ3000_4ugnzsli",
-    "_TZ3000_decxrtwa",
-    "_TZ3000_2mbfxlzr",
-    "_TZ3000_6zvw8ham",
-    "_TZ3000_v7chgqso",
-    "_TZ3000_yxqnffam",
-    "_TZ3000_zgrffiwg",
-    "_TZ3000_1bwpjvlz",
-    "_TZ3000_0hkmcrza",
-    "_TZ3000_wut53hfm"
-  ],
-  "modelid": [
-    "TS0203",
-    "SNZB-04",
-    "TS0203",
-    "TS0203",
-    "TS0203",
-    "TS0203",
-    "TS0203",
-    "TS0203",
-    "TS0203",
-    "TS0203",
-    "TS0203",
-    "TS0203",
-    "TS0203",
-    "TS0203",
-    "TS0203",
-    "TS0203",
-    "TS0203",
-    "TS0203"
-  ],
-  "vendor": "Tuya",
-  "product": "Door window contact (TS0203)",
+  "uuid": "fe6b5f15-52fc-45a0-bb08-b9f466ef64d6",
+  "manufacturername": "Namron AS",
+  "modelid": "4512763",
+  "vendor": "Namron",
+  "product": "Motion sensor (4512763)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "type": "$TYPE_PRESENCE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -93,14 +55,28 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "state/tampered"
+          "name": "config/battery",
+          "awake": true,
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "eval": "Item.val = Attr.val / 2"
+          }
         },
         {
           "name": "config/checkin"
         },
         {
-          "name": "config/enrolled",
-          "public": false
+          "name": "config/enrolled"
         },
         {
           "name": "config/on"
@@ -112,23 +88,18 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/battery",
-          "awake": true,
-          "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          }
-        },
-        {
           "name": "state/lastupdated"
         },
         {
           "name": "state/lowbattery"
         },
         {
-          "name": "state/open"
+          "name": "state/presence",
+          "awake": true
+        },
+        {
+          "name": "state/tampered",
+          "awake": true
         }
       ]
     }
@@ -137,23 +108,21 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
       "cl": "0x0001",
       "report": [
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
+          "min": 300,
+          "max": 43200,
           "change": "0x00000001"
         }
       ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0500"
     }
   ]
 }

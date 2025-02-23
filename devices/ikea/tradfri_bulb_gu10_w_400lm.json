@@ -6,7 +6,7 @@
   "vendor": "IKEA",
   "product": "Tradfri LED bulb GU10 400 lumen, dimmable white (LED1650R5)",
   "sleeper": false,
-  "status": "Silver",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_DIMMABLE_LIGHT",
@@ -57,11 +57,11 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -94,7 +94,7 @@
           "at": "0x0000",
           "dt": "0x10",
           "min": 1,
-          "max": 1800
+          "max": 300
         }
       ]
     },
@@ -107,8 +107,8 @@
         {
           "at": "0x0000",
           "dt": "0x20",
-          "min": 5,
-          "max": 1800,
+          "min": 1,
+          "max": 300,
           "change": "0x00000001"
         }
       ]
