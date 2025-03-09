@@ -1035,7 +1035,7 @@ public:
     int removeAllGroups(const ApiRequest &req, ApiResponse &rsp);
     void handleLightEvent(const Event &e);
 
-    bool lightToMap(const ApiRequest &req, const LightNode *webNode, QVariantMap &map);
+    bool lightToMap(const ApiRequest &req, LightNode *webNode, QVariantMap &map, bool event = false);
 
     // REST API groups
     int handleGroupsApi(const ApiRequest &req, ApiResponse &rsp);
@@ -1093,7 +1093,7 @@ public:
     int createSensor(const ApiRequest &req, ApiResponse &rsp);
     int getGroupIdentifiers(const ApiRequest &req, ApiResponse &rsp);
     int recoverSensor(const ApiRequest &req, ApiResponse &rsp);
-    bool sensorToMap(const Sensor *sensor, QVariantMap &map, const ApiRequest &req);
+    bool sensorToMap(Sensor *sensor, QVariantMap &map, const ApiRequest &req, bool event = false);
     void handleSensorEvent(const Event &e);
 
     // REST API resourcelinks
@@ -1321,7 +1321,6 @@ public:
     void handleMacDataRequest(const deCONZ::NodeEvent &event);
     void addLightNode(const deCONZ::Node *node);
     void setLightNodeStaticCapabilities(LightNode *lightNode);
-    void updatedLightNodeEndpoint(const deCONZ::NodeEvent &event);
     void nodeZombieStateChanged(const deCONZ::Node *node);
     LightNode *updateLightNode(const deCONZ::NodeEvent &event);
     LightNode *getLightNodeForAddress(const deCONZ::Address &addr, quint8 endpoint = 0);

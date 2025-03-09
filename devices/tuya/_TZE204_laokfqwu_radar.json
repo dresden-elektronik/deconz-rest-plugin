@@ -1,0 +1,331 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "4705f3ea-5ea0-4080-9e40-a29eb131355c",
+  "manufacturername": "_TZE204_laokfqwu",
+  "modelid": "TS0601",
+  "vendor": "Tuya",
+  "product": "MmwRadar Human Presence Detector (TS0601)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_LIGHT_LEVEL_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0400"
+      ],
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "script": "tuya_swversion.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/dark"
+        },
+        {
+          "name": "config/tholddark"
+        },
+        {
+          "name": "config/tholdoffset"
+        },
+        {
+          "name": "state/daylight"
+        },
+        {
+          "name": "state/lightlevel"
+        },
+        {
+          "name": "state/lux",
+          "description": "The current light intensity in Lux (max is 2000)",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 103,
+            "script": "../generic/illuminance_cluster/lux_to_lightlevel.js",
+            "fn": "tuya"
+          },
+          "default": 0
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xef00"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "script": "tuya_swversion.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/delay",
+          "description": "Detection delay : target confirmation delay time in 10th of second (from 0 to 100). Default 0.1s",
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 105,
+            "dt": "0x2b",
+            "eval": "Item.val;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 105,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 1
+        },
+        {
+          "name": "config/fadingtime",
+          "description": "Fading time : target disapperance delay time in second (from 0 to 15000). Default 90s",
+          "range": [
+            0,
+            15000
+          ],
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 106,
+            "dt": "0x2b",
+            "eval": "Item.val;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 106,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 90
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/sensitivity",
+          "description": "Radar sensitivity (from 1 to 9). Default 7",
+          "range": [
+            1,
+            9
+          ],
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 2,
+            "dt": "0x2b",
+            "eval": "Item.val;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 2,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 7
+        },
+        {
+          "name": "config/triggerdistance",
+          "description": "Far detection sensitivity",
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 4,
+            "dt": "0x2b",
+            "eval": "Far = ['0','1','2','3','4','5','6','7','8','9','10']; Attr.val = Math.max(0,Far.indexOf(Item.val)*100);",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 4,
+            "eval": "Item.val = String(Attr.val/100);",
+            "fn": "tuya"
+          },
+          "values": [
+            [
+              "\"1\"",
+              "1m"
+            ],
+            [
+              "\"2\"",
+              "2m"
+            ],
+            [
+              "\"3\"",
+              "3m"
+            ],
+            [
+              "\"4\"",
+              "4m"
+            ],
+            [
+              "\"5\"",
+              "5m"
+            ],
+            [
+              "\"6\"",
+              "6m"
+            ],
+            [
+              "\"7\"",
+              "7m"
+            ],
+            [
+              "\"8\"",
+              "8m"
+            ],
+            [
+              "\"9\"",
+              "9m"
+            ],
+            [
+              "\"10\"",
+              "10m"
+            ],
+            [
+              "\"0\"",
+              "Off"
+            ]
+          ],
+          "default": "10"
+        },
+        {
+          "name": "state/targetdistance",
+          "description": "Distance from detected target in cm (from 0 to 1000).",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 9,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/errorcode",
+          "description": "Self check result code. \n0 = checking, 1 = check_success, 2 = check_failure, 3 = others, 4 = comm_fault, 5 = radar_fault",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 6,
+            "eval": "Item.val = String(Attr.val);",
+            "fn": "tuya"
+          },
+          "default": "Unknown"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/presence",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": false
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0xEF00"
+    }
+  ]
+}

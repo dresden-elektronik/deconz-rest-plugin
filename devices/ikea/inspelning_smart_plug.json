@@ -1,35 +1,15 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "da98ceeb-581b-4e7f-ac9b-8bc4a6eb9975",
-  "manufacturername": [
-    "_TZ3000_gjnozsaz",
-    "_TZ3000_w0qqde0g",
-    "_TZ3000_zloso4jk",
-    "_TZ3000_rdfh8cfs",
-    "_TZ3000_fgwhjm9j",
-    "_TZ3000_waho4jtj",
-    "_TZ3000_xzhnra8x",
-    "_TZ3000_5f43h46b",
-    "_TZ3000_ww6drja5"
-  ],
-  "modelid": [
-    "TS011F",
-    "TS011F",
-    "TS011F",
-    "TS011F",
-    "TS011F",
-    "TS011F",
-    "TS011F",
-    "TS011F",
-    "TS011F"
-  ],
-  "vendor": "Neo",
-  "product": "Smart plug 16A with power monitoring EU (NAS-WR01B)",
+  "uuid": "bfe2bc9e-3057-4ba4-b947-7537c18261d0",
+  "manufacturername": "$MF_IKEA",
+  "modelid": "INSPELNING Smart plug",
+  "vendor": "IKEA",
+  "product": "INSPELNING smart plug",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "type": "$TYPE_SMART_PLUG",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -55,20 +35,33 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
+          "name": "attr/productid",
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
-            "at": "0x0001",
-            "script": "../tuya/tuya_swversion.js"
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
           },
           "read": {
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
-            "at": "0x0001"
-          }
+            "at": "0x000A"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -77,8 +70,10 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "state/alert",
-          "default": "none"
+          "name": "config/on/startup"
+        },
+        {
+          "name": "state/alert"
         },
         {
           "name": "state/on",
@@ -117,20 +112,29 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
+          "name": "attr/productid",
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
-            "at": "0x0001",
-            "script": "../tuya/tuya_swversion.js"
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
           },
           "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0000",
-            "at": "0x0001"
+            "fn": "none"
           }
+        },
+        {
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -147,11 +151,18 @@
         {
           "name": "state/consumption",
           "refresh.interval": 360,
-          "parse": {
-            "at": "0x0000",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
             "cl": "0x0702",
-            "ep": 0,
-            "eval": "Item.val = 10*Attr.val"
+            "at": "0x0000"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0702",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
           },
           "default": 0
         },
@@ -166,7 +177,7 @@
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0b04"
+        "0x0B04"
       ],
       "items": [
         {
@@ -188,20 +199,29 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
+          "name": "attr/productid",
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
-            "at": "0x0001",
-            "script": "../tuya/tuya_swversion.js"
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
           },
           "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0000",
-            "at": "0x0001"
+            "fn": "none"
           }
+        },
+        {
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -217,21 +237,78 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 360,
-          "default": 0
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x0508",
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val }"
+          },
+          "default": 0,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x0508"
+          },
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
-          "refresh.interval": 360,
-          "default": 0
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x050B",
+            "eval": "if (Attr.val != -32768) { Item.val = Math.round(Attr.val / R.item('state/power_divisor').val) }"
+          },
+          "default": 0,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x050B"
+          },
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/power_divisor",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x0605",
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; R.item('state/power').val = Math.round(R.item('state/power').val / R.item('state/power_divisor').val) }"
+          },
+          "default": 1,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x0605"
+          },
+          "refresh.interval": 360
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 360,
-          "default": 0
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x0505",
+            "eval": "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 10) }"
+          },
+          "default": 0,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x0505"
+          },
+          "refresh.interval": 360
         }
       ]
     }
@@ -258,9 +335,9 @@
         {
           "at": "0x0000",
           "dt": "0x25",
-          "min": 5,
+          "min": 1,
           "max": 300,
-          "change": "0x0000000A"
+          "change": "0x000000000000000000000001"
         }
       ]
     },
@@ -272,21 +349,28 @@
         {
           "at": "0x0505",
           "dt": "0x21",
-          "min": 15,
-          "max": 500,
-          "change": "0x00000001"
+          "min": 1,
+          "max": 300,
+          "change": "0x0000000A"
         },
         {
           "at": "0x0508",
           "dt": "0x21",
-          "min": 15,
+          "min": 1,
           "max": 300,
-          "change": "0x00000001"
+          "change": "0x00000064"
         },
         {
           "at": "0x050B",
           "dt": "0x29",
-          "min": 5,
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0605",
+          "dt": "0x21",
+          "min": 1,
           "max": 300,
           "change": "0x00000001"
         }

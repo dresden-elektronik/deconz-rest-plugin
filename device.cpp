@@ -229,14 +229,10 @@ void DEV_InitStateHandler(Device *device, const Event &event)
     if (event.what() == REventStateEnter)
     {
         d->zdpResult = { };
+        d->node = DEV_GetCoreNode(device->key()); // always get fresh pointer
 
         if ((event.deviceKey() & 0x00212E0000000000LLU) == 0x00212E0000000000LLU)
         {
-            if (!d->node)
-            {
-                d->node = DEV_GetCoreNode(device->key());
-            }
-
             if (d->node && d->node->isCoordinator())
             {
                 d->setState(DEV_DeadStateHandler);
@@ -1951,6 +1947,15 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
             d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
             return;
         }
+        else
+        {
+            if (event.what() == REventPoll)
+            {
+                DBG_Printf(DBG_DEV, "DEV Poll Idle nothing to poll %s/" FMT_MAC "\n", event.resource(), FMT_MAC_CAST(event.deviceKey()));
+                // notify DeviceTick to proceed
+                DEV_EnqueueEvent(device, REventPollDone);
+            }
+        }
     }
 }
 
@@ -1972,6 +1977,8 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
         if (d->pollItems.empty())
         {
             d->setState(DEV_PollIdleStateHandler, STATE_LEVEL_POLL);
+            // notify DeviceTick to proceed
+            DEV_EnqueueEvent(device, REventPollDone);
             return;
         }
 
@@ -2154,14 +2161,14 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
 
     addItem(DataTypeBool, RStateReachable);
     addItem(DataTypeBool, RCapSleeper);
-    addItem(DataTypeUInt64, RAttrExtAddress);
+    addItem(DataTypeUInt64, RAttrExtAddress)->setIsPublic(false);
     addItem(DataTypeUInt16, RAttrNwkAddress);
     addItem(DataTypeString, RAttrUniqueId)->setValue(generateUniqueId(key, 0, 0));
     addItem(DataTypeString, RAttrManufacturerName);
     addItem(DataTypeString, RAttrModelId);
     addItem(DataTypeString, RAttrDdfPolicy);
     addItem(DataTypeString, RAttrDdfHash);
-    addItem(DataTypeUInt32, RAttrOtaVersion);
+    addItem(DataTypeUInt32, RAttrOtaVersion)->setIsPublic(false);
 
     // lazy init since the event handler is connected after the constructor
     QTimer::singleShot(0, this, [this]()
