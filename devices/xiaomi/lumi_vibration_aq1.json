@@ -7,6 +7,7 @@
   "product": "Vibration sensor (DJT11LM)",
   "sleeper": true,
   "status": "Gold",
+  "supportsMgmtBind": false,
   "subdevices": [
     {
       "type": "$TYPE_VIBRATION_SENSOR",
@@ -93,7 +94,7 @@
             "cl": "0x0000",
             "mf": "0x115F",
             "at": "0xFF0D",
-            "eval": "Item.val = Attr.val < 3 ? 3 - Attr.val : 2"
+            "eval": "Item.val = Attr.val <= 3 ? 3 - (Attr.val == 0 ? 1 : Attr.val) : 0"
           },
           "read": {
             "fn": "zcl:attr",
@@ -110,7 +111,7 @@
             "mf": "0x115F",
             "at": "0xFF0D",
             "dt": "0x20",
-            "eval": "3 - Item.val",
+            "eval": "(Item.val <= 2 ? 3 - Item.val : 3 - 2)",
             "state.timeout": 2,
             "change.timeout": 3600
           },
