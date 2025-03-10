@@ -188,14 +188,6 @@
     <attribute id="0x000d" name="Serial Number" type="cstring" access="r" required="o"></attribute>
     <attribute id="0x000e" name="Product Label" type="cstring" access="r" required="o"></attribute>
           <attribute id="0x4000" name="SW Build ID" type="cstring" access="r" required="o" range="0,16"></attribute>
-          <attribute id="0xff0d" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x115f"></attribute>
-          <attribute id="0xff22" name="Xiaomi Disconnect 1" type="u8" showas="hex" access="rw" required="o" mfcode="0x115f">
-            <description>Set to 0x12 (0xFE) to connect (disconnect) the left button to (from) the relay.</description>
-          </attribute>
-          <attribute id="0xff23" name="Xiaomi Disconnect 2" type="u8" showas="hex" access="rw" required="o" mfcode="0x115f">
-            <description>Set to 0x22 (0xFE) to connect (disconnect) the left button to (from) the relay.</description>
-          </attribute>
-          <!-- <attribute id="0xff0d" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x1037"></attribute> -->
           <attribute id="0xfffd" name="Cluster Revision" type="u16" default="0" access="rw" required="o"></attribute>
     <attribute id="0xfffe" name="Tuya magic spell final attribute" type="enum8" default="0" access="rw" required="o">
     <description>Read attributes in this order Manufacturer name,ZCL version,Application version,Model Identifier,Power source and finally this one"</description>
