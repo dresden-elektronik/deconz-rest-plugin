@@ -790,6 +790,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         return setWindowCoveringState(req, rsp, taskRef, map);
     }
+    else if (isHueEffectLight(taskRef.lightNode) && isMappableToManufacturerSpecific(map))
+    {
+        // Philips Hue lights that support the '0xfc03' cluster
+        // can be controlled in a manufacturer-specific way.
+        return setHueLightState(req, rsp, taskRef, map);
+    }
     else if (isXmasLightStrip(taskRef.lightNode))
     {
         return setXmasLightStripState(req, rsp, taskRef, map);
