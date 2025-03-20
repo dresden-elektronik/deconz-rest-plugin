@@ -231,18 +231,6 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/battery",
-          "read": {
-            "fn": "none"
-          },
-          "parse": {
-            "dpid": 4,
-            "eval": "Item.val = Attr.val;",
-            "fn": "tuya"
-          },
-          "default": 0
-        },
-        {
           "name": "config/offset",
           "default": 0
         },
