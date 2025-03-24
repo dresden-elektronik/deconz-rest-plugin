@@ -4295,7 +4295,10 @@ uint8_t DDF_GetSubDeviceOrder(const QString &type)
 Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex)
 {
     Q_ASSERT(r->prefix() != nullptr);
-    Q_ASSERT(!r->item(RAttrUniqueId)->toString().isEmpty());
+    if (r->item(RAttrUniqueId)->toString().isEmpty())
+    {
+        return {};
+    }
 
     Resource::Handle result;
     result.hash = qHash(r->item(RAttrUniqueId)->toString());
