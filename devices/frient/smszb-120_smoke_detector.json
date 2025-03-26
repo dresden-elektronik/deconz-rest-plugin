@@ -253,7 +253,7 @@
           "write": {
             "cl": "0x0502",
             "cmd": "0x00",
-            "ep": "0x01",
+            "ep": 35,
             "eval": "if (Item.val=='select') { '1701000000' } else if (Item.val=='none') { '0000000000' }",
             "fn": "zcl:cmd"
           }
