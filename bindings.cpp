@@ -4080,7 +4080,7 @@ bool DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
     }
     else
     {
-        DBG_Printf(DBG_INFO, "discard double entry in binding queue (size: %u) for for 0x%016llX, cluster 0x%04X\n", bindingQueue.size(), bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
+        DBG_Printf(DBG_INFO, "discard double entry in binding queue (size: %zu) for for 0x%016llX, cluster 0x%04X\n", bindingQueue.size(), bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
     }
 
     return true;

@@ -104,7 +104,7 @@ static void IAS_EnsureValidState(ResourceItem *itemIasState)
     DBG_Assert(itemIasState);
     if (itemIasState && itemIasState->toNumber() >= IAS_STATE_MAX)
     {
-        DBG_Printf(DBG_IAS, "[IAS ZONE] - invalid state: %u, set to IAS_STATE_INIT\n", itemIasState->toNumber());
+        DBG_Printf(DBG_IAS, "[IAS ZONE] - invalid state: %d, set to IAS_STATE_INIT\n", (int)itemIasState->toNumber());
         itemIasState->setValue(IAS_STATE_INIT);
     }
 }
@@ -308,12 +308,12 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                     if (iasCieAddress != 0 && iasCieAddress != 0xFFFFFFFFFFFFFFFF)
                     {
                         DBG_Assert(iasCieAddress == apsCtrl->getParameter(deCONZ::ParamMacAddress));
-                        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX   -> IAS CIE address = 0x%016llX: already written.\n", sensor->address().ext(), iasCieAddress);
+                        DBG_Printf(DBG_IAS, "[IAS ZONE] - " FMT_MAC " -> IAS CIE address = " FMT_MAC ": already written.\n", FMT_MAC_CAST(sensor->address().ext()), FMT_MAC_CAST(iasCieAddress));
                         R_ClearFlags(itemPending, R_PENDING_WRITE_CIE_ADDRESS);
                     }
                     else
                     {
-                        DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX   -> IAS CIE address = 0x%016llX: NOT written.\n", sensor->address().ext());
+                        DBG_Printf(DBG_IAS, "[IAS ZONE] - " FMT_MAC " -> IAS CIE address = " FMT_MAC ": NOT written.\n", FMT_MAC_CAST(sensor->address().ext()), FMT_MAC_CAST(iasCieAddress));
                         R_SetFlags(itemPending, R_PENDING_WRITE_CIE_ADDRESS);
                     }
 
@@ -666,7 +666,7 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
 
             const NodeValue val1 = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_CIE_ADDRESS);
             DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor IAS CIE address: 0x%016llX\n", sensor->address().ext(), val1.value.u64);
-            DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor config pending value: %d\n", sensor->address().ext(), itemPending->toNumber());
+            DBG_Printf(DBG_IAS, "[IAS ZONE] - 0x%016llX Sensor config pending value: %d\n", sensor->address().ext(), (int)itemPending->toNumber());
         }
 
         if (iasState == IAS_STATE_INIT)
