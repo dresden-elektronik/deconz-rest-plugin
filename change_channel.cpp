@@ -179,7 +179,7 @@ void DeRestPluginPrivate::changeChannel(quint8 channel)
             if (apsCtrlWrapper.apsdeDataRequest(req) == deCONZ::Success)
             {
                 channelChangeApsRequestId = req.id();
-                DBG_Printf(DBG_INFO, "change channel to %d, channel mask = 0x%08lX\n", channel, scanChannels);
+                DBG_Printf(DBG_INFO, "change channel to %d, channel mask = 0x%08X\n", channel, scanChannels);
                 channelChangeState = CC_WaitConfirm;
                 channelchangeTimer->start(CC_CHANNELCHANGE_WAIT_CONFIRM_TIME);
                 DBG_Printf(DBG_INFO_L2, "ChannelChangeState: CC_WaitConfirm\n");

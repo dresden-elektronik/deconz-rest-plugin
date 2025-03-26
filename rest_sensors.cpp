@@ -3162,7 +3162,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     if (item && item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS))
                     {
                         item->setValue(S_BUTTON_1 + S_BUTTON_ACTION_HOLD);
-                        DBG_Printf(DBG_INFO, "[INFO] - Button %u Hold %s\n", item->toNumber(), qPrintable(sensor->modelId()));
+                        DBG_Printf(DBG_INFO, "[INFO] - Button %d Hold %s\n", (int)item->toNumber(), qPrintable(sensor->modelId()));
                         sensor->updateStateTimestamp();
                         sensor->setNeedSaveDatabase(true);
                         enqueueEvent(Event(RSensors, RStateButtonEvent, sensor->id(), item));
@@ -3181,7 +3181,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     {
                         btn &= ~0x03;
                         item->setValue(btn + S_BUTTON_ACTION_HOLD);
-                        DBG_Printf(DBG_INFO, "FoH switch button %d Hold %s\n", item->toNumber(), qPrintable(sensor->modelId()));
+                        DBG_Printf(DBG_INFO, "FoH switch button %d Hold %s\n", (int)item->toNumber(), qPrintable(sensor->modelId()));
                         sensor->updateStateTimestamp();
                         sensor->setNeedSaveDatabase(true);
                         enqueueEvent(Event(RSensors, RStateButtonEvent, sensor->id(), item));

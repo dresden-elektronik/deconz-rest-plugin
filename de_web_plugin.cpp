@@ -1232,7 +1232,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
     if (DBG_IsEnabled(DBG_MEASURE))
     {
-        DBG_Printf(DBG_INFO, "R stats, str: %u, num: %u, item: %u\n", rStats.toString, rStats.toNumber, rStats.item);
+        DBG_Printf(DBG_INFO, "R stats, str: %zu, num: %zu, item: %zu\n", rStats.toString, rStats.toNumber, rStats.item);
         rStats = { };
     }
 
@@ -1775,7 +1775,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     sensor->setNeedSaveDatabase(true);
     sensor->updateStateTimestamp();
     item->setValue(btn);
-    DBG_Printf(DBG_ZGP, "ZGP 0x%08X button %u %s\n", ind.gpdSrcId(), item->toNumber(), qPrintable(sensor->modelId()));
+    DBG_Printf(DBG_ZGP, "ZGP 0x%08X button %d %s\n", ind.gpdSrcId(), (int)item->toNumber(), qPrintable(sensor->modelId()));
     Event e(RSensors, RStateButtonEvent, sensor->id(), item);
     enqueueEvent(e);
     enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
@@ -9050,7 +9050,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && buttonevent != -1)
                                 {
                                     item->setValue(buttonevent);
-                                    DBG_Printf(DBG_INFO, "[INFO] - Button %u %s\n", item->toNumber(), qPrintable(i->modelId()));
+                                    DBG_Printf(DBG_INFO, "[INFO] - Button %d %s\n", (int)item->toNumber(), qPrintable(i->modelId()));
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RStateButtonEvent, i->id(), item);
@@ -10388,7 +10388,7 @@ bool DeRestPluginPrivate::getGroupIdentifiers(RestNodeBase *node, quint8 endpoin
         task.zclFrame.writeToStream(stream);
     }
 
-    DBG_Printf(DBG_INFO, "Send get group identifiers for node 0%04X \n", node->address().ext());
+    DBG_Printf(DBG_INFO, "Send get group identifiers for node " FMT_MAC " \n", FMT_MAC_CAST(node->address().ext()));
 
     return addTask(task);
 }
@@ -11499,7 +11499,7 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
                     (i->req.asdu().size() ==  task.req.asdu().size()))
 
                 {
-                    DBG_Printf(DBG_INFO, "Replace task %d type %d in queue cluster 0x%04X with newer task %d of same type. %u runnig tasks\n", i->taskId, task.taskType, task.req.clusterId(), task.taskId, runningTasks.size());
+                    DBG_Printf(DBG_INFO, "Replace task %d type %d in queue cluster 0x%04X with newer task %d of same type. %zu runnig tasks\n", i->taskId, task.taskType, task.req.clusterId(), task.taskId, runningTasks.size());
                     *i = task;
                     return true;
                 }
@@ -11533,7 +11533,7 @@ void DeRestPluginPrivate::processTasks()
 
     if (!isInNetwork())
     {
-        DBG_Printf(DBG_INFO, "Not in network cleanup %d tasks\n", (runningTasks.size() + tasks.size()));
+        DBG_Printf(DBG_INFO, "Not in network cleanup %zu tasks\n", (runningTasks.size() + tasks.size()));
         runningTasks.clear();
         tasks.clear();
         return;
@@ -11562,7 +11562,7 @@ void DeRestPluginPrivate::processTasks()
 
         }
 
-        DBG_Printf(DBG_INFO, "%d running tasks, wait\n", runningTasks.size());
+        DBG_Printf(DBG_INFO, "%zu running tasks, wait\n", runningTasks.size());
         return;
     }
 
