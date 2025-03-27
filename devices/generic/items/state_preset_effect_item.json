@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/preset_effect",
+  "datatype": "UInt32",
+  "access": "RW",
+  "public": true,
+  "description": "Preset effect 0: breathing, 1: raindbow, 2: chasing, 3: flash, 4: jumping, 5: flapping, 6: running."
+}
