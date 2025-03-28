@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -17,6 +17,7 @@
 #include "database.h"
 #include "device_descriptions.h"
 #include "device_ddf_bundle.h"
+#include "deconz/atom_table.h"
 #include "deconz/u_assert.h"
 #include "deconz/u_sstream_ex.h"
 #include "deconz/u_memory.h"
@@ -983,8 +984,13 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
             if (buttonBits & (1 << button.button))
             {
                 QVariantMap m;
-                m[QLatin1String("name")] = button.name;
-                buttons[QString::number(button.button)] = m;
+                AT_Atom nameAtom = AT_GetAtomByIndex({button.nameAtomeIndex});
+
+                if (nameAtom.data)
+                {
+                    m[QLatin1String("name")] = QString::fromUtf8((const char*)nameAtom.data, nameAtom.len);
+                    buttons[QString::number(button.button)] = m;
+                }
             }
         }
     }
