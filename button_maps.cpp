@@ -8,6 +8,7 @@
  *
  */
 
+#include <algorithm>
 #include "button_maps.h"
 
 ButtonMapRef BM_ButtonMapRefForHash(uint32_t buttonMapNameHash, const std::vector<ButtonMap> &buttonMaps)

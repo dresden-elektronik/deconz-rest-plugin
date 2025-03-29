@@ -11,6 +11,7 @@
 #ifndef BUTTON_MAPS_H
 #define BUTTON_MAPS_H
 
+#include <cstdint>
 #include <vector>
 
 using ProductIdHash = std::uint32_t;
