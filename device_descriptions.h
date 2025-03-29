@@ -190,6 +190,7 @@ public:
         QVariantMap meta;
         std::vector<Item> items;
         SensorFingerprint fingerPrint;
+        std::vector<unsigned> buttonEvents;
     };
 
     std::vector<SubDevice> subDevices;
