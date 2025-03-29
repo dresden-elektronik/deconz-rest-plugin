@@ -1389,6 +1389,14 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
             }
             triggered = true;
         }
+        else if (path[2] == QLatin1String("hue-scenes"))
+        {
+            if (handleHueScenesApi(req, rsp) == REQ_NOT_HANDLED)
+            {
+                return;
+            }
+            triggered = true;
+        }
         else if (path[2] == QLatin1String("sensors"))
         {
             if (handleSensorsApi(req, rsp) == REQ_NOT_HANDLED)
