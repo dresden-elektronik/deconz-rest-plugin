@@ -7,7 +7,6 @@
   "product": "LK Fuga Wiser Wireless Dimmer (545D6102)",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/wiser/fuga_dimmer_switch.json",
   "subdevices": [
     {
       "type": "$TYPE_DIMMABLE_LIGHT",
