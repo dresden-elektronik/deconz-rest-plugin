@@ -1,5 +1,5 @@
  /*
- * Copyright (c) 2017-2023 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -35,6 +35,7 @@
 #include "alarm_system_device_table.h"
 #include "database.h"
 #include "deconz/u_assert.h"
+#include "deconz/atom_table.h"
 #include "device_ddf_init.h"
 #include "device_descriptions.h"
 #include "device_tick.h"
@@ -4356,23 +4357,53 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         buttonMapEntry = BM_ButtonMapForRef(sensor->buttonMapRef(), buttonMaps);
     }
 
-    QString cluster = "0x" + QString("%1").arg(ind.clusterId(), 4, 16, QLatin1Char('0')).toUpper();
-    QString cmd = "0x" + QString("%1").arg(zclFrame.commandId(), 2, 16, QLatin1Char('0')).toUpper();
+    QString dbgCluster;
+    QString dbgCmd;
     QString addressMode;
-    QString zclPayload = zclFrame.payload().isEmpty() ? "None" : qPrintable(zclFrame.payload().toHex().toUpper());
+    QString dbgZclPayload;
     quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
 
     if (ind.dstAddress().isNwkUnicast()) { addressMode = ", unicast to: 0x" + QString("%1").arg(ind.dstAddress().nwk(), 4, 16, QLatin1Char('0')).toUpper(); }
     else if (ind.dstAddressMode() == deCONZ::ApsGroupAddress) { addressMode = ", broadcast to: 0x" + QString("%1").arg(ind.dstAddress().group(), 4, 16, QLatin1Char('0')).toUpper(); }
     else { addressMode = ", unknown"; }
 
-    if (!btnMapClusters.key(ind.clusterId()).isEmpty())
-    {
-        QString val = btnMapClusters.key(ind.clusterId());
-        QMap<QString, quint16> temp = btnMapClusterCommands.value(val);
-        cluster = val + " (" + cluster + ")";
 
-        if (!temp.empty() && !temp.key(zclFrame.commandId()).isEmpty()) { cmd = temp.key(zclFrame.commandId()) + " (" + cmd + ")"; }
+    if (DBG_IsEnabled(DBG_INFO) || DBG_IsEnabled(DBG_INFO_L2))
+    {
+        dbgCluster = QString("0x%1").arg(ind.clusterId(), 4, 16, QLatin1Char('0')).toUpper();
+        dbgCmd = QString("0x%1").arg(zclFrame.commandId(), 2, 16, QLatin1Char('0')).toUpper();
+        dbgZclPayload = zclFrame.payload().isEmpty() ? "None" : qPrintable(zclFrame.payload().toHex().toUpper());
+
+        for (const ButtonCluster &bc : btnMapClusters)
+        {
+            if (ind.clusterId() == bc.clusterId)
+            {
+                for (const ButtonClusterCommand &bcc :btnMapClusterCommands)
+                {
+                    if (bcc.clusterNameAtomIndex != bc.nameAtomIndex)
+                        continue;
+
+                    if (bcc.commandId == zclFrame.commandId())
+                    {
+                        AT_Atom clusterNameAtom = AT_GetAtomByIndex({bcc.clusterNameAtomIndex});
+                        AT_Atom commandNameAtom = AT_GetAtomByIndex({bcc.commandNameAtomIndex});
+
+                        if (clusterNameAtom.data && commandNameAtom.data)
+                        {
+                            const QLatin1String clusterName((const char*)clusterNameAtom.data, clusterNameAtom.len);
+                            const QLatin1String commandName((const char*)commandNameAtom.data, commandNameAtom.len);
+
+                            dbgCluster = clusterName + " (" + dbgCluster + ")";
+                            dbgCmd = commandName + " (" + dbgCmd + ")";
+                        }
+
+                        break;
+                    }
+                }
+
+                break;
+            }
+        }
     }
 
     checkInstaModelId(sensor);
@@ -4380,7 +4411,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     if (!buttonMapEntry || buttonMapEntry->buttons.empty())
     {
         DBG_Printf(DBG_INFO_L2, "[INFO] - No button map for: %s%s, endpoint: 0x%02X, cluster: %s, command: %s, payload: %s, zclSeq: %u\n",
-            qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
+            qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(dbgCluster), qPrintable(dbgCmd), qPrintable(dbgZclPayload), zclFrame.sequenceNumber());
         return;
     }
 
@@ -5264,10 +5295,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
                 if (ok && buttonMap.button != 0)
                 {
-                    if (!buttonMap.name.isEmpty()) { cmd = buttonMap.name; }
+                    AT_Atom nameAtom = AT_GetAtomByIndex({buttonMap.nameAtomIndex});
+
+                    if (nameAtom.data) { dbgCmd = QString::fromLatin1((const char*)nameAtom.data, (int)nameAtom.len); }
 
                     DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s%s, endpoint: 0x%02X, cluster: %s, action: %s, payload: %s, zclSeq: %u\n",
-                        buttonMap.button, qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
+                        buttonMap.button, qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(dbgCluster), qPrintable(dbgCmd), qPrintable(dbgZclPayload), zclFrame.sequenceNumber());
 
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
@@ -5284,7 +5317,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
                             if (dt > 0 && dt < 500)
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d) %s\n", buttonMap.button, qPrintable(cmd), static_cast<int>(dt), qPrintable(sensor->modelId()));
+                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d) %s\n", buttonMap.button, qPrintable(dbgCmd), static_cast<int>(dt), qPrintable(sensor->modelId()));
                                 break;
                             }
                         }
@@ -5356,7 +5389,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     if (sensor->item(RStateButtonEvent))
     {
         DBG_Printf(DBG_INFO_L2, "[INFO] - No button handler for: %s%s, endpoint: 0x%02X, cluster: %s, command: %s, payload: %s, zclSeq: %u\n",
-            qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
+            qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(dbgCluster), qPrintable(dbgCmd), qPrintable(dbgZclPayload), zclFrame.sequenceNumber());
     }
 }
 

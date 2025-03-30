@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -26,6 +26,6 @@ const QString R_GetProductId(Resource *resource);
 bool isTuyaManufacturerName(const QString &manufacturer);
 bool isLidlDevice(const QString &zigbeeModelIdentifier, const QString &manufacturername);
 const lidlDevice *getLidlDevice(const QString &zigbeeManufacturerName);
-uint productHash(const Resource *r);
+unsigned int productHash(const Resource *r);
 
 #endif // PRODUCT_MATCH_H
