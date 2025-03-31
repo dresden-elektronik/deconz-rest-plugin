@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -1559,11 +1559,11 @@ public:
     QTimer *databaseTimer;
     QString emptyString;
 
-    // JSON support
+    // button_maps.json
     std::vector<ButtonMeta> buttonMeta;
     std::vector<ButtonMap> buttonMaps;
-    QMap<QString, quint16> btnMapClusters;
-    QMap<QString, QMap<QString, quint16>> btnMapClusterCommands;
+    std::vector<ButtonCluster> btnMapClusters;
+    std::vector<ButtonClusterCommand> btnMapClusterCommands;
     std::vector<ButtonProduct> buttonProductMap;
 
     // gateways

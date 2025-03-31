@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -261,7 +261,7 @@ bool isLidlDevice(const QString &zigbeeModelIdentifier, const QString &manufactu
     return false;
 }
 
-uint productHash(const Resource *r)
+unsigned int productHash(const Resource *r)
 {
     if (!r || !r->item(RAttrManufacturerName) || !r->item(RAttrModelId))
     {
@@ -271,10 +271,10 @@ uint productHash(const Resource *r)
     if (isTuyaManufacturerName(r->item(RAttrManufacturerName)->toString()))
     {
         // for Tuya devices use manufacturer name as modelid
-        return qHash(r->item(RAttrManufacturerName)->toString());
+        return r->item(RAttrManufacturerName)->atomIndex();
     }
     else
     {
-        return qHash(r->item(RAttrModelId)->toString());
+        return r->item(RAttrModelId)->atomIndex();
     }
 }

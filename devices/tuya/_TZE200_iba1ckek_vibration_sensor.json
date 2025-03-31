@@ -1,0 +1,129 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "d26c94b9-2c78-494c-acc8-f7aaa4be6712",
+  "manufacturername": "_TZE200_iba1ckek",
+  "modelid": "TS0601",
+  "vendor": "tuya",
+  "product": "Vibration sensor",
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_VIBRATION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xef00"
+      ],
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 105,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/orientation_x",
+          "public": true,
+          "parse": {
+            "dpid": 101,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          }
+        },
+        {
+          "name": "state/orientation_y",
+          "public": true,
+          "parse": {
+            "dpid": 102,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          }
+        },
+        {
+          "name": "state/orientation_z",
+          "public": true,
+          "parse": {
+            "dpid": 103,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "config/sensitivity",
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 104,
+            "dt": "0x2b",
+            "eval": "Item.val;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 104,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          }
+        },
+        {
+          "name": "state/vibration",
+          "parse": {
+            "dpid": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          }
+        }
+      ]
+    }
+  ]
+}

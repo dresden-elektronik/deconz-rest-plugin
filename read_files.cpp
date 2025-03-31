@@ -4,6 +4,7 @@
 #include <QJsonValue>
 #include <QJsonParseError>
 #include <deconz/dbg_trace.h>
+#include "deconz/atom_table.h"
 #include "read_files.h"
 #include "sensor.h"
 
@@ -69,12 +70,12 @@ bool checkRootLevelObjectsJson(const QJsonDocument &buttonMaps, const QStringLis
     return true;
 }
 
-QMap<QString, quint16> loadButtonMapClustersJson(const QJsonDocument &buttonMaps)
+std::vector<ButtonCluster> loadButtonMapClustersJson(const QJsonDocument &buttonMaps)
 {
-    // Load button map clusters
+    int counter = 0;
+    AT_AtomIndex ati;
+    std::vector<ButtonCluster> result;
     QJsonObject clustersObj = buttonMaps.object().value(QLatin1String("clusters")).toObject();
-    QMap<QString, quint16> btnMapClusters;
-    quint8 counter = 0;
 
     for (auto i = clustersObj.constBegin(); i != clustersObj.constEnd(); ++i)       // Loop through cluster objects
     {
@@ -92,24 +93,32 @@ QMap<QString, quint16> loadButtonMapClustersJson(const QJsonDocument &buttonMaps
         }
         else
         {
-            btnMapClusters.insert(i.key(), i.value().toInt());   // Store data in QMap for later use
+            if (AT_AddAtom(qPrintable(i.key()), i.key().size(), &ati))
+            {
+                ButtonCluster bc;
+                bc.nameAtomIndex = ati.index;
+                bc.clusterId = i.value().toInt();
+                result.push_back(bc);
+            }
         }
     }
-    return btnMapClusters;
+    return result;
 }
 
-QMap<QString, QMap<QString, quint16>> loadButtonMapCommadsJson(const QJsonDocument &buttonMaps)
+std::vector<ButtonClusterCommand> loadButtonMapCommadsJson(const QJsonDocument &buttonMaps)
 {
-    // Load button map commands
     QJsonObject commandsObj = buttonMaps.object().value(QLatin1String("commands")).toObject();
-    QMap<QString, QMap<QString, quint16>> btnMapClusterCommands;
-    quint8 counter = 0;
+    std::vector<ButtonClusterCommand> btnMapClusterCommands;
+    int counter = 0;
+    AT_AtomIndex atiClusterName;
+    AT_AtomIndex atiCommandName;
 
-    for (auto i = commandsObj.constBegin(); i != commandsObj.constEnd(); ++i)       // Loop through commands objects
+    for (auto i = commandsObj.constBegin(); i != commandsObj.constEnd(); ++i)
     {
         ++counter;
+        const std::string clusterName = i.key().toStdString();
 
-        if (i.key().isNull() || i.key().isEmpty() || i.key().length() > MAX_CLUSTER_CHARACTER_LENGTH)
+        if (clusterName.empty() || clusterName.size() > MAX_CLUSTER_CHARACTER_LENGTH)
         {
             DBG_Printf(DBG_INFO, "[ERROR] - Key #%d for object 'commands' is no string or too long. Skipping entry...\n", counter);
             continue;
@@ -121,31 +130,45 @@ QMap<QString, QMap<QString, quint16>> loadButtonMapCommadsJson(const QJsonDocume
         }
         else
         {
-            QJsonObject commandObj = i.value().toObject();
-            QString commandsObjName = i.key();
-            QMap<QString, quint16> commandMap;
-            quint8 counter2 = 0;
+            if (AT_AddAtom(clusterName.c_str(), clusterName.size(), &atiClusterName) == 0)
+            {
+                continue;
+            }
 
-            for (auto i = commandObj.constBegin(); i != commandObj.constEnd(); ++i)       // Loop through cluster specific command objects
+            QJsonObject commandObj = i.value().toObject();
+
+            int counter2 = 0;
+
+            for (auto j = commandObj.constBegin(); j != commandObj.constEnd(); ++j)       // Loop through cluster specific command objects
             {
                 ++counter2;
+                const std::string commandName = j.key().toStdString();
+                int commandId = j.value().toInt(-1);
 
-                if (i.key().isNull() || i.key().isEmpty() || i.key().length() > MAX_COMMAND_CHARACTER_LENGTH)
+                if (commandName.empty() || commandName.size() > MAX_COMMAND_CHARACTER_LENGTH)
                 {
-                    DBG_Printf(DBG_INFO, "[ERROR] - Key #%d for object '%s' is no string or too long. Skipping entry...\n", counter2, qPrintable(commandsObjName));
+                    DBG_Printf(DBG_INFO, "[ERROR] - Key #%d for object '%s' is no string or too long. Skipping entry...\n", counter2, clusterName.c_str());
                     continue;
                 }
-                else if (!i.value().isDouble() || i.value().toDouble() > MAX_COMMAND_VALUE)       // FIXME: value might be too small
+                else if (commandId < 0 || commandId > MAX_COMMAND_VALUE)       // FIXME: value might be too small
                 {
-                    DBG_Printf(DBG_INFO, "[ERROR] - Value #%d for object '%s' is no number or too large. Skipping entry...\n", counter2, qPrintable(commandsObjName));
+                    DBG_Printf(DBG_INFO, "[ERROR] - Value #%d for object '%s' is no number or too large. Skipping entry...\n", counter2, clusterName.c_str());
                     continue;
                 }
                 else
                 {
-                    commandMap.insert(i.key(), i.value().toInt());   // Store data in QMap for later use
+                    if (AT_AddAtom(commandName.c_str(), commandName.size(), &atiCommandName) == 0)
+                    {
+                        continue;
+                    }
+
+                    ButtonClusterCommand bcc;
+                    bcc.clusterNameAtomIndex = atiClusterName.index;
+                    bcc.commandNameAtomIndex = atiCommandName.index;
+                    bcc.commandId = (unsigned)commandId;
+                    btnMapClusterCommands.push_back(bcc);
                 }
             }
-            btnMapClusterCommands.insert(commandsObjName, commandMap);   // Store data in QMap for later use
         }
     }
     return btnMapClusterCommands;
@@ -155,8 +178,8 @@ QMap<QString, QMap<QString, quint16>> loadButtonMapCommadsJson(const QJsonDocume
  */
 std::vector<ButtonProduct> loadButtonMapModelIdsJson(const QJsonDocument &buttonMapsDoc, const std::vector<ButtonMap> &buttonMaps)
 {
+    AT_AtomIndex ati;
     std::vector<ButtonProduct> result;
-    result.reserve(128);
 
     const QJsonObject allMapsObj = buttonMapsDoc.object().value(QLatin1String("maps")).toObject();     // Get all button maps
 
@@ -165,7 +188,15 @@ std::vector<ButtonProduct> loadButtonMapModelIdsJson(const QJsonDocument &button
         const QString buttonMapName = i.key();    // Individual button map name
 
         ButtonProduct item;
-        item.buttonMapRef = BM_ButtonMapRefForHash(qHash(i.key()), buttonMaps);
+        if (AT_GetAtomIndex(qPrintable(buttonMapName), buttonMapName.size(), &ati))
+        {
+            item.buttonMapRef = BM_ButtonMapRefForHash(ati.index, buttonMaps);
+        }
+        else
+        {
+            // atom must be added by earlier pass
+            continue;
+        }
 
         if (isValid(item.buttonMapRef) && i.value().isObject())        // Check if individual button map is an object
         {
@@ -187,8 +218,11 @@ std::vector<ButtonProduct> loadButtonMapModelIdsJson(const QJsonDocument &button
 
                     if (j->isString() && !modelId.isEmpty() && modelId.size() <= MAX_MODELID_CHARACTER_LENGTH)
                     {
-                        item.productHash = qHash(modelId);
-                        result.push_back(item);
+                        if (AT_AddAtom(qPrintable(modelId), modelId.size(), &ati))
+                        {
+                            item.productHash = ati.index;
+                            result.push_back(item);
+                        }
                     }
                     else if (j->isString() && modelId.size() > MAX_MODELID_CHARACTER_LENGTH)
                     {
@@ -219,9 +253,10 @@ std::vector<ButtonProduct> loadButtonMapModelIdsJson(const QJsonDocument &button
 
 /*! Reads all available button maps from JSON file.
  */
-std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const QMap<QString, quint16> &btnMapClusters,
-                                                                 const QMap<QString, QMap<QString, quint16>> &btnMapClusterCommands)
+std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const std::vector<ButtonCluster> &btnMapClusters,
+                                                                 const std::vector<ButtonClusterCommand> &btnMapClusterCommands)
 {
+    AT_AtomIndex ati;
     std::vector<ButtonMap> result;
     result.reserve(128);
 
@@ -322,7 +357,7 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
                                 btnMap.zclCommandId = 0;
                                 btnMap.zclParam0 = 0;
                                 btnMap.button = 0;
-                                btnMap.name = "";
+                                btnMap.nameAtomIndex = 0;
 
                                 if (buttonMapItemArr.at(0).isDouble())
                                 {
@@ -359,15 +394,33 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
                                     buttonMapItemArr.at(2).toString().length() == 6)
                                 {
                                     QString cid = buttonMapItemArr.at(2).toString();
-                                    //DBG_Printf(DBG_INFO, "[INFO] - Button map item #3: %d\n", cid.toUint(&ok, 0));
-                                    btnMap.clusterId = cid.toUInt(&ok, 0);
+                                    unsigned int clusterId = cid.toUInt(&ok, 0);
+                                    if (ok && clusterId <= 0xffff)
+                                    {
+                                        btnMap.clusterId = clusterId;
+                                    }
                                 }
                                 else if (buttonMapItemArr.at(2).isString() && !buttonMapItemArr.at(2).toString().startsWith(QLatin1String("0x")) &&
                                          buttonMapItemArr.at(2).toString().length() <= MAX_CLUSTER_CHARACTER_LENGTH)
                                 {
-                                    QString cid = buttonMapItemArr.at(2).toString();
-                                    if (btnMapClusters.value(cid, 65535) != 65535) { btnMap.clusterId = btnMapClusters.value(buttonMapItemArr.at(2).toString()); }
-                                    else
+                                    AT_AtomIndex atiClusterName;
+                                    bool knownClusterName = false;
+                                    std::string clusterName = buttonMapItemArr.at(2).toString().toStdString();
+
+                                    if (AT_GetAtomIndex(clusterName.c_str(), clusterName.size(), &atiClusterName))
+                                    {
+                                        for (const ButtonCluster &bc : btnMapClusters)
+                                        {
+                                            if (bc.nameAtomIndex == atiClusterName.index)
+                                            {
+                                                knownClusterName = true;
+                                                btnMap.clusterId = bc.clusterId;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (!knownClusterName)
                                     {
                                         DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, field #3 for '%s' was not found in object 'clusters'. Skipping entry.\n",
                                                     mapItem, qPrintable(buttonMapName));
@@ -391,24 +444,31 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
                                 else if (buttonMapItemArr.at(3).isString() && !buttonMapItemArr.at(3).toString().startsWith(QLatin1String("0x")) &&
                                          buttonMapItemArr.at(3).toString().length() <= MAX_COMMAND_CHARACTER_LENGTH)
                                 {
-                                    QString cid = buttonMapItemArr.at(2).toString();
-                                    QString cmd = buttonMapItemArr.at(3).toString();
+                                    bool found = false;
+                                    AT_AtomIndex atiClusterName;
+                                    AT_AtomIndex atiCommandName;
 
-                                    if (btnMapClusters.value(cid, 65535) != 65535)
+                                    std::string clusterName = buttonMapItemArr.at(2).toString().toStdString();
+                                    std::string commandName = buttonMapItemArr.at(3).toString().toStdString();
+
+                                    if (AT_GetAtomIndex(clusterName.c_str(), clusterName.size(), &atiClusterName) &&
+                                        AT_GetAtomIndex(commandName.c_str(), commandName.size(), &atiCommandName))
                                     {
-                                        QMap<QString, quint16> temp = btnMapClusterCommands.value(cid);
-
-                                        if (!temp.empty() && temp.value(cmd, 65535) != 65535) { btnMap.zclCommandId = temp.value(cmd); }
-                                        else
+                                        for (const ButtonClusterCommand &bcc : btnMapClusterCommands)
                                         {
-                                            DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, field #4 for '%s' was not found in object 'commands' for cluster '%s'. Skipping entry.\n",
-                                                        mapItem, qPrintable(buttonMapName), qPrintable(cid));
-                                            continue;
+                                            if (bcc.clusterNameAtomIndex == atiClusterName.index &&
+                                                bcc.commandNameAtomIndex == atiCommandName.index)
+                                            {
+                                                btnMap.zclCommandId = bcc.commandId & 0xFF;
+                                                found = true;
+                                                break;
+                                            }
                                         }
                                     }
-                                    else
+
+                                    if (!found)
                                     {
-                                        DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, field #4 for '%s' was not found as cluster in object 'commands'. Skipping entry.\n",
+                                        DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d, cluster or command for '%s' was not found in object 'commands'. Skipping entry.\n",
                                                     mapItem, qPrintable(buttonMapName));
                                         continue;
                                     }
@@ -467,8 +527,16 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
 
                                 if (buttonMapItemArr.at(7).isString() && buttonMapItemArr.at(7).toString().length() <= MAX_DESCRIPTION_CHARACTER_LENGTH)
                                 {
-                                    //DBG_Printf(DBG_INFO, "[INFO] - Button map item #8: %s\n", qPrintable(buttonMapItemArr.at(7).toString()));
-                                    btnMap.name = buttonMapItemArr.at(7).toString();
+                                    AT_AtomIndex atiName;
+                                    std::string name = buttonMapItemArr.at(7).toString().toStdString();
+                                    btnMap.nameAtomIndex = 0;
+                                    if (name.size() != 0)
+                                    {
+                                        if (AT_AddAtom(name.c_str(), name.size(), &atiName))
+                                        {
+                                            btnMap.nameAtomIndex = atiName.index;
+                                        }
+                                    }
                                 }
                                 else
                                 {
@@ -491,9 +559,13 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
                         }
                     }
 
-                    ButtonMapRef buttonMapRef;
-                    buttonMapRef.hash = qHash(buttonMapName);
-                    buttonMapRef.index = result.size();
+                    ButtonMapRef buttonMapRef = {};
+
+                    if (AT_AddAtom(qPrintable(buttonMapName), buttonMapName.size(), &ati))
+                    {
+                        buttonMapRef.hash = ati.index;
+                        buttonMapRef.index = result.size();
+                    }
 
 #ifdef QT_DEBUG
                     {
@@ -527,6 +599,7 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
 
 std::vector<ButtonMeta> loadButtonMetaJson(const QJsonDocument &buttonMapsDoc, const std::vector<ButtonMap> &buttonMaps)
 {
+    AT_AtomIndex atiButtonMapName;
     std::vector<ButtonMeta> result;
 
     const QLatin1String buttonPrefix("S_BUTTON_");
@@ -534,9 +607,13 @@ std::vector<ButtonMeta> loadButtonMetaJson(const QJsonDocument &buttonMapsDoc, c
 
     for (auto i = mapsObj.constBegin(); i != mapsObj.constEnd(); ++i)       // Loop through button maps
     {
+        if (AT_GetAtomIndex(qPrintable(i.key()), i.key().size(), &atiButtonMapName) == 0)
+        {
+            continue;
+        }
+
         ButtonMeta meta;
-        meta.buttons.reserve(4);
-        meta.buttonMapRef = BM_ButtonMapRefForHash(qHash(i.key()), buttonMaps);    // Individual button map name
+        meta.buttonMapRef = BM_ButtonMapRefForHash(atiButtonMapName.index, buttonMaps);    // Individual button map name
 
         if (!isValid(meta.buttonMapRef))
         {
@@ -572,14 +649,24 @@ std::vector<ButtonMeta> loadButtonMetaJson(const QJsonDocument &buttonMapsDoc, c
                     continue;
                 }
 
+                std::string buttonName = buttonObj.value(k).toString().toStdString();
+                if (buttonName.size() == 0)
+                {
+                    continue;
+                }
+
                 bool ok = false;
                 ButtonMeta::Button b;
                 b.button = k.midRef(buttonPrefix.size()).toInt(&ok);
 
                 if (ok)
                 {
-                    b.name = buttonObj.value(k).toString();
-                    meta.buttons.push_back(b);
+                    AT_AtomIndex atiButtonName;
+                    if (AT_AddAtom(buttonName.c_str(), buttonName.size(), &atiButtonName))
+                    {
+                        b.nameAtomeIndex = atiButtonName.index;
+                        meta.buttons.push_back(b);
+                    }
                 }
             }
         }
