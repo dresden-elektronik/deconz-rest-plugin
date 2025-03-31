@@ -11,15 +11,17 @@
   ],
   "items": [
     "config/battery",
-    "config/enrolled",
     "config/on",
-    "config/pending",
     "config/reachable",
     "state/action",
     "state/lastupdated",
-    "state/lowbattery",
     "state/seconds_remaining",
-    "state/panel",
+    "state/panel"
+  ],
+  "items_optional": [
+    "config/enrolled",
+    "config/pending",
+    "state/lowbattery",
     "state/tampered"
   ]
 }
