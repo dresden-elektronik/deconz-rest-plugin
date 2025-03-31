@@ -7,7 +7,6 @@
   "product": "Split A/C controller (AC201)",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/ac201.json",
   "subdevices": [
     {
       "type": "$TYPE_THERMOSTAT",
