@@ -7,7 +7,6 @@
   "product": "SNZB-05P",
   "sleeper": true,
   "status": "Gold",
-  "path": "/devices/snzb-05p.json",
   "subdevices": [
     {
       "type": "$TYPE_WATER_LEAK_SENSOR",

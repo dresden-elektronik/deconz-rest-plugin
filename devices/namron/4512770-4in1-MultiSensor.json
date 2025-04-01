@@ -13,7 +13,6 @@
   "product": "4in1-MultiSensor",
   "sleeper": true,
   "status": "Gold",
-  "path": "/devices/namron/4512770-4in1.json",
   "subdevices": [
     {
       "type": "$TYPE_PRESENCE_SENSOR",

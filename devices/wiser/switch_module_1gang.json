@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "907e2357-6953-49a6-ad77-cd1744f8e452",
   "manufacturername": "Schneider Electric",
   "modelid": "PUCK/SWITCH/1",
   "vendor": "Schneider Electric or Elko",
