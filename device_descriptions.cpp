@@ -3446,6 +3446,43 @@ static DeviceDescription::SubDevice DDF_ParseSubDevice(DDF_ParseContext *pctx, c
         }
     }
 
+    {
+#if 0 // TODO(mpi) get actual button names as atoms
+        if (obj.value(QLatin1String("buttons")).isObject())
+        {
+            const auto buttons = obj.value(QLatin1String("buttons")).toObject();
+
+
+            for (auto bi = buttons.constBegin(); bi != buttons.constEnd(); bi++)
+            {
+                DBG_Printf(DBG_INFO, "BUTTON: %s\n", qPrintable(bi.key()));
+            }
+
+            DBG_Flush();
+        }
+#endif
+
+        if (obj.value(QLatin1String("buttonevents")).isObject())
+        {
+            const auto buttonEvents = obj.value(QLatin1String("buttonevents")).toObject();
+
+            for (auto bi = buttonEvents.constBegin(); bi != buttonEvents.constEnd(); bi++)
+            {
+                bool ok;
+                unsigned buttonEvent = bi.key().toUInt(&ok);
+
+                if (ok)
+                {
+                    auto i = std::find(result.buttonEvents.cbegin(), result.buttonEvents.cend(), buttonEvent);
+                    if (i == result.buttonEvents.cend())
+                    {
+                        result.buttonEvents.push_back(buttonEvent);
+                    }
+                }
+            }
+        }
+    }
+
     const auto items = obj.value(QLatin1String("items"));
     if (!items.isArray())
     {
