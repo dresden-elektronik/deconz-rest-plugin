@@ -223,20 +223,6 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/temperature",
-          "awake": true,
-          "parse": {
-            "fn": "xiaomi:special",
-            "ep": 1,
-            "at": "0x00f7",
-            "idx": "0x03",
-            "eval": "Item.val = Attr.val * 100"
-          },
-          "read": {
-            "fn": "none"
-          }
-        },
-        {
           "name": "state/battery",
           "parse": {
             "fn": "zcl:attr",

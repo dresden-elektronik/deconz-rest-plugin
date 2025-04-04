@@ -128,9 +128,6 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/temperature"
-        },
-        {
           "name": "state/current",
           "parse": {
             "at": "0x00F7",
@@ -234,9 +231,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature"
         },
         {
           "name": "state/consumption",

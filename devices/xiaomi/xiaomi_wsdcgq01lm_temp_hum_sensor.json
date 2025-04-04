@@ -88,10 +88,6 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/temperature",
-          "public": false
-        },
-        {
           "name": "state/lastupdated"
         },
         {
@@ -178,10 +174,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature",
-          "public": false
         },
         {
           "name": "state/humidity",

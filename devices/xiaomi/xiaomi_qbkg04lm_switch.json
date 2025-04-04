@@ -144,9 +144,6 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/temperature"
-        },
-        {
           "name": "state/buttonevent"
         },
         {
