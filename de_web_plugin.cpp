@@ -11071,6 +11071,26 @@ bool DeRestPluginPrivate::modifyScene(Group *group, uint8_t sceneId)
     return true;
 }
 
+/*! Sends a remove light node from scene request to a group.
+ */
+bool DeRestPluginPrivate::removeLightNodeFromScene(LightNode *lightNode, Group *group, uint8_t sceneId)
+{
+    // note: we queue removing of scene even if node is not available
+    if (isLightNodeInGroup(lightNode, group->address()))
+    {
+        GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
+
+        std::vector<uint8_t> &v = groupInfo->removeScenes;
+
+        if (std::find(v.begin(), v.end(), sceneId) == v.end())
+        {
+            groupInfo->removeScenes.push_back(sceneId);
+        }
+    }
+
+    return true;
+}
+
 /*! Sends a remove scene request to a group.
  */
 bool DeRestPluginPrivate::removeScene(Group *group, uint8_t sceneId)
@@ -11103,18 +11123,7 @@ bool DeRestPluginPrivate::removeScene(Group *group, uint8_t sceneId)
     for (; i != end; ++i)
     {
         LightNode *lightNode = &(*i);
-        // note: we queue removing of scene even if node is not available
-        if (isLightNodeInGroup(lightNode, group->address()))
-        {
-            GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
-
-            std::vector<uint8_t> &v = groupInfo->removeScenes;
-
-            if (std::find(v.begin(), v.end(), sceneId) == v.end())
-            {
-                groupInfo->removeScenes.push_back(sceneId);
-            }
-        }
+        removeLightNodeFromScene(lightNode, group, sceneId);
     }
 
     return true;
