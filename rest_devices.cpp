@@ -873,6 +873,8 @@ QLatin1String RIS_ButtonEventActionToString(int buttonevent)
 {
     const uint action = buttonevent % 1000;
 
+    // TODO(mpi): this list is incomplete
+
     static std::array<QLatin1String, 11> map = {
          QLatin1String("INITIAL_PRESS"),
          QLatin1String("HOLD"),
@@ -926,6 +928,48 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
     {
         return result;
     }
+
+    {  // 1) if the DDF provides buttons and button event descriptions take it from there
+        const DeviceDescription &ddf = DeviceDescriptions::instance()->get(r);
+        if (ddf.isValid())
+        {
+            for (const DeviceDescription::SubDevice &subd : ddf.subDevices)
+            {
+                if (!subd.buttonEvents.empty())
+                {
+                    QVariantMap buttons;
+                    QVariantMap values;
+
+                    for (unsigned btn: subd.buttonEvents)
+                    {
+                        {
+                            QVariantMap m;
+                            m[QLatin1String("button")] = int(btn / 1000);
+                            m[QLatin1String("action")] = RIS_ButtonEventActionToString(btn);
+                            values[QString::number(btn)] = m;
+                        }
+
+                        QString btnNum = QString::number(btn/1000);
+
+                        if (!buttons.contains(btnNum))
+                        {
+                            QVariantMap m;
+                            m[QLatin1String("name")] = QString("Button %1").arg(btn/1000);
+                            buttons[btnNum] = m;
+                        }
+
+                    }
+
+                    result[QLatin1String("buttons")] = buttons;
+                    result[QLatin1String("values")] = values;
+
+                    return result;
+                }
+            }
+        }
+    }
+
+    // 2) try getting button and button event description from button maps
 
     const deCONZ::Node *node = getCoreNode(sensor->address().ext(), deCONZ::ApsController::instance());
 

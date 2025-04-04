@@ -184,9 +184,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "SPW35Z", tiMacPrefix }, // RT-RK OBLO SPW35ZD0 smart plug
     { VENDOR_NONE, "SWO-MOS1PA", tiMacPrefix }, // Swann One Motion Sensor
     { VENDOR_BITRON, "902010/32", emberMacPrefix }, // Bitron: thermostat
-    { VENDOR_IKEA, "TRADFRI remote control", silabs1MacPrefix },
-    { VENDOR_IKEA, "TRADFRI remote control", silabsMacPrefix },
-    { VENDOR_IKEA, "TRADFRI remote control", silabs2MacPrefix },
     { VENDOR_IKEA, "TRADFRI motion sensor", silabs1MacPrefix },
     { VENDOR_IKEA, "TRADFRI wireless dimmer", silabs1MacPrefix },
     { VENDOR_IKEA, "TRADFRI on/off switch", silabs1MacPrefix },
@@ -4443,29 +4440,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     {
         // setup during add sensor
     }
-    else if (sensor->modelId() == QLatin1String("TRADFRI remote control"))
-    {
-        checkReporting = true;
-        if (sensor->mode() != Sensor::ModeColorTemperature) // only supported mode yet
-        {
-            sensor->setMode(Sensor::ModeColorTemperature);
-            updateSensorEtag(sensor);
-        }
-
-        if (sensor->fingerPrint().profileId == HA_PROFILE_ID) // new ZB3 firmware
-        {
-            if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() == 0)
-            {
-                checkClientCluster = true;
-                ResourceItem *item = sensor->item(RConfigGroup);
-                if (!item || (item && (item->toString() == QLatin1String("0") || item->toString().isEmpty())))
-                {
-                    // still default group, create unique group and binding
-                    checkSensorGroup(sensor);
-                }
-            }
-        }
-    }
     else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer"))
     {
         if (sensor->mode() != Sensor::ModeDimmer && sensor->mode() != Sensor::ModeScenes)
@@ -6419,11 +6393,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // Add clusters used, but not exposed to sensors
-        if (modelId == QLatin1String("TRADFRI remote control"))
-        {
-            fpSwitch.outClusters.push_back(SCENE_CLUSTER_ID);
-        }
-        else if (modelId == QLatin1String("Adurolight_NCC"))
+        if (modelId == QLatin1String("Adurolight_NCC"))
         {
             fpSwitch.outClusters.push_back(ADUROLIGHT_CLUSTER_ID);
         }
@@ -14305,14 +14275,9 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 }
             }
         }
-        else if (sensor->modelId() == QLatin1String("TRADFRI remote control") && // IKEA remote
-                 sensor->fingerPrint().profileId == ZLL_PROFILE_ID) // old ZLL firmware
-        {
-        }
         else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
-                 sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
                  sensor->modelId().startsWith(QLatin1String("Remote Control N2")) ||
                  sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
