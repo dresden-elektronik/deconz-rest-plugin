@@ -2,17 +2,41 @@
   "schema": "devcap1.schema.json",
   "uuid": "f2401df5-5635-4878-b176-e3246192b02c",
   "manufacturername": [
+    "_TYST11_zivfvd7h",
+    "_TZE200_zivfvd7h",
+    "_TYST11_kfvq6avy",
+    "_TZE200_kfvq6avy",
+    "_TYST11_jeaxp72v",
+    "_TZE200_jeaxp72v",
+    "_TYST11_hhrtiq0x",
     "_TZE200_hhrtiq0x",
+    "_TYST11_ps5v5jor",
     "_TZE200_ps5v5jor",
+    "_TYST11_owwdxjbx",
+    "_TZE200_owwdxjbx",
+    "_TYST11_8daqwrsj",
+    "_TZE200_8daqwrsj",
     "_TZE200_2cs6g9i7"
   ],
   "modelid": [
+    "ivfvd7h",
     "TS0601",
+    "fvq6avy",
+    "TS0601",
+    "eaxp72v",
+    "TS0601",
+    "hrtiq0x",
+    "TS0601",
+    "s5v5jor",
+    "TS0601",
+    "wwdxjbx",
+    "TS0601",
+    "daqwrsj",
     "TS0601",
     "TS0601"
   ],
-  "vendor": "Tuya",
-  "product": "Nedis TRV (TS0601)",
+  "vendor": "Tuya: Essentials, Revolt, Siterwell, Nedis...",
+  "product": "Tuya radiator thermostat",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -27,9 +51,9 @@
       "meta": {
         "values": {
           "config/mode": {
-            "auto": 0,
-            "heat": 1,
-            "off": 2
+            "auto": 1,
+            "heat": 2,
+            "off": 0
           }
         }
       },
@@ -53,7 +77,21 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -66,7 +104,7 @@
           "parse": {
             "fn": "tuya",
             "dpid": 21,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val"
           },
           "read": {
             "fn": "none"
@@ -94,13 +132,30 @@
           "parse": {
             "fn": "tuya",
             "dpid": 7,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val"
           },
           "write": {
             "fn": "tuya",
             "dpid": 7,
             "dt": "0x10",
-            "eval": "Item.val;"
+            "eval": "Item.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/mode",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 4,
+            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 1) { Item.val = 'auto' } else { Item.val = 'heat' }"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 4,
+            "dt": "0x30",
+            "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'auto') { 1 } else { 2 }"
           },
           "read": {
             "fn": "none"
@@ -113,72 +168,64 @@
           "name": "config/reachable"
         },
         {
+          "name": "config/setvalve",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 20,
+            "eval": "Item.val = Attr.val"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 20,
+            "dt": "0x10",
+            "eval": "Item.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
           "name": "config/windowopen_set",
           "parse": {
             "fn": "tuya",
             "dpid": 18,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val"
           },
           "write": {
             "fn": "tuya",
             "dpid": 18,
             "dt": "0x10",
-            "eval": "Item.val;"
+            "eval": "Item.val"
           },
           "read": {
             "fn": "none"
           }
         },
         {
-          "name": "config/mode",
-          "values": [
-            [
-              "auto",
-              0
-            ],
-            [
-              "heat",
-              1
-            ],
-            [
-              "off",
-              2
-            ]
-          ],
+          "name": "state/errorcode",
           "parse": {
             "fn": "tuya",
-            "dpid": 106,
-            "eval": "if (Attr.val == 0) { Item.val = 'auto' } else if (Attr.val == 1) { Item.val = 'heat' } else { Item.val = 'off' }"
-          },
-          "write": {
-            "fn": "tuya",
-            "dpid": 106,
-            "dt": "0x30",
-            "eval": "if (Item.val == 'auto') { 0 } else if (Item.val == 'heat') { 1 } else { 2 }"
+            "dpid": 19,
+            "eval": "Item.val = Attr.val"
           },
           "read": {
             "fn": "none"
-          }
-        },
-        {
-          "name": "config/preset",
-          "parse": {
-            "fn": "tuya",
-            "dpid": 4,
-            "script": "tuya_trv_preset.js"
           },
-          "write": {
-            "fn": "tuya",
-            "dpid": 4,
-            "dt": "0x30",
-            "script": "tuya_trv_preset_set.js"
-          },
-          "read": {
-            "fn": "none"
-          }
+          "default": "0"
         },
         {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "state/on",
+          "parse": {
+            "dpid": 4,
+            "eval": "Item.val = Attr.val > 1",
+            "fn": "tuya"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/temperature",
@@ -192,15 +239,16 @@
           }
         },
         {
-          "name": "state/valve",
+          "name": "state/windowopen",
           "parse": {
             "fn": "tuya",
-            "dpid": 109,
-            "eval": "Item.val = Attr.val > 5;"
+            "dpid": 17,
+            "eval": "if (Attr.val == 0) { Item.val = 'close' } else { Item.val = 'open' }"
           },
           "read": {
             "fn": "none"
-          }
+          },
+          "default": "close"
         }
       ]
     }

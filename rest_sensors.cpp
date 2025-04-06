@@ -3162,7 +3162,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     if (item && item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS))
                     {
                         item->setValue(S_BUTTON_1 + S_BUTTON_ACTION_HOLD);
-                        DBG_Printf(DBG_INFO, "[INFO] - Button %u Hold %s\n", item->toNumber(), qPrintable(sensor->modelId()));
+                        DBG_Printf(DBG_INFO, "[INFO] - Button %d Hold %s\n", (int)item->toNumber(), qPrintable(sensor->modelId()));
                         sensor->updateStateTimestamp();
                         sensor->setNeedSaveDatabase(true);
                         enqueueEvent(Event(RSensors, RStateButtonEvent, sensor->id(), item));
@@ -3181,7 +3181,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     {
                         btn &= ~0x03;
                         item->setValue(btn + S_BUTTON_ACTION_HOLD);
-                        DBG_Printf(DBG_INFO, "FoH switch button %d Hold %s\n", item->toNumber(), qPrintable(sensor->modelId()));
+                        DBG_Printf(DBG_INFO, "FoH switch button %d Hold %s\n", (int)item->toNumber(), qPrintable(sensor->modelId()));
                         sensor->updateStateTimestamp();
                         sensor->setNeedSaveDatabase(true);
                         enqueueEvent(Event(RSensors, RStateButtonEvent, sensor->id(), item));
@@ -3547,72 +3547,5 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         sc2.macCapabilities = macCapabilities;
         searchSensorsCandidates.push_back(sc2);
         sc = &searchSensorsCandidates.back();
-    }
-
-    if (!sc) // we need a valid candidate from device announce or cache
-    {
-        return;
-    }
-
-    if (existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_IKEA))
-    {
-        if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
-            return;
-
-        if (ind.profileId() != HA_PROFILE_ID)
-            return;
-
-        // filter for remote control toggle command (large button)
-        if (ind.srcEndpoint() == 0x01 && ind.clusterId() == SCENE_CLUSTER_ID  && zclFrame.manufacturerCode() == VENDOR_IKEA &&
-                 zclFrame.commandId() == 0x07 && zclFrame.payload().at(0) == 0x02)
-        {
-            // TODO move following legacy cleanup code in Phoscon App / switch editor
-            DBG_Printf(DBG_INFO, "ikea remote setup button\n");
-
-            Sensor *s = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
-            if (!s)
-            {
-                return;
-            }
-
-            std::vector<Rule>::iterator ri = rules.begin();
-            std::vector<Rule>::iterator rend = rules.end();
-
-            QString sensorAddress(QLatin1String("/sensors/"));
-            sensorAddress.append(s->id());
-
-            bool changed = false;
-
-            for (; ri != rend; ++ri)
-            {
-                if (ri->state() != Rule::StateNormal)
-                {
-                    continue;
-                }
-
-                std::vector<RuleCondition>::const_iterator ci = ri->conditions().begin();
-                std::vector<RuleCondition>::const_iterator cend = ri->conditions().end();
-
-                for (; ci != cend; ++ci)
-                {
-                    if (ci->address().startsWith(sensorAddress))
-                    {
-                        if (ri->name().startsWith(QLatin1String("default-ct")) && ri->owner() == QLatin1String("deCONZ"))
-                        {
-                            DBG_Printf(DBG_INFO, "ikea remote delete legacy rule %s\n", qPrintable(ri->name()));
-                            ri->setState(Rule::StateDeleted);
-                            ri->setNeedSaveDatabase();
-                            changed = true;
-                        }
-                    }
-                }
-            }
-
-            if (changed)
-            {
-                needRuleCheck = RULE_CHECK_DELAY;
-                queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
-            }
-        }
     }
 }

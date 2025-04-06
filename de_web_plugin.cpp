@@ -1,5 +1,5 @@
  /*
- * Copyright (c) 2017-2023 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -35,6 +35,7 @@
 #include "alarm_system_device_table.h"
 #include "database.h"
 #include "deconz/u_assert.h"
+#include "deconz/atom_table.h"
 #include "device_ddf_init.h"
 #include "device_descriptions.h"
 #include "device_tick.h"
@@ -183,9 +184,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "SPW35Z", tiMacPrefix }, // RT-RK OBLO SPW35ZD0 smart plug
     { VENDOR_NONE, "SWO-MOS1PA", tiMacPrefix }, // Swann One Motion Sensor
     { VENDOR_BITRON, "902010/32", emberMacPrefix }, // Bitron: thermostat
-    { VENDOR_IKEA, "TRADFRI remote control", silabs1MacPrefix },
-    { VENDOR_IKEA, "TRADFRI remote control", silabsMacPrefix },
-    { VENDOR_IKEA, "TRADFRI remote control", silabs2MacPrefix },
     { VENDOR_IKEA, "TRADFRI motion sensor", silabs1MacPrefix },
     { VENDOR_IKEA, "TRADFRI wireless dimmer", silabs1MacPrefix },
     { VENDOR_IKEA, "TRADFRI on/off switch", silabs1MacPrefix },
@@ -1232,7 +1230,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
     if (DBG_IsEnabled(DBG_MEASURE))
     {
-        DBG_Printf(DBG_INFO, "R stats, str: %u, num: %u, item: %u\n", rStats.toString, rStats.toNumber, rStats.item);
+        DBG_Printf(DBG_INFO, "R stats, str: %zu, num: %zu, item: %zu\n", rStats.toString, rStats.toNumber, rStats.item);
         rStats = { };
     }
 
@@ -1775,7 +1773,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     sensor->setNeedSaveDatabase(true);
     sensor->updateStateTimestamp();
     item->setValue(btn);
-    DBG_Printf(DBG_ZGP, "ZGP 0x%08X button %u %s\n", ind.gpdSrcId(), item->toNumber(), qPrintable(sensor->modelId()));
+    DBG_Printf(DBG_ZGP, "ZGP 0x%08X button %d %s\n", ind.gpdSrcId(), (int)item->toNumber(), qPrintable(sensor->modelId()));
     Event e(RSensors, RStateButtonEvent, sensor->id(), item);
     enqueueEvent(e);
     enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
@@ -4356,23 +4354,53 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         buttonMapEntry = BM_ButtonMapForRef(sensor->buttonMapRef(), buttonMaps);
     }
 
-    QString cluster = "0x" + QString("%1").arg(ind.clusterId(), 4, 16, QLatin1Char('0')).toUpper();
-    QString cmd = "0x" + QString("%1").arg(zclFrame.commandId(), 2, 16, QLatin1Char('0')).toUpper();
+    QString dbgCluster;
+    QString dbgCmd;
     QString addressMode;
-    QString zclPayload = zclFrame.payload().isEmpty() ? "None" : qPrintable(zclFrame.payload().toHex().toUpper());
+    QString dbgZclPayload;
     quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
 
     if (ind.dstAddress().isNwkUnicast()) { addressMode = ", unicast to: 0x" + QString("%1").arg(ind.dstAddress().nwk(), 4, 16, QLatin1Char('0')).toUpper(); }
     else if (ind.dstAddressMode() == deCONZ::ApsGroupAddress) { addressMode = ", broadcast to: 0x" + QString("%1").arg(ind.dstAddress().group(), 4, 16, QLatin1Char('0')).toUpper(); }
     else { addressMode = ", unknown"; }
 
-    if (!btnMapClusters.key(ind.clusterId()).isEmpty())
-    {
-        QString val = btnMapClusters.key(ind.clusterId());
-        QMap<QString, quint16> temp = btnMapClusterCommands.value(val);
-        cluster = val + " (" + cluster + ")";
 
-        if (!temp.empty() && !temp.key(zclFrame.commandId()).isEmpty()) { cmd = temp.key(zclFrame.commandId()) + " (" + cmd + ")"; }
+    if (DBG_IsEnabled(DBG_INFO) || DBG_IsEnabled(DBG_INFO_L2))
+    {
+        dbgCluster = QString("0x%1").arg(ind.clusterId(), 4, 16, QLatin1Char('0')).toUpper();
+        dbgCmd = QString("0x%1").arg(zclFrame.commandId(), 2, 16, QLatin1Char('0')).toUpper();
+        dbgZclPayload = zclFrame.payload().isEmpty() ? "None" : qPrintable(zclFrame.payload().toHex().toUpper());
+
+        for (const ButtonCluster &bc : btnMapClusters)
+        {
+            if (ind.clusterId() == bc.clusterId)
+            {
+                for (const ButtonClusterCommand &bcc :btnMapClusterCommands)
+                {
+                    if (bcc.clusterNameAtomIndex != bc.nameAtomIndex)
+                        continue;
+
+                    if (bcc.commandId == zclFrame.commandId())
+                    {
+                        AT_Atom clusterNameAtom = AT_GetAtomByIndex({bcc.clusterNameAtomIndex});
+                        AT_Atom commandNameAtom = AT_GetAtomByIndex({bcc.commandNameAtomIndex});
+
+                        if (clusterNameAtom.data && commandNameAtom.data)
+                        {
+                            const QLatin1String clusterName((const char*)clusterNameAtom.data, clusterNameAtom.len);
+                            const QLatin1String commandName((const char*)commandNameAtom.data, commandNameAtom.len);
+
+                            dbgCluster = clusterName + " (" + dbgCluster + ")";
+                            dbgCmd = commandName + " (" + dbgCmd + ")";
+                        }
+
+                        break;
+                    }
+                }
+
+                break;
+            }
+        }
     }
 
     checkInstaModelId(sensor);
@@ -4380,7 +4408,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     if (!buttonMapEntry || buttonMapEntry->buttons.empty())
     {
         DBG_Printf(DBG_INFO_L2, "[INFO] - No button map for: %s%s, endpoint: 0x%02X, cluster: %s, command: %s, payload: %s, zclSeq: %u\n",
-            qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
+            qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(dbgCluster), qPrintable(dbgCmd), qPrintable(dbgZclPayload), zclFrame.sequenceNumber());
         return;
     }
 
@@ -4411,29 +4439,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     else if (sensor->modelId() == QLatin1String("RM01") || sensor->modelId() == QLatin1String("RB01"))
     {
         // setup during add sensor
-    }
-    else if (sensor->modelId() == QLatin1String("TRADFRI remote control"))
-    {
-        checkReporting = true;
-        if (sensor->mode() != Sensor::ModeColorTemperature) // only supported mode yet
-        {
-            sensor->setMode(Sensor::ModeColorTemperature);
-            updateSensorEtag(sensor);
-        }
-
-        if (sensor->fingerPrint().profileId == HA_PROFILE_ID) // new ZB3 firmware
-        {
-            if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() == 0)
-            {
-                checkClientCluster = true;
-                ResourceItem *item = sensor->item(RConfigGroup);
-                if (!item || (item && (item->toString() == QLatin1String("0") || item->toString().isEmpty())))
-                {
-                    // still default group, create unique group and binding
-                    checkSensorGroup(sensor);
-                }
-            }
-        }
     }
     else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer"))
     {
@@ -5264,10 +5269,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
                 if (ok && buttonMap.button != 0)
                 {
-                    if (!buttonMap.name.isEmpty()) { cmd = buttonMap.name; }
+                    AT_Atom nameAtom = AT_GetAtomByIndex({buttonMap.nameAtomIndex});
+
+                    if (nameAtom.data) { dbgCmd = QString::fromLatin1((const char*)nameAtom.data, (int)nameAtom.len); }
 
                     DBG_Printf(DBG_INFO, "[INFO] - Button %u - %s%s, endpoint: 0x%02X, cluster: %s, action: %s, payload: %s, zclSeq: %u\n",
-                        buttonMap.button, qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
+                        buttonMap.button, qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(dbgCluster), qPrintable(dbgCmd), qPrintable(dbgZclPayload), zclFrame.sequenceNumber());
 
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
@@ -5284,7 +5291,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
                             if (dt > 0 && dt < 500)
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d) %s\n", buttonMap.button, qPrintable(cmd), static_cast<int>(dt), qPrintable(sensor->modelId()));
+                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d) %s\n", buttonMap.button, qPrintable(dbgCmd), static_cast<int>(dt), qPrintable(sensor->modelId()));
                                 break;
                             }
                         }
@@ -5356,7 +5363,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     if (sensor->item(RStateButtonEvent))
     {
         DBG_Printf(DBG_INFO_L2, "[INFO] - No button handler for: %s%s, endpoint: 0x%02X, cluster: %s, command: %s, payload: %s, zclSeq: %u\n",
-            qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), qPrintable(zclPayload), zclFrame.sequenceNumber());
+            qPrintable(sensor->modelId()), qPrintable(addressMode), ind.srcEndpoint(), qPrintable(dbgCluster), qPrintable(dbgCmd), qPrintable(dbgZclPayload), zclFrame.sequenceNumber());
     }
 }
 
@@ -6386,11 +6393,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // Add clusters used, but not exposed to sensors
-        if (modelId == QLatin1String("TRADFRI remote control"))
-        {
-            fpSwitch.outClusters.push_back(SCENE_CLUSTER_ID);
-        }
-        else if (modelId == QLatin1String("Adurolight_NCC"))
+        if (modelId == QLatin1String("Adurolight_NCC"))
         {
             fpSwitch.outClusters.push_back(ADUROLIGHT_CLUSTER_ID);
         }
@@ -9050,7 +9053,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && buttonevent != -1)
                                 {
                                     item->setValue(buttonevent);
-                                    DBG_Printf(DBG_INFO, "[INFO] - Button %u %s\n", item->toNumber(), qPrintable(i->modelId()));
+                                    DBG_Printf(DBG_INFO, "[INFO] - Button %d %s\n", (int)item->toNumber(), qPrintable(i->modelId()));
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RStateButtonEvent, i->id(), item);
@@ -10388,7 +10391,7 @@ bool DeRestPluginPrivate::getGroupIdentifiers(RestNodeBase *node, quint8 endpoin
         task.zclFrame.writeToStream(stream);
     }
 
-    DBG_Printf(DBG_INFO, "Send get group identifiers for node 0%04X \n", node->address().ext());
+    DBG_Printf(DBG_INFO, "Send get group identifiers for node " FMT_MAC " \n", FMT_MAC_CAST(node->address().ext()));
 
     return addTask(task);
 }
@@ -11499,7 +11502,7 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
                     (i->req.asdu().size() ==  task.req.asdu().size()))
 
                 {
-                    DBG_Printf(DBG_INFO, "Replace task %d type %d in queue cluster 0x%04X with newer task %d of same type. %u runnig tasks\n", i->taskId, task.taskType, task.req.clusterId(), task.taskId, runningTasks.size());
+                    DBG_Printf(DBG_INFO, "Replace task %d type %d in queue cluster 0x%04X with newer task %d of same type. %zu runnig tasks\n", i->taskId, task.taskType, task.req.clusterId(), task.taskId, runningTasks.size());
                     *i = task;
                     return true;
                 }
@@ -11533,7 +11536,7 @@ void DeRestPluginPrivate::processTasks()
 
     if (!isInNetwork())
     {
-        DBG_Printf(DBG_INFO, "Not in network cleanup %d tasks\n", (runningTasks.size() + tasks.size()));
+        DBG_Printf(DBG_INFO, "Not in network cleanup %zu tasks\n", (runningTasks.size() + tasks.size()));
         runningTasks.clear();
         tasks.clear();
         return;
@@ -11562,7 +11565,7 @@ void DeRestPluginPrivate::processTasks()
 
         }
 
-        DBG_Printf(DBG_INFO, "%d running tasks, wait\n", runningTasks.size());
+        DBG_Printf(DBG_INFO, "%zu running tasks, wait\n", runningTasks.size());
         return;
     }
 
@@ -14272,14 +14275,9 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 }
             }
         }
-        else if (sensor->modelId() == QLatin1String("TRADFRI remote control") && // IKEA remote
-                 sensor->fingerPrint().profileId == ZLL_PROFILE_ID) // old ZLL firmware
-        {
-        }
         else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI SHORTCUT Button")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
-                 sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
                  sensor->modelId().startsWith(QLatin1String("Remote Control N2")) ||
                  sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||

@@ -2874,11 +2874,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                 val = sensor->getZclValue(*i, 0x0021); // battery percentage remaining
             }
 
-            if (sensor->modelId() == QLatin1String("TRADFRI remote control") && sensor->swVersion() == QLatin1String("0.9.8.1-5.7.0.0"))
-            {
-                continue; // too old doesn't support battery percentage remaining attribute
-            }
-
             if (val.timestampLastConfigured.isValid() && val.timestampLastConfigured.secsTo(now) < (val.maxInterval * 1.5))
             {
                 continue;
@@ -3525,7 +3520,6 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("Remote Control N2")) || // STYRBAR
         sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
         sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
-        sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
         sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
         // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
@@ -4080,7 +4074,7 @@ bool DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
     }
     else
     {
-        DBG_Printf(DBG_INFO, "discard double entry in binding queue (size: %u) for for 0x%016llX, cluster 0x%04X\n", bindingQueue.size(), bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
+        DBG_Printf(DBG_INFO, "discard double entry in binding queue (size: %zu) for for 0x%016llX, cluster 0x%04X\n", bindingQueue.size(), bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
     }
 
     return true;

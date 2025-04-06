@@ -7,7 +7,6 @@
   "product": "4 button remote (ZBRC10WT)",
   "sleeper": true,
   "status": "Gold",
-  "path": "/devices/nedis/nedis_zbrc10wt.json",
   "subdevices": [
     {
       "type": "$TYPE_SWITCH",

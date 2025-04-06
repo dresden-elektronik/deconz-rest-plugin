@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "e8cc4eba-5ec0-4cc5-91c7-4edd19c94438",
-  "manufacturername": "BOSCH",
+  "manufacturername": "Bosch",
   "modelid": "RBSH-RTH0-ZB-EU",
   "vendor": "Bosch",
   "product": "Room thermostat II 230V (BTH-RM230Z)",
@@ -29,9 +29,9 @@
       "meta": {
         "values": {
           "config/mode": {
-            "auto": 0,
-            "heat": 1,
-            "off": 5
+            "off": 0,
+            "heat": 3,
+            "cool": 4
           }
         }
       },
@@ -78,6 +78,10 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/coolsetpoint",
+          "refresh.interval": 360
+        },
+        {
           "name": "config/externalwindowopen",
           "refresh.interval": 3660,
           "read": {
@@ -118,28 +122,25 @@
           "name": "config/mode",
           "refresh.interval": 3600,
           "read": {
-            "at": "0x4007",
+            "at": "0x001C",
             "cl": "0x0201",
             "ep": 1,
-            "fn": "zcl:attr",
-            "mf": "0x1209"
+            "fn": "zcl:attr"
           },
           "write": {
-            "at": "0x4007",
+            "at": "0x001C",
             "cl": "0x0201",
             "dt": "0x30",
             "ep": 1,
-            "eval": "if (Item.val == 'auto') { 0 } else if (Item.val == 'heat') { 1 } else if (Item.val == 'off') { 5 };",
-            "fn": "zcl:attr",
-            "mf": "0x1209"
+            "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'cool') { 3 } else if (Item.val == 'heat') { 4 }",
+            "fn": "zcl:attr"
           },
           "parse": {
-            "at": "0x4007",
+            "at": "0x001C",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "if (Attr.val == 0) { Item.val = 'auto' } else if (Attr.val == 1) { Item.val = 'heat' } else if (Attr.val == 5) { Item.val = 'off' };",
-            "fn": "zcl:attr",
-            "mf": "0x1209"
+            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 3) { Item.val = 'cool' } else if (Attr.val == 4) { Item.val = 'heat' }",
+            "fn": "zcl:attr"
           },
           "default": "heat"
         },
@@ -170,6 +171,35 @@
         },
         {
           "name": "config/on"
+        },
+        {
+          "name": "config/preset",
+          "refresh.interval": 3600,
+          "read": {
+            "at": "0x4007",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "write": {
+            "at": "0x4007",
+            "cl": "0x0201",
+            "dt": "0x30",
+            "ep": 1,
+            "eval": "if (Item.val == 'auto') { 0 } else if (Item.val == 'manual') { 1 }",
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "parse": {
+            "at": "0x4007",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "if (Attr.val == 0) { Item.val = 'auto' } else if (Attr.val == 1) { Item.val = 'manual' }",
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "default": "manual"
         },
         {
           "name": "config/reachable"
@@ -234,6 +264,23 @@
         },
         {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 3660,
+          "parse": {
+            "at": "0x0029",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "at": "0x0029",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "state/temperature",
@@ -377,11 +424,24 @@
           "change": "0x00000032"
         },
         {
+          "at": "0x0011",
+          "dt": "0x29",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
           "at": "0x0012",
           "dt": "0x29",
           "min": 1,
           "max": 300,
           "change": "0x00000001"
+        },
+        {
+          "at": "0x001C",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300
         },
         {
           "at": "0x4007",

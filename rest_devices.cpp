@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -17,6 +17,7 @@
 #include "database.h"
 #include "device_descriptions.h"
 #include "device_ddf_bundle.h"
+#include "deconz/atom_table.h"
 #include "deconz/u_assert.h"
 #include "deconz/u_sstream_ex.h"
 #include "deconz/u_memory.h"
@@ -872,6 +873,8 @@ QLatin1String RIS_ButtonEventActionToString(int buttonevent)
 {
     const uint action = buttonevent % 1000;
 
+    // TODO(mpi): this list is incomplete
+
     static std::array<QLatin1String, 11> map = {
          QLatin1String("INITIAL_PRESS"),
          QLatin1String("HOLD"),
@@ -925,6 +928,48 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
     {
         return result;
     }
+
+    {  // 1) if the DDF provides buttons and button event descriptions take it from there
+        const DeviceDescription &ddf = DeviceDescriptions::instance()->get(r);
+        if (ddf.isValid())
+        {
+            for (const DeviceDescription::SubDevice &subd : ddf.subDevices)
+            {
+                if (!subd.buttonEvents.empty())
+                {
+                    QVariantMap buttons;
+                    QVariantMap values;
+
+                    for (unsigned btn: subd.buttonEvents)
+                    {
+                        {
+                            QVariantMap m;
+                            m[QLatin1String("button")] = int(btn / 1000);
+                            m[QLatin1String("action")] = RIS_ButtonEventActionToString(btn);
+                            values[QString::number(btn)] = m;
+                        }
+
+                        QString btnNum = QString::number(btn/1000);
+
+                        if (!buttons.contains(btnNum))
+                        {
+                            QVariantMap m;
+                            m[QLatin1String("name")] = QString("Button %1").arg(btn/1000);
+                            buttons[btnNum] = m;
+                        }
+
+                    }
+
+                    result[QLatin1String("buttons")] = buttons;
+                    result[QLatin1String("values")] = values;
+
+                    return result;
+                }
+            }
+        }
+    }
+
+    // 2) try getting button and button event description from button maps
 
     const deCONZ::Node *node = getCoreNode(sensor->address().ext(), deCONZ::ApsController::instance());
 
@@ -983,8 +1028,13 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
             if (buttonBits & (1 << button.button))
             {
                 QVariantMap m;
-                m[QLatin1String("name")] = button.name;
-                buttons[QString::number(button.button)] = m;
+                AT_Atom nameAtom = AT_GetAtomByIndex({button.nameAtomeIndex});
+
+                if (nameAtom.data)
+                {
+                    m[QLatin1String("name")] = QString::fromUtf8((const char*)nameAtom.data, nameAtom.len);
+                    buttons[QString::number(button.button)] = m;
+                }
             }
         }
     }

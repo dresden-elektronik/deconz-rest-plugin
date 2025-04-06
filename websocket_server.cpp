@@ -135,7 +135,7 @@ void WebSocketServer::broadcastTextMessage(const QString &msg)
         }
 
         qint64 ret = sock->sendTextMessage(msg);
-        DBG_Printf(DBG_INFO_L2, "Websocket %s:%u send message: %s (ret = %d)\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(msg), ret);
+        DBG_Printf(DBG_INFO_L2, "Websocket %s:%u send message: %s (ret = %d)\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(msg), (int)ret);
         sock->flush();
     }
 }

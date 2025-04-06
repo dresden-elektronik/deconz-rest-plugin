@@ -1,38 +1,35 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "cb65ebbd-876d-4f46-9167-3a6cb183ede4",
+  "uuid": "ecdd4c96-e4bc-4ba9-a712-6b62e98eb581",
   "manufacturername": [
     "Develco Products A/S",
     "frient A/S"
   ],
   "modelid": [
-    "KEPZB-110",
-    "KEPZB-110"
+    "SIRZB-111",
+    "SIRZB-111"
   ],
   "vendor": "frient",
-  "product": "Intelligent Keypad (KEPZB-110)",
+  "product": "Smart Siren (SIRZB-111)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_ANCILLARY_CONTROL",
-      "restapi": "/sensors",
+      "type": "$TYPE_WARNING_DEVICE",
+      "restapi": "/lights",
       "uuid": [
         "$address.ext",
-        "0x2c",
-        "0x0501"
+        "0x2b"
       ],
       "fingerprint": {
         "profile": "0x0104",
-        "device": "0x0401",
-        "endpoint": "0x2C",
+        "device": "0x0403",
+        "endpoint": "0x2B",
         "in": [
           "0x0000",
           "0x0001",
-          "0x0500"
-        ],
-        "out": [
-          "0x0501"
+          "0x0500",
+          "0x0502"
         ]
       },
       "items": [
@@ -58,7 +55,7 @@
           "name": "attr/swversion",
           "parse": {
             "fn": "zcl:attr",
-            "ep": "0x2C",
+            "ep": "0x2B",
             "cl": "0x0000",
             "at": "0x8000",
             "mf": "0x1015",
@@ -66,7 +63,7 @@
           },
           "read": {
             "fn": "zcl:attr",
-            "ep": "0x2C",
+            "ep": "0x2B",
             "cl": "0x0000",
             "at": "0x8000",
             "mf": "0x1015"
@@ -80,6 +77,9 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "cap/groups/not_supported"
+        },
+        {
           "name": "cap/otau/file_version"
         },
         {
@@ -89,34 +89,21 @@
           "name": "cap/otau/manufacturer_code"
         },
         {
-          "name": "config/battery",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": "0x2C",
-            "cl": "0x0001",
-            "at": "0x0021",
-            "eval": "Item.val = Attr.val / 2"
+          "name": "state/alert",
+          "description": "Start warning command payload has 5 Bytes. Byte 1: Options. 0x17 = Warning mode 1 (burglar), Strobe, Very high sound. Byte 2-3: Duration, Byte 4: Strobe duty cycle, Byte 5: Strobe level",
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "fn": "zcl:cmd",
+            "ep": "0x2B",
+            "cl": "0x0502",
+            "cmd": "0x00",
+            "eval": "if (Item.val=='select') { '1701000000' } else if (Item.val=='none') { '0000000000' }"
           }
         },
         {
-          "name": "config/on"
-        },
-        {
-          "name": "config/reachable"
-        },
-        {
-          "name": "state/action",
-          "public": true
-        },
-        {
-          "name": "state/lastupdated"
-        },
-        {
-          "name": "state/seconds_remaining"
-        },
-        {
-          "name": "state/panel",
-          "default": "exit_delay"
+          "name": "state/reachable"
         }
       ]
     },
@@ -125,20 +112,18 @@
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x2c",
+        "0x2b",
         "0x0500"
       ],
       "fingerprint": {
         "profile": "0x0104",
         "device": "0x0401",
-        "endpoint": "0x2C",
+        "endpoint": "0x2B",
         "in": [
           "0x0000",
           "0x0001",
-          "0x0500"
-        ],
-        "out": [
-          "0x0501"
+          "0x0500",
+          "0x0502"
         ]
       },
       "items": [
@@ -164,7 +149,7 @@
           "name": "attr/swversion",
           "parse": {
             "fn": "zcl:attr",
-            "ep": "0x2C",
+            "ep": "0x2B",
             "cl": "0x0000",
             "at": "0x8000",
             "mf": "0x1015",
@@ -190,7 +175,7 @@
           "name": "config/battery",
           "parse": {
             "fn": "zcl:attr",
-            "ep": "0x2C",
+            "ep": "0x2B",
             "cl": "0x0001",
             "at": "0x0021",
             "eval": "Item.val = Attr.val / 2"
@@ -224,14 +209,14 @@
   "bindings": [
     {
       "bind": "unicast",
-      "src.ep": "0x2C",
+      "src.ep": "0x2B",
       "cl": "0x0001",
       "report": [
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 7200,
-          "max": 7200,
+          "min": 1,
+          "max": 300,
           "change": "0x01"
         }
       ]
