@@ -328,7 +328,7 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
                     change.verifyItemChange(item);
                 }
 
-                if (apsEnqueued == 0 && change.tick(d->deviceKey, sub, d->apsCtrl) == 1)
+                if (device->reachable() && apsEnqueued == 0 && change.tick(d->deviceKey, sub, d->apsCtrl) == 1)
                 {
                     apsEnqueued++;
                 }
@@ -1357,6 +1357,15 @@ void DEV_BindingRemoveHandler(Device *device, const Event &event)
                 if (hasDdfBinding && !hasDdfGroup)
                 {
                     break;
+                }
+            }
+            else if (i->dstAddressMode() == deCONZ::ApsExtAddress)
+            {
+                const deCONZ::Node *dstNode = DEV_GetCoreNode(i->dstAddress().ext());
+                if (!dstNode)
+                {
+                    DBG_Printf(DBG_DEV, "DEV ZDP remove binding to non existing node: " FMT_MAC "\n", FMT_MAC_CAST(i->dstAddress().ext()));
+                    break; // remove
                 }
             }
         }
