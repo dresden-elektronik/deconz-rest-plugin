@@ -4,7 +4,7 @@
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.relay.c2acn01",
   "vendor": "Xiaomi Aqara",
-  "product": "2 way control module wireless relay",
+  "product": "2 way control module wireless relay (LLKZMK11LM)",
   "sleeper": false,
   "status": "Silver",
   "subdevices": [
@@ -178,9 +178,6 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/temperature"
-        },
-        {
           "name": "state/current",
           "parse": {
             "at": "0x00F7",
@@ -277,9 +274,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature"
         },
         {
           "name": "state/consumption",
