@@ -513,6 +513,16 @@ bool DEV_InitDeviceBasic(Device *device)
             DBG_Assert(reachable);
             if (reachable)
             {
+                if (dbItem.value.toBool())
+                {
+                    auto dt = QDateTime::fromMSecsSinceEpoch(dbItem.timestampMs);
+                    if (86400 < dt.secsTo(QDateTime::currentDateTime()))
+                    {
+                        reachable->setValue(false);
+                        continue;
+                    }
+                }
+
                 reachable->setValue(dbItem.value.toBool());
                 reachable->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem.timestampMs));
             }
