@@ -972,7 +972,7 @@ void DEV_BindingHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventPoll || event.what() == REventAwake || event.what() == REventBindingTick)
     {
-        if (device->item(RCapSleeper)->toBool() && d->binding.bindings.empty())
+        if (d->binding.bindings.empty())
         {
             // nothing todo
         }
