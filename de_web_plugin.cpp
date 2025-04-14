@@ -16557,6 +16557,63 @@ const deCONZ::Node *DEV_GetCoreNode(uint64_t extAddress)
     return nullptr;
 }
 
+/*! Returns a matching destination endpoint for an outgoing ZCL cluster command.
+ */
+uint8_t DEV_ResolveDestinationEndpoint(uint64_t extAddr, uint8_t hintEp, uint16_t cluster, uint8_t frameControl)
+{
+    uint8_t ep = 0;
+    uint8_t hint = hintEp;
+    const deCONZ::Node *node = DEV_GetCoreNode(extAddr);
+
+    if (hint == 255)
+        hint = 0;
+
+    if (node)
+    {
+        for (const deCONZ::SimpleDescriptor &sd: node->simpleDescriptors())
+        {
+            if (frameControl & deCONZ::ZclFCDirectionServerToClient)
+            {
+                for (const deCONZ::ZclCluster &cl : sd.outClusters())
+                {
+                    if (cl.id() == cluster)
+                    {
+                        if (sd.endpoint() == hint)
+                            return hint;
+
+                        if (ep == 0)
+                        {
+                            ep = sd.endpoint();
+                            if (hint == 0)
+                                return ep;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (const deCONZ::ZclCluster &cl : sd.inClusters())
+                {
+                    if (cl.id() == cluster)
+                    {
+                        if (sd.endpoint() == hint)
+                            return hint;
+
+                        if (ep == 0)
+                        {
+                            ep = sd.endpoint();
+                            if (hint == 0)
+                                return ep;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return hintEp;
+}
+
 /* Returns number of APS requests currently in the queue. */
 int DEV_ApsQueueSize()
 {
