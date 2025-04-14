@@ -972,7 +972,11 @@ void DEV_BindingHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventPoll || event.what() == REventAwake || event.what() == REventBindingTick)
     {
-        if (DA_ApsUnconfirmedRequests() > 4)
+        if (device->item(RCapSleeper)->toBool() && d->binding.bindings.empty())
+        {
+            // nothing todo
+        }
+        else if (DA_ApsUnconfirmedRequests() > 4)
         {
             // wait
         }
