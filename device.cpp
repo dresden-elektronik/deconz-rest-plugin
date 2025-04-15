@@ -1871,7 +1871,7 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
                     }
                 }
 
-                if (item->lastSet().isValid() && item->valueSource() == ResourceItem::SourceDevice)
+                if (item->lastSet().isValid() && (item->valueSource() == ResourceItem::SourceDevice || item->valueSource() == ResourceItem::SourceUnknown))
                 {
                     const auto dt2 = item->lastSet().secsTo(now);
                     if (dt2  < item->refreshInterval().val)
