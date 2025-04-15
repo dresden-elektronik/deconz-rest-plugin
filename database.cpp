@@ -7162,14 +7162,14 @@ bool DB_StoreSubDeviceItem(const Resource *sub, ResourceItem *item)
             uint64_t storeDelay = 600;
 #endif
 
+            const DeviceDescription::Item &ddfItem = DeviceDescriptions::instance()->getItem(item);
+            if (ddfItem.isValid() && 0 < ddfItem.refreshInterval && (int)storeDelay < ddfItem.refreshInterval)
+            {
+                storeDelay = (unsigned)ddfItem.refreshInterval * 3 / 4;
+            }
+
             if (isEqual)
             {
-                if (item->descriptor().type == DataTypeString)
-                {
-                    item->clearNeedStore();
-                    return true; // don't check timestamp for strings
-                }
-
                 if (suffix[0] == 'a' && dt < storeDelay) // attr/*  but not a string
                 {
                     return true; // only update timestamp every 10 minutes
@@ -7215,10 +7215,7 @@ bool DB_StoreSubDeviceItem(const Resource *sub, ResourceItem *item)
     {
 //        DBG_Printf(DBG_INFO_L2, "%s\n", &sqlBuf[0]);
 
-        if (DBG_IsEnabled(DBG_MEASURE))
-        {
-            DBG_Printf(DBG_MEASURE, "DB store %s%s/%s ## %s\n", uniqueId->toCString(), sub->prefix(), item->descriptor().suffix, sqlBuf);
-        }
+        DBG_Printf(DBG_DEV, "DB store %s%s/%s ## %s\n", uniqueId->toCString(), sub->prefix(), item->descriptor().suffix, sqlBuf);
 
         char *errmsg = nullptr;
 
