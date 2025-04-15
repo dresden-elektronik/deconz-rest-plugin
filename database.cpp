@@ -5976,6 +5976,10 @@ void DeRestPluginPrivate::getZigbeeConfigDb(QVariantList &out)
 void DeRestPluginPrivate::deleteDeviceDb(const QString &uniqueId)
 {
     DBG_Assert(!uniqueId.isEmpty());
+    if (uniqueId.isEmpty())
+    {
+        return;
+    }
 
     openDb();
     DBG_Assert(db);
@@ -5984,16 +5988,48 @@ void DeRestPluginPrivate::deleteDeviceDb(const QString &uniqueId)
         return;
     }
 
+    int rc;
     char *errmsg = nullptr;
-    const auto sql = QString("DELETE FROM devices WHERE mac = '%1'").arg(uniqueId);
-    int rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
-    if (rc != SQLITE_OK)
     {
-        if (errmsg)
+        QString sql = QString("DELETE FROM devices WHERE mac = '%1'").arg(uniqueId);
+        rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
         {
-            DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
-            sqlite3_free(errmsg);
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
+
+    {
+        QString sql = QString("DELETE FROM sensors WHERE uniqueid LIKE '%1%%'").arg(uniqueId);
+        rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
+
+    {
+        QString sql = QString("DELETE FROM nodes WHERE mac LIKE '%1%%'").arg(uniqueId);
+        rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+                sqlite3_free(errmsg);
+            }
         }
     }
 
