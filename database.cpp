@@ -3508,6 +3508,33 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (DEV_TestManaged() || DDF_IsStatusEnabled(ddf.status))
                 {
                     DBG_Printf(DBG_INFO, "DB skip loading sensor %s %s, handled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
+
+                    extAddr = extAddressFromUniqueId(sensor.uniqueId());
+
+                    if (extAddr)
+                    {
+                        Device *device = DEV_GetOrCreateDevice(d, deCONZ::ApsController::instance(), d->eventEmitter, d->m_devices, extAddr);
+
+                        if (device)
+                        {
+                            // To speed loading DDF up the first time after it was run as legacy before,
+                            // assign manufacturer name and modelid to parent device. That way we don't have to wait until the
+                            // data is queried again via Zigbee.
+                            // Note: Due the deviceDescriptions->get(&sensor); matching we can be sure the legacy strings aren't made up.
+                            item = device->item(RAttrManufacturerName);
+                            if (item->toString().isEmpty())
+                            {
+                                *item = *sensor.item(item->descriptor().suffix);
+                            }
+
+                            item = device->item(RAttrModelId);
+                            if (item->toString().isEmpty())
+                            {
+                                *item = *sensor.item(item->descriptor().suffix);
+                            }
+                        }
+                    }
+
                     return 0;
                 }
                 
