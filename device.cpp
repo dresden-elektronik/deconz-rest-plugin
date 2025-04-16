@@ -328,7 +328,7 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
                     change.verifyItemChange(item);
                 }
 
-                if (apsEnqueued == 0 && change.tick(d->deviceKey, sub, d->apsCtrl) == 1)
+                if (device->reachable() && apsEnqueued == 0 && change.tick(d->deviceKey, sub, d->apsCtrl) == 1)
                 {
                     apsEnqueued++;
                 }
@@ -972,7 +972,11 @@ void DEV_BindingHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventPoll || event.what() == REventAwake || event.what() == REventBindingTick)
     {
-        if (DA_ApsUnconfirmedRequests() > 4)
+        if (d->binding.bindings.empty())
+        {
+            // nothing todo
+        }
+        else if (DA_ApsUnconfirmedRequests() > 4)
         {
             // wait
         }
@@ -1357,6 +1361,15 @@ void DEV_BindingRemoveHandler(Device *device, const Event &event)
                 if (hasDdfBinding && !hasDdfGroup)
                 {
                     break;
+                }
+            }
+            else if (i->dstAddressMode() == deCONZ::ApsExtAddress)
+            {
+                const deCONZ::Node *dstNode = DEV_GetCoreNode(i->dstAddress().ext());
+                if (!dstNode)
+                {
+                    DBG_Printf(DBG_DEV, "DEV ZDP remove binding to non existing node: " FMT_MAC "\n", FMT_MAC_CAST(i->dstAddress().ext()));
+                    break; // remove
                 }
             }
         }
@@ -1858,7 +1871,7 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
                     }
                 }
 
-                if (item->lastSet().isValid() && item->valueSource() == ResourceItem::SourceDevice)
+                if (item->lastSet().isValid() && (item->valueSource() == ResourceItem::SourceDevice || item->valueSource() == ResourceItem::SourceUnknown))
                 {
                     const auto dt2 = item->lastSet().secsTo(now);
                     if (dt2  < item->refreshInterval().val)

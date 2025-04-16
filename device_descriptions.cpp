@@ -1593,26 +1593,25 @@ const DeviceDescription::SubDevice &DeviceDescriptions::getSubDevice(const Resou
                 continue;
             }
 
-            if (h.loadCounter != d->loadCounter)
+            if (h.description < d->descriptions.size())
             {
-                return d->invalidSubDevice;
+                const DeviceDescription &ddf = d->descriptions[h.description];
+                if (h.subDevice < ddf.subDevices.size())
+                {
+                    const DeviceDescription::SubDevice &sub = ddf.subDevices[h.subDevice];
+
+                    if (h.item < sub.items.size())
+                    {
+                        const DeviceDescription::Item &ddfItem = sub.items[h.item];
+                        ItemHandlePack h2;
+                        h2.handle = ddfItem.handle;
+                        if (h.loadCounter == h2.loadCounter)
+                        {
+                            return sub;
+                        }
+                    }
+                }
             }
-
-            DBG_Assert(h.description < d->descriptions.size());
-            if (h.description >= d->descriptions.size())
-            {
-                return d->invalidSubDevice;
-            }
-
-            auto &ddf = d->descriptions[h.description];
-
-            DBG_Assert(h.subDevice < ddf.subDevices.size());
-            if (h.subDevice >= ddf.subDevices.size())
-            {
-                return d->invalidSubDevice;
-            }
-
-            return ddf.subDevices[h.subDevice];
         }
     }
 
@@ -1715,11 +1714,6 @@ static DeviceDescription::Item *DDF_GetItemMutable(const ResourceItem *item)
         return nullptr;
     }
 
-    if (h.loadCounter != d->loadCounter)
-    {
-        return nullptr;
-    }
-
     DBG_Assert(h.description < d->descriptions.size());
     if (h.description >= d->descriptions.size())
     {
@@ -1740,7 +1734,13 @@ static DeviceDescription::Item *DDF_GetItemMutable(const ResourceItem *item)
 
     if (h.item < sub.items.size())
     {
-        return &sub.items[h.item];
+        DeviceDescription::Item *ddfItem = &sub.items[h.item];
+        ItemHandlePack h2;
+        h2.handle = ddfItem->handle;
+        if (h.handle == h2.handle)
+        {
+            return ddfItem;
+        }
     }
 
     return nullptr;
@@ -1773,24 +1773,29 @@ const DeviceDescription::Item &DeviceDescriptions::getItem(const ResourceItem *i
         return getGenericItem(item->descriptor().suffix);
     }
 
-    if (h.loadCounter != d->loadCounter)
+    if (h.description < d->descriptions.size())
     {
-        return d->invalidItem;
+        const auto &ddf = d->descriptions[h.description];
+
+        if (h.subDevice < ddf.subDevices.size())
+        {
+            const auto &sub = ddf.subDevices[h.subDevice];
+
+            if (h.item < sub.items.size())
+            {
+                const DeviceDescription::Item &ddfItem = sub.items[h.item];
+                ItemHandlePack h2;
+                h2.handle = ddfItem.handle;
+
+                if (h.loadCounter == h2.loadCounter)
+                {
+                    return ddfItem;
+                }
+            }
+        }
     }
 
-    // Note: There are no further if conditions since at this point it's certain that a handle must be valid.
-
-    Q_ASSERT(h.description < d->descriptions.size());
-
-    const auto &ddf = d->descriptions[h.description];
-
-    Q_ASSERT(h.subDevice < ddf.subDevices.size());
-
-    const auto &sub = ddf.subDevices[h.subDevice];
-
-    Q_ASSERT(h.item < sub.items.size());
-
-    return sub.items[h.item];
+    return d->invalidItem;
 }
 
 const DDF_Items &DeviceDescriptions::genericItems() const

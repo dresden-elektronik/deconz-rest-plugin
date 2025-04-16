@@ -3508,6 +3508,33 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (DEV_TestManaged() || DDF_IsStatusEnabled(ddf.status))
                 {
                     DBG_Printf(DBG_INFO, "DB skip loading sensor %s %s, handled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
+
+                    extAddr = extAddressFromUniqueId(sensor.uniqueId());
+
+                    if (extAddr)
+                    {
+                        Device *device = DEV_GetOrCreateDevice(d, deCONZ::ApsController::instance(), d->eventEmitter, d->m_devices, extAddr);
+
+                        if (device)
+                        {
+                            // To speed loading DDF up the first time after it was run as legacy before,
+                            // assign manufacturer name and modelid to parent device. That way we don't have to wait until the
+                            // data is queried again via Zigbee.
+                            // Note: Due the deviceDescriptions->get(&sensor); matching we can be sure the legacy strings aren't made up.
+                            item = device->item(RAttrManufacturerName);
+                            if (item->toString().isEmpty())
+                            {
+                                *item = *sensor.item(item->descriptor().suffix);
+                            }
+
+                            item = device->item(RAttrModelId);
+                            if (item->toString().isEmpty())
+                            {
+                                *item = *sensor.item(item->descriptor().suffix);
+                            }
+                        }
+                    }
+
                     return 0;
                 }
                 
@@ -5949,6 +5976,10 @@ void DeRestPluginPrivate::getZigbeeConfigDb(QVariantList &out)
 void DeRestPluginPrivate::deleteDeviceDb(const QString &uniqueId)
 {
     DBG_Assert(!uniqueId.isEmpty());
+    if (uniqueId.isEmpty())
+    {
+        return;
+    }
 
     openDb();
     DBG_Assert(db);
@@ -5957,16 +5988,48 @@ void DeRestPluginPrivate::deleteDeviceDb(const QString &uniqueId)
         return;
     }
 
+    int rc;
     char *errmsg = nullptr;
-    const auto sql = QString("DELETE FROM devices WHERE mac = '%1'").arg(uniqueId);
-    int rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
-    if (rc != SQLITE_OK)
     {
-        if (errmsg)
+        QString sql = QString("DELETE FROM devices WHERE mac = '%1'").arg(uniqueId);
+        rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
         {
-            DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
-            sqlite3_free(errmsg);
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
+
+    {
+        QString sql = QString("DELETE FROM sensors WHERE uniqueid LIKE '%1%%'").arg(uniqueId);
+        rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
+
+    {
+        QString sql = QString("DELETE FROM nodes WHERE mac LIKE '%1%%'").arg(uniqueId);
+        rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+                sqlite3_free(errmsg);
+            }
         }
     }
 
@@ -7162,14 +7225,14 @@ bool DB_StoreSubDeviceItem(const Resource *sub, ResourceItem *item)
             uint64_t storeDelay = 600;
 #endif
 
+            const DeviceDescription::Item &ddfItem = DeviceDescriptions::instance()->getItem(item);
+            if (ddfItem.isValid() && 0 < ddfItem.refreshInterval && (int)storeDelay < ddfItem.refreshInterval)
+            {
+                storeDelay = (unsigned)ddfItem.refreshInterval * 3 / 4;
+            }
+
             if (isEqual)
             {
-                if (item->descriptor().type == DataTypeString)
-                {
-                    item->clearNeedStore();
-                    return true; // don't check timestamp for strings
-                }
-
                 if (suffix[0] == 'a' && dt < storeDelay) // attr/*  but not a string
                 {
                     return true; // only update timestamp every 10 minutes
@@ -7215,10 +7278,7 @@ bool DB_StoreSubDeviceItem(const Resource *sub, ResourceItem *item)
     {
 //        DBG_Printf(DBG_INFO_L2, "%s\n", &sqlBuf[0]);
 
-        if (DBG_IsEnabled(DBG_MEASURE))
-        {
-            DBG_Printf(DBG_MEASURE, "DB store %s%s/%s ## %s\n", uniqueId->toCString(), sub->prefix(), item->descriptor().suffix, sqlBuf);
-        }
+        DBG_Printf(DBG_DEV, "DB store %s%s/%s ## %s\n", uniqueId->toCString(), sub->prefix(), item->descriptor().suffix, sqlBuf);
 
         char *errmsg = nullptr;
 

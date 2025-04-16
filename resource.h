@@ -513,8 +513,6 @@ public:
     deCONZ::TimeSeconds refreshInterval() const { return m_refreshInterval; }
     void setRefreshInterval(deCONZ::TimeSeconds interval) { m_refreshInterval = interval; }
     void setZclProperties(const ZCL_Param &param) { m_zclParam = param; }
-    void setReadEndpoint(uint8_t ep) { m_readEndpoint = ep; }
-    uint8_t readEndpoint() const { return m_readEndpoint; }
     bool setValue(const char *str, int length, ValueSource source = SourceUnknown);
     bool setValue(const QString &val, ValueSource source = SourceUnknown);
     bool setValue(qint64 val, ValueSource source = SourceUnknown);
@@ -580,7 +578,6 @@ private:
     ZCL_Param m_zclParam{}; // for parse function
     ParseFunction_t m_parseFunction = nullptr;
     quint32 m_ddfItemHandle = 0; // invalid item handle
-    uint8_t m_readEndpoint = 0;
 };
 
 class Resource
