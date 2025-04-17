@@ -45,7 +45,21 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+            "parse": {
+              "fn": "zcl:attr",
+              "ep": 255,
+              "cl": "0x0000",
+              "at": "0x0001",
+              "eval": "Item.val = Attr.val"
+            },
+            "read": {
+              "fn": "zcl:attr",
+              "ep": 1,
+              "cl": "0x0000",
+              "at": "0x0001"
+            },
+            "refresh.interval": 86400
         },
         {
           "name": "attr/type"
@@ -115,7 +129,17 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 255,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
