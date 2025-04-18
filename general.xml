@@ -2982,7 +2982,9 @@ Displayed setpoint is not affected, but regulated setpoint will change. Can be u
             <value name="Display on" value="0x00"></value>
             <value name="Display off" value="0x01"></value>
           </attribute>
-          <attribute id="0x0107" name="Measurement interval, range: 3..255 seconds" type="u8" access="rw" range="0x03,0xFF" default="0x0A" required="o" mfcode="0x1141"></attribute>
+          <attribute id="0x0107" name="Measurement interval, range: 3..255 seconds" type="u8" access="rw" range="0x03,0xFF" default="0x0A" required="o" mfcode="0x1141">
+            <description>Beware: While increasing the measurement interval should save power, it also increases the reaction time for reading/writing values in deCONZ up to the set value (the C401N only connects every n seconds to the Zigbee network). About 60s seems like a sweet spot between power saving and reaction time.</description>
+	  </attribute>
         </attribute-set>
 
         <!-- Bosch manufacturer specific -->
