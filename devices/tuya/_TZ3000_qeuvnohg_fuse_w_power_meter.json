@@ -10,8 +10,7 @@
 		"TS011F",
 		"TS011F"
 	],
-	"product": "TO-Q-SY1-JZT",
-	"description": "Temp.Def., Note the deleted 'lights:state/on' because of MAINS debate at: https://github.com/dresden-elektronik/deconz-rest-plugin/pull/7012",
+	"product": "TO-Q-SY1-JZT Mains/DIN Rail power switch/meter, Note the deleted 'lights:state/on' because of MAINS debate at: https://github.com/dresden-elektronik/deconz-rest-plugin/pull/7012",
 	"vendor": "TONGOU",
 	"sleeper": false,
 	"status": "Gold",
@@ -45,14 +44,14 @@
 				{
 					"name": "attr/swversion",
 					"parse": {
-						"fn": "zcl",
+						"fn": "zcl:attr",
 						"ep": 1,
 						"cl": "0x0000",
 						"at": "0x0001",
 						"script": "tuya_swversion.js"
 					},
 					"read": {
-						"fn": "zcl",
+						"fn": "zcl:attr",
 						"ep": 1,
 						"cl": "0x0000",
 						"at": "0x0001"
@@ -102,14 +101,14 @@
 				{
 					"name": "attr/swversion",
 					"parse": {
-						"fn": "zcl",
+						"fn": "zcl:attr",
 						"ep": 1,
 						"cl": "0x0000",
 						"at": "0x0001",
 						"script": "tuya_swversion.js"
 					},
 					"read": {
-						"fn": "zcl",
+						"fn": "zcl:attr",
 						"ep": 1,
 						"cl": "0x0000",
 						"at": "0x0001"
@@ -177,14 +176,14 @@
 				{
 					"name": "attr/swversion",
 					"parse": {
-						"fn": "zcl",
+						"fn": "zcl:attr",
 						"ep": 1,
 						"cl": "0x0000",
 						"at": "0x0001",
 						"script": "tuya_swversion.js"
 					},
 					"read": {
-						"fn": "zcl",
+						"fn": "zcl:attr",
 						"ep": 1,
 						"cl": "0x0000",
 						"at": "0x0001"
