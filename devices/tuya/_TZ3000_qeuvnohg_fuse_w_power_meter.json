@@ -10,64 +10,11 @@
 		"TS011F",
 		"TS011F"
 	],
-	"product": "TO-Q-SY1-JZT Mains/DIN Rail power switch/meter, Note the deleted 'lights:state/on' because of MAINS debate at: https://github.com/dresden-elektronik/deconz-rest-plugin/pull/7012",
+	"product": "TO-Q-SY1-JZT Mains/DIN Rail power switch/meter, Note the omitted /lights section",
 	"vendor": "TONGOU",
 	"sleeper": false,
 	"status": "Gold",
 	"subdevices": [
-		{
-			"type": "$TYPE_SMART_PLUG",
-			"restapi": "/lights",
-			"uuid": [
-				"$address.ext",
-				"0x01"
-			],
-			"items": [
-				{
-					"name": "attr/id"
-				},
-				{
-					"name": "attr/lastannounced"
-				},
-				{
-					"name": "attr/lastseen"
-				},
-				{
-					"name": "attr/manufacturername"
-				},
-				{
-					"name": "attr/modelid"
-				},
-				{
-					"name": "attr/name"
-				},
-				{
-					"name": "attr/swversion",
-					"parse": {
-						"fn": "zcl:attr",
-						"ep": 1,
-						"cl": "0x0000",
-						"at": "0x0001",
-						"script": "tuya_swversion.js"
-					},
-					"read": {
-						"fn": "zcl:attr",
-						"ep": 1,
-						"cl": "0x0000",
-						"at": "0x0001"
-					}
-				},
-				{
-					"name": "attr/type"
-				},
-				{
-					"name": "attr/uniqueid"
-				},
-				{
-					"name": "state/reachable"
-				}
-			]
-		},
 		{
 			"type": "$TYPE_TEMPERATURE_SENSOR",
 			"restapi": "/sensors",
