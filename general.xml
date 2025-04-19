@@ -2969,6 +2969,23 @@ Displayed setpoint is not affected, but regulated setpoint will change. Can be u
           <value name="Viewing direction 1" value="0x00"></value>
           <value name="Viewing direction 2" value="0x01"></value>
         </attribute>
+        
+        <!-- ZigbeeTLc (C401N) specific -->
+        <attribute-set id="0x0100" description="ZigbeeTLc (C401N) specific" mfcode="0x1141">
+          <attribute id="0x0100" name="Temperature offset in 0.01° steps" type="s16" access="rw" default="0x0000" required="o" mfcode="0x1141"></attribute>
+          <attribute id="0x0101" name="Humidity offset, in 0.01% steps" type="s16" access="rw" default="0x0000" required="o" mfcode="0x1141"></attribute>
+          <attribute id="0x0102" name="Comfort temperature minimum, in 0.01° steps" type="s16" access="rw" default="0x07D0" required="o" mfcode="0x1141"></attribute>
+          <attribute id="0x0103" name="Comfort temperature maximum, in 0.01° steps" type="s16" access="rw" default="0x09C4" required="o" mfcode="0x1141"></attribute>
+          <attribute id="0x0104" name="Comfort humidity minimum, in 1% steps" type="u16" access="rw" range="0x0000,0x270F" default="0x0FA0" required="o" mfcode="0x1141"></attribute>
+          <attribute id="0x0105" name="Comfort humidity maximum, in 1% steps" type="u16" access="rw" range="0x0000,0x270F" default="0x1770" required="o" mfcode="0x1141"></attribute>
+          <attribute id="0x0106" name="Display off" type="enum8" access="rw" range="0x00,0x01" default="0x00" required="o" mfcode="0x1141">
+            <value name="Display on" value="0x00"></value>
+            <value name="Display off" value="0x01"></value>
+          </attribute>
+          <attribute id="0x0107" name="Measurement interval, range: 3..255 seconds" type="u8" access="rw" range="0x03,0xFF" default="0x0A" required="o" mfcode="0x1141">
+            <description>Beware: While increasing the measurement interval should save power, it also increases the reaction time for reading/writing values in deCONZ up to the set value (the C401N only connects every n seconds to the Zigbee network). About 60s seems like a sweet spot between power saving and reaction time.</description>
+	  </attribute>
+        </attribute-set>
 
         <!-- Bosch manufacturer specific -->
         <attribute-set id="0x4000" description="Bosch specific" mfcode="0x1209">
