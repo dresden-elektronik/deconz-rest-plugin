@@ -4,11 +4,13 @@
   "manufacturername": [
     "_TZ3000_3ooaz3ng",
     "_TZ3000_g5xawfcq",
-    "_TZ3000_amdymr7l"
+    "_TZ3000_amdymr7l",
+    "_TZ3210_amdymr7l"
   ],
   "modelid": [
     "TS0121",
     "TS0121",
+    "TS011F",
     "TS011F"
   ],
   "vendor": "BlitzWolf",
