@@ -23,11 +23,11 @@ The Phoscon App is a browser based web application and supports lights, sensors 
 
 deCONZ beta releases are scheduled roughly once per week. After 1–3 betas a stable version is released and a new beta cycle begins.
 
-Current Beta: **v2.28.1-beta**  
-Current Stable: **v2.28.1**
+Current Beta: **v2.29.5-beta**  
+Current Stable: **v2.29.5**
 
-Next Beta: **v2.29.0-beta** Expected in September.
-Next Stable: **v2.29.x** Expected in September.
+Next Beta: **v2.30.0-beta** Expected in April.
+Next Stable: **v2.30.x** Expected in May.
 
 Installation
 ============

@@ -55,6 +55,9 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "attr/zonetype"
+        },
+        {
           "name": "config/battery",
           "awake": true,
           "parse": {
