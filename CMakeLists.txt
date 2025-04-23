@@ -32,21 +32,16 @@ if (NOT DECONZ_FULL_BUILD)
 
 include(FetchContent)
 
-FetchContent_Declare(
-  deconzlib
-  GIT_REPOSITORY https://github.com/dresden-elektronik/deconz-lib.git
-  GIT_TAG        main
-)
-# FetchContent_MakeAvailable(deconzlib)
-# FetchContent_MakeAvailable requires CMake 3.14, but Debian Buster has only 3.13
 FetchContent_GetProperties(deconzlib)
 if (NOT deconzlib_POPULATED)
-    FetchContent_Populate(deconzlib)
+    FetchContent_Populate(deconzlib
+        GIT_REPOSITORY https://github.com/dresden-elektronik/deconz-lib.git
+        GIT_TAG        main
+    )
     add_subdirectory(${deconzlib_SOURCE_DIR} ${deconzlib_BINARY_DIR})
 endif()
 
-endif()
-
+endif() # NOT DECONZ_FULL_BUILD
 #----------------------------------------------------------------------
 
 set(PLUGIN_INCLUDE_FILES
