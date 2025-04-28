@@ -1093,7 +1093,7 @@ public:
     int createSensor(const ApiRequest &req, ApiResponse &rsp);
     int getGroupIdentifiers(const ApiRequest &req, ApiResponse &rsp);
     int recoverSensor(const ApiRequest &req, ApiResponse &rsp);
-    bool sensorToMap(Sensor *sensor, QVariantMap &map, const ApiRequest &req, bool event = false);
+    bool sensorToMap(Sensor *sensor, QVariantMap &map, const ApiRequest &req, const char *event = nullptr);
     void handleSensorEvent(const Event &e);
 
     // REST API resourcelinks

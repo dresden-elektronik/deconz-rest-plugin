@@ -91,10 +91,6 @@
           "refresh.interval": 3600
         },
         {
-          "name": "config/duration",
-          "default": 40
-        },
-        {
           "name": "config/enrolled",
           "default": 1
         },
