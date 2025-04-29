@@ -1035,7 +1035,7 @@ public:
     int removeAllGroups(const ApiRequest &req, ApiResponse &rsp);
     void handleLightEvent(const Event &e);
 
-    bool lightToMap(const ApiRequest &req, LightNode *webNode, QVariantMap &map, bool event = false);
+    bool lightToMap(const ApiRequest &req, LightNode *webNode, QVariantMap &map, const char *event = nullptr);
 
     // REST API groups
     int handleGroupsApi(const ApiRequest &req, ApiResponse &rsp);

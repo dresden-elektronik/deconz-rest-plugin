@@ -3030,6 +3030,23 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         return; // already pushed
     }
 
+    if (e.what() == RAttrLastSeen)
+    {
+        QVariantMap map;
+        map[QLatin1String("t")] = QLatin1String("event");
+        map[QLatin1String("e")] = QLatin1String("changed");
+        map[QLatin1String("r")] = QLatin1String("sensors");
+        map[QLatin1String("id")] = e.id();
+        map[QLatin1String("uniqueid")] = sensor->uniqueId();
+        QVariantMap map1;
+        map1[QLatin1String("lastseen")] = item->toString();
+        map[QLatin1String("attr")] = map1;
+
+        item->clearNeedPush();
+        webSocketServer->broadcastTextMessage(Json::serialize(map));
+        return;
+    }
+
     QVariantMap smap;
     QHttpRequestHeader hdr;  // dummy
     QStringList path;  // dummy
