@@ -2694,7 +2694,7 @@ bool DeRestPluginPrivate::sensorToMap(Sensor *sensor, QVariantMap &map, const Ap
             const ApiAttribute a = rid.toApi(map, event);
             QVariantMap *p = a.map;
 
-			if (rid.suffix == RAttrNwkAddress)
+            if (rid.suffix == RAttrNwkAddress)
             {
                 (*p)[a.key] = QString("0x") + QString("%1").arg(device->item(RAttrNwkAddress)->toNumber(), 4, 16, QLatin1Char('0')).toUpper();
             }
