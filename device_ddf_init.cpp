@@ -148,6 +148,7 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
         if (ddfItem.isStatic || !item->lastSet().isValid())
         {
             item->setValue(ddfItem.defaultValue);
+            item->setTimeStamps(item->lastSet().addSecs(-86400));
             item->clearNeedStore(); // already in DB
         }
     }

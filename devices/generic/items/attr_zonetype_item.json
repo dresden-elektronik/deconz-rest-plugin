@@ -5,6 +5,7 @@
   "access": "R",
   "public": true,
   "implicit": false,
+  "default": 0,
   "description": "IAS Zone zone type.",
   "parse": {
     "fn": "zcl:attr",

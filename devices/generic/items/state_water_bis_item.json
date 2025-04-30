@@ -4,5 +4,6 @@
   "datatype": "Bool",
   "access": "R",
   "public": false,
+  "default": false,
   "description": "True when water is detected."
 }

@@ -8,5 +8,6 @@
     0,
     100
   ],
+  "default": 0,
   "description": "The current device battery level in 0&ndash;100&thinsp;%."
 }

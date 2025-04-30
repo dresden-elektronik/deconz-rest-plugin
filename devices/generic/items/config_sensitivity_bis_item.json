@@ -4,5 +4,6 @@
   "datatype": "UInt8",
   "access": "R",
   "public": false,
+  "default": 0,
   "description": "The sensor sensitivity."
 }

@@ -4,6 +4,7 @@
   "datatype": "Bool",
   "access": "RW",
   "public": true,
+  "default": false,
   "description": "True when device is on; false when off.",
   "parse": {
     "fn": "zcl:attr",

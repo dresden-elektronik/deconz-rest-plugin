@@ -4,6 +4,7 @@
   "datatype": "Bool",
   "access": "R",
   "public": true,
+  "default": false,
   "description": "True when fire is detected.",
   "parse": {
     "fn": "ias:zonestatus",
