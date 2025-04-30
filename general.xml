@@ -5361,7 +5361,6 @@ These devices can operate on either battery or mains power, and can have a wide 
         <attribute id="0x0008" type="u16" name="Avertissement de Dépassement D'intensité P3" access="r" required="m" default="0x00"/>
         <attribute id="0x0200" type="cstring" name="Libellé tarif fournisseur en cours" access="r" required="m"/>
         <attribute id="0x0203" type="u32" name="Energie active soutirée Distributeur, index 01" access="r" required="m" default="0x00"/>
-        <attribute id="0x0203" type="u32" name="Energie active soutirée Distributeur, index 01" access="r" required="m" default="0x00"/>
         <attribute id="0x0207" type="u16" name="Puissance app. Instantanée injectée" access="r" required="m" default="0x00"/>
         <attribute id="0x0217" type="cstring" name="Registre de Statuts" access="r" required="m"/>
         <attribute id="0x0300" type="u8" name="Protocole Linky" access="r" required="m" default="0x00"/>
