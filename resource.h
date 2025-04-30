@@ -620,6 +620,7 @@ public:
     void addStateChange(const StateChange &stateChange);
     std::vector<StateChange> &stateChanges() { return m_stateChanges; }
     void cleanupStateChanges();
+    void removeStateChangesForItem(const char *suffix);
     Resource *parentResource() { return m_parent; }
     const Resource *parentResource() const { return m_parent; }
     void setParentResource(Resource *parent) { m_parent = parent; }

@@ -220,10 +220,12 @@ static void toXy(double x,  double y, QVariantList &xy)
 }
 
 /*! Put all parameters in a map for later json serialization.
+    event - is an optional filter for push events e.g. "state/xyz" only
+            returns state {...} object in map["_push"]
     \return true - on success
             false - on error
  */
-bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode, QVariantMap &map, bool event)
+bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode, QVariantMap &map, const char *event)
 {
     if (!lightNode)
     {
@@ -244,11 +246,19 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
             {
                 continue;
             }
+
             if (!(all || item->needPushChange()))
             {
                 continue;
             }
+
             const ResourceItemDescriptor &rid = item->descriptor();
+
+            // filter for same object parent: attr, state, config ..
+            if (event && (event[0] != rid.suffix[0] || event[1] != rid.suffix[1]))
+            {
+                continue;
+            }
 
             const ApiAttribute a = rid.toApi(map, event);
             QVariantMap *p = a.map;
@@ -333,23 +343,9 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
             }
             else { (*p)[key] = item->toVariant(); }
 
-            if (event && item->needPushChange())
+            if (event && item->needPushChange() && rid.suffix[0] == event[0] && rid.suffix[1] == event[1])
             {
-                if ((rid.suffix == RStateOn || rid.suffix == RStateReachable) && !lightNode->groups().empty())
-                {
-                    std::vector<GroupInfo>::const_iterator g = lightNode->groups().begin();
-                    std::vector<GroupInfo>::const_iterator gend = lightNode->groups().end();
-                    for (; g != gend; ++g)
-                    {
-                        if (g->state == GroupInfo::StateInGroup)
-                        {
-                            Event e(RGroups, REventCheckGroupAnyOn, int(g->id));
-                            enqueueEvent(e);
-                        }
-                    }
-                }
-                needPush[a.top] = true;
-                item->clearNeedPush();
+                 needPush[a.top] = true;
             }
         }
 
@@ -371,8 +367,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
         if (all)
         {
             QStringList groups;
-            std::vector<GroupInfo>::const_iterator g = lightNode->groups().begin();
-            std::vector<GroupInfo>::const_iterator gend = lightNode->groups().end();
+            auto g = lightNode->groups().cbegin();
+            const auto gend = lightNode->groups().cend();
             for (; g != gend; ++g)
             {
                 if (g->state == GroupInfo::StateInGroup)
@@ -392,7 +388,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
         {
             const int cc = itemColorCapabilties->toNumber();
             QStringList colorModes;
-            ApiAttribute a = itemColorCapabilties->descriptor().toApi(map, event);
+            const ResourceItemDescriptor &rid = itemColorCapabilties->descriptor();
+            ApiAttribute a = rid.toApi(map, event);
             QVariantMap *p = a.map;
 
             if (cc & COLOR_CAPABILITIES_CT) colorModes.push_back(QLatin1String("ct"));
@@ -420,7 +417,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
             }
             else if (itemCapColorEffects && lightNode->manufacturerCode() == VENDOR_PHILIPS) // no colorloop, but Hue special effects
             {
-                    colorModes.push_back(QLatin1String("effect"));
+                colorModes.push_back(QLatin1String("effect"));
             }
             else if (isXmasLightStrip(lightNode))
             {
@@ -444,10 +441,9 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
             }
             (*p)[QLatin1String("modes")] = colorModes;
 
-            if (event && itemColorCapabilties->needPushChange())
+            if (event && itemColorCapabilties->needPushChange() && rid.suffix[0] == event[0] && rid.suffix[1] == event[1])
             {
                   needPush[a.top] = true;
-                  itemColorCapabilties->clearNeedPush();
             }
         }
     }
@@ -456,16 +452,16 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
     {
         if (all || itemCapColorEffects->needPushChange())
         {
-            ApiAttribute a = itemCapColorEffects->descriptor().toApi(map, event);
+            const ResourceItemDescriptor &rid = itemCapColorEffects->descriptor();
+            ApiAttribute a = rid.toApi(map, event);
             QVariantMap *p = a.map;
             const int cc = itemColorCapabilties ? itemColorCapabilties->toNumber() : 0;
 
             (*p)[a.key] = getHueEffectNames(itemCapColorEffects->toNumber(), cc & COLOR_CAPABILITIES_COLORLOOP);
 
-            if (event && itemCapColorEffects->needPushChange())
+            if (event && itemCapColorEffects->needPushChange() && rid.suffix[0] == event[0] && rid.suffix[1] == event[1])
             {
                   needPush[a.top] = true;
-                  itemCapColorEffects->clearNeedPush();
             }
         }
     }
@@ -476,7 +472,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
                    igreenx->needPushChange() || igreeny->needPushChange() ||
                    iredx->needPushChange() || iredy->needPushChange())
         {
-            ApiAttribute a = ibluex->descriptor().toApi(map, event);
+            const ResourceItemDescriptor &rid = ibluex->descriptor();
+            ApiAttribute a = rid.toApi(map, event);
             QVariantMap *p = a.map;
             QVariantList blue, green, red;
 
@@ -487,17 +484,12 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
             (*p)[QLatin1String("green")] = green;
             (*p)[QLatin1String("red")] = red;
 
-            if (event && (ibluex->needPushChange() || ibluey->needPushChange() ||
+            if (event && rid.suffix[0] == event[0] && rid.suffix[1] == event[1] &&
+                         (ibluex->needPushChange() || ibluey->needPushChange() ||
                           igreenx->needPushChange() || igreeny->needPushChange() ||
                           iredx->needPushChange() || iredy->needPushChange()))
             {
                 needPush[a.top] = true;
-                ibluex->clearNeedPush();
-                ibluey->clearNeedPush();
-                igreenx->clearNeedPush();
-                igreeny->clearNeedPush();
-                iredx->clearNeedPush();
-                iredy->clearNeedPush();
             }
         }
     }
@@ -506,7 +498,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
     {
         if (all || isx->needPushChange() || isy->needPushChange())
         {
-            ApiAttribute a = isx->descriptor().toApi(map, event);
+            const ResourceItemDescriptor &rid = isx->descriptor();
+            ApiAttribute a = rid.toApi(map, event);
             QVariantMap *p = a.map;
             double colorX = isx->toNumber();
             double colorY = isy->toNumber();
@@ -522,11 +515,9 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
                 toXy(colorX, colorY, xy);
                 (*p)[QLatin1String("startup")] = xy;
             }
-            if (event && (isx->needPushChange() || isy->needPushChange()))
+            if (event && (isx->needPushChange() || isy->needPushChange()) && rid.suffix[0] == event[0] && rid.suffix[1] == event[1])
             {
                 needPush[a.top] = true;
-                isx->clearNeedPush();
-                isy->clearNeedPush();
             }
         }
     }
@@ -550,18 +541,17 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
     {
         if (all || ix->needPushChange() || iy->needPushChange())
         {
-            ApiAttribute a = ix->descriptor().toApi(map, event);
+            const ResourceItemDescriptor &rid = ix->descriptor();
+            ApiAttribute a = rid.toApi(map, event);
             QVariantMap *p = a.map;
             QVariantList xy;
 
             toXy(ix->toNumber(), iy->toNumber(), xy);
             (*p)[QLatin1String("xy")] = xy;
 
-            if (event && (ix->needPushChange() || iy->needPushChange()))
+            if (event && (ix->needPushChange() || iy->needPushChange()) && rid.suffix[0] == event[0] && rid.suffix[1] == event[1])
             {
                 needPush[a.top] = true;
-                ix->clearNeedPush();
-                iy->clearNeedPush();
             }
         }
     }
@@ -4121,16 +4111,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         return; // already pushed
     }
 
-    QVariantMap lmap;
-    QHttpRequestHeader hdr;  // dummy
-    QStringList path;  // dummy
-    ApiRequest req(hdr, path, nullptr, QLatin1String("")); // dummy
-    req.mode = ApiModeNormal;
-    lightToMap(req, lightNode, lmap, true);
-
-    bool pushed = false;
-    QVariantMap needPush = lmap[QLatin1String("_push")].toMap();
-    for (QVariantMap::const_iterator it = needPush.cbegin(), end = needPush.cend(); it != end; ++it)
+    if (e.what() == RAttrLastSeen)
     {
         QVariantMap map;
         map[QLatin1String("t")] = QLatin1String("event");
@@ -4138,12 +4119,78 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         map[QLatin1String("r")] = QLatin1String("lights");
         map[QLatin1String("id")] = e.id();
         map[QLatin1String("uniqueid")] = lightNode->uniqueId();
-        map[it.key()] = lmap[it.key()];
+        QVariantMap map1;
+        map1[QLatin1String("lastseen")] = item->toString();
+        map[QLatin1String("attr")] = map1;
+
+        item->clearNeedPush();
         webSocketServer->broadcastTextMessage(Json::serialize(map));
-        pushed = true;
+        return;
     }
+
+    QVariantMap lmap;
+    QHttpRequestHeader hdr;  // dummy
+    QStringList path;  // dummy
+    ApiRequest req(hdr, path, nullptr, QLatin1String("")); // dummy
+    req.mode = ApiModeNormal;
+    lightToMap(req, lightNode, lmap, e.what());
+
+    bool pushed = false;
+    QVariantMap needPush = lmap[QLatin1String("_push")].toMap();
+    for (QVariantMap::const_iterator it = needPush.cbegin(), end = needPush.cend(); it != end; ++it)
+    {
+        char suffix[2];
+        suffix[0] = it.key()[0].toLatin1();
+        suffix[1] = it.key()[1].toLatin1();
+
+        if (suffix[0] == e.what()[0] && suffix[1] == e.what()[1])
+        {
+            QVariantMap map;
+            map[QLatin1String("t")] = QLatin1String("event");
+            map[QLatin1String("e")] = QLatin1String("changed");
+            map[QLatin1String("r")] = QLatin1String("lights");
+            map[QLatin1String("id")] = e.id();
+            map[QLatin1String("uniqueid")] = lightNode->uniqueId();
+            map[it.key()] = lmap[it.key()];
+            webSocketServer->broadcastTextMessage(Json::serialize(map));
+            pushed = true;
+        }
+    }
+
+    if ((e.what() == RStateOn || e.what() == RStateReachable) && !lightNode->groups().empty())
+    {
+        auto g = lightNode->groups().cbegin();
+        const auto gend = lightNode->groups().cend();
+        for (; g != gend; ++g)
+        {
+            if (g->state == GroupInfo::StateInGroup)
+            {
+                Event e(RGroups, REventCheckGroupAnyOn, int(g->id));
+                enqueueEvent(e);
+            }
+        }
+    }
+
     if (pushed)
     {
+        // cleanup push flags
+        item->clearNeedPush();
+        if (gwWebSocketNotifyAll)
+        {
+            for (int i = 0; i < lightNode->itemCount(); i++)
+            {
+                item = lightNode->itemForIndex(static_cast<size_t>(i));
+                if (item && (item->needPushChange() || item->needPushSet()))
+                {
+                    const ResourceItemDescriptor &rid = item->descriptor();
+                    if (rid.suffix[0] == e.what()[0] && rid.suffix[1] == e.what()[1])
+                    {
+                        item->clearNeedPush();
+                    }
+                }
+            }
+        }
+
         updateLightEtag(lightNode);
         plugin->saveDatabaseItems |= DB_LIGHTS;
         plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);

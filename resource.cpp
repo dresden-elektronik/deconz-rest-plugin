@@ -1890,6 +1890,36 @@ void Resource::cleanupStateChanges()
     }
 }
 
+/*! Removes all StateChange items related to \p suffix.
+ */
+void Resource::removeStateChangesForItem(const char *suffix)
+{
+    bool again = true;
+    while (again)
+    {
+        again = false;
+        auto it = m_stateChanges.cbegin();
+        auto end = m_stateChanges.cend();
+
+        for (; it != end; ++it)
+        {
+            auto it2 = it->items().cbegin();
+            const auto end2 = it->items().cend();
+            for (;it2 != end2; ++it2)
+            {
+                if (it2->suffix == suffix)
+                    break;
+            }
+
+            if (it2 != end2) // found matching item, remove SC and look again
+            {
+                again = true;
+                m_stateChanges.erase(it);
+            }
+        }
+    }
+}
+
 /*! Returns the string presentation of an data type */
 QLatin1String R_DataTypeToString(ApiDataType type)
 {
