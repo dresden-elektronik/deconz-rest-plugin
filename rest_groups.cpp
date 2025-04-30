@@ -2764,9 +2764,15 @@ static void recallSceneCheckGroupChanges(DeRestPluginPrivate *d, Group *group, S
         {
             groupOn = true;
         }
-        else if (lightNode->manufacturerCode() == VENDOR_IKEA)
+
+        if (lightNode->manufacturerCode() == VENDOR_IKEA)
         {
-            ikeaTurnLightOffInSceneHack(d, lightNode);
+            lightNode->removeStateChangesForItem(RStateOn);
+
+            if (!ls->on())
+            {
+                ikeaTurnLightOffInSceneHack(d, lightNode);
+            }
         }
 
         {
