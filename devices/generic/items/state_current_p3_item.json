@@ -4,6 +4,7 @@
   "datatype": "UInt16",
   "access": "RW",
   "public": true,
+  "default": 0,
   "description": "The measured current on phase 3.",
   "read": {
     "at": "0x0a08",

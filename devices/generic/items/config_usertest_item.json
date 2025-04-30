@@ -4,5 +4,6 @@
   "datatype": "Bool",
   "access": "RW",
   "public": true,
+  "default": false,
   "description": "Activates the user test mode."
 }

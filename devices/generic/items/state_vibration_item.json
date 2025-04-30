@@ -4,6 +4,7 @@
   "datatype": "Bool",
   "access": "R",
   "public": true,
+  "default": false,
   "description": "True when vibration is detected.",
   "parse": {
     "fn": "ias:zonestatus",

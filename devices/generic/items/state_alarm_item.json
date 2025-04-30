@@ -5,6 +5,7 @@
   "access": "R",
   "public": true,
   "description": "True when an alarm is detected.",
+  "default": false,
   "parse": {
     "fn": "ias:zonestatus",
     "mask": "alarm1,alarm2"
