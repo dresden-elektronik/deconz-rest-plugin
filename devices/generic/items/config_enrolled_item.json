@@ -5,5 +5,6 @@
   "access": "RW",
   "public": false,
   "managed": true,
+  "default": 0,
   "description": "State of IAS enrollment process."
 }

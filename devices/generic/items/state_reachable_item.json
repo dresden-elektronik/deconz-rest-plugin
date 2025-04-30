@@ -6,5 +6,6 @@
   "public": true,
   "implicit": true,
   "managed": true,
+  "default": false,
   "description": "When true the device is assumed to be operational."
 }

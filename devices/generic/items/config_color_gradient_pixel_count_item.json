@@ -4,5 +4,6 @@
   "datatype": "UInt8",
   "access": "RW",
   "public": true,
+  "default": 0,
   "description": "Number of pixels on Aqara LED Strip T1."
 }

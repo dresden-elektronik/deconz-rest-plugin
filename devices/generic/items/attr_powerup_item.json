@@ -4,5 +4,6 @@
   "datatype": "UInt32",
   "access": "RW",
   "public": true,
+  "default": 0,
   "description": "Powerup mode of a device."
 }

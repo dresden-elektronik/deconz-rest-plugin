@@ -5,6 +5,7 @@
   "access": "R",
   "public": false,
   "implicit": false,
+  "default": 0,
   "description": "OTA cluster file version.",
   "parse": {
     "fn": "zcl:attr",

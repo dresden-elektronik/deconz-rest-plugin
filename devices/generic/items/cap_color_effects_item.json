@@ -4,6 +4,7 @@
   "datatype": "UInt8",
   "access": "R",
   "public": true,
+  "default": 0,
   "description": "Supported effects for Hue lights.",
   "parse": {
     "fn": "zcl:attr",

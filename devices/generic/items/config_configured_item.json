@@ -4,5 +4,6 @@
   "datatype": "Bool",
   "access": "R",
   "public": true,
+  "default": false,
   "description": "Determines that a resource is configured."
 }

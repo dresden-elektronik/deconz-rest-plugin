@@ -6,6 +6,7 @@
   "public": true,
   "description": "Deprecated. The supported color capabilities as bitmap.",
   "deprecated": "2022-11-11",
+  "default": 0,
   "parse": {
     "fn": "zcl:attr",
     "ep": 0,

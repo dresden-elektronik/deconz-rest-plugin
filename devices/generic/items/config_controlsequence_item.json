@@ -8,5 +8,6 @@
     0,
     5
   ],
+  "default": 0,
   "description": "Specifies the overall operating environment of the thermostat, and thus the possible system modes that the thermostat can operate in."
 }
