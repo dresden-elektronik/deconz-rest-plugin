@@ -164,7 +164,7 @@ int DeRestPluginPrivate::searchNewLights(const ApiRequest &req, ApiResponse &rsp
     }
 
     permitJoinApiKey = req.apikey();
-    startSearchLights();
+    startSearchLights(gwNetworkOpenDuration);
     {
         QVariantMap rspItem;
         QVariantMap rspItemState;
@@ -4073,7 +4073,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
 
 /*! Starts the search for new lights.
  */
-void DeRestPluginPrivate::startSearchLights()
+void DeRestPluginPrivate::startSearchLights(int duration)
 {
     if (searchLightsState == SearchLightsIdle || searchLightsState == SearchLightsDone)
     {
@@ -4088,7 +4088,7 @@ void DeRestPluginPrivate::startSearchLights()
         DBG_Assert(searchLightsState == SearchLightsActive);
     }
 
-    searchLightsTimeout = gwNetworkOpenDuration;
+    searchLightsTimeout = duration;
     setPermitJoinDuration(searchLightsTimeout);
 }
 
