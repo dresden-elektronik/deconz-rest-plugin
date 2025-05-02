@@ -36,6 +36,7 @@ Installation
 * Raspbian ~~Jessie~~, ~~Stretch~~, Buster, Bullseye and Bookworm
 * Ubuntu ~~Xenial~~, Bionic, Focal Fossa and Jammy
 * Windows 7, 10, 11
+* macOS
 
 ### Install deCONZ
 You find the instructions for your platform and device on the Phoscon website:
@@ -59,10 +60,11 @@ Precompiled deCONZ packages for manual installation
 
 The deCONZ application packages are available for the following platforms and contain the main application and the pre-compiled REST-API plugin.
 
-* Windows  http://deconz.dresden-elektronik.de/win/
-* Raspbian http://deconz.dresden-elektronik.de/raspbian/beta/
-* Ubuntu and Debian 64-bit http://deconz.dresden-elektronik.de/ubuntu/beta/
-* ARM64 systems http://deconz.dresden-elektronik.de/debian/beta/
+* Windows  https://deconz.dresden-elektronik.de/win/
+* macOS https://deconz.dresden-elektronik.de/macos/
+* Raspbian https://deconz.dresden-elektronik.de/raspbian/beta/
+* Ubuntu and Debian 64-bit https://deconz.dresden-elektronik.de/ubuntu/beta/
+* ARM64 systems https://deconz.dresden-elektronik.de/debian/beta/
 
 To manually install a Linux .deb package enter these commands:
 
