@@ -107,8 +107,11 @@ Hardware requirements
 The following libraries are used by the plugin:
 
 * [ArduinoJSON](https://arduinojson.org)
+* [Duktape Javascript Engine](https://duktape.org)
 * [SQLite](http://www.sqlite.org)
+* [Qt](https://qt.io)
 * [qt-json](https://github.com/lawand/droper/tree/master/qt-json)
+* [OpenSSL](https://www.openssl.org)
 * [colorspace](http://www.getreuer.info/home/colorspace)
 
 License
