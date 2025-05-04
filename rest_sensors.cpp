@@ -2851,6 +2851,11 @@ bool DeRestPluginPrivate::sensorToMap(Sensor *sensor, QVariantMap &map, const Ap
         map[QLatin1String("ep")] = sensor->fingerPrint().endpoint;
     }
 
+    if (sensor->etag.size() == 0)
+    {
+        updateSensorEtag(sensor);
+    }
+
     QString etag = sensor->etag;
     map[QLatin1String("etag")] = etag.remove('"');
 

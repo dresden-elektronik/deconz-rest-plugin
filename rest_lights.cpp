@@ -583,6 +583,11 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
         map[QLatin1String("hascolor")] = lightNode->hasColor();
     }
 
+    if (lightNode->etag.size() == 0)
+    {
+        updateLightEtag(lightNode);
+    }
+
     QString etag = lightNode->etag;
     map[QLatin1String("etag")] = etag.remove('"');
 
