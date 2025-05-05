@@ -1957,3 +1957,18 @@ bool isValidRConfigGroup(const QString &str)
 
     return result == groupList.size();
 }
+
+/*! Helper function to expose \p resource item as a different type through REST API than internally defined. */
+QVariant R_ItemToRestApiVariant(const ResourceItem *item)
+{
+    if (item)
+    {
+        const ResourceItemDescriptor rid = item->descriptor();
+        if (rid.suffix == RAttrNwkAddress)
+        {
+            return QString("0x") + QString("%1").arg(item->toNumber(), 4, 16, QLatin1Char('0')).toUpper();
+        }
+        return item->toVariant();
+    }
+    return {};
+}
