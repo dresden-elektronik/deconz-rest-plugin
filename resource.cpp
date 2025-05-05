@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -12,6 +12,7 @@
 
 #include <deconz/u_assert.h>
 #include <deconz/dbg_trace.h>
+#include <deconz/u_time.h>
 #include <utils/stringcache.h>
 #include "resource.h"
 
@@ -1278,20 +1279,34 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
         if (val.type() == QVariant::String)
         {
             const auto str = val.toString();
-            auto fmt = str.contains('.') ? QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz")
-                                         : QLatin1String("yyyy-MM-ddTHH:mm:ss");
-            auto dt = QDateTime::fromString(str, fmt);
-            dt.setTimeSpec(Qt::UTC);
+            if (str.isEmpty())
+            {
+                m_valueSource = SourceUnknown;
+                return false;
+            }
 
-            if (dt.isValid())
+            // historically some items are UTC but stored without Z in database
+            QByteArray tt = str.toLatin1();
+            if (!tt.endsWith('Z') && (
+                    rid->suffix == RStateLastUpdated
+                    || rid->suffix == RStateLastCheckin
+                    || rid->suffix == RStateSunrise
+                    || rid->suffix == RStateSunset))
+            {
+                tt.append('Z');
+            }
+
+            int64_t ms = U_TimeFromISO8601(tt.constData(), tt.size());
+
+            if (0 < ms)
             {
                 m_lastSet = now;
                 m_numPrev = m_num;
                 m_flags |= FlagNeedPushSet;
 
-                if (m_num != dt.toMSecsSinceEpoch())
+                if (m_num != ms)
                 {
-                    m_num = dt.toMSecsSinceEpoch();
+                    m_num = ms;
                     m_lastChanged = m_lastSet;
                     m_flags |= FlagNeedPushChange;
                     m_flags |= FlagNeedStore;
