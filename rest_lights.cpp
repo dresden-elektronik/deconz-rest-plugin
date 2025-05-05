@@ -1345,7 +1345,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (taskRef.lightNode->isColorLoopActive())
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/xy").arg(id), QString("parameter, xy, is not modifiable. Colorloop is active.")));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/xy").arg(id), QString("parameter, xy, is not modifiable. Effect is active.")));
         }
         else if (addTaskSetXyColor(task, targetX, targetY))
         {
@@ -1378,7 +1378,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (taskRef.lightNode->isColorLoopActive())
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/ct").arg(id), QString("parameter, ct, is not modifiable. Colorloop is active.")));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/ct").arg(id), QString("parameter, ct, is not modifiable. Effect is active.")));
         }
         else if (addTaskSetColorTemperature(task, targetCt))
         {
@@ -1407,7 +1407,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (taskRef.lightNode->isColorLoopActive())
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/ct_inc").arg(id), QString("parameter, ct_inc, is not modifiable. Colorloop is active.")));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/ct_inc").arg(id), QString("parameter, ct_inc, is not modifiable. Effect is active.")));
         }
         else if (addTaskIncColorTemperature(task, targetCtInc))
         {
@@ -1446,11 +1446,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             if (hasHue)
             {
-                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/hue").arg(id), QString("parameter, hue, is not modifiable. Colorloop is active.")));
+                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/hue").arg(id), QString("parameter, hue, is not modifiable. Effect is active.")));
             }
             if (hasSat)
             {
-                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/sat").arg(id), QString("parameter, sat, is not modifiable. Colorloop is active.")));
+                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIABLE, QString("/lights/%1/state/sat").arg(id), QString("parameter, sat, is not modifiable. Effect is active.")));
             }
         }
         else if (!hasSat) // only state.hue
