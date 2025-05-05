@@ -100,6 +100,8 @@ public:
     explicit Device(DeviceKey key, deCONZ::ApsController*apsCtrl, QObject *parent = nullptr);
     ~Device();
     void setDeviceId(int id);
+    void setCreationTime(int64_t creationTime); //! device creation time in msecs
+    int64_t creationTime() const;
     int deviceId() const;
     void addSubDevice(Resource *sub);
     DeviceKey key() const;
