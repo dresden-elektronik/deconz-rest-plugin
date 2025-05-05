@@ -971,15 +971,21 @@ void DeRestPluginPrivate::restoreSourceRoutes()
 }
 
 /*! Puts a new top level device entry in the db (mac address) or refreshes nwk address.
+    Fills the dev.deviceId and dev.creationTime fields.
+    \returns 1 on success, 0 on failure
  */
-int DB_StoreDevice(const deCONZ::Address &addr)
+int DB_StoreDevice(DB_Device &dev)
 {
-    if (!db || !addr.hasExt() || !addr.hasNwk())
-        return -1;
+    dev.deviceId = -1;
+    dev.creationTime = -1;
+
+    if (!db || dev.mac == 0)
+        return 0;
 
     struct Entry {
         long id;
         long nwk;
+        int64_t creationTime;
     } entry;
 
     int rc;
@@ -990,7 +996,7 @@ int DB_StoreDevice(const deCONZ::Address &addr)
         long nwk;
         U_SStream ss;
 
-        if (ncols != 2)
+        if (ncols != 3)
             return 1;
 
         U_sstream_init(&ss, colval[0], U_StringLength(colval[0]));
@@ -1003,9 +1009,16 @@ int DB_StoreDevice(const deCONZ::Address &addr)
         if (ss.status != U_SSTREAM_OK)
             return 1;
 
+        U_sstream_init(&ss, colval[2], U_StringLength(colval[2]));
+        double ctime = U_sstream_get_double(&ss); // use double for now until longlong is part of U_SStream
+        if (ss.status != U_SSTREAM_OK)
+            return 1;
+
         Entry *e = static_cast<Entry*>(user);
         e->id = id;
         e->nwk = nwk;
+        e->creationTime = (int64_t)ctime;
+        e->creationTime *= 1000; // milliseconds since epoch
         return 0;
     };
 
@@ -1013,42 +1026,46 @@ int DB_StoreDevice(const deCONZ::Address &addr)
     U_sstream_init(&ss, sqlBuf, sizeof(sqlBuf));
 
     // check already existing
-    U_sstream_put_str(&ss, "SELECT id, nwk FROM devices WHERE mac = '");
-    U_sstream_put_mac_address(&ss, addr.ext());
+    U_sstream_put_str(&ss, "SELECT id, nwk, timestamp FROM devices WHERE mac = '");
+    U_sstream_put_mac_address(&ss, dev.mac);
     U_sstream_put_str(&ss, "'");
 
     entry.id = -1;
     entry.nwk = -1;
+    entry.creationTime = -1;
 
     rc = sqlite3_exec(db, sqlBuf, loadDeviceCallback, &entry, nullptr);
 
     if (rc == SQLITE_OK && entry.id != -1)
     {
-        if (entry.nwk == addr.nwk())
-            return entry.id; // all there
+        dev.deviceId = entry.id;
+        dev.creationTime = entry.creationTime;
+
+        if (entry.nwk == dev.nwk)
+            return 1;
 
         // Update NWK address
         U_sstream_init(&ss, sqlBuf, sizeof(sqlBuf));
         U_sstream_put_str(&ss, "UPDATE devices SET nwk = ");
-        U_sstream_put_long(&ss, addr.nwk());
+        U_sstream_put_long(&ss, dev.nwk);
         U_sstream_put_str(&ss, " WHERE mac = '");
-        U_sstream_put_mac_address(&ss, addr.ext());
+        U_sstream_put_mac_address(&ss, dev.mac);
         U_sstream_put_str(&ss, "';");
 
         rc = sqlite3_exec(db, sqlBuf, nullptr, nullptr, nullptr);
 
         if (rc == SQLITE_OK)
-            return entry.id;
+            return 1;
 
-        return -1;
+        return 0;
     }
 
     // add new entry
     U_sstream_init(&ss, sqlBuf, sizeof(sqlBuf));
     U_sstream_put_str(&ss, "INSERT INTO devices (mac,nwk,timestamp) SELECT '");
-    U_sstream_put_mac_address(&ss, addr.ext());
+    U_sstream_put_mac_address(&ss, dev.mac);
     U_sstream_put_str(&ss, "', ");
-    U_sstream_put_long(&ss, addr.nwk());
+    U_sstream_put_long(&ss, dev.nwk);
     U_sstream_put_str(&ss, ", strftime('%s','now');");
 
     rc = sqlite3_exec(db, sqlBuf, nullptr, nullptr, nullptr);
@@ -1058,21 +1075,24 @@ int DB_StoreDevice(const deCONZ::Address &addr)
 
         // query again to get device id
         U_sstream_put_str(&ss, "SELECT id, nwk FROM devices WHERE mac = '");
-        U_sstream_put_mac_address(&ss, addr.ext());
+        U_sstream_put_mac_address(&ss, dev.mac);
         U_sstream_put_str(&ss, "'");
 
         entry.id = -1;
         entry.nwk = -1;
+        entry.creationTime = -1;
 
         rc = sqlite3_exec(db, sqlBuf, loadDeviceCallback, &entry, nullptr);
 
         if (rc == SQLITE_OK && entry.id != -1)
         {
-            return entry.id;
+            dev.deviceId = entry.id;
+            dev.creationTime = entry.creationTime;
+            return 1;
         }
     }
 
-    return -1;
+    return 0;
 }
 
 /*! Push/update a zdp descriptor in the database to cache node data.

@@ -139,6 +139,7 @@ public:
     std::vector<Resource*> subResources;
     const deCONZ::Node *node = nullptr; //! a reference to the deCONZ core node
     int deviceId = DEV_INVALID_DEVICE_ID;
+    int64_t creationTime = -1; //! time when the device was created in database
     DeviceKey deviceKey = 0; //! for physical devices this is the MAC address
 
     /*! The currently active state handler function(s).
@@ -2208,6 +2209,19 @@ void Device::setDeviceId(int id)
     {
         d->deviceId = id;
     }
+}
+
+void Device::setCreationTime(int64_t creationTime)
+{
+    if (0 < creationTime)
+    {
+        d->creationTime = creationTime;
+    }
+}
+
+int64_t Device::creationTime() const
+{
+    return d->creationTime;
 }
 
 int Device::deviceId() const
