@@ -62,6 +62,7 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event);
 void DEV_PollNextStateHandler(Device *device, const Event &event);
 void DEV_PollBusyStateHandler(Device *device, const Event &event);
 void DEV_DeadStateHandler(Device *device, const Event &event);
+void DEV_ZgpStateHandler(Device *device, const Event &event);
 
 // enable domain specific string literals
 using namespace deCONZ::literals;
@@ -291,7 +292,7 @@ void DEV_InitStateHandler(Device *device, const Event &event)
 
             if ((device->key() & 0xffffffff00000000LLU) == 0)
             {
-                d->setState(DEV_DeadStateHandler);
+                d->setState(DEV_ZgpStateHandler);
                 return; // ignore ZGP for now
             }
         }
@@ -2160,6 +2161,26 @@ void DEV_DeadStateHandler(Device *device, const Event &event)
     }
 }
 
+void DEV_ZgpStateHandler(Device *device, const Event &event)
+{
+    if (event.what() == REventStateEnter)
+    {
+        DBG_Printf(DBG_DEV, "DEV enter ZGP passive state " FMT_MAC "\n", FMT_MAC_CAST(event.deviceKey()));
+        ResourceItem *item;
+        item = device->item(RAttrNwkAddress);
+        if (item) // only hide in API for now
+            item->setIsPublic(false);
+
+        item = device->item(RCapSleeper);
+        if (item)
+            item->setValue(true);
+    }
+    else if (event.what() == REventStateLeave)
+    {
+
+    }
+}
+
 Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
     QObject(parent),
     Resource(RDevices),
@@ -2265,7 +2286,6 @@ void Device::addSubDevice(Resource *sub)
             return;
         }
     }
-
 
     Q_ASSERT(0); // too many sub resources, todo raise limit
 }
