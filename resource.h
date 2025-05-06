@@ -721,6 +721,7 @@ bool isValidRConfigGroup(const QString &str);
 
 uint8_t DDF_GetSubDeviceOrder(const QString &type);
 QLatin1String R_DataTypeToString(ApiDataType type);
+QVariant R_ItemToRestApiVariant(const ResourceItem *item);
 inline bool isValid(Resource::Handle hnd) { return hnd.hash != 0 && hnd.index < UINT16_MAX && hnd.type != 0; }
 inline bool operator==(Resource::Handle a, Resource::Handle b) { return a.hash == b.hash && a.type == b.type; }
 
