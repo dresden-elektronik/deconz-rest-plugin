@@ -4372,6 +4372,25 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.type() != QLatin1String("Daylight"))
         {
             sensor.jsonToState(QLatin1String(colval[stateCol]));
+
+            { // quirk for legacy sensors to prevent lastseen/lastannounced = null
+              // if we have a valid lastupdated timestamp, use that instead
+                ResourceItem *itemLastSeen = sensor.item(RAttrLastSeen);
+                ResourceItem *itemLastAnnounced = sensor.item(RAttrLastAnnounced);
+                ResourceItem *itemLastUpdated = sensor.item(RStateLastUpdated);
+
+                if (itemLastUpdated && itemLastUpdated->lastSet().isValid())
+                {
+                    if (itemLastSeen && !itemLastSeen->lastSet().isValid())
+                    {
+                        itemLastSeen->setValue(itemLastUpdated->toNumber());
+                    }
+                    if (itemLastAnnounced && !itemLastAnnounced->lastSet().isValid())
+                    {
+                        itemLastAnnounced->setValue(itemLastUpdated->toNumber());
+                    }
+                }
+            }
         }
 
         if (configCol >= 0)
