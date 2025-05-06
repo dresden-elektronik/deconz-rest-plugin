@@ -1963,7 +1963,7 @@ QVariant R_ItemToRestApiVariant(const ResourceItem *item)
 {
     if (item)
     {
-        const ResourceItemDescriptor rid = item->descriptor();
+        const ResourceItemDescriptor &rid = item->descriptor();
         if (rid.suffix == RAttrNwkAddress)
         {
             return QString("0x") + QString("%1").arg(item->toNumber(), 4, 16, QLatin1Char('0')).toUpper();
