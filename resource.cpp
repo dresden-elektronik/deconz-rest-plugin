@@ -1478,12 +1478,16 @@ void ResourceItem::setTimeStamps(const QDateTime &t)
 
 QVariant ResourceItem::toVariant() const
 {
+    const ResourceItemDescriptor *rid = &descriptor();
+
     if (!m_lastSet.isValid())
     {
+        if (rid->type == DataTypeString || rid->type == DataTypeTimePattern)
+        {
+            return QString(""); // otherwise the API would return null for strings
+        }
         return QVariant();
     }
-
-    const ResourceItemDescriptor *rid = &descriptor();
 
     if (rid->type == DataTypeString ||
         rid->type == DataTypeTimePattern)
