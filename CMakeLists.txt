@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(de_rest_plugin VERSION 2.30.00 LANGUAGES C;CXX)
+project(de_rest_plugin VERSION 2.30.01 LANGUAGES C;CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
