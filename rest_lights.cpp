@@ -3824,6 +3824,9 @@ int DeRestPluginPrivate::deleteLight(const ApiRequest &req, ApiResponse &rsp)
     {
         lightNode->setState(LightNode::StateDeleted);
         lightNode->setNeedSaveDatabase(true);
+
+        Event e(RLights, REventDeleted, lightNode->id());
+        enqueueEvent(e);
     }
 
     {
