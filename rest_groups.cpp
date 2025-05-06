@@ -1801,6 +1801,9 @@ int DeRestPluginPrivate::deleteGroup(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    Event e(RGroups, REventDeleted, group->id());
+    enqueueEvent(e);
+
     updateGroupEtag(group);
     rsp.httpStatus = HttpStatusOk;
 
