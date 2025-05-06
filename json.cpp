@@ -136,7 +136,14 @@ QByteArray Json::serialize(const QVariant &data, bool &success)
 	}
 	else if (data.isNull())
 	{
-		str = "null";
+        if (data.type() == QVariant::String)
+        {
+            str = "\"\"";
+        }
+        else
+        {
+            str = "null";
+        }
 	}
 	else if((data.type() == QVariant::String) || (data.type() == QVariant::ByteArray)) // a string or a byte array?
 	{
