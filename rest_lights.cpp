@@ -322,6 +322,16 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
                 continue;
             }
 
+            // quirk to ensure attr/lastseen and attr/lastannounced aren't null
+            if (rid.suffix == RAttrLastAnnounced || rid.suffix == RAttrLastSeen)
+            {
+                if (device && item->toNumber() <= 0 && 0 < device->creationTime())
+                {
+                    item->setValue(device->creationTime(), ResourceItem::SourceDevice);
+                    lightNode->setNeedSaveDatabase(true);
+                }
+            }
+
             const ApiAttribute a = rid.toApi(map, event);
             QVariantMap *p = a.map;
             QString key = a.key;
