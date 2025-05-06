@@ -2148,6 +2148,34 @@ void DEV_DeadStateHandler(Device *device, const Event &event)
 
             if (event.what() == REventPoll || event.what() == REventAwake)
             {
+                if (device->node())
+                {
+                    // update address info, a bit convoluted
+                    const deCONZ::Address &a = device->node()->address();
+                    if (a.hasExt())
+                    {
+                        ResourceItem *ext = device->item(RAttrExtAddress);
+                        if (!ext->lastSet().isValid() || ext->toNumber() != a.ext())
+                        {
+                            ext->setValue(a.ext());
+                        }
+                    }
+                    ResourceItem *nwk = device->item(RAttrNwkAddress);
+
+                    if (a.hasNwk())
+                    {
+                        nwk->setIsPublic(true);
+                        if (!nwk->lastSet().isValid() || nwk->toNumber() != a.nwk())
+                        {
+                            nwk->setValue(a.nwk());
+                        }
+                    }
+                    else if (!nwk->lastSet().isValid())
+                    {
+                        nwk->setIsPublic(false); // prevent null invalid address being exposed
+                    }
+                }
+
                 extern void DEV_PollLegacy(Device *device); // defined in de_web_plugin.cpp
 
                 if (d->node && d->node->isCoordinator())
