@@ -839,7 +839,9 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
         // if there is a IAS Zone Cluster add the RAttrZoneType
         if (DEV_GetSimpleDescriptorForServerCluster(device, 0x0500_clid))
         {
-            device->addItem(DataTypeUInt16, RAttrZoneType);
+            ResourceItem *item = device->addItem(DataTypeUInt16, RAttrZoneType);
+            if (item)
+                item->setIsPublic(false);
         }
         DEV_EnqueueEvent(device, REventDDFInitRequest);
     }
