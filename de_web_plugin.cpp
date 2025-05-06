@@ -1776,6 +1776,12 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     Event e(RSensors, RStateButtonEvent, sensor->id(), item);
     enqueueEvent(e);
     enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+
+    ResourceItem *itemLastSeen = sensor->item(RAttrLastSeen);
+    if (itemLastSeen) // sensor->rx() could throttle, ensure lastseen is refreshed
+    {
+        itemLastSeen->setValue(item->lastSet());
+    }
 }
 
 /*! Returns the number of tasks for a specific address.
@@ -2009,6 +2015,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
             // create new sensor
             Sensor sensorNode;
+            sensorNode.removeItem(RAttrLastAnnounced);
             sensorNode.setType("ZGPSwitch");
 
             // https://github.com/dresden-elektronik/deconz-rest-plugin/pull/3285
@@ -2107,6 +2114,12 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             sensors.push_back(sensorNode);
 
             sensor = &sensors.back();
+
+            Device *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, ind.gpdSrcId());
+            if (device)
+            {
+                device->addSubDevice(sensor);
+            }
 
             Event e(RSensors, REventAdded, sensorNode.id());
             enqueueEvent(e);

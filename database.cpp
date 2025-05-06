@@ -3620,6 +3620,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.addItem(DataTypeUInt64, RStateGPDLastPair)->setIsPublic(false);
         }
 
+        if (sensor.type() == QLatin1String("ZGPSwitch"))
+        {
+            sensor.removeItem(RAttrLastAnnounced);
+        }
+
         if (sensor.type().endsWith(QLatin1String("Switch")))
         {
             if (sensor.fingerPrint().hasInCluster(COMMISSIONING_CLUSTER_ID))
