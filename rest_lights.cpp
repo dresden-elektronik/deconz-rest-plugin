@@ -252,6 +252,11 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, LightNode *lightNode
                 continue;
             }
 
+            if (!item->lastSet().isValid())
+            {
+                continue;
+            }
+
             const ResourceItemDescriptor &rid = item->descriptor();
 
             // filter for same object parent: attr, state, config ..
