@@ -2691,6 +2691,12 @@ bool DeRestPluginPrivate::sensorToMap(Sensor *sensor, QVariantMap &map, const Ap
                 continue;
             }
 
+            // following are only exposed on /devices
+            if (rid.suffix == RAttrDdfHash || rid.suffix == RAttrDdfPolicy)
+            {
+                continue;
+            }
+
             const ApiAttribute a = rid.toApi(map, event);
             QVariantMap *p = a.map;
             (*p)[a.key] = item->toVariant();
