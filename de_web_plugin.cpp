@@ -16237,6 +16237,15 @@ Resource *DEV_GetResource(const char *resource, const QString &identifier)
     return nullptr;
 }
 
+DeviceContainer* DEV_GetDevices()
+{
+    if (plugin)
+    {
+        return &plugin->m_devices;
+    }
+    return nullptr;
+}
+
 // Used by Device class when querying resources.
 // Testing code uses a mocked implementation.
 Resource *DEV_GetResource(Resource::Handle hnd)
