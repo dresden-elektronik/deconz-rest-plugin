@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include "actor/plugin.h"
 #include "actor/cxx_helper.h"
+#include "deconz/atom_table.h"
 #include "deconz/am_vfs.h"
 #include "deconz/dbg_trace.h"
 #include "deconz/u_timer.h"
@@ -134,7 +135,179 @@ void listElements(const char *prefix, const ResourceItem *item, LS_Element *ls)
     l->next = nullptr;
 }
 
-static void Plugin_ListDevicesDepth2(struct am_message *m, am_ls_dir_req *req)
+
+// TODO document what this function does
+// url prefix
+// --> element list after prefix
+static LS_Element *createItemElementListForPathIndex(struct am_message *m, am_ls_dir_req *req, Resource *r, unsigned pathAt)
+{
+    LS_Element *ls = SCRATCH_ALLOC(LS_Element*, sizeof(LS_Element));
+    ls->next = nullptr;
+    ls->name[0] = '\0';
+
+    char *prefix = SCRATCH_ALLOC(char*, VFS_MAX_URL_LENGTH);
+    prefix[0] = '\0';
+
+    if (req->url_parse.element_count > pathAt)
+    {
+        char *p = prefix;
+        for (unsigned i = pathAt; i < req->url_parse.element_count; i++)
+        {
+            // TODO U_SStream put string with size
+            am_string elem = AM_UrlElementAt(&req->url_parse, i);
+            for (unsigned j = 0; j < elem.size; j++)
+                *p++ = (char)elem.data[j];
+
+            *p = '/';
+            p[1] = '\0';
+        }
+    }
+
+    for (int i = 0; i < r->itemCount(); i++)
+    {
+        const ResourceItem *item = r->itemForIndex((size_t)i);
+        listElements(prefix, item, ls);
+    }
+
+
+    // TODO put in extra function ItemListToMessage()
+    /////////////////////////////////////////////////
+
+
+    unsigned hdrPos = m->pos;
+    am->msg_put_u32(m, 0); /* dummy next index */
+    am->msg_put_u32(m, 0); /* dummy count */
+
+    /*******************************************/
+
+    unsigned i = 0;
+    unsigned count = 0;
+
+    for (LS_Element *l = ls; l && l->name[0]; l = l->next, i++)
+    {
+        if (req->req_index <= i)
+        {
+            if (count == req->max_count)
+                continue;
+
+            count++;
+
+            am->msg_put_cstring(m, l->name);
+            am->msg_put_u16(m, l->flags); /* flags */
+            if (l->flags & VFS_LS_DIR_ENTRY_FLAGS_IS_DIR)
+                am->msg_put_u16(m, 0); /* icon */
+            else
+                am->msg_put_u16(m, 1); /* icon */
+        }
+    }
+
+    return ls;
+}
+
+static void PL_ListDirectoryDevicesSubdevices2Req(struct am_message *m, am_ls_dir_req *req, Device *device)
+{
+    // devices/<mac>/subdevices/<uniqueid>
+    am_string subUniqueId = AM_UrlElementAt(&req->url_parse, 3);
+    AT_AtomIndex atiUniueId;
+
+    if (0 == AT_GetAtomIndex(subUniqueId.data, subUniqueId.size, &atiUniueId))
+    {
+        am->msg_put_u8(m, AM_RESPONSE_STATUS_NOT_FOUND);
+        return;
+    }
+
+    const auto &subs = device->subDevices();
+
+    Resource *sub = nullptr;
+    for (Resource *r : subs)
+    {
+        const ResourceItem *item = r->item(RAttrUniqueId);
+        if (item && item->atomIndex() == atiUniueId.index)
+        {
+            sub = r;
+            break;
+        }
+    }
+
+    if (!sub)
+    {
+        am->msg_put_u8(m, AM_RESPONSE_STATUS_NOT_FOUND);
+        return;
+    }
+
+    // TODO same as for device
+
+
+    am->msg_put_u8(m, AM_RESPONSE_STATUS_NOT_FOUND);
+    return;
+}
+
+static void PL_ListDirectoryDevicesSubdevicesReq(struct am_message *m, am_ls_dir_req *req, Device *device)
+{
+    if (req->url_parse.element_count >= 4)
+    {
+        PL_ListDirectoryDevicesSubdevices2Req(m, req, device);
+        return;
+    }
+    else if (req->url_parse.element_count == 3) // devices/<mac>/subdevices
+    {
+        const auto &subs = device->subDevices();
+
+        am->msg_put_u8(m, AM_RESPONSE_STATUS_OK);
+        am->msg_put_u32(m, req->req_index);
+
+        unsigned hdrPos = m->pos;
+        am->msg_put_u32(m, 0); /* dummy next index */
+        am->msg_put_u32(m, 2); /* dummy count */
+
+        /*******************************************/
+
+        unsigned count = 0;
+
+        for (size_t i = 0; i < subs.size(); i++)
+        {
+            if (req->req_index <= i)
+            {
+                if (count == req->max_count)
+                    continue;
+
+
+                const ResourceItem *uniqueId = subs[i]->item(RAttrUniqueId);
+                if (!uniqueId)
+                    continue; // unlikely
+
+                const char *uniqueIdStr = uniqueId->toCString();
+                if (*uniqueIdStr == '\0')
+                    continue;
+
+                count++;
+
+                am->msg_put_cstring(m, uniqueIdStr);
+                am->msg_put_u16(m, VFS_LS_DIR_ENTRY_FLAGS_IS_DIR); /* flags */
+                am->msg_put_u16(m, 0); /* icon */
+            }
+        }
+
+        // fill in real header
+        unsigned endPos = m->pos;
+        m->pos = hdrPos;
+
+        count += req->req_index;
+        if (count == subs.size())
+            am->msg_put_u32(m, 0); /* next index (done) */
+        else
+            am->msg_put_u32(m, count); /* next index */
+        am->msg_put_u32(m, count);
+
+        m->pos = endPos;
+        return;
+    }
+
+    am->msg_put_u8(m, AM_RESPONSE_STATUS_NOT_FOUND);
+    return;
+}
+
+static void PL_ListDirectoryDevices2Req(struct am_message *m, am_ls_dir_req *req)
 {
     U_ASSERT(req->url_parse.element_count >= 2);
 
@@ -152,7 +325,7 @@ static void Plugin_ListDevicesDepth2(struct am_message *m, am_ls_dir_req *req)
         return;
     }
 
-    const Device *device = getDeviceForMac(mac);
+    Device *device = getDeviceForMac(mac);
 
     if (!device)
     {
@@ -162,6 +335,14 @@ static void Plugin_ListDevicesDepth2(struct am_message *m, am_ls_dir_req *req)
 
     if (req->url_parse.element_count >= 2)
     {
+        am_string elem2 = AM_UrlElementAt(&req->url_parse, 2);
+
+        if (elem2 == "subdevices")
+        {
+            PL_ListDirectoryDevicesSubdevicesReq(m, req, device);
+            return;
+        }
+
         am->msg_put_u8(m, AM_RESPONSE_STATUS_OK);
         am->msg_put_u32(m, req->req_index);
 
@@ -201,12 +382,13 @@ static void Plugin_ListDevicesDepth2(struct am_message *m, am_ls_dir_req *req)
 
         unsigned i = 0;
         unsigned count = 0;
+
         for (LS_Element *l = ls; l && l->name[0]; l = l->next, i++)
         {
             if (req->req_index <= i)
             {
                 if (count == req->max_count)
-                    break;
+                    continue;
 
                 count++;
 
@@ -216,6 +398,21 @@ static void Plugin_ListDevicesDepth2(struct am_message *m, am_ls_dir_req *req)
                     am->msg_put_u16(m, 0); /* icon */
                 else
                     am->msg_put_u16(m, 1); /* icon */
+            }
+        }
+
+        // append subdevices after items for /devices/<mac>
+        if (req->url_parse.element_count == 2)
+        {
+            if (req->req_index <= i && count < req->max_count)
+            {
+                if (!device->subDevices().empty())
+                {
+                    am->msg_put_cstring(m, "subdevices");
+                    am->msg_put_u16(m, VFS_LS_DIR_ENTRY_FLAGS_IS_DIR); /* flags */
+                    am->msg_put_u16(m, 0); /* icon */
+                    count++;
+                }
             }
         }
 
@@ -234,7 +431,7 @@ static void Plugin_ListDevicesDepth2(struct am_message *m, am_ls_dir_req *req)
     }
 }
 
-static void Plugin_ListDevicesDirectoryRequest(struct am_message *m, am_ls_dir_req *req)
+static void PL_ListDirectoryDevicesReq(struct am_message *m, am_ls_dir_req *req)
 {
     if (req->url_parse.element_count == 1) // devices
     {
@@ -291,7 +488,7 @@ static void Plugin_ListDevicesDirectoryRequest(struct am_message *m, am_ls_dir_r
     }
     else if (req->url_parse.element_count >= 2)
     {
-        Plugin_ListDevicesDepth2(m, req);
+        PL_ListDirectoryDevices2Req(m, req);
     }
     else
     {
@@ -299,7 +496,7 @@ static void Plugin_ListDevicesDirectoryRequest(struct am_message *m, am_ls_dir_r
     }
 }
 
-static int Plugin_ListDirectoryRequest(struct am_message *msg)
+static int PL_ListDirectoryReq(struct am_message *msg)
 {
     struct am_message *m;
     am_ls_dir_req req;
@@ -345,7 +542,7 @@ static int Plugin_ListDirectoryRequest(struct am_message *msg)
         am_string elem1 = AM_UrlElementAt(&req.url_parse, 0);
         if (elem1 == "devices")
         {
-            Plugin_ListDevicesDirectoryRequest(m, &req);
+            PL_ListDirectoryDevicesReq(m, &req);
         }
         else if (req.url_parse.url == ".actor" && req.req_index == 0 && req.url_parse.element_count == 1)
         {
@@ -378,7 +575,7 @@ static int Plugin_ListDirectoryRequest(struct am_message *msg)
     return AM_CB_STATUS_OK;
 }
 
-static void Plugin_ReadEntryDevicesReq(struct am_message *m, am_read_entry_req *req)
+static void PL_ReadEntryDevicesReq(struct am_message *m, am_read_entry_req *req)
 {
     if (req->url_parse.element_count > 3)
     {
@@ -509,7 +706,7 @@ static void Plugin_ReadEntryDevicesReq(struct am_message *m, am_read_entry_req *
     return;
 }
 
-static int Plugin_ReadEntryRequest(struct am_message *msg)
+static int PL_ReadEntryReq(struct am_message *msg)
 {
     struct am_message *m;
     am_read_entry_req req;
@@ -542,7 +739,7 @@ static int Plugin_ReadEntryRequest(struct am_message *msg)
     {
         if (elem0 == "devices")
         {
-            Plugin_ReadEntryDevicesReq(m, &req);
+            PL_ReadEntryDevicesReq(m, &req);
         }
         else if (elem0 == ".actor")
         {
@@ -574,7 +771,7 @@ static int Plugin_ReadEntryRequest(struct am_message *msg)
     return AM_CB_STATUS_OK;
 }
 
-static int Plugin_MessageCallback(struct am_message *msg)
+static int PL_MessageCallback(struct am_message *msg)
 {
     ScratchMemWaypoint swp;
 
@@ -584,10 +781,10 @@ static int Plugin_MessageCallback(struct am_message *msg)
     }
 
     if (msg->id == VFS_M_ID_READ_ENTRY_REQ)
-        return Plugin_ReadEntryRequest(msg);
+        return PL_ReadEntryReq(msg);
 
     if (msg->id == VFS_M_ID_LIST_DIR_REQ)
-        return Plugin_ListDirectoryRequest(msg);
+        return PL_ListDirectoryReq(msg);
 
     DBG_Printf(DBG_INFO, "rest_plugin: msg from: %u\n", msg->src);
     return AM_CB_STATUS_UNSUPPORTED;
@@ -600,27 +797,13 @@ int am_plugin_init(struct am_api_functions *api)
 
     am = api;
 
-    AM_INIT_ACTOR(&am_actor_rest_plugin, AM_ACTOR_ID_REST_PLUGIN, Plugin_MessageCallback);
+    AM_INIT_ACTOR(&am_actor_rest_plugin, AM_ACTOR_ID_REST_PLUGIN, PL_MessageCallback);
     am->register_actor(&am_actor_rest_plugin);
 
     if (U_TimerStart(AM_ACTOR_ID_REST_PLUGIN, 1, 10000, 0))
     {
 
     }
-
-#if 0
-    m = am_api->msg_alloc();
-
-    if (m)
-    {
-        m->dst = 9999;
-        m->src = AM_ACTOR_ID_REST_PLUGIN;
-        m->id = AM_MESSAGE_ID_SPECIFIC_REQUEST(999);
-        am_api->msg_put_u16(m, 8);
-
-        am_api->send_message(m);
-    }
-#endif
 
     return 1;
 }
