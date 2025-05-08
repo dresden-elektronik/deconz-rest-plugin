@@ -21,13 +21,11 @@ The Phoscon App is a browser based web application and supports lights, sensors 
 
 ### Release Schedule
 
+All stable and beta releases are listed on the [releases](https://github.com/dresden-elektronik/deconz-rest-plugin/releases) page and contain precompiled deCONZ packages for that release.
+
+Each release has a milestone which is updated during development with related pull requests. To check for current developemt please refer to the [milestones](https://github.com/dresden-elektronik/deconz-rest-plugin/milestones) page.
+
 deCONZ beta releases are scheduled roughly once per week. After 1–3 betas a stable version is released and a new beta cycle begins.
-
-Current Beta: **v2.30.0-beta**  
-Current Stable: **v2.29.5**
-
-Next Beta: **v2.31.0-beta** Expected in May.
-Next Stable: **v2.30.x** Expected in May.
 
 Installation
 ============
