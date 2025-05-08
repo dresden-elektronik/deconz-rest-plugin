@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(de_rest_plugin VERSION 2.30.01 LANGUAGES C;CXX)
+project(de_rest_plugin VERSION 2.30.02 LANGUAGES C;CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -182,6 +182,7 @@ add_library(${PROJECT_NAME} SHARED
     light_node.cpp
     occupancy_sensing.cpp
     permitJoin.cpp
+    plugin_am.cpp
     poll_control.cpp
     poll_manager.cpp
     power_configuration.cpp
@@ -303,6 +304,7 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE Qt5::WebSockets
     PRIVATE SQLite::SQLite3
     PRIVATE deCONZLib
+    PRIVATE am_plugin_hdr
 )
 
 #--------------------------------------------------------------
