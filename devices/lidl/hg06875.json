@@ -64,6 +64,32 @@
         },
         {
           "name": "state/reachable"
+        },
+        {
+          "name": "config/configured",
+          "public": false,
+          "refresh.interval": 86400,
+          "read": {
+            "at": [
+              "0x0004",
+              "0x0000",
+              "0x0001",
+              "0x0005",
+              "0x0007",
+              "0xfffe"
+            ],
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl"
+          },
+          "parse": {
+            "at": "0xfffe",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = (Attr.val != 0)",
+            "fn": "zcl"
+          },
+          "default": false
         }
       ]
     },
