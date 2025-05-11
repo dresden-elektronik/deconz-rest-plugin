@@ -20,7 +20,7 @@
 #include "device.h"
 #include "utils/scratchmem.h"
 
-#define VFS_MAX_URL_LENGTH 128
+#define VFS_MAX_URL_LENGTH 256
 #define AM_ACTOR_ID_REST_PLUGIN 4001
 
 
@@ -37,7 +37,58 @@ struct LS_Element
     char name[32];
 };
 
-uint64_t macFromUrlString(am_string str_mac)
+void PL_NotifyDeviceEvent(const Device *device, const Resource *rsub, const char *what)
+{
+    if (!device || !what || !am)
+        return;
+
+    ScratchMemWaypoint swp;
+
+    char *url = SCRATCH_ALLOC(char*, VFS_MAX_URL_LENGTH);
+    U_ASSERT(url);
+    if (!url)
+        return;
+
+    U_SStream ss;
+    U_sstream_init(&ss, url, VFS_MAX_URL_LENGTH);
+
+    U_sstream_put_str(&ss, "devices/");
+    U_sstream_put_mac_address(&ss, device->key());
+    U_sstream_put_str(&ss, "/");
+
+    if (rsub)
+    {
+        const ResourceItem *item = rsub->item(RAttrUniqueId);
+        if (!item)
+            return;
+
+        const char *uniqueId = item->toCString();
+        if (!uniqueId[0])
+            return;
+
+        U_sstream_put_str(&ss, "subdevices/");
+        U_sstream_put_str(&ss, uniqueId);
+        U_sstream_put_str(&ss, "/");
+    }
+
+    U_sstream_put_str(&ss, what);
+
+    struct am_message *m = am->msg_alloc();
+    U_ASSERT(m);
+    if (!m)
+        return;
+
+    am_u32 flags = 0;
+    m->src = AM_ACTOR_ID_REST_PLUGIN;
+    m->dst = AM_ACTOR_ID_SUBSCRIBERS;
+    m->id = VFS_M_ID_CHANGED_NTFY;
+    am->msg_put_cstring(m, url);
+    am->msg_put_u32(m, flags);
+
+    am->send_message(m);
+}
+
+uint64_t plMacFromUrlString(am_string str_mac)
 {
     uint64_t mac;
     U_SStream ss;
@@ -52,7 +103,7 @@ uint64_t macFromUrlString(am_string str_mac)
     return 0;
 }
 
-static Device *getDeviceForMac(uint64_t mac)
+static Device *plGetDeviceForMac(uint64_t mac)
 {
     DeviceContainer *devs = DEV_GetDevices();
     if (!devs)
@@ -63,7 +114,7 @@ static Device *getDeviceForMac(uint64_t mac)
     return device;
 }
 
-void listElements(const char *prefix, const ResourceItem *item, LS_Element *ls)
+void plListElements(const char *prefix, const ResourceItem *item, LS_Element *ls)
 {
     unsigned i;
     char buf[32] = {0};
@@ -135,86 +186,58 @@ void listElements(const char *prefix, const ResourceItem *item, LS_Element *ls)
     l->next = nullptr;
 }
 
-
-// TODO document what this function does
-// url prefix
-// --> element list after prefix
-static LS_Element *createItemElementListForPathIndex(struct am_message *m, am_ls_dir_req *req, Resource *r, unsigned pathAt)
+/*! Returns a list of unique elements for a specific path depth on ResourceItem suffixes.
+ */
+static LS_Element *plCreateItemElementListForPathIndex(am_url_parse *url_parse, Resource *r, unsigned pathAt)
 {
     LS_Element *ls = SCRATCH_ALLOC(LS_Element*, sizeof(LS_Element));
     ls->next = nullptr;
     ls->name[0] = '\0';
 
+    // 1) Build a prefix string which is used to match item suffixes.
+    // pathAt points at the <suffix>:
+    //   devices/<mac>/<suffix>   -> pathAt = 2
+    //   devices/<mac>/subdevices/<uniqueid>/<suffix> --> pathAt = 4
     char *prefix = SCRATCH_ALLOC(char*, VFS_MAX_URL_LENGTH);
     prefix[0] = '\0';
 
-    if (req->url_parse.element_count > pathAt)
+    if (url_parse->element_count > pathAt)
     {
         char *p = prefix;
-        for (unsigned i = pathAt; i < req->url_parse.element_count; i++)
+        for (unsigned i = pathAt; i < url_parse->element_count; i++)
         {
             // TODO U_SStream put string with size
-            am_string elem = AM_UrlElementAt(&req->url_parse, i);
+            am_string elem = AM_UrlElementAt(url_parse, i);
             for (unsigned j = 0; j < elem.size; j++)
                 *p++ = (char)elem.data[j];
 
-            *p = '/';
-            p[1] = '\0';
+            *p++ = '/';
+            *p = '\0';
         }
     }
 
+    // Match prefix against each item and put elements in the list for the next level.
+    // For example if prefix is 'cap/color', following items:
+    //   cap/color/ct/min
+    //   cap/color/ct/max
+    //   cap/color/xy/blue_x
+    //   cap/color/xy/blue_y
+    // would yield the list ["ct", "xy"] since these are unique in 'cap/color'.
     for (int i = 0; i < r->itemCount(); i++)
     {
         const ResourceItem *item = r->itemForIndex((size_t)i);
-        listElements(prefix, item, ls);
-    }
-
-
-    // TODO put in extra function ItemListToMessage()
-    /////////////////////////////////////////////////
-
-
-    unsigned hdrPos = m->pos;
-    am->msg_put_u32(m, 0); /* dummy next index */
-    am->msg_put_u32(m, 0); /* dummy count */
-
-    /*******************************************/
-
-    unsigned i = 0;
-    unsigned count = 0;
-
-    for (LS_Element *l = ls; l && l->name[0]; l = l->next, i++)
-    {
-        if (req->req_index <= i)
-        {
-            if (count == req->max_count)
-                continue;
-
-            count++;
-
-            am->msg_put_cstring(m, l->name);
-            am->msg_put_u16(m, l->flags); /* flags */
-            if (l->flags & VFS_LS_DIR_ENTRY_FLAGS_IS_DIR)
-                am->msg_put_u16(m, 0); /* icon */
-            else
-                am->msg_put_u16(m, 1); /* icon */
-        }
+        plListElements(prefix, item, ls);
     }
 
     return ls;
 }
 
-static void PL_ListDirectoryDevicesSubdevices2Req(struct am_message *m, am_ls_dir_req *req, Device *device)
+static Resource *plGetSubDevice(Device *device, am_string subUniqueId)
 {
-    // devices/<mac>/subdevices/<uniqueid>
-    am_string subUniqueId = AM_UrlElementAt(&req->url_parse, 3);
     AT_AtomIndex atiUniueId;
 
     if (0 == AT_GetAtomIndex(subUniqueId.data, subUniqueId.size, &atiUniueId))
-    {
-        am->msg_put_u8(m, AM_RESPONSE_STATUS_NOT_FOUND);
-        return;
-    }
+        return nullptr;
 
     const auto &subs = device->subDevices();
 
@@ -224,32 +247,16 @@ static void PL_ListDirectoryDevicesSubdevices2Req(struct am_message *m, am_ls_di
         const ResourceItem *item = r->item(RAttrUniqueId);
         if (item && item->atomIndex() == atiUniueId.index)
         {
-            sub = r;
-            break;
+            return r;
         }
     }
 
-    if (!sub)
-    {
-        am->msg_put_u8(m, AM_RESPONSE_STATUS_NOT_FOUND);
-        return;
-    }
-
-    // TODO same as for device
-
-
-    am->msg_put_u8(m, AM_RESPONSE_STATUS_NOT_FOUND);
-    return;
+    return nullptr;
 }
 
 static void PL_ListDirectoryDevicesSubdevicesReq(struct am_message *m, am_ls_dir_req *req, Device *device)
 {
-    if (req->url_parse.element_count >= 4)
-    {
-        PL_ListDirectoryDevicesSubdevices2Req(m, req, device);
-        return;
-    }
-    else if (req->url_parse.element_count == 3) // devices/<mac>/subdevices
+    if (req->url_parse.element_count == 3) // devices/<mac>/subdevices
     {
         const auto &subs = device->subDevices();
 
@@ -317,7 +324,7 @@ static void PL_ListDirectoryDevices2Req(struct am_message *m, am_ls_dir_req *req
         return;
     }
 
-    const uint64_t mac = macFromUrlString(AM_UrlElementAt(&req->url_parse, 1));
+    const uint64_t mac = plMacFromUrlString(AM_UrlElementAt(&req->url_parse, 1));
 
     if (mac == 0)
     {
@@ -325,7 +332,8 @@ static void PL_ListDirectoryDevices2Req(struct am_message *m, am_ls_dir_req *req
         return;
     }
 
-    Device *device = getDeviceForMac(mac);
+    Device *device = plGetDeviceForMac(mac);
+    Resource *subDevice = nullptr;
 
     if (!device)
     {
@@ -333,45 +341,51 @@ static void PL_ListDirectoryDevices2Req(struct am_message *m, am_ls_dir_req *req
         return;
     }
 
-    if (req->url_parse.element_count >= 2)
+    // check if this request is about subdevices
+    if (req->url_parse.element_count >= 3 && AM_UrlElementAt(&req->url_parse, 2) == "subdevices")
     {
-        am_string elem2 = AM_UrlElementAt(&req->url_parse, 2);
+        // devices/<mac>/subdevices
+        // devices/<mac>/subdevices/<item-suffix>
 
-        if (elem2 == "subdevices")
+
+        if (req->url_parse.element_count == 3) // devices/<mac>/subdevices
         {
             PL_ListDirectoryDevicesSubdevicesReq(m, req, device);
             return;
         }
+        else // devices/<mac>/subdevices/<item-suffix>
+        {
+            subDevice = plGetSubDevice(device, AM_UrlElementAt(&req->url_parse, 3));
+            if (!subDevice)
+            {
+                am->msg_put_u8(m, AM_RESPONSE_STATUS_NOT_FOUND);
+                return;
+            }
 
+            // handle listing items below
+        }
+
+    }
+
+    // devices/<mac>
+    // devices/<mac>/<item-suffix>
+    // devices/<mac>/subdevices/<subdevice-uniqueid>
+    // devices/<mac>/subdevices/<subdevice-uniqueid>/<item-suffix>
+    if (req->url_parse.element_count >= 2)
+    {
         am->msg_put_u8(m, AM_RESPONSE_STATUS_OK);
         am->msg_put_u32(m, req->req_index);
 
-        LS_Element *ls = SCRATCH_ALLOC(LS_Element*, sizeof(LS_Element));
-        ls->next = nullptr;
-        ls->name[0] = '\0';
+        LS_Element *ls;
 
-        char *prefix = SCRATCH_ALLOC(char*, VFS_MAX_URL_LENGTH);
-        prefix[0] = '\0';
-
-        if (req->url_parse.element_count > 2)
+        if (subDevice)
         {
-            char *p = prefix;
-            for (unsigned i = 2; i < req->url_parse.element_count; i++)
-            {
-                // TODO U_SStream put string with size
-                am_string elem = AM_UrlElementAt(&req->url_parse, i);
-                for (unsigned j = 0; j < elem.size; j++)
-                    *p++ = (char)elem.data[j];
-
-                *p = '/';
-                p[1] = '\0';
-            }
+            U_ASSERT(req->url_parse.element_count >= 4);
+            ls = plCreateItemElementListForPathIndex(&req->url_parse, subDevice, 4);
         }
-
-        for (int i = 0; i < device->itemCount(); i++)
+        else
         {
-            const ResourceItem *item = device->itemForIndex((size_t)i);
-            listElements(prefix, item, ls);
+            ls = plCreateItemElementListForPathIndex(&req->url_parse, device, 2);
         }
 
         unsigned hdrPos = m->pos;
@@ -401,8 +415,8 @@ static void PL_ListDirectoryDevices2Req(struct am_message *m, am_ls_dir_req *req
             }
         }
 
-        // append subdevices after items for /devices/<mac>
-        if (req->url_parse.element_count == 2)
+        // append /devices/<mac>/subdevices after items
+        if (req->url_parse.element_count == 2) // devices/<mac>
         {
             if (req->req_index <= i && count < req->max_count)
             {
@@ -577,17 +591,37 @@ static int PL_ListDirectoryReq(struct am_message *msg)
 
 static void PL_ReadEntryDevicesReq(struct am_message *m, am_read_entry_req *req)
 {
+    //
+    // return in this function means NOT_FOUND
+    //
+
     if (req->url_parse.element_count > 3)
     {
-        const uint64_t mac = macFromUrlString(AM_UrlElementAt(&req->url_parse, 1));
+        const uint64_t mac = plMacFromUrlString(AM_UrlElementAt(&req->url_parse, 1));
 
         if (mac == 0)
             return;
 
-        const Device *device = getDeviceForMac(mac);
+        unsigned suffixAt = 2;
+        Device *device = plGetDeviceForMac(mac);
+        Resource *r = device;
 
-        if (!device)
+        if (!r)
             return;
+
+        // devices/<mac>/subdevices/
+        if (AM_UrlElementAt(&req->url_parse, 2) == "subdevices")
+        {
+            // devices/<mac>/subdevices/<subdevice-uniqueid>/<item-suffix>
+            if (req->url_parse.element_count >= 4)
+            {
+                suffixAt = 4;
+                r = plGetSubDevice(device, AM_UrlElementAt(&req->url_parse, 3));
+            }
+
+            if (!r)
+                return;
+        }
 
         ResourceItemDescriptor rid;
 
@@ -596,7 +630,7 @@ static void PL_ReadEntryDevicesReq(struct am_message *m, am_read_entry_req *req)
             // devices/f0:d1:b8:be:24:0a:d5:6a/state/reachable
             // create suffix string
             am_string url = req->url_parse.url;
-            am_string suffixStart = AM_UrlElementAt(&req->url_parse, 2);
+            am_string suffixStart = AM_UrlElementAt(&req->url_parse, suffixAt);
             U_ASSERT(suffixStart.size);
             intptr_t suffixLen = (url.data + url.size) - suffixStart.data;
             U_ASSERT(suffixLen > 1);
@@ -606,7 +640,7 @@ static void PL_ReadEntryDevicesReq(struct am_message *m, am_read_entry_req *req)
                 return;
         }
 
-        const ResourceItem *item = device->item(rid.suffix);
+        const ResourceItem *item = r->item(rid.suffix);
         if (!item)
             return;
 
@@ -690,6 +724,13 @@ static void PL_ReadEntryDevicesReq(struct am_message *m, am_read_entry_req *req)
         else if (rid.type == DataTypeUInt64)
         {
             am->msg_put_cstring(m, "i64");
+            am->msg_put_u32(m, mode);
+            am->msg_put_u64(m, mtime);
+            am->msg_put_s64(m, (int64_t)item->toNumber());
+        }
+        else if (rid.type == DataTypeTime)
+        {
+            am->msg_put_cstring(m, "time");
             am->msg_put_u32(m, mode);
             am->msg_put_u64(m, mtime);
             am->msg_put_s64(m, (int64_t)item->toNumber());
