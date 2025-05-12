@@ -363,7 +363,7 @@ int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
 
                     itemMap[QLatin1String("value")] = item->toVariant();
 
-                    QDateTime dt = item->lastChanged().isValid() ? item->lastChanged() : item->lastSet();
+                    QDateTime dt = item->lastChanged().isValid() ? item->lastChanged().toUTC() : item->lastSet().toUTC();
                     // UTC in msec resolution
                     dt.setOffsetFromUtc(0);
                     itemMap[QLatin1String("lastupdated")] = dt.toString(QLatin1String("yyyy-MM-ddTHH:mm:ssZ"));
