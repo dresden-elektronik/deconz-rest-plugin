@@ -4800,9 +4800,11 @@ These devices can operate on either battery or mains power, and can have a wide 
         <attribute-set id="0x0000" description="Reading Information Set">
           <attribute id="0x0000" name="Current Summation Delivered" type="u48" access="r" required="m"></attribute>
           <attribute id="0x0001" name="Current Summation Received" type="u48" access="r" required="o"></attribute>
-	  <attribute id="0x0020" name="PTEC Période Tarifaire en cours" type="cstring" access="r" required="m"></attribute>
           <attribute id="0x041b" name="Unknown" type="u64" access="rw" required="o" mfcode="0x1037"></attribute>
           <!-- TODO -->
+	</attribute-set>
+        <attribute-set id="0x0020" description="Lixee specific" mfcode="0x1037">
+            <attribute id="0x0020" name="PTEC Période Tarifaire en cours" type="cstring" access="r" required="m"></attribute>
         </attribute-set>
         <attribute-set id="0x0100" description="TOU Information Set">
           <attribute id="0x0100" name="Index HCHC/EJPHN/BBRHCJB, Current Summation Delivered (1)" type="u48" access="r" required="m"></attribute>
