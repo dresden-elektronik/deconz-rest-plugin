@@ -64,6 +64,9 @@
         },
         {
           "name": "state/reachable"
+        },
+        {
+         "name": "config/tuya_unlock"
         }
       ]
     },
