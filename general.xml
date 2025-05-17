@@ -4802,6 +4802,9 @@ These devices can operate on either battery or mains power, and can have a wide 
           <attribute id="0x0001" name="Current Summation Received" type="u48" access="r" required="o"></attribute>
           <attribute id="0x041b" name="Unknown" type="u64" access="rw" required="o" mfcode="0x1037"></attribute>
           <!-- TODO -->
+	</attribute-set>
+        <attribute-set id="0x0020" description="Lixee specific" mfcode="0x1037">
+            <attribute id="0x0020" name="PTEC Période Tarifaire en cours" type="cstring" access="r" required="m"></attribute>
         </attribute-set>
         <attribute-set id="0x0100" description="TOU Information Set">
           <attribute id="0x0100" name="Index HCHC/EJPHN/BBRHCJB, Current Summation Delivered (1)" type="u48" access="r" required="m"></attribute>
@@ -5361,6 +5364,7 @@ These devices can operate on either battery or mains power, and can have a wide 
       <description>LiXee specific cluster.</description>
       <server>
         <attribute id="0x0000" type="cstring" name="Option tarifaire" access="r" required="m"/>
+	<attribute id="0x0001" type="cstring" name="Couleur de demain" access="r" required="m"/>
         <attribute id="0x0002" type="u8" name="Horaire HP-HC" access="r" required="m" default="0x00"/>
         <attribute id="0x0003" type="u8" name="Présence des potentiels" access="r" required="m" default="0x00"/>
         <attribute id="0x0004" type="u8" name="Préavis début EJP" access="r" required="m" default="0x00"/>
@@ -5368,6 +5372,7 @@ These devices can operate on either battery or mains power, and can have a wide 
         <attribute id="0x0006" type="u16" name="Avertissement de Dépassement D'intensité P1" access="r" required="m" default="0x00"/>
         <attribute id="0x0007" type="u16" name="Avertissement de Dépassement D'intensité P2" access="r" required="m" default="0x00"/>
         <attribute id="0x0008" type="u16" name="Avertissement de Dépassement D'intensité P3" access="r" required="m" default="0x00"/>
+	<attribute id="0x0010" type="cstring" name="Période tarifaire" access="r" required="m" default="0x00"/>
         <attribute id="0x0200" type="cstring" name="Libellé tarif fournisseur en cours" access="r" required="m"/>
         <attribute id="0x0203" type="u32" name="Energie active soutirée Distributeur, index 01" access="r" required="m" default="0x00"/>
         <attribute id="0x0207" type="u16" name="Puissance app. Instantanée injectée" access="r" required="m" default="0x00"/>
