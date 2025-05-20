@@ -1,3 +1,8 @@
+![Compile for armhf](https://github.com/swoopx/testrepo/actions/workflows/build_armhf.yml/badge.svg)
+![Compile for arm64](https://github.com/swoopx/testrepo/actions/workflows/build_arm64.yml/badge.svg)
+![Compile for amd64](https://github.com/swoopx/testrepo/actions/workflows/build_amd64.yml/badge.svg)
+
+
 Introduction
 ============
 
