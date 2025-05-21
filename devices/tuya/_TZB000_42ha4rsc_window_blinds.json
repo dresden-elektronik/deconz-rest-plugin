@@ -3,14 +3,16 @@
   "uuid": "165aea49-d5c1-4418-a479-cdad4dfe1600",
   "manufacturername": [
     "_TZB000_42ha4rsc",
-    "_TZB000_yqjaollc"
+    "_TZB000_yqjaollc",
+    "_TZE200_9caxna4s"
   ],
   "modelid": [
     "TS030F",
-    "TS030F"
+    "TS030F",
+    "TS0301"
   ],
-  "vendor": "Livarno",
-  "product": "Window blinds (TS030F)",
+  "vendor": "Tuya",
+  "product": "Window blinds (not reversed)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
