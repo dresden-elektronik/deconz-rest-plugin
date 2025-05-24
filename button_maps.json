@@ -1342,6 +1342,47 @@
                 [1, "0x04", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_8", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"]
             ]
         },
+        "sunricherMapNamronVariant": {
+            "vendor": "Sunricher",
+            "doc": "Wireless switches from Sunricher, Namron, SLC and EcoDim",
+            "modelids": ["4512773"],
+            "buttons": [
+                {"S_BUTTON_1": "On 1"},
+                {"S_BUTTON_2": "Off 1"},
+                {"S_BUTTON_3": "On 2"},
+                {"S_BUTTON_4": "Off 2"},
+                {"S_BUTTON_5": "On 3"},
+                {"S_BUTTON_6": "Off 3"},
+                {"S_BUTTON_7": "On 4"},
+                {"S_BUTTON_8": "Off 4"}
+            ],
+            "map": [
+                [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
+                [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x01", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "Move down (with on/off)"],
+                [1, "0x01", "LEVEL_CONTROL", "STOP", "1", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
+                [1, "0x02", "ONOFF", "ON", "0", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x02", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
+                [1, "0x02", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
+                [1, "0x02", "ONOFF", "OFF", "0", "S_BUTTON_4", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x02", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_4", "S_BUTTON_ACTION_HOLD", "Move down (with on/off)"],
+                [1, "0x02", "LEVEL_CONTROL", "STOP", "1", "S_BUTTON_4", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
+                [1, "0x03", "ONOFF", "ON", "0", "S_BUTTON_5", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x03", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_5", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
+                [1, "0x03", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_5", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
+                [1, "0x03", "ONOFF", "OFF", "0", "S_BUTTON_6", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x03", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_6", "S_BUTTON_ACTION_HOLD", "Move down (with on/off)"],
+                [1, "0x03", "LEVEL_CONTROL", "STOP", "1", "S_BUTTON_6", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
+                [1, "0x04", "ONOFF", "ON", "0", "S_BUTTON_7", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
+                [1, "0x04", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_7", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
+                [1, "0x04", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_7", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
+                [1, "0x04", "ONOFF", "OFF", "0", "S_BUTTON_8", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
+                [1, "0x04", "LEVEL_CONTROL", "MOVE", "1", "S_BUTTON_8", "S_BUTTON_ACTION_HOLD", "Move down (with on/off)"],
+                [1, "0x04", "LEVEL_CONTROL", "STOP", "1", "S_BUTTON_8", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"]
+            ]
+        },
         "Tuya3gangMap": {
             "vendor": "Tuya",
             "doc": "3-gang remote",
