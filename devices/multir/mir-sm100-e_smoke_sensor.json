@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "c27eec90-0a12-4112-b06f-ac9184edb8bf",
   "manufacturername": "MultIR",
   "modelid": "MIR-SM100-E",
   "product": "Smoke Sensor",
