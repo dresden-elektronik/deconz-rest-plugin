@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "7a66015b-448c-422a-8b00-cc6eed60447b",
-  "manufacturername": "Sunricher",
-  "modelid": "Motor Controller",
+  "manufacturername": [
+    "Sunricher",
+    "Sunricher"
+  ],
+  "modelid": [
+    "Motor Controller",
+    "HK-ZCC-ZLL-A"
+  ],
   "vendor": "Sunricher",
   "product": "Curtain motor controller (SR-ZG9080A)",
   "sleeper": false,
@@ -45,7 +51,7 @@
         },
         {
           "name": "state/lift",
-          "refresh.interval": 60,
+          "refresh.interval": 360,
           "default": 0
         },
         {
@@ -60,6 +66,23 @@
         },
         {
           "name": "state/reachable"
+        },
+        {
+          "name": "state/tilt",
+          "refresh.interval": 305,
+          "default": 0
+        },
+        {
+          "name": "config/windowcoveringtype",
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0102",
+            "ep": 0,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl:attr"
+          },
+          "default": 0,
+          "refresh.interval": 7400
         }
       ]
     }
@@ -72,10 +95,24 @@
       "cl": "0x0102",
       "report": [
         {
+          "at": "0x0000",
+          "dt": "0x30",
+          "min": 1,
+          "max": 7200,
+          "change": "0x00000001"
+        },
+        {
           "at": "0x0008",
           "dt": "0x20",
           "min": 1,
-          "max": 100,
+          "max": 290,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0009",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
           "change": "0x00000001"
         }
       ]
