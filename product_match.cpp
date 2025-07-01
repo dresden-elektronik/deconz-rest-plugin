@@ -8,6 +8,17 @@
  *
  */
 
+//
+// !!!!!! DEPRECATED !!!!!!
+//
+// This file is deprecated in favor of DDF files, and will be eventually removed in future versions.
+// Changes in this file are no longer required to add new devices support.
+// Instead, modify the JSON files in the `devices/` directory.
+//
+// For more information, see:
+// https://dresden-elektronik.github.io/deconz-rest-doc/endpoints/ddf/
+//
+
 #include <regex>
 #include <deconz/dbg_trace.h>
 
