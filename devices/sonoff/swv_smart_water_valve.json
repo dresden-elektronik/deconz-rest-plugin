@@ -1,3 +1,4 @@
+
 {
   "schema": "devcap1.schema.json",
   "uuid": "8fdcf8cf-0d7e-43ae-b070-0382483a4ac3",
@@ -24,23 +25,6 @@
         },
         {
           "name": "attr/lastseen"
-        },
-        {
-          "name": "config/battery",
-          "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0001",
-            "at": "0x0021"
-          },
-          "refresh.interval": 4000,
-          "awake": true
         },
         {
           "name": "attr/manufacturername"
@@ -107,16 +91,16 @@
         {
           "name": "config/battery",
           "parse": {
-            "at": "0x0021",
+            "at": "0x0020",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val"
+           "eval": "const vmin = 20; const vmax = 30; var bat = Attr.val; if (bat > vmax) { bat = vmax; } else if (bat < vmin) { bat = vmin; } bat = ((bat - vmin) / (vmax - vmin)) * 100; if (bat > 100) { bat = 100; } else if (bat <= 0)  { bat = 1; } Item.val = bat;"
           },
           "read": {
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0001",
-            "at": "0x0021"
+            "at": "0x0020"
           },
           "refresh.interval": 4000,
           "awake": true
@@ -157,7 +141,7 @@
       "cl": "0x0001",
       "report": [
         {
-          "at": "0x0021",
+          "at": "0x0020",
           "dt": "0x20",
           "min": 60,
           "max": 3600,
