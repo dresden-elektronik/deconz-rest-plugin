@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/music_sync_effect",
+  "datatype": "UInt32",
+  "access": "RW",
+  "public": true,
+  "description": "Music sync effect 0: random, 1: breathing, 2: rainbow, 3: chasing."
+}
