@@ -35,13 +35,22 @@
           "name": "attr/name"
         },
         {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
           "name": "attr/swversion",
           "parse": {
-            "at": "0x00f7",
-            "ep": 1,
             "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
             "idx": "0x08",
-            "script": "xiaomi_swversion.js"
+            "eval": "Item.val = '0.0.0_' + ('0000' + (Attr.val & 0x00FF).toString()).slice(-4)"
           },
           "read": {
             "fn": "none"
@@ -52,6 +61,9 @@
         },
         {
           "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on/startup"
         },
         {
           "name": "state/alert"
@@ -62,111 +74,6 @@
         },
         {
           "name": "state/reachable"
-        }
-      ]
-    },
-    {
-      "type": "$TYPE_POWER_SENSOR",
-      "restapi": "/sensors",
-      "uuid": [
-        "$address.ext",
-        "0x15",
-        "0x000C"
-      ],
-      "fingerprint": {
-        "profile": "0x0104",
-        "device": "0x0100",
-        "endpoint": "0x15",
-        "in": [
-          "0x000C"
-        ]
-      },
-      "items": [
-        {
-          "name": "attr/id"
-        },
-        {
-          "name": "attr/lastannounced"
-        },
-        {
-          "name": "attr/lastseen"
-        },
-        {
-          "name": "attr/manufacturername"
-        },
-        {
-          "name": "attr/modelid"
-        },
-        {
-          "name": "attr/name"
-        },
-        {
-          "name": "attr/swversion",
-          "parse": {
-            "at": "0x00f7",
-            "ep": 1,
-            "fn": "xiaomi:special",
-            "idx": "0x08",
-            "script": "xiaomi_swversion.js"
-          },
-          "read": {
-            "fn": "none"
-          }
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
-        },
-        {
-          "name": "config/on"
-        },
-        {
-          "name": "config/reachable"
-        },
-        {
-          "name": "state/current",
-          "parse": {
-            "at": "0x00F7",
-            "eval": "Item.val = Math.round(Attr.val);",
-            "fn": "xiaomi:special",
-            "idx": "0x97"
-          },
-          "read": {
-            "fn": "none"
-          }
-        },
-        {
-          "name": "state/lastupdated"
-        },
-        {
-          "name": "state/power",
-          "refresh.interval": 10,
-          "read": {
-            "at": "0x0055",
-            "cl": "0x000C",
-            "ep": 21,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0055",
-            "cl": "0x000C",
-            "ep": 21,
-            "eval": "Item.val = Math.round(Attr.val);"
-          }
-        },
-        {
-          "name": "state/voltage",
-          "parse": {
-            "at": "0x00F7",
-            "eval": "Item.val = Math.round(Attr.val / 10);",
-            "fn": "xiaomi:special",
-            "idx": "0x96"
-          },
-          "read": {
-            "fn": "none"
-          }
         }
       ]
     },
@@ -206,13 +113,22 @@
           "name": "attr/name"
         },
         {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
           "name": "attr/swversion",
           "parse": {
-            "at": "0x00f7",
-            "ep": 1,
             "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
             "idx": "0x08",
-            "script": "xiaomi_swversion.js"
+            "eval": "Item.val = '0.0.0_' + ('0000' + (Attr.val & 0x00FF).toString()).slice(-4)"
           },
           "read": {
             "fn": "none"
@@ -232,22 +148,132 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300,
-          "read": {
-            "at": "0x0055",
-            "cl": "0x000C",
-            "ep": 31,
-            "fn": "zcl:attr"
-          },
           "parse": {
-            "at": "0x0055",
-            "cl": "0x000C",
-            "ep": 31,
-            "eval": "Item.val = Math.round(Attr.val * 1000);"
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "idx": "0x95",
+            "eval": "Item.val = Math.round(Attr.val * 1000)"
+          },
+          "read": {
+            "fn": "none"
           }
         },
         {
           "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x15",
+        "0x000C"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0100",
+        "endpoint": "0x15",
+        "in": [
+          "0x000C"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "idx": "0x08",
+            "eval": "Item.val = '0.0.0_' + ('0000' + (Attr.val & 0x00FF).toString()).slice(-4)"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/current",
+          "parse": {
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "idx": "0x97",
+            "eval": "Item.val = Math.round(Attr.val)"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "parse": {
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "idx": "0x98",
+            "eval": "Item.val = Math.round(Attr.val)"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/voltage",
+          "parse": {
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
+            "idx": "0x96",
+            "eval": "Item.val = Math.round(Attr.val / 10)"
+          },
+          "read": {
+            "fn": "none"
+          }
         }
       ]
     },
@@ -287,13 +313,22 @@
           "name": "attr/name"
         },
         {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
           "name": "attr/swversion",
           "parse": {
-            "at": "0x00f7",
-            "ep": 1,
             "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0x00F7",
             "idx": "0x08",
-            "script": "xiaomi_swversion.js"
+            "eval": "Item.val = '0.0.0_' + ('0000' + (Attr.val & 0x00FF).toString()).slice(-4)"
           },
           "read": {
             "fn": "none"
