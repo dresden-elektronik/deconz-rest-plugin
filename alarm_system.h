@@ -90,6 +90,10 @@ public:
     bool setCode(int index, const QString &code);
     void start();
 
+    //Used for learn mode
+    quint8 learnModeIndex;
+    deCONZ::SteadyTimeRef learnTimer;
+
 Q_SIGNALS:
     void eventNotify(const Event&);
 
