@@ -5,11 +5,13 @@
     "eWeLink",
     "SONOFF",
     "SONOFF",
+    "SONOFF",
     "eWeLink"
   ],
   "modelid": [
     "TH01",
     "SNZB-02D",
+    "SNZB-02LD",
     "SNZB-02P",
     "SNZB-02P"
   ],
