@@ -6,7 +6,6 @@
   "product": "Tuya 6-gang remote (TS0046)",
   "sleeper": true,
   "status": "Gold",
-  "buttonmap": "Tuya6gangMap",
   "subdevices": [
     {
       "type": "$TYPE_SWITCH",
