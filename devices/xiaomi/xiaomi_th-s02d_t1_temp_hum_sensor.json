@@ -300,7 +300,7 @@
           "parse": {
             "at": "0x00F7",
             "ep": 1,
-            "eval": "R.item('state/pressure').val = Math.round(Attr.val / 100) + R.item('config/offset').val",
+            "eval": "R.item('state/pressure').val = Attr.val + R.item('config/offset').val",
             "fn": "xiaomi:special",
             "idx": "0x66",
             "mf": "0x115F"
