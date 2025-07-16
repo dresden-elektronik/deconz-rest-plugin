@@ -2,6 +2,8 @@
 #include "de_web_plugin_private.h"
 #include "ui/device_widget.h"
 
+void PL_NotifyDeviceEvent(const Device *device, const Resource *rsub, const char *what); // defined in plugin_am.cpp
+
 /*! Handles one event and fires again if more are in the queue.
  */
 void DeRestPluginPrivate::handleEvent(const Event &e)
@@ -45,6 +47,16 @@ void DeRestPluginPrivate::handleEvent(const Event &e)
         if (device)
         {
             device->handleEvent(e);
+
+            if (e.what()[0] != 'e')
+            {
+                const Resource *rsub = nullptr;
+                if (e.resource() == RSensors || e.resource() == RLights)
+                {
+                    rsub = DEV_GetResource(e.resource(), e.id());
+                }
+                PL_NotifyDeviceEvent(device, rsub, e.what());
+            }
         }
     }
 

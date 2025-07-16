@@ -6952,7 +6952,6 @@ static int DB_LoadDeviceItemsCallback(void *user, int ncols, char **colval , cha
 bool DB_LoadDeviceItems(int deviceId, std::vector<DB_ResourceItem2> &items)
 {
     U_SStream ss;
-    U_ASSERT(deviceId >= 0);
 
     items.clear();
 
