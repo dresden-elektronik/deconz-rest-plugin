@@ -1,0 +1,24 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "attr/zonetype",
+  "datatype": "UInt16",
+  "access": "R",
+  "public": true,
+  "implicit": false,
+  "default": 0,
+  "description": "IAS Zone zone type.",
+  "parse": {
+    "fn": "zcl:attr",
+    "ep": 255,
+    "cl": "0x0500",
+    "at": "0x0001",
+    "eval": "Item.val = Attr.val"
+  },
+  "read": {
+    "fn": "zcl:attr",
+    "ep": 0,
+    "cl": "0x0500",
+    "at": "0x0001"
+  },
+  "refresh.interval": 86400
+}

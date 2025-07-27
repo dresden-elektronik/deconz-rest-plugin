@@ -4,10 +4,9 @@
   "manufacturername": "_TZ3000_fsiepnrh",
   "modelid": "TS0215A",
   "vendor": "Nedis",
-  "product": "4 button remote",
+  "product": "4 button remote (ZBRC10WT)",
   "sleeper": true,
   "status": "Gold",
-  "path": "/devices/nedis/nedis_zbrc10wt.json",
   "subdevices": [
     {
       "type": "$TYPE_SWITCH",

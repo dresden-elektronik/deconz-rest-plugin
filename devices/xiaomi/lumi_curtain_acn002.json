@@ -3,8 +3,8 @@
   "uuid": "35795459-326d-4e16-a202-05195107ca61",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.curtain.acn002",
-  "vendor": "Xiaomi",
-  "product": "Aqara Roller Shade Driver E1 RSD-M01",
+  "vendor": "Xiaomi Aqara",
+  "product": "Roller shade driver E1 (ZNJLBL01LM)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -221,20 +221,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature",
-          "awake": true,
-          "parse": {
-            "fn": "xiaomi:special",
-            "ep": 1,
-            "at": "0x00f7",
-            "idx": "0x03",
-            "eval": "Item.val = Attr.val * 100"
-          },
-          "read": {
-            "fn": "none"
-          }
         },
         {
           "name": "state/battery",

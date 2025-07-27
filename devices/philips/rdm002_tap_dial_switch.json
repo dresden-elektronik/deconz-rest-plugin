@@ -9,6 +9,7 @@
     "RDM002",
     "RDM002"
   ],
+  "vendor": "Philips",
   "product": "Hue tap dial switch",
   "status": "Gold",
   "sleeper": true,
@@ -115,6 +116,15 @@
           "name": "attr/name"
         },
         {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
           "name": "attr/productname",
           "static": "Hue tap dial switch"
         },
@@ -213,6 +223,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productname",

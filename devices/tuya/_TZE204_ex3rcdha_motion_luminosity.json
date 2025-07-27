@@ -1,0 +1,210 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "58241036-6a29-4af6-8a6b-f8597428cb26",
+  "manufacturername": "_TZE204_ex3rcdha",
+  "modelid": "TS0601",
+  "vendor": "Tuya",
+  "product": "Tuya Zigbee mmwave Radar Detektor Luminanz",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_LIGHT_LEVEL_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0400"
+      ],
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "script": "tuya_swversion.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/dark"
+        },
+        {
+          "name": "config/tholddark"
+        },
+        {
+          "name": "config/tholdoffset"
+        },
+        {
+          "name": "state/daylight"
+        },
+        {
+          "name": "state/lightlevel"
+        },
+        {
+          "name": "state/lux",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 12,
+            "script": "../generic/illuminance_cluster/lux_to_lightlevel.js",
+            "fn": "tuya"
+          },
+          "default": 0
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xef00"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "script": "tuya_swversion.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/tuya_unlock"
+        },
+        {
+          "name": "config/delay",
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 104,
+            "dt": "0x2b",
+            "eval": "Item.val;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 104,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 1
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "config/sensitivity",
+          "range": [
+            0,
+            10
+          ],
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 105,
+            "dt": "0x2b",
+            "eval": "Item.val;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 105,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 5
+        },
+        {
+          "name": "state/presence",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 101,
+            "eval": "Item.val = !Attr.val;",
+            "fn": "tuya"
+          },
+          "default": false
+        }
+      ]
+    }
+  ]
+}

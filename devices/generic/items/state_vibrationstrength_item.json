@@ -8,5 +8,6 @@
     0,
     65535
   ],
+  "default": 0,
   "description": "The strength of the detected vibration."
 }

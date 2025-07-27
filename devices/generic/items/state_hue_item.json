@@ -4,6 +4,7 @@
   "datatype": "UInt16",
   "access": "RW",
   "public": true,
+  "default": 0,
   "description": "The current color hue.",
   "parse": {
     "fn": "zcl:attr",

@@ -121,6 +121,7 @@ struct DDF_LoadRecord
 {
     AT_AtomIndex modelid;
     AT_AtomIndex mfname;
+    uint32_t mfnameLowerCaseHash;
     DDF_LoadState loadState;
 };
 
@@ -162,9 +163,68 @@ static int DDF_MergeGenericBundleItems(DeviceDescription &ddf, DDF_ParseContext 
 static int DDF_ProcessSignatures(DDF_ParseContext *pctx, std::vector<U_ECC_PublicKeySecp256k1> &publicKeys, U_BStream *bs, uint32_t *bundleHash);
 static DeviceDescription::Item *DDF_GetItemMutable(const ResourceItem *item);
 static void DDF_UpdateItemHandlesForIndex(std::vector<DeviceDescription> &descriptions, uint loadCounter, size_t index);
-static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, uint loadCounter);
 static void DDF_TryCompileAndFixJavascript(QString *expr, const QString &path);
 DeviceDescription DDF_LoadScripts(const DeviceDescription &ddf);
+
+/*
+ * https://maskray.me/blog/2023-04-12-elf-hash-function
+ *
+ * PJW hash adapted from musl libc.
+ *
+ * TODO(mpi): make this a own module U_StringHash()
+ */
+static uint32_t DDF_StringHash(const void *s0, unsigned size)
+{
+    uint32_t h;
+    const unsigned char *s;
+
+    h = 0;
+    s = (const unsigned char*)s0;
+
+    while (size--)
+    {
+        h = 16 * h + *s++;
+        h ^= h >> 24 & 0xF0;
+    }
+    return h & 0xfffffff;
+}
+
+/*! Helper to create a 32-bit string hash from an atom string.
+
+    This is mainly used to get a unique number to compare case insensitive manufacturer names.
+    For example for "HEIMAN", "heiman" and "Heiman" atoms this function returns the same hash.
+ */
+static uint32_t DDF_AtomLowerCaseStringHash(AT_AtomIndex ati)
+{
+    unsigned len;
+    AT_Atom atom;
+    char str[192];
+
+    str[0] = '\0';
+    atom = AT_GetAtomByIndex(ati);
+
+    if (atom.len == 0)
+        return 0;
+
+    if (sizeof(str) <= atom.len) // should not happen
+        return DDF_StringHash(atom.data, atom.len);
+
+    for (len = 0; len < atom.len; len++)
+    {
+        uint8_t ch = atom.data[len];
+
+        if (ch & 0x80) // non ASCII UTF-8 string, don't bother
+            return DDF_StringHash(atom.data, atom.len);
+
+        if (ch >= 'A' && ch <= 'Z')
+            ch += (unsigned char)('a' - 'A');
+
+        str[len] = (char)ch;
+    }
+
+    str[len] = '\0';
+    return DDF_StringHash(str, len);
+}
 
 /*! Constructor. */
 DeviceDescriptions::DeviceDescriptions(QObject *parent) :
@@ -861,6 +921,7 @@ void DeviceDescriptions::prepare()
         {
             DDF_LoadRecord rec;
             rec.mfname.index = res[i].mfnameAtomIndex;
+            rec.mfnameLowerCaseHash = DDF_AtomLowerCaseStringHash(rec.mfname);
             rec.modelid.index = res[i].modelIdAtomIndex;
             rec.loadState = DDF_LoadStateScheduled;
             records.push_back(rec);
@@ -1083,13 +1144,13 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
 
     if (modelidAtomIndex == 0 || mfnameAtomIndex == 0)
     {
-        U_ASSERT(modelidItem->toString().isEmpty());
-        U_ASSERT(mfnameItem->toString().isEmpty());
         return d->invalidDescription; // happens when called from legacy init code addLightNode() etc.
     }
 
     U_ASSERT(modelidAtomIndex != 0);
     U_ASSERT(mfnameAtomIndex != 0);
+
+    uint32_t mfnameLowerCaseHash = DDF_AtomLowerCaseStringHash(AT_AtomIndex{mfnameAtomIndex});
 
     /*
      * Filter matching DDFs, there can be multiple entries for the same modelid and manufacturer name.
@@ -1100,7 +1161,7 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
 
         for (;matchedCount < matchedIndices.size();)
         {
-            i = std::find_if(i, d->descriptions.end(), [modelidAtomIndex, mfnameAtomIndex](const DeviceDescription &ddf)
+            i = std::find_if(i, d->descriptions.end(), [modelidAtomIndex, mfnameAtomIndex, mfnameLowerCaseHash](const DeviceDescription &ddf)
             {
                 if (ddf.mfnameAtomIndices.size() != ddf.modelidAtomIndices.size())
                 {
@@ -1109,8 +1170,16 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
 
                 for (size_t j = 0; j < ddf.modelidAtomIndices.size(); j++)
                 {
-                    if (ddf.modelidAtomIndices[j] == modelidAtomIndex && ddf.mfnameAtomIndices[j] == mfnameAtomIndex)
-                        return true;
+                    if (ddf.modelidAtomIndices[j] == modelidAtomIndex)
+                    {
+                        if (ddf.mfnameAtomIndices[j] == mfnameAtomIndex) // exact manufacturer name match
+                            return true;
+
+                        // tolower() manufacturer name match
+                        uint32_t mfnameLowerCaseHash2 = DDF_AtomLowerCaseStringHash(AT_AtomIndex{ddf.mfnameAtomIndices[j]});
+                        if (mfnameLowerCaseHash == mfnameLowerCaseHash2)
+                            return true;
+                    }
                 }
 
                 return false;
@@ -1121,6 +1190,7 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
                 // nothing found, try to load further DDFs
                 if (loadDDFAndBundlesFromDisc(resource))
                 {
+                    i = d->descriptions.begin();
                     continue; // found DDFs or bundles, try again
                 }
                 break;
@@ -1179,6 +1249,11 @@ const DeviceDescription &DeviceDescriptions::get(const Resource *resource, DDF_M
                 }
                 else if (d->descriptions[rawJsonIndex].status == QLatin1String("Draft"))
                 {
+                    rawJsonIndex = matchedIndices[i];
+                }
+                else if (ddf1.storageLocation == deCONZ::DdfUserLocation && d->descriptions[rawJsonIndex].storageLocation == deCONZ::DdfLocation)
+                {
+                    // already had a match but user location has more precedence than system location
                     rawJsonIndex = matchedIndices[i];
                 }
                 continue;
@@ -1374,11 +1449,18 @@ bool DeviceDescriptions::loadDDFAndBundlesFromDisc(const Resource *resource)
         return false;
     }
 
+    uint32_t mfnameLowerCaseHash = DDF_AtomLowerCaseStringHash(AT_AtomIndex{mfnameAtomIndex});
+
     for (const DDF_LoadRecord &loadRecord : d->ddfLoadRecords)
     {
-        if (loadRecord.mfname.index == mfnameAtomIndex && loadRecord.modelid.index == modelidAtomIndex)
+        if (loadRecord.mfnameLowerCaseHash == mfnameLowerCaseHash && loadRecord.modelid.index == modelidAtomIndex)
         {
             return false; // been here before
+        }
+
+        if (loadRecord.mfname.index == mfnameAtomIndex && loadRecord.modelid.index == modelidAtomIndex)
+        {
+            return false; // been here before, note this check can likely be removed due the lower case check already been hit
         }
     }
 
@@ -1388,6 +1470,7 @@ bool DeviceDescriptions::loadDDFAndBundlesFromDisc(const Resource *resource)
     DDF_LoadRecord loadRecord;
     loadRecord.modelid.index = modelidAtomIndex;
     loadRecord.mfname.index = mfnameAtomIndex;
+    loadRecord.mfnameLowerCaseHash = mfnameLowerCaseHash;
     loadRecord.loadState = DDF_LoadStateScheduled;
     d->ddfLoadRecords.push_back(loadRecord);
 
@@ -1502,7 +1585,7 @@ const DeviceDescription::SubDevice &DeviceDescriptions::getSubDevice(const Resou
         for (int i = 0; i < resource->itemCount(); i++)
         {
             const ResourceItem *item = resource->itemForIndex(size_t(i));
-            assert(item);
+            U_ASSERT(item);
 
             h.handle = item->ddfItemHandle();
             if (h.handle == DeviceDescription::Item::InvalidItemHandle)
@@ -1510,26 +1593,25 @@ const DeviceDescription::SubDevice &DeviceDescriptions::getSubDevice(const Resou
                 continue;
             }
 
-            if (h.loadCounter != d->loadCounter)
+            if (h.description < d->descriptions.size())
             {
-                return d->invalidSubDevice;
+                const DeviceDescription &ddf = d->descriptions[h.description];
+                if (h.subDevice < ddf.subDevices.size())
+                {
+                    const DeviceDescription::SubDevice &sub = ddf.subDevices[h.subDevice];
+
+                    if (h.item < sub.items.size())
+                    {
+                        const DeviceDescription::Item &ddfItem = sub.items[h.item];
+                        ItemHandlePack h2;
+                        h2.handle = ddfItem.handle;
+                        if (h.loadCounter == h2.loadCounter)
+                        {
+                            return sub;
+                        }
+                    }
+                }
             }
-
-            DBG_Assert(h.description < d->descriptions.size());
-            if (h.description >= d->descriptions.size())
-            {
-                return d->invalidSubDevice;
-            }
-
-            auto &ddf = d->descriptions[h.description];
-
-            DBG_Assert(h.subDevice < ddf.subDevices.size());
-            if (h.subDevice >= ddf.subDevices.size())
-            {
-                return d->invalidSubDevice;
-            }
-
-            return ddf.subDevices[h.subDevice];
         }
     }
 
@@ -1632,11 +1714,6 @@ static DeviceDescription::Item *DDF_GetItemMutable(const ResourceItem *item)
         return nullptr;
     }
 
-    if (h.loadCounter != d->loadCounter)
-    {
-        return nullptr;
-    }
-
     DBG_Assert(h.description < d->descriptions.size());
     if (h.description >= d->descriptions.size())
     {
@@ -1657,7 +1734,13 @@ static DeviceDescription::Item *DDF_GetItemMutable(const ResourceItem *item)
 
     if (h.item < sub.items.size())
     {
-        return &sub.items[h.item];
+        DeviceDescription::Item *ddfItem = &sub.items[h.item];
+        ItemHandlePack h2;
+        h2.handle = ddfItem->handle;
+        if (h.handle == h2.handle)
+        {
+            return ddfItem;
+        }
     }
 
     return nullptr;
@@ -1690,24 +1773,29 @@ const DeviceDescription::Item &DeviceDescriptions::getItem(const ResourceItem *i
         return getGenericItem(item->descriptor().suffix);
     }
 
-    if (h.loadCounter != d->loadCounter)
+    if (h.description < d->descriptions.size())
     {
-        return d->invalidItem;
+        const auto &ddf = d->descriptions[h.description];
+
+        if (h.subDevice < ddf.subDevices.size())
+        {
+            const auto &sub = ddf.subDevices[h.subDevice];
+
+            if (h.item < sub.items.size())
+            {
+                const DeviceDescription::Item &ddfItem = sub.items[h.item];
+                ItemHandlePack h2;
+                h2.handle = ddfItem.handle;
+
+                if (h.loadCounter == h2.loadCounter)
+                {
+                    return ddfItem;
+                }
+            }
+        }
     }
 
-    // Note: There are no further if conditions since at this point it's certain that a handle must be valid.
-
-    Q_ASSERT(h.description < d->descriptions.size());
-
-    const auto &ddf = d->descriptions[h.description];
-
-    Q_ASSERT(h.subDevice < ddf.subDevices.size());
-
-    const auto &sub = ddf.subDevices[h.subDevice];
-
-    Q_ASSERT(h.item < sub.items.size());
-
-    return sub.items[h.item];
+    return d->invalidItem;
 }
 
 const DDF_Items &DeviceDescriptions::genericItems() const
@@ -1785,48 +1873,6 @@ static void DDF_UpdateItemHandlesForIndex(std::vector<DeviceDescription> &descri
         U_ASSERT(handle.subDevice < HND_MAX_SUB_DEVS);
         handle.subDevice++;
     }
-}
-
-/*! Updates all DDF item handles to point to correct location.
-    \p loadCounter - the current load counter.
- */
-static void DDF_UpdateItemHandles(std::vector<DeviceDescription> &descriptions, uint loadCounter)
-{
-    for (size_t index = 0; index < descriptions.size(); index++)
-    {
-        DDF_UpdateItemHandlesForIndex(descriptions, loadCounter, index);
-    }
-
-    // int index = 0;
-    // U_ASSERT(loadCounter >= HND_MIN_LOAD_COUNTER);
-    // U_ASSERT(loadCounter <= HND_MAX_LOAD_COUNTER);
-
-    // ItemHandlePack handle;
-    // handle.description = 0;
-    // handle.loadCounter = loadCounter;
-
-    // for (DeviceDescription &ddf : descriptions)
-    // {
-    //     ddf.handle = index++;
-    //     handle.subDevice = 0;
-    //     for (auto &sub : ddf.subDevices)
-    //     {
-    //         handle.item = 0;
-
-    //         for (auto &item : sub.items)
-    //         {
-    //             item.handle = handle.handle;
-    //             U_ASSERT(handle.item < HND_MAX_ITEMS);
-    //             handle.item++;
-    //         }
-
-    //         U_ASSERT(handle.subDevice < HND_MAX_SUB_DEVS);
-    //         handle.subDevice++;
-    //     }
-
-    //     U_ASSERT(handle.description < HND_MAX_DESCRIPTIONS);
-    //     handle.description++;
-    // }
 }
 
 /*! Temporary workaround since DuktapeJS doesn't support 'let', try replace it with 'var'.
@@ -2162,6 +2208,7 @@ void DeviceDescriptions::readAllRawJson()
                                     {
                                         AT_AtomIndex mfnameIndex;
                                         AT_AtomIndex modelidIndex;
+                                        uint32_t mfnameLowerCaseHash = 0;
 
                                         mfnameIndex.index = 0;
                                         modelidIndex.index = 0;
@@ -2186,6 +2233,10 @@ void DeviceDescriptions::readAllRawJson()
                                                     continue;
                                                 }
                                             }
+                                            else
+                                            {
+                                                mfnameLowerCaseHash = DDF_AtomLowerCaseStringHash(mfnameIndex);
+                                            }
                                         }
 
                                         {
@@ -2200,12 +2251,12 @@ void DeviceDescriptions::readAllRawJson()
                                         {
                                             if (modelidIndex.index == d->ddfLoadRecords[k].modelid.index)
                                             {
-                                                if (mfnameIndex.index == 0)
+                                                if (mfnameLowerCaseHash == 0)
                                                 {
                                                     // ignore for now, in worst case we load a DDF to memory which isn't used
                                                     U_ASSERT(0);
                                                 }
-                                                else if (mfnameIndex.index != d->ddfLoadRecords[k].mfname.index)
+                                                else if (mfnameLowerCaseHash != d->ddfLoadRecords[k].mfnameLowerCaseHash)
                                                 {
                                                     continue;
                                                 }
@@ -2254,6 +2305,7 @@ void DeviceDescriptions::readAllRawJson()
 
                                     DBG_Printf(DBG_DDF, "DDF cache raw JSON DDF %s\n", pctx->filePath);
                                     d->descriptions.push_back(std::move(result));
+                                    DDF_UpdateItemHandlesForIndex(d->descriptions, d->loadCounter, d->descriptions.size() - 1);
                                 }
                             }
                         }
@@ -2274,8 +2326,6 @@ void DeviceDescriptions::readAllRawJson()
 
     if (!d->descriptions.empty())
     {
-        DDF_UpdateItemHandles(d->descriptions, d->loadCounter);
-
         for (auto &ddf : d->descriptions)
         {
             ddf = DDF_MergeGenericItems(d->genericItems, ddf);
@@ -2517,14 +2567,16 @@ static int DDF_IsBundleScheduled(DDF_ParseContext *pctx, const char *desc, unsig
         if (!foundAtoms)
             continue;
 
+        uint32_t mfnameLowerCaseHash = DDF_AtomLowerCaseStringHash(mfname_ati);
+
         for (size_t j = 0; j < ddfLoadRecords.size(); j++)
         {
             const DDF_LoadRecord &rec = ddfLoadRecords[j];
 
-            if (rec.mfname.index != mfname_ati.index)
+            if (rec.modelid.index != modelid_ati.index)
                 continue;
 
-            if (rec.modelid.index != modelid_ati.index)
+            if (rec.mfnameLowerCaseHash != mfnameLowerCaseHash)
                 continue;
 
             return 1;
@@ -2565,12 +2617,13 @@ void DeviceDescriptions::reloadAllRawJsonAndBundles(const Resource *resource)
     const ResourceItem *modelidItem = resource->item(RAttrModelId);
     unsigned mfnameAtomIndex = mfnameItem->atomIndex();
     unsigned modelidAtomIndex = modelidItem->atomIndex();
+    uint32_t mfnameLowerCaseHash = DDF_AtomLowerCaseStringHash(AT_AtomIndex{mfnameAtomIndex});
 
     for (size_t j = 0; j < d_ptr2->ddfLoadRecords.size(); j++)
     {
         DDF_LoadRecord &rec = d_ptr2->ddfLoadRecords[j];
 
-        if (rec.mfname.index != mfnameAtomIndex)
+        if (rec.mfnameLowerCaseHash != mfnameLowerCaseHash)
             continue;
 
         if (rec.modelid.index != modelidAtomIndex)
@@ -2663,7 +2716,7 @@ void DeviceDescriptions::readAllBundles()
 
                 U_sstream_init(&ss, dir.entry.name, strlen(dir.entry.name));
 
-                if (U_sstream_find(&ss, ".ddf") == 0)
+                if (U_sstream_find(&ss, ".ddf") == 0 && U_sstream_find(&ss, ".ddb") == 0)
                     continue;
 
                 ScratchMemRewind(scratchPosPerBundle);
@@ -3395,6 +3448,43 @@ static DeviceDescription::SubDevice DDF_ParseSubDevice(DDF_ParseContext *pctx, c
         if (!ok)
         {
             result.fingerPrint = { };
+        }
+    }
+
+    {
+#if 0 // TODO(mpi) get actual button names as atoms
+        if (obj.value(QLatin1String("buttons")).isObject())
+        {
+            const auto buttons = obj.value(QLatin1String("buttons")).toObject();
+
+
+            for (auto bi = buttons.constBegin(); bi != buttons.constEnd(); bi++)
+            {
+                DBG_Printf(DBG_INFO, "BUTTON: %s\n", qPrintable(bi.key()));
+            }
+
+            DBG_Flush();
+        }
+#endif
+
+        if (obj.value(QLatin1String("buttonevents")).isObject())
+        {
+            const auto buttonEvents = obj.value(QLatin1String("buttonevents")).toObject();
+
+            for (auto bi = buttonEvents.constBegin(); bi != buttonEvents.constEnd(); bi++)
+            {
+                bool ok;
+                unsigned buttonEvent = bi.key().toUInt(&ok);
+
+                if (ok)
+                {
+                    auto i = std::find(result.buttonEvents.cbegin(), result.buttonEvents.cend(), buttonEvent);
+                    if (i == result.buttonEvents.cend())
+                    {
+                        result.buttonEvents.push_back(buttonEvent);
+                    }
+                }
+            }
         }
     }
 
@@ -4247,7 +4337,10 @@ uint8_t DDF_GetSubDeviceOrder(const QString &type)
 Resource::Handle R_CreateResourceHandle(const Resource *r, size_t containerIndex)
 {
     Q_ASSERT(r->prefix() != nullptr);
-    Q_ASSERT(!r->item(RAttrUniqueId)->toString().isEmpty());
+    if (r->item(RAttrUniqueId)->toString().isEmpty())
+    {
+        return {};
+    }
 
     Resource::Handle result;
     result.hash = qHash(r->item(RAttrUniqueId)->toString());

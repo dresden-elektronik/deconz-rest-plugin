@@ -81,6 +81,7 @@
     "915005988501",
     "915005988601"
   ],
+  "vendor": "Philips",
   "product": "Hue white and color ambiance gradient light",
   "sleeper": false,
   "status": "Gold",
@@ -139,6 +140,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productid"
@@ -360,32 +370,6 @@
         },
         {
           "name": "state/effect",
-          "values": [
-            [
-              "\"none\"",
-              "no effect is active"
-            ],
-            [
-              "\"colorloop\"",
-              "colorloop through hue values"
-            ],
-            [
-              "\"candle\"",
-              "candlelight dynamic effect"
-            ],
-            [
-              "\"fireplace\"",
-              "fireplace dynamic effect"
-            ],
-            [
-              "\"prism\"",
-              "prism dynamic effect"
-            ],
-            [
-              "\"sunrise\"",
-              "sunrise dynamic effect"
-            ]
-          ],
           "parse": {
             "fn": "zcl:attr",
             "ep": "0x0b",

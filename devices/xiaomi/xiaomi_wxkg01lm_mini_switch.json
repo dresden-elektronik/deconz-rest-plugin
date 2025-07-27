@@ -3,8 +3,8 @@
   "uuid": "3e294f3c-e684-4620-9c05-508b545cb523",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_switch",
-  "vendor": "Xiaomi",
-  "product": "MiJia wireless mini switch (WXKG01LM)",
+  "vendor": "Xiaomi Mi",
+  "product": "Wireless mini switch (WXKG01LM)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -73,7 +73,7 @@
         {
           "name": "config/battery",
           "awake": true,
-          "parse": { 
+          "parse": {
             "at": "0xFF02",
             "ep": 1,
             "fn": "xiaomi:special",

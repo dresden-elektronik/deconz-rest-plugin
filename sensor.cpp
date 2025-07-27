@@ -162,7 +162,7 @@ Sensor::Sensor() :
     addItem(DataTypeString, RAttrModelId);
     addItem(DataTypeString, RAttrType);
     addItem(DataTypeString, RAttrSwVersion);
-    addItem(DataTypeString, RAttrId);
+    addItem(DataTypeString, RAttrId)->setIsPublic(false);
     addItem(DataTypeString, RAttrUniqueId);
     addItem(DataTypeTime, RAttrLastAnnounced);
     addItem(DataTypeTime, RAttrLastSeen);
@@ -173,7 +173,7 @@ Sensor::Sensor() :
     previousDirection = 0xFF;
     previousCt = 0xFFFF;
     previousSequenceNumber = 0xFF;
-    previousCommandId = 0xFF;    
+    previousCommandId = 0xFF;
 }
 
 /*! Returns the sensor deleted state.

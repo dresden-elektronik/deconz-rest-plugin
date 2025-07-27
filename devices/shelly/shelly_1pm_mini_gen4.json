@@ -1,0 +1,331 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "a870edfe-0517-4516-9cd5-d66acb9c6087",
+  "manufacturername": "Shelly",
+  "modelid": "Mini1PM",
+  "vendor": "Shelly",
+  "product": "1PM Mini Gen4 (S4SW-001P8EU)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SMART_PLUG",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0004",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0004",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "attr/modelid",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0005",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0005",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "static": "N/A",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0b04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "parse": {
+            "at": "0x0004",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/modelid",
+          "parse": {
+            "at": "0x0005",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "static": "N/A",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/current",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x0508",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0508",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/power",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x050b",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x050b",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 100;"
+          }
+        },
+        {
+          "name": "state/voltage",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x0505",
+            "cl": "0x0b04",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0505",
+            "cl": "0x0b04",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 100;"
+          }
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_CONSUMPTION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0702"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "parse": {
+            "at": "0x0004",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/modelid",
+          "parse": {
+            "at": "0x0005",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "static": "N/A",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/consumption",
+          "refresh.interval": 60
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0B04",
+      "report": [
+        {
+          "at": "0x0505",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000064"
+        },
+        {
+          "at": "0x0508",
+          "dt": "0x21",
+          "min": 1,
+          "max": 300,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x050B",
+          "dt": "0x29",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000064"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0702"
+    }
+  ]
+}

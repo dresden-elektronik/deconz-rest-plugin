@@ -9,7 +9,8 @@
     "STARKVIND Air purifier",
     "STARKVIND Air purifier table"
   ],
-  "product": "STARKVIND Air purifier",
+  "vendor": "IKEA",
+  "product": "Starkvind Air purifier (E2006/E2007)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -331,7 +332,6 @@
         "$address.ext",
         "0x01",
         "0x042a"
-
       ],
       "fingerprint": {
         "endpoint": "0x01",

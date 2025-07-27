@@ -11,7 +11,11 @@
     "_TZ3000_abci1hiu",
     "_TZ3000_wkai4ga5",
     "_TZ3000_wbfgbpxq",
-    "_TZ3000_uaa99arv"
+    "_TZ3000_uaa99arv",
+    "_TZ3000_j61x9rxn",
+    "_TZ3000_xwuveizv",
+    "_TZ3000_5tqxpine",
+    "_TZ3000_wkai4ga5"
   ],
   "modelid": [
     "TS0044",
@@ -23,9 +27,14 @@
     "TS0044",
     "TS0044",
     "TS0044",
+    "TS0044",
+    "TS0044",
+    "TS0044",
+    "TS0044",
     "TS0044"
   ],
-  "product": "Tuya 4-gang remote",
+  "vendor": "Tuya",
+  "product": "Tuya 4-gang remote (TS0044)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [

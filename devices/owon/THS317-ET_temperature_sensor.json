@@ -3,7 +3,8 @@
   "uuid": "1bda6f99-1465-4bc4-bff7-8e2f9c604830",
   "manufacturername": "OWON",
   "modelid": "THS317-ET",
-  "product": "THS317-ET",
+  "vendor": "Owon",
+  "product": "Temperature sensor with probe (THS317-ET)",
   "sleeper": true,
   "status": "Silver",
   "subdevices": [

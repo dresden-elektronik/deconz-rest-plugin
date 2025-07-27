@@ -10,6 +10,8 @@
     "$MF_PHILIPS",
     "$MF_PHILIPS",
     "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
@@ -25,6 +27,7 @@
     "LCT015",
     "LCT016",
     "LCT011",
+    "LCT024",
     "LLC020",
     "LST002",
     "LCT012",
@@ -33,10 +36,12 @@
     "LCT015",
     "LCT016",
     "LCT011",
+    "LCT024",
     "LLC020",
     "LST002",
     "LCT012"
   ],
+  "vendor": "Philips",
   "product": "Hue white and color ambiance light",
   "sleeper": false,
   "status": "Gold",
@@ -95,6 +100,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productid"
@@ -244,28 +258,6 @@
         },
         {
           "name": "state/effect",
-          "values": [
-            [
-              "\"none\"",
-              "no effect is active"
-            ],
-            [
-              "\"colorloop\"",
-              "colorloop through hue values"
-            ],
-            [
-              "\"candle\"",
-              "candlelight dynamic effect"
-            ],
-            [
-              "\"fireplace\"",
-              "fireplace dynamic effect"
-            ],
-            [
-              "\"prism\"",
-              "prism dynamic effect"
-            ]
-          ],
           "parse": {
             "fn": "zcl:attr",
             "ep": "0x0b",

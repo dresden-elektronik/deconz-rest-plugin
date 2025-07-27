@@ -3,10 +3,10 @@
   "uuid": "63fe16a6-dfe3-4872-8428-5070ff618c30",
   "manufacturername": "MiaMiaoCe",
   "modelid": "MHO-C401N",
-  "vendor": "Xiaomi",
-  "product": "Temperature/humidity sensor with display MHO-C401N",
+  "vendor": "Xiaomi Mi",
+  "product": "Temperature and humidity sensor with display (MHO-C401N)",
   "sleeper": false,
-  "status": "Gold",  
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_TEMPERATURE_SENSOR",

@@ -17,6 +17,7 @@
     "LTW010",
     "LTW012"
   ],
+  "vendor": "Philips",
   "product": "Hue white ambiance light",
   "sleeper": false,
   "status": "Gold",
@@ -77,6 +78,15 @@
           "name": "attr/name"
         },
         {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
           "name": "attr/productid"
         },
         {
@@ -108,6 +118,9 @@
         },
         {
           "name": "cap/color/ct/min"
+        },
+        {
+          "name": "cap/color/effects"
         },
         {
           "name": "cap/on/off_with_effect"
@@ -179,16 +192,6 @@
         },
         {
           "name": "state/effect",
-          "values": [
-            [
-              "\"none\"",
-              "no effect is active"
-            ],
-            [
-              "\"candle\"",
-              "candlelight dynamic effect"
-            ]
-          ],
           "parse": {
             "fn": "zcl:attr",
             "ep": "0x0b",

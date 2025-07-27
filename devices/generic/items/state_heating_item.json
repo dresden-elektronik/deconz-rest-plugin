@@ -4,5 +4,6 @@
   "datatype": "Bool",
   "access": "R",
   "public": true,
+  "default": false,
   "description": "Determines heating state for ELKO Super TR thermostat."
 }

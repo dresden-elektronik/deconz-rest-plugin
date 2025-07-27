@@ -1,11 +1,22 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/lastchange_time",
-	"datatype": "ISO 8601 timestamp",
-	"access": "R",
-	"public": true,
-	"description": "Specifies the time in UTC at which the setpoint change was recorded.",
-	"parse": {"at": "0x0032", "cl": "0x0201","ep": 0, "eval": "Item.val = Attr.val", "fn": "zcl:attr"},
-	"read": {"at": "0x0032", "cl": "0x0201", "ep": 0, "fn": "zcl:attr"},
-	"default": 0
+  "schema": "resourceitem1.schema.json",
+  "id": "config/lastchange_time",
+  "datatype": "ISO 8601 timestamp",
+  "access": "R",
+  "public": true,
+  "description": "Specifies the time in UTC at which the setpoint change was recorded.",
+  "parse": {
+    "at": "0x0032",
+    "cl": "0x0201",
+    "ep": 0,
+    "eval": "Item.val = Attr.val",
+    "fn": "zcl:attr"
+  },
+  "read": {
+    "at": "0x0032",
+    "cl": "0x0201",
+    "ep": 0,
+    "fn": "zcl:attr"
+  },
+  "default": 0
 }

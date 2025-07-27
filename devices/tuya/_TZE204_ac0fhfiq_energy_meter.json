@@ -3,7 +3,8 @@
   "uuid": "ad471d48-8ab4-4d20-a854-56f8423f568d",
   "manufacturername": "_TZE204_ac0fhfiq",
   "modelid": "TS0601",
-  "product": "BiDirectional ZigBee Energy Meter",
+  "vendor": "Tuya",
+  "product": "BiDirectional zigbee energy meter (TS0601)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -35,19 +36,19 @@
           "name": "attr/name"
         },
         {
-          "name":"attr/swversion",
-          "read":{
-            "at":"0x0001",
-            "cl":"0x0000",
-            "ep":1,
+          "name": "attr/swversion",
+          "read": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
             "fn": "zcl:attr"
           },
-          "parse":{
-            "at":"0x0001",
-            "cl":"0x0000",
-            "ep":1,
+          "parse": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
             "fn": "zcl:attr",
-            "script":"tuya_swversion.js"
+            "script": "tuya_swversion.js"
           }
         },
         {
@@ -119,19 +120,19 @@
           "name": "attr/name"
         },
         {
-          "name":"attr/swversion",
-          "read":{
-            "at":"0x0001",
-            "cl":"0x0000",
-            "ep":1,
+          "name": "attr/swversion",
+          "read": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
             "fn": "zcl:attr"
           },
-          "parse":{
-            "at":"0x0001",
-            "cl":"0x0000",
-            "ep":1,
+          "parse": {
+            "at": "0x0001",
+            "cl": "0x0000",
+            "ep": 1,
             "fn": "zcl:attr",
-            "script":"tuya_swversion.js"
+            "script": "tuya_swversion.js"
           }
         },
         {

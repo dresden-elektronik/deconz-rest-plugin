@@ -1,9 +1,20 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "0b14b62e-ba7e-4b8d-9ede-f9e92497104f",
-  "manufacturername": ["_TZ3000_okaz9tjs", "_TZ3000_dksbtrzs", "_TZ3000_gvn91tmx"],
-  "modelid": ["TS011F", "TS011F", "TS011F"],
-  "product": "Smart Plug Power Monitor",
+  "manufacturername": [
+    "_TZ3000_okaz9tjs",
+    "_TZ3000_dksbtrzs",
+    "_TZ3000_gvn91tmx",
+    "_TZ3000_wzmuk9ai"
+  ],
+  "modelid": [
+    "TS011F",
+    "TS011F",
+    "TS011F",
+    "TS011F"
+  ],
+  "vendor": "Tuya",
+  "product": "Smart plug power monitor (TS011F)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -36,8 +47,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -97,8 +119,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -204,8 +237,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"

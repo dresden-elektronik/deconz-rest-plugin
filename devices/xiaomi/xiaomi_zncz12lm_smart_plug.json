@@ -3,8 +3,8 @@
   "uuid": "006efd51-4464-45b8-836b-97e846db5106",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.plug.maus01",
-  "vendor": "Xiaomi",
-  "product": "Aqara smart plug ZNCZ12LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "Smart plug (ZNCZ12LM)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -123,9 +123,6 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/temperature"
-        },
-        {
           "name": "state/current",
           "parse": {
             "at": "0x00F7",
@@ -229,9 +226,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature"
         },
         {
           "name": "state/consumption",

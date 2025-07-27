@@ -1,10 +1,34 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "2a639a12-22c6-4a1c-b2a3-90ae3a68a837",
-  "manufacturername": ["_TZE200_nnrfa68v","_TZE200_znbl8dj5", "_TZE200_qoy0ekbd", "_TZE200_a8sdabtg", "_TZE200_whkgqxse","_TZE200_yjjdcqsq", "_TZE200_9yapgbuv", "_TZE200_utkemkbs", "_TZE200_locansqn"],
-  "modelid": ["TS0601","TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601"],
+  "manufacturername": [
+    "_TZE200_nnrfa68v",
+    "_TZE200_znbl8dj5",
+    "_TZE200_qoy0ekbd",
+    "_TZE200_a8sdabtg",
+    "_TZE200_whkgqxse",
+    "_TZE200_yjjdcqsq",
+    "_TZE200_utkemkbs",
+    "_TZE200_locansqn",
+    "_TZE204_yjjdcqsq",
+    "_TZE200_vs0skpuc",
+    "_TZE284_wtikaxzs"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601"
+  ],
   "vendor": "Tuya",
-  "product": "Temperature Humidity Sensor TS0601",
+  "product": "Temperature humidity sensor (TS0601)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -37,8 +61,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -58,14 +93,26 @@
         },
         {
           "name": "state/humidity",
-          "parse": {"fn": "tuya", "dpid": 2, "eval": "Item.val = (100 * Attr.val) + R.item('config/offset').val;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 2,
+            "eval": "Item.val = (100 * Attr.val) + R.item('config/offset').val;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         },
         {
           "name": "config/battery",
-          "parse": {"fn": "tuya", "dpid": 4, "eval": "Item.val = Attr.val;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 4,
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         },
         {
@@ -102,8 +149,16 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -117,8 +172,14 @@
         },
         {
           "name": "config/battery",
-          "parse": {"fn": "tuya", "dpid": 4, "eval": "Item.val = Attr.val;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 4,
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         },
         {
@@ -132,8 +193,14 @@
         },
         {
           "name": "state/temperature",
-          "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = (10 * Attr.val) + R.item('config/offset').val;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 1,
+            "eval": "Item.val = (10 * Attr.val) + R.item('config/offset').val;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         }
       ]

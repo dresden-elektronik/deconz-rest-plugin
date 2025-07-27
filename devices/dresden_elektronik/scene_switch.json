@@ -3,7 +3,8 @@
   "uuid": "57f972c5-ead9-4ee2-be54-2b89b0deedf2",
   "manufacturername": "dresden elektronik",
   "modelid": "Scene Switch",
-  "product": "Scene Switch",
+  "vendor": "dresden elektronik",
+  "product": "Multifunctional wireless switch (Scene switch)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -29,7 +30,7 @@
           "0x0005"
         ]
       },
-     "buttons": {
+      "buttons": {
         "1": {
           "name": "Top Left"
         },
@@ -91,7 +92,11 @@
           "button": 6
         }
       },
-      "meta": {"group.endpoints": [1] },
+      "meta": {
+        "group.endpoints": [
+          1
+        ]
+      },
       "items": [
         {
           "name": "attr/id"

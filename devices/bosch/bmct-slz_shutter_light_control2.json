@@ -1,10 +1,10 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "39410b10-dfa0-4b25-aad3-b1d170d11b36",
-  "manufacturername": "Bosch",
+  "manufacturername": "$MF_BOSCH",
   "modelid": "RBSH-MMS-ZB-EU",
   "vendor": "Bosch",
-  "product": "Light/shutter control II (BMCT-SLZ)",
+  "product": "Light and shutter control II (BMCT-SLZ)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -206,7 +206,12 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"momentary": 1, "momentaryswitched": 2, "rocker": 3, "rockerswitched": 4}
+          "config/mode": {
+            "momentary": 1,
+            "momentaryswitched": 2,
+            "rocker": 3,
+            "rockerswitched": 4
+          }
         }
       },
       "items": [
@@ -265,9 +270,18 @@
             "mf": "0x1209"
           },
           "values": [
-            ["\"disabled\"", "Device is not configured"],
-            ["\"shutter\"", "Device controls a shutter"],
-            ["\"light\"", "Device controls lights"] 
+            [
+              "\"disabled\"",
+              "Device is not configured"
+            ],
+            [
+              "\"shutter\"",
+              "Device controls a shutter"
+            ],
+            [
+              "\"light\"",
+              "Device controls lights"
+            ]
           ],
           "default": "disabled"
         },
@@ -298,12 +312,24 @@
             "fn": "zcl:attr",
             "mf": "0x1209"
           },
-          "default" : "momentary",
+          "default": "momentary",
           "values": [
-            ["\"momentary\"", "All inputs in momentary mode"],
-            ["\"momentaryswitched\"", "All inputs in momentary mode (sides switched)"],
-            ["\"rocker\"", "All inputs in rocker mode"],
-            ["\"rockerswitched\"", "All inputs in rocker mode (sides switched)"]
+            [
+              "\"momentary\"",
+              "All inputs in momentary mode"
+            ],
+            [
+              "\"momentaryswitched\"",
+              "All inputs in momentary mode (sides switched)"
+            ],
+            [
+              "\"rocker\"",
+              "All inputs in rocker mode"
+            ],
+            [
+              "\"rockerswitched\"",
+              "All inputs in rocker mode (sides switched)"
+            ]
           ]
         },
         {
@@ -521,7 +547,7 @@
       ]
     },
     {
-      "bind":"unicast",
+      "bind": "unicast",
       "src.ep": 1,
       "cl": "0x0B04",
       "report": [

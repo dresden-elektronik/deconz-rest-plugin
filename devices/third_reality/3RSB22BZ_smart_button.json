@@ -1,0 +1,94 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "160b5e9e-8cfc-43d8-bc16-c128f09e4d40",
+  "manufacturername": "Third Reality, Inc",
+  "modelid": "3RSB22BZ",
+  "product": "Smart Button 3RSB22BZ",
+  "status": "Gold",
+  "sleeper": true,
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0012"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "state/buttonevent",
+          "awake": true,
+          "parse": {
+            "cl": "0x0012",
+            "cmd": "0x0A",
+            "eval": "Item.val={1: 1002, 2: 1004, 0: 1001, 255: 1003}[Number(ZclFrame.at(3))]"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 3600,
+          "max": 84600,
+          "change": "0x00000002"
+        }
+      ]
+    }
+  ]
+}

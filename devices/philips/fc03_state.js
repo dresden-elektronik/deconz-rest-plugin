@@ -46,7 +46,7 @@ if (attrid === 0x0002) {
             R.item('state/effect').val = 'candle'
             break
           case 0x8002:
-            R.item('state/effect').val = 'fireplace'
+            R.item('state/effect').val = 'fire'
             break
           case 0x8003:
             R.item('state/effect').val = 'prism'
@@ -62,6 +62,21 @@ if (attrid === 0x0002) {
             break
           case 0x800C:
             R.item('state/effect').val = 'glisten'
+            break
+          case 0x800D:
+            R.item('state/effect').val = 'sunset'
+            break
+          case 0x800E:
+            R.item('state/effect').val = 'underwater'
+            break
+          case 0x800F:
+            R.item('state/effect').val = 'cosmos'
+            break
+          case 0x8010:
+            R.item('state/effect').val = 'sunbeam'
+            break
+          case 0x8011:
+            R.item('state/effect').val = 'enchant'
             break
           default:
             R.item('state/effect').val = '0x' + effect.toString(16)

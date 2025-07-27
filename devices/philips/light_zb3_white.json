@@ -17,6 +17,7 @@
     "LWA028",
     "LWE002"
   ],
+  "vendor": "Philips",
   "product": "Hue white light",
   "sleeper": false,
   "status": "Gold",
@@ -77,6 +78,15 @@
           "name": "attr/name"
         },
         {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
           "name": "attr/productid"
         },
         {
@@ -121,6 +131,9 @@
           "name": "cap/bri/move_with_onoff"
         },
         {
+          "name": "cap/color/effects"
+        },
+        {
           "name": "cap/on/off_with_effect"
         },
         {
@@ -162,16 +175,6 @@
         },
         {
           "name": "state/effect",
-          "values": [
-            [
-              "\"none\"",
-              "no effect is active"
-            ],
-            [
-              "\"candle\"",
-              "candlelight dynamic effect"
-            ]
-          ],
           "read": {
             "fn": "none"
           }

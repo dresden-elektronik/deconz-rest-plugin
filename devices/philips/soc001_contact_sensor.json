@@ -9,6 +9,7 @@
     "SOC001",
     "SOC001"
   ],
+  "vendor": "Philips",
   "product": "Hue secure contact sensor",
   "status": "Gold",
   "sleeper": false,
@@ -48,6 +49,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productname",

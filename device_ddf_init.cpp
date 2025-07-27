@@ -148,11 +148,12 @@ static ResourceItem *DEV_InitDeviceDescriptionItem(const DeviceDescription::Item
         if (ddfItem.isStatic || !item->lastSet().isValid())
         {
             item->setValue(ddfItem.defaultValue);
+            item->setTimeStamps(item->lastSet().addSecs(-86400));
             item->clearNeedStore(); // already in DB
         }
     }
 
-    assert(ddfItem.handle != DeviceDescription::Item::InvalidItemHandle);
+    U_ASSERT(ddfItem.handle != DeviceDescription::Item::InvalidItemHandle);
     item->setDdfItemHandle(ddfItem.handle);
 
     // check updates
@@ -247,8 +248,6 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
 
         // TODO storing should be done else where, since this is init code
         DB_StoreSubDevice(rsub->item(RAttrUniqueId)->toCString());
-        DB_StoreSubDeviceItem(rsub, rsub->item(RAttrManufacturerName));
-        DB_StoreSubDeviceItem(rsub, rsub->item(RAttrModelId));
 
         const auto dbItems = DB_LoadSubDeviceItems(rsub->item(RAttrUniqueId)->toLatin1String());
 
@@ -265,6 +264,11 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                 DBG_Printf(DBG_DDF, "sub-device: %s, presence state is true, reverting to false\n", qPrintable(uniqueId));
                 item->setValue(false);
                 item->clearNeedStore();
+            }
+
+            if (item->descriptor().suffix == RConfigGroup)
+            {
+                DEV_AllocateGroup(device, rsub, item);
             }
 
             if (!ddfItem.defaultValue.isNull() && !ddfItem.writeParameters.isNull())
@@ -315,11 +319,6 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                 }
             }
 
-            if (item->descriptor().suffix == RConfigGroup)
-            {
-                DEV_AllocateGroup(device, rsub, item);
-            }
-
             if (item->descriptor().suffix == RConfigBattery || item->descriptor().suffix == RStateBattery)
             {
                 DEV_ForwardNodeChange(device, QLatin1String(item->descriptor().suffix), QString::number(item->toNumber()));
@@ -337,6 +336,9 @@ bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &ddf)
                 }
             }
         }
+
+        DB_StoreSubDeviceItem(rsub, rsub->item(RAttrManufacturerName));
+        DB_StoreSubDeviceItem(rsub, rsub->item(RAttrModelId));
     }
 
     if (ddf.sleeper >= 0)
@@ -469,6 +471,7 @@ bool DEV_InitDeviceBasic(Device *device)
                     {
                         ddfPolicy->setValue(dbItem.value, (int)dbItem.valueSize);
                         ddfPolicy->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem.timestampMs));
+                        ddfPolicy->clearNeedStore();
                     }
                     else if (dbItem.name == RAttrDdfHash)
                     {
@@ -478,6 +481,7 @@ bool DEV_InitDeviceBasic(Device *device)
                             ResourceItem *ddfHash = device->item(RAttrDdfHash);
                             ddfHash->setValue(dbItem.value, (int)dbItem.valueSize);
                             ddfHash->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem.timestampMs));
+                            ddfHash->clearNeedStore();
                         }
                     }
                 }
@@ -513,8 +517,19 @@ bool DEV_InitDeviceBasic(Device *device)
             DBG_Assert(reachable);
             if (reachable)
             {
+                if (dbItem.value.toBool())
+                {
+                    auto dt = QDateTime::fromMSecsSinceEpoch(dbItem.timestampMs);
+                    if (86400 < dt.secsTo(QDateTime::currentDateTime()))
+                    {
+                        reachable->setValue(false);
+                        continue;
+                    }
+                }
+
                 reachable->setValue(dbItem.value.toBool());
                 reachable->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem.timestampMs));
+                reachable->clearNeedStore();
             }
             continue;
         }
@@ -532,6 +547,7 @@ bool DEV_InitDeviceBasic(Device *device)
             {
                 item->setValue(dbItem.value);
                 item->setTimeStamps(QDateTime::fromMSecsSinceEpoch(dbItem.timestampMs));
+                item->clearNeedStore();
                 found++;
             }
 
@@ -549,6 +565,20 @@ bool DEV_InitDeviceBasic(Device *device)
     if (DB_LoadZclValue(&zclVal) && zclVal.data != 0)
     {
         ResourceItem *item = device->item(RAttrOtaVersion);
+        if (item && item->toNumber() != zclVal.data)
+        {
+            item->setValue(zclVal.data, ResourceItem::SourceDevice);
+            item->clearNeedPush();
+        }
+    }
+
+    zclVal.clusterId = 0x0500; // IAS Zone cluster
+    zclVal.attrId = 0x0001; // IAS Zone Type
+    zclVal.data = 0;
+
+    if (DB_LoadZclValue(&zclVal) && zclVal.data != 0)
+    {
+        ResourceItem *item = device->addItem(DataTypeUInt16, RAttrZoneType);
         if (item && item->toNumber() != zclVal.data)
         {
             item->setValue(zclVal.data, ResourceItem::SourceDevice);

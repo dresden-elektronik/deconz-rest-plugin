@@ -3,8 +3,8 @@
   "uuid": "16208f88-8b30-49f5-9e2b-eda0cd3901a7",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.ctrl_neutral2",
-  "vendor": "Xiaomi",
-  "product": "Aqara double rocker switch QBKG03LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "Double rocker switch (QBKG03LM)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -149,9 +149,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature"
         },
         {
           "name": "state/buttonevent"

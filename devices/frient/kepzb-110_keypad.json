@@ -1,152 +1,240 @@
 {
-   "schema":"devcap1.schema.json",
-   "uuid":"cb65ebbd-876d-4f46-9167-3a6cb183ede4",
-   "manufacturername": ["Develco Products A/S", "frient A/S"],
-   "product":"KEPZB-110 Keypad",
-   "vendor": "Develco Products",
-   "modelid": ["KEPZB-110", "KEPZB-110"],
-   "sleeper":false,
-   "status":"Bronze",
-   "subdevices":[
-      {
-         "type":"$TYPE_ANCILLARY_CONTROL",
-         "restapi":"/sensors",
-         "uuid":[
-            "$address.ext",
-            "0x2c",
-            "0x0501"
-         ],
-         "fingerprint":{
-            "profile":"0x0104",
-            "device":"0x0401",
-            "endpoint":"0x2C",
-            "in":[
-               "0x0000",
-               "0x0001",
-               "0x0500"
-            ],
-            "out":[
-               "0x0501"
-            ]
-         },
-         "items":[
-            {
-               "name":"attr/id"
-            },
-            {
-               "name":"attr/lastannounced"
-            },
-            {
-               "name":"attr/lastseen"
-            },
-            {
-               "name":"attr/manufacturername"
-            },
-            {
-               "name":"attr/modelid"
-            },
-            {
-               "name":"attr/name"
-            },
-            {
-               "name":"attr/swversion"
-            },
-            {
-               "name":"attr/type"
-            },
-            {
-               "name":"attr/uniqueid"
-            },
-            {
-               "name":"config/battery"
-            },
-            {
-               "name":"config/enrolled",
-               "public":false
-            },
-            {
-               "name":"config/on"
-            },
-            {
-               "name":"config/pending"
-            },
-            {
-               "name":"config/reachable"
-            },
-            {
-               "name":"state/action",
-               "public":true
-            },
-            {
-               "name":"state/lastupdated"
-            },
-            {
-               "name":"state/lowbattery"
-            },
-            {
-              "name": "state/seconds_remaining"
-            },
-            {
-               "name":"state/panel",
-               "default":"exit_delay"
-            },
-            {
-               "name":"state/tampered"
-            }
-         ]
+  "schema": "devcap1.schema.json",
+  "uuid": "cb65ebbd-876d-4f46-9167-3a6cb183ede4",
+  "manufacturername": [
+    "Develco Products A/S",
+    "frient A/S"
+  ],
+  "modelid": [
+    "KEPZB-110",
+    "KEPZB-110"
+  ],
+  "vendor": "frient",
+  "product": "Intelligent Keypad (KEPZB-110)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ANCILLARY_CONTROL",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x2c",
+        "0x0501"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0401",
+        "endpoint": "0x2C",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0500"
+        ],
+        "out": [
+          "0x0501"
+        ]
       },
-      {
-         "type":"$TYPE_PRESENCE_SENSOR",
-         "restapi":"/sensors",
-         "uuid":[
-            "$address.ext",
-            "0x01",
-            "0x0406"
-         ],
-         "items":[
-            {
-               "name":"attr/id"
-            },
-            {
-               "name":"attr/lastannounced"
-            },
-            {
-               "name":"attr/lastseen"
-            },
-            {
-               "name":"attr/manufacturername"
-            },
-            {
-               "name":"attr/modelid"
-            },
-            {
-               "name":"attr/name"
-            },
-            {
-               "name":"attr/swversion"
-            },
-            {
-               "name":"attr/type"
-            },
-            {
-               "name":"attr/uniqueid"
-            },
-            {
-               "name":"config/duration"
-            },
-            {
-               "name":"config/on"
-            },
-            {
-               "name":"config/reachable"
-            },
-            {
-               "name":"state/lastupdated"
-            },
-            {
-               "name":"state/presence"
-            }
-         ]
-      }
-   ]
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x2C",
+            "cl": "0x0000",
+            "at": "0x8000",
+            "mf": "0x1015",
+            "script": "develco_firmware.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x2C",
+            "cl": "0x0000",
+            "at": "0x8000",
+            "mf": "0x1015"
+          },
+          "refresh.interval": 84000
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x2C",
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/action",
+          "public": true
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/seconds_remaining"
+        },
+        {
+          "name": "state/panel",
+          "default": "exit_delay"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_ALARM_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x2c",
+        "0x0500"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0401",
+        "endpoint": "0x2C",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0500"
+        ],
+        "out": [
+          "0x0501"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x2C",
+            "cl": "0x0000",
+            "at": "0x8000",
+            "mf": "0x1015",
+            "script": "develco_firmware.js"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x2C",
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          }
+        },
+        {
+          "name": "config/enrolled",
+          "public": false
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/alarm"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery"
+        },
+        {
+          "name": "state/tampered"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": "0x2C",
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 7200,
+          "max": 7200,
+          "change": "0x01"
+        }
+      ]
+    }
+  ]
 }

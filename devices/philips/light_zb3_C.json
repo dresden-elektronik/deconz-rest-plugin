@@ -28,6 +28,16 @@
     "$MF_PHILIPS",
     "$MF_PHILIPS",
     "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
@@ -59,11 +69,14 @@
     "LCA001",
     "LCA006",
     "LCA008",
+    "LCD008",
     "LCE002",
     "LCG002",
+    "LCL001",
     "LCL003",
     "LCL006",
     "LCU001",
+    "LCV001",
     "1746447P7",
     "4080248P9",
     "5063130P7",
@@ -74,10 +87,12 @@
     "5063331P7",
     "5063430P7",
     "5063431P7",
+    "440400982842",
     "915005997901",
     "929002375901",
     "929002376001",
     "929002376101",
+    "929002966501",
     "929003052501_01",
     "929003052501_02",
     "929003053301_01",
@@ -85,11 +100,14 @@
     "LCA001",
     "LCA006",
     "LCA008",
+    "LCD008",
     "LCE002",
     "LCG002",
+    "LCL001",
     "LCL003",
     "LCL006",
     "LCU001",
+    "LCV001",
     "1746447P7",
     "4080248P9",
     "5063130P7",
@@ -100,15 +118,18 @@
     "5063331P7",
     "5063430P7",
     "5063431P7",
+    "440400982842",
     "915005997901",
     "929002375901",
     "929002376001",
     "929002376101",
+    "929002966501",
     "929003052501_01",
     "929003052501_02",
     "929003053301_01",
     "929003053301_02"
   ],
+  "vendor": "Philips",
   "product": "Hue white and color ambiance light",
   "sleeper": false,
   "status": "Gold",
@@ -167,6 +188,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/productid"
@@ -366,28 +396,6 @@
         },
         {
           "name": "state/effect",
-          "values": [
-            [
-              "\"none\"",
-              "no effect is active"
-            ],
-            [
-              "\"colorloop\"",
-              "colorloop through hue values"
-            ],
-            [
-              "\"candle\"",
-              "candlelight dynamic effect"
-            ],
-            [
-              "\"fireplace\"",
-              "fireplace dynamic effect"
-            ],
-            [
-              "\"prism\"",
-              "prism dynamic effect"
-            ]
-          ],
           "parse": {
             "fn": "zcl:attr",
             "ep": "0x0b",

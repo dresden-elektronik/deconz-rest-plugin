@@ -3,10 +3,11 @@
   "uuid": "8dd6bec7-40c0-4da3-bf26-e875f4d35b17",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.vibration.aq1",
-  "vendor": "Xiaomi",
-  "product": "Aqara Vibration Sensor DJT11LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "Vibration sensor (DJT11LM)",
   "sleeper": true,
   "status": "Gold",
+  "supportsMgmtBind": false,
   "subdevices": [
     {
       "type": "$TYPE_VIBRATION_SENSOR",
@@ -93,7 +94,7 @@
             "cl": "0x0000",
             "mf": "0x115F",
             "at": "0xFF0D",
-            "eval": "Item.val = Attr.val < 3 ? 3 - Attr.val : 2"
+            "eval": "Item.val = Attr.val <= 3 ? 3 - (Attr.val == 0 ? 1 : Attr.val) : 0"
           },
           "read": {
             "fn": "zcl:attr",
@@ -110,10 +111,10 @@
             "mf": "0x115F",
             "at": "0xFF0D",
             "dt": "0x20",
-            "eval": "3 - Item.val",
+            "eval": "(Item.val <= 2 ? 3 - Item.val : 3 - 2)",
             "state.timeout": 2,
             "change.timeout": 3600
-            },
+          },
           "values": [
             [
               0,
@@ -133,17 +134,6 @@
         {
           "name": "config/sensitivitymax",
           "static": 2
-        },
-        {
-          "name": "config/temperature",
-          "awake": true,
-          "parse": {
-            "fn": "xiaomi:special",
-            "mf": "0x115F",
-            "at": "0xFF01",
-            "idx": "0x03",
-            "eval": "Item.val = Attr.val * 100"
-          }
         },
         {
           "name": "state/lastupdated"

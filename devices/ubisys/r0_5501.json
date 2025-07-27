@@ -1,0 +1,52 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "5cddd4f8-68f6-4bd0-8ec6-c6505fcb3d28",
+  "manufacturername": "ubisys",
+  "modelid": "R0 (5501)",
+  "vendor": "ubisys",
+  "product": "Router R0 (R0 (5501))",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_RANGE_EXTENDER",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
+}

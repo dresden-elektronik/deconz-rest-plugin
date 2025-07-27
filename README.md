@@ -21,13 +21,11 @@ The Phoscon App is a browser based web application and supports lights, sensors 
 
 ### Release Schedule
 
+All stable and beta releases are listed on the [releases](https://github.com/dresden-elektronik/deconz-rest-plugin/releases) page and contain precompiled deCONZ packages for that release.
+
+Each release has a milestone which is updated during development with related pull requests. To check for current developemt please refer to the [milestones](https://github.com/dresden-elektronik/deconz-rest-plugin/milestones) page.
+
 deCONZ beta releases are scheduled roughly once per week. After 1–3 betas a stable version is released and a new beta cycle begins.
-
-Current Beta: **v2.27.1-beta**  
-Current Stable: **v2.26.3**
-
-Next Beta: **v2.27.2-beta** Expected in June.
-Next Stable: **v2.27.x** Expected in June.
 
 Installation
 ============
@@ -36,6 +34,7 @@ Installation
 * Raspbian ~~Jessie~~, ~~Stretch~~, Buster, Bullseye and Bookworm
 * Ubuntu ~~Xenial~~, Bionic, Focal Fossa and Jammy
 * Windows 7, 10, 11
+* macOS
 
 ### Install deCONZ
 You find the instructions for your platform and device on the Phoscon website:
@@ -59,10 +58,11 @@ Precompiled deCONZ packages for manual installation
 
 The deCONZ application packages are available for the following platforms and contain the main application and the pre-compiled REST-API plugin.
 
-* Windows  http://deconz.dresden-elektronik.de/win/
-* Raspbian http://deconz.dresden-elektronik.de/raspbian/beta/
-* Ubuntu and Debian 64-bit http://deconz.dresden-elektronik.de/ubuntu/beta/
-* ARM64 systems http://deconz.dresden-elektronik.de/debian/beta/
+* Windows  https://deconz.dresden-elektronik.de/win/
+* macOS https://deconz.dresden-elektronik.de/macos/
+* Raspbian https://deconz.dresden-elektronik.de/raspbian/beta/
+* Ubuntu and Debian 64-bit https://deconz.dresden-elektronik.de/ubuntu/beta/
+* ARM64 systems https://deconz.dresden-elektronik.de/debian/beta/
 
 To manually install a Linux .deb package enter these commands:
 
@@ -105,8 +105,11 @@ Hardware requirements
 The following libraries are used by the plugin:
 
 * [ArduinoJSON](https://arduinojson.org)
+* [Duktape Javascript Engine](https://duktape.org)
 * [SQLite](http://www.sqlite.org)
+* [Qt](https://qt.io)
 * [qt-json](https://github.com/lawand/droper/tree/master/qt-json)
+* [OpenSSL](https://www.openssl.org)
 * [colorspace](http://www.getreuer.info/home/colorspace)
 
 License

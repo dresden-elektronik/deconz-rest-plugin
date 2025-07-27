@@ -3,8 +3,8 @@
   "uuid": "7c6d3f22-6a85-4955-bfbf-91b98d1a4237",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.ctrl_neutral1",
-  "vendor": "Xiaomi",
-  "product": "Aqara single rocker switch QBKG04LM",
+  "vendor": "Xiaomi Aqara",
+  "product": "Single rocker switch (QBKG04LM)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -126,8 +126,14 @@
             "mf": "0x115f"
           },
           "values": [
-            ["\"decoupled\"", "Decoupled Mode"],
-            ["\"coupled\"", "Coupled Mode"] 
+            [
+              "\"decoupled\"",
+              "Decoupled Mode"
+            ],
+            [
+              "\"coupled\"",
+              "Coupled Mode"
+            ]
           ],
           "default": "coupled"
         },
@@ -136,9 +142,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature"
         },
         {
           "name": "state/buttonevent"

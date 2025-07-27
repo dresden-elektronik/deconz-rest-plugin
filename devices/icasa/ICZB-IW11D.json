@@ -3,7 +3,8 @@
   "uuid": "979778dc-e197-425e-8d44-4ccddc00b433",
   "manufacturername": "icasa",
   "modelid": "ICZB-IW11D",
-  "product": "AC Dimmer",
+  "vendor": "iCasa",
+  "product": "AC dimmer (ICZB-IW11D)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -32,6 +33,15 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
         },
         {
           "name": "attr/swversion"

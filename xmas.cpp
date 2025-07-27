@@ -33,6 +33,7 @@ const QStringList RStateEffectValuesXmasLightStrip({
     "updown", "vintage", "fading", "collide",
     "strobe", "sparkles", "carnival", "glow"
 });
+#define R_EFFECT_NONE               0
 
 static void initTask(TaskItem &task, quint8 seq)
 {

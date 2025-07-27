@@ -67,6 +67,10 @@ DDF_EditorDialog::DDF_EditorDialog(DeviceWidget *parent) :
     hotReload->setShortcut(tr("Ctrl+R"));
     connect(hotReload, &QAction::triggered, parent, &DeviceWidget::hotReload);
 
+    QAction *close = fileMenu->addAction(tr("&Close"));
+    close->setShortcut(QKeySequence::Close);
+    connect(close, &QAction::triggered, this, &QMainWindow::close);
+
     QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
     QAction *docAction = helpMenu->addAction(tr("DDF documentation"));
     connect(docAction, &QAction::triggered, [](){

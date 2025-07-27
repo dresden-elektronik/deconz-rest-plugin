@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -1035,7 +1035,7 @@ public:
     int removeAllGroups(const ApiRequest &req, ApiResponse &rsp);
     void handleLightEvent(const Event &e);
 
-    bool lightToMap(const ApiRequest &req, const LightNode *webNode, QVariantMap &map);
+    bool lightToMap(const ApiRequest &req, LightNode *webNode, QVariantMap &map, const char *event = nullptr);
 
     // REST API groups
     int handleGroupsApi(const ApiRequest &req, ApiResponse &rsp);
@@ -1093,7 +1093,7 @@ public:
     int createSensor(const ApiRequest &req, ApiResponse &rsp);
     int getGroupIdentifiers(const ApiRequest &req, ApiResponse &rsp);
     int recoverSensor(const ApiRequest &req, ApiResponse &rsp);
-    bool sensorToMap(const Sensor *sensor, QVariantMap &map, const ApiRequest &req);
+    bool sensorToMap(Sensor *sensor, QVariantMap &map, const ApiRequest &req, const char *event = nullptr);
     void handleSensorEvent(const Event &e);
 
     // REST API resourcelinks
@@ -1321,7 +1321,6 @@ public:
     void handleMacDataRequest(const deCONZ::NodeEvent &event);
     void addLightNode(const deCONZ::Node *node);
     void setLightNodeStaticCapabilities(LightNode *lightNode);
-    void updatedLightNodeEndpoint(const deCONZ::NodeEvent &event);
     void nodeZombieStateChanged(const deCONZ::Node *node);
     LightNode *updateLightNode(const deCONZ::NodeEvent &event);
     LightNode *getLightNodeForAddress(const deCONZ::Address &addr, quint8 endpoint = 0);
@@ -1430,7 +1429,7 @@ public:
     bool addTaskSimpleMeteringReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
 
     // Advanced features of Hue lights.
-    QStringList getHueEffectNames(quint64 effectBitmap);
+    QStringList getHueEffectNames(quint64 effectBitmap, bool colorloop);
     QStringList getHueGradientStyleNames(quint16 styleBitmap);
     bool addTaskHueEffect(TaskItem &task, QString &effect);
     bool validateHueGradient(const ApiRequest &req, ApiResponse &rsp, QVariantMap &gradient, quint16 styleBitmap);
@@ -1560,11 +1559,11 @@ public:
     QTimer *databaseTimer;
     QString emptyString;
 
-    // JSON support
+    // button_maps.json
     std::vector<ButtonMeta> buttonMeta;
     std::vector<ButtonMap> buttonMaps;
-    QMap<QString, quint16> btnMapClusters;
-    QMap<QString, QMap<QString, quint16>> btnMapClusterCommands;
+    std::vector<ButtonCluster> btnMapClusters;
+    std::vector<ButtonClusterCommand> btnMapClusterCommands;
     std::vector<ButtonProduct> buttonProductMap;
 
     // gateways

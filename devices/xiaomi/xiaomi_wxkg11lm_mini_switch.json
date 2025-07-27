@@ -3,8 +3,8 @@
   "uuid": "e7dfca99-3df4-4c7f-abf3-5381a6782874",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.sensor_switch.aq2",
-  "vendor": "Xiaomi",
-  "product": "Aqara wireless mini switch (WXKG11LM)",
+  "vendor": "Xiaomi Aqara",
+  "product": "Wireless mini switch (WXKG11LM)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -83,17 +83,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature",
-          "awake": true,
-          "parse": {
-            "at": "0xFF01",
-            "ep": 1,
-            "fn": "xiaomi:special",
-            "idx": "0x03",
-            "eval": "Item.val = Attr.val * 100"
-          }
         },
         {
           "name": "state/buttonevent"

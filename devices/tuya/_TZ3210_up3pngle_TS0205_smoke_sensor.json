@@ -4,7 +4,7 @@
   "manufacturername": "_TZ3210_up3pngle",
   "modelid": "TS0205",
   "vendor": "Tuya",
-  "product": "Smoke Sensor",
+  "product": "Smoke sensor (TS0205)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -47,8 +47,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"

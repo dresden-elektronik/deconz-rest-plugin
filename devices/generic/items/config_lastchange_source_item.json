@@ -1,11 +1,22 @@
 {
-	"schema": "resourceitem1.schema.json",
-	"id": "config/lastchange_source",
-	"datatype": "UInt8",
-	"access": "R",
-	"public": true,
-	"description": "Determine whether changes to setpoints were initiated by manual interaction, scheduled programming or some other source.",
-	"parse": {"at": "0x0030", "cl": "0x0201","ep": 0, "eval": "Item.val = Attr.val", "fn": "zcl:attr"},
-	"read": {"at": "0x0030", "cl": "0x0201", "ep": 0, "fn": "zcl:attr"},
-	"default": 0
+  "schema": "resourceitem1.schema.json",
+  "id": "config/lastchange_source",
+  "datatype": "UInt8",
+  "access": "R",
+  "public": true,
+  "description": "Determine whether changes to setpoints were initiated by manual interaction, scheduled programming or some other source.",
+  "parse": {
+    "at": "0x0030",
+    "cl": "0x0201",
+    "ep": 0,
+    "eval": "Item.val = Attr.val",
+    "fn": "zcl:attr"
+  },
+  "read": {
+    "at": "0x0030",
+    "cl": "0x0201",
+    "ep": 0,
+    "fn": "zcl:attr"
+  },
+  "default": 0
 }

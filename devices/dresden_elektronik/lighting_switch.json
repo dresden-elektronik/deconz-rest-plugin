@@ -3,7 +3,8 @@
   "uuid": "bd19625b-6d14-4843-b69f-971bf6585348",
   "manufacturername": "dresden elektronik",
   "modelid": "Lighting Switch",
-  "product": "Lighting Switch",
+  "vendor": "dresden elektronik",
+  "product": "Multifunctional wireless switch (Lighting switch)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -93,7 +94,11 @@
           "button": 4
         }
       },
-      "meta": {"group.endpoints": [1] },
+      "meta": {
+        "group.endpoints": [
+          1
+        ]
+      },
       "items": [
         {
           "name": "attr/id"
@@ -222,7 +227,11 @@
           "0x0005"
         ]
       },
-      "meta": {"group.endpoints": [2] },
+      "meta": {
+        "group.endpoints": [
+          2
+        ]
+      },
       "items": [
         {
           "name": "attr/id"
@@ -271,7 +280,7 @@
         {
           "name": "state/lastupdated"
         },
-                {
+        {
           "name": "state/on",
           "public": false,
           "parse": {

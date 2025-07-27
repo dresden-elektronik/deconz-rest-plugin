@@ -124,13 +124,10 @@ void DeRestPluginPrivate::handlePowerConfigurationClusterIndication(const deCONZ
                 uint divider = 2;
 
                 if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
-                    sensor.modelId().startsWith(QLatin1String("KADRILJ")) || // IKEA
                     sensor.modelId().startsWith(QLatin1String("SYMFONISK")) || // IKEA
-                    sensor.modelId().startsWith(QLatin1String("Remote Control N2")) || // IKEA
                     sensor.modelId().startsWith(QLatin1String("ICZB-")) || // iCasa keypads and remote
                     sensor.modelId().startsWith(QLatin1String("ZGR904-S")) || // Envilar remote
                     sensor.modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
-                    sensor.modelId().startsWith(QLatin1String("iTRV")) || // Drayton Wiser Radiator Thermostat
                     sensor.modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                     sensor.modelId().startsWith(QLatin1String("SV02-")) || // Keen Home vent
                     sensor.modelId() == QLatin1String("4512705") || // Namron remote control

@@ -136,20 +136,24 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
         DB_StoreZclValue(&zclVal); // does only write if the value is already there
 
         ResourceItem *item = device->item(RAttrOtaVersion);
-        if (item && item->toNumber() != swVersion)
-        {
-            item->setValue(swVersion, ResourceItem::SourceDevice);
-        }
 
-        if (device->managed() && item->needPushChange())
+        if (item)
         {
-            // the known OTA version has changed (or initially set)
-            // there might be a different DDF to match, trigger reload
-            const auto &ddf = DeviceDescriptions::instance()->get(device, DDF_EvalMatchExpr);
-            if (ddf.isValid() && !ddf.matchExpr.isEmpty())
+            if (item->toNumber() != swVersion)
             {
-                Event e(device->prefix(), REventDDFReload, 1, device->key());
-                enqueueEvent(e);
+                item->setValue(swVersion, ResourceItem::SourceDevice);
+            }
+
+            if (device->managed() && item->needPushChange())
+            {
+                // the known OTA version has changed (or initially set)
+                // there might be a different DDF to match, trigger reload
+                const auto &ddf = DeviceDescriptions::instance()->get(device, DDF_EvalMatchExpr);
+                if (ddf.isValid() && !ddf.matchExpr.isEmpty())
+                {
+                    Event e(device->prefix(), REventDDFReload, 1, device->key());
+                    enqueueEvent(e);
+                }
             }
         }
 

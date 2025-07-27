@@ -246,7 +246,7 @@ static void DB_CleanupDuplSensors(sqlite3 *db)
                                  " AND deletedState == 'normal'"
                                  " GROUP BY uniqueid"
                                  " HAVING COUNT(uniqueid) > 1");
-    assert(size_t(ret) < sizeof(sqlBuf));
+    U_ASSERT(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
@@ -274,7 +274,7 @@ static void DB_CleanupDuplSensors(sqlite3 *db)
                                      " WHERE uniqueid = '%s'"
                                      " AND deletedState == 'normal'"
                                      " ORDER BY sid DESC LIMIT 1", uniqueid.c_str());
-        assert(size_t(ret) < sizeof(sqlBuf));
+        U_ASSERT(size_t(ret) < sizeof(sqlBuf));
         if (size_t(ret) < sizeof(sqlBuf))
         {
             char *errmsg = nullptr;
@@ -295,7 +295,7 @@ static void DB_CleanupDuplSensors(sqlite3 *db)
         // delete sensors with same uniqueid which have a higher 'sid' as lowest known one
         ret = snprintf(sqlBuf, sizeof(sqlBuf), "DELETE FROM sensors"
                                      " WHERE uniqueid = '%s' and sid != '%s'", uniqueid.c_str(), result.front().c_str());
-        assert(size_t(ret) < sizeof(sqlBuf));
+        U_ASSERT(size_t(ret) < sizeof(sqlBuf));
         if (size_t(ret) < sizeof(sqlBuf))
         {
             char *errmsg = nullptr;
@@ -971,15 +971,21 @@ void DeRestPluginPrivate::restoreSourceRoutes()
 }
 
 /*! Puts a new top level device entry in the db (mac address) or refreshes nwk address.
+    Fills the dev.deviceId and dev.creationTime fields.
+    \returns 1 on success, 0 on failure
  */
-int DB_StoreDevice(const deCONZ::Address &addr)
+int DB_StoreDevice(DB_Device &dev)
 {
-    if (!db || !addr.hasExt() || !addr.hasNwk())
-        return -1;
+    dev.deviceId = -1;
+    dev.creationTime = -1;
+
+    if (!db || dev.mac == 0)
+        return 0;
 
     struct Entry {
         long id;
         long nwk;
+        int64_t creationTime;
     } entry;
 
     int rc;
@@ -990,7 +996,7 @@ int DB_StoreDevice(const deCONZ::Address &addr)
         long nwk;
         U_SStream ss;
 
-        if (ncols != 2)
+        if (ncols != 3)
             return 1;
 
         U_sstream_init(&ss, colval[0], U_StringLength(colval[0]));
@@ -1003,9 +1009,16 @@ int DB_StoreDevice(const deCONZ::Address &addr)
         if (ss.status != U_SSTREAM_OK)
             return 1;
 
+        U_sstream_init(&ss, colval[2], U_StringLength(colval[2]));
+        double ctime = U_sstream_get_double(&ss); // use double for now until longlong is part of U_SStream
+        if (ss.status != U_SSTREAM_OK)
+            return 1;
+
         Entry *e = static_cast<Entry*>(user);
         e->id = id;
         e->nwk = nwk;
+        e->creationTime = (int64_t)ctime;
+        e->creationTime *= 1000; // milliseconds since epoch
         return 0;
     };
 
@@ -1013,42 +1026,46 @@ int DB_StoreDevice(const deCONZ::Address &addr)
     U_sstream_init(&ss, sqlBuf, sizeof(sqlBuf));
 
     // check already existing
-    U_sstream_put_str(&ss, "SELECT id, nwk FROM devices WHERE mac = '");
-    U_sstream_put_mac_address(&ss, addr.ext());
+    U_sstream_put_str(&ss, "SELECT id, nwk, timestamp FROM devices WHERE mac = '");
+    U_sstream_put_mac_address(&ss, dev.mac);
     U_sstream_put_str(&ss, "'");
 
     entry.id = -1;
     entry.nwk = -1;
+    entry.creationTime = -1;
 
     rc = sqlite3_exec(db, sqlBuf, loadDeviceCallback, &entry, nullptr);
 
     if (rc == SQLITE_OK && entry.id != -1)
     {
-        if (entry.nwk == addr.nwk())
-            return entry.id; // all there
+        dev.deviceId = entry.id;
+        dev.creationTime = entry.creationTime;
+
+        if (entry.nwk == dev.nwk)
+            return 1;
 
         // Update NWK address
         U_sstream_init(&ss, sqlBuf, sizeof(sqlBuf));
         U_sstream_put_str(&ss, "UPDATE devices SET nwk = ");
-        U_sstream_put_long(&ss, addr.nwk());
+        U_sstream_put_long(&ss, dev.nwk);
         U_sstream_put_str(&ss, " WHERE mac = '");
-        U_sstream_put_mac_address(&ss, addr.ext());
+        U_sstream_put_mac_address(&ss, dev.mac);
         U_sstream_put_str(&ss, "';");
 
         rc = sqlite3_exec(db, sqlBuf, nullptr, nullptr, nullptr);
 
         if (rc == SQLITE_OK)
-            return entry.id;
+            return 1;
 
-        return -1;
+        return 0;
     }
 
     // add new entry
     U_sstream_init(&ss, sqlBuf, sizeof(sqlBuf));
     U_sstream_put_str(&ss, "INSERT INTO devices (mac,nwk,timestamp) SELECT '");
-    U_sstream_put_mac_address(&ss, addr.ext());
+    U_sstream_put_mac_address(&ss, dev.mac);
     U_sstream_put_str(&ss, "', ");
-    U_sstream_put_long(&ss, addr.nwk());
+    U_sstream_put_long(&ss, dev.nwk);
     U_sstream_put_str(&ss, ", strftime('%s','now');");
 
     rc = sqlite3_exec(db, sqlBuf, nullptr, nullptr, nullptr);
@@ -1058,21 +1075,24 @@ int DB_StoreDevice(const deCONZ::Address &addr)
 
         // query again to get device id
         U_sstream_put_str(&ss, "SELECT id, nwk FROM devices WHERE mac = '");
-        U_sstream_put_mac_address(&ss, addr.ext());
+        U_sstream_put_mac_address(&ss, dev.mac);
         U_sstream_put_str(&ss, "'");
 
         entry.id = -1;
         entry.nwk = -1;
+        entry.creationTime = -1;
 
         rc = sqlite3_exec(db, sqlBuf, loadDeviceCallback, &entry, nullptr);
 
         if (rc == SQLITE_OK && entry.id != -1)
         {
-            return entry.id;
+            dev.deviceId = entry.id;
+            dev.creationTime = entry.creationTime;
+            return 1;
         }
     }
 
-    return -1;
+    return 0;
 }
 
 /*! Push/update a zdp descriptor in the database to cache node data.
@@ -3505,17 +3525,40 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     return 0;
                 }
 
-                const int itemCount = DB_GetSubDeviceItemCount(sensor.item(RAttrUniqueId)->toLatin1String());
-
-                if (itemCount == 0)
-                {
-                    DBG_Printf(DBG_INFO, "DB legacy loading sensor %s %s, later handled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
-                }
-                else if (DEV_TestManaged() || DDF_IsStatusEnabled(ddf.status))
+                if (DEV_TestManaged() || DDF_IsStatusEnabled(ddf.status))
                 {
                     DBG_Printf(DBG_INFO, "DB skip loading sensor %s %s, handled by DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
+
+                    extAddr = extAddressFromUniqueId(sensor.uniqueId());
+
+                    if (extAddr)
+                    {
+                        Device *device = DEV_GetOrCreateDevice(d, deCONZ::ApsController::instance(), d->eventEmitter, d->m_devices, extAddr);
+
+                        if (device)
+                        {
+                            // To speed loading DDF up the first time after it was run as legacy before,
+                            // assign manufacturer name and modelid to parent device. That way we don't have to wait until the
+                            // data is queried again via Zigbee.
+                            // Note: Due the deviceDescriptions->get(&sensor); matching we can be sure the legacy strings aren't made up.
+                            item = device->item(RAttrManufacturerName);
+                            if (item->toString().isEmpty())
+                            {
+                                *item = *sensor.item(item->descriptor().suffix);
+                            }
+
+                            item = device->item(RAttrModelId);
+                            if (item->toString().isEmpty())
+                            {
+                                *item = *sensor.item(item->descriptor().suffix);
+                            }
+                        }
+                    }
+
                     return 0;
                 }
+                
+                DBG_Printf(DBG_INFO, "DB legacy loading sensor %s %s, should be added into DDF %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()), qPrintable(ddf.product));
             }
         }
 
@@ -3575,6 +3618,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.addItem(DataTypeUInt16, RConfigGPDDeviceId)->setIsPublic(false);
             sensor.addItem(DataTypeUInt32, RStateGPDFrameCounter)->setIsPublic(false);
             sensor.addItem(DataTypeUInt64, RStateGPDLastPair)->setIsPublic(false);
+        }
+
+        if (sensor.type() == QLatin1String("ZGPSwitch"))
+        {
+            sensor.removeItem(RAttrLastAnnounced);
         }
 
         if (sensor.type().endsWith(QLatin1String("Switch")))
@@ -4012,7 +4060,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
                 if (sensor.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                     sensor.modelId() == QLatin1String("SLR1b") ||           // Hive
-                    sensor.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD SEA801-ZIGBEE TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY369 TRV") ||
                     R_GetProductId(&sensor) == QLatin1String("Tuya_THD HY368 TRV") ||
@@ -4150,13 +4197,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                     sensor.addItem(DataTypeString, RConfigMode);
                     sensor.addItem(DataTypeString, RConfigFanMode);
-                }
-                else if (sensor.modelId() == QLatin1String("iTRV")) // Drayton Wiser Radiator Thermostat
-                {
-                    sensor.addItem(DataTypeUInt8, RStateValve);
-                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
-                    sensor.addItem(DataTypeString, RConfigMode);
-                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
                 }
                 else if (sensor.modelId() == QLatin1String("TH1300ZB")) // sinope thermostat
                 {
@@ -4332,6 +4372,25 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.type() != QLatin1String("Daylight"))
         {
             sensor.jsonToState(QLatin1String(colval[stateCol]));
+
+            { // quirk for legacy sensors to prevent lastseen/lastannounced = null
+              // if we have a valid lastupdated timestamp, use that instead
+                ResourceItem *itemLastSeen = sensor.item(RAttrLastSeen);
+                ResourceItem *itemLastAnnounced = sensor.item(RAttrLastAnnounced);
+                ResourceItem *itemLastUpdated = sensor.item(RStateLastUpdated);
+
+                if (itemLastUpdated && itemLastUpdated->lastSet().isValid())
+                {
+                    if (itemLastSeen && !itemLastSeen->lastSet().isValid())
+                    {
+                        itemLastSeen->setValue(itemLastUpdated->toNumber());
+                    }
+                    if (itemLastAnnounced && !itemLastAnnounced->lastSet().isValid())
+                    {
+                        itemLastAnnounced->setValue(itemLastUpdated->toNumber());
+                    }
+                }
+            }
         }
 
         if (configCol >= 0)
@@ -5961,6 +6020,10 @@ void DeRestPluginPrivate::getZigbeeConfigDb(QVariantList &out)
 void DeRestPluginPrivate::deleteDeviceDb(const QString &uniqueId)
 {
     DBG_Assert(!uniqueId.isEmpty());
+    if (uniqueId.isEmpty())
+    {
+        return;
+    }
 
     openDb();
     DBG_Assert(db);
@@ -5969,16 +6032,48 @@ void DeRestPluginPrivate::deleteDeviceDb(const QString &uniqueId)
         return;
     }
 
+    int rc;
     char *errmsg = nullptr;
-    const auto sql = QString("DELETE FROM devices WHERE mac = '%1'").arg(uniqueId);
-    int rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
-    if (rc != SQLITE_OK)
     {
-        if (errmsg)
+        QString sql = QString("DELETE FROM devices WHERE mac = '%1'").arg(uniqueId);
+        rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
         {
-            DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
-            sqlite3_free(errmsg);
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
+
+    {
+        QString sql = QString("DELETE FROM sensors WHERE uniqueid LIKE '%1%%'").arg(uniqueId);
+        rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
+
+    {
+        QString sql = QString("DELETE FROM nodes WHERE mac LIKE '%1%%'").arg(uniqueId);
+        rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s, line: %d\n", qPrintable(sql), errmsg, __LINE__);
+                sqlite3_free(errmsg);
+            }
         }
     }
 
@@ -6857,7 +6952,6 @@ static int DB_LoadDeviceItemsCallback(void *user, int ncols, char **colval , cha
 bool DB_LoadDeviceItems(int deviceId, std::vector<DB_ResourceItem2> &items)
 {
     U_SStream ss;
-    U_ASSERT(deviceId >= 0);
 
     items.clear();
 
@@ -7064,8 +7158,8 @@ struct SelectDeviceItemData
  */
 static int sqliteSelectDeviceItemCallback(void *user, int ncols, char **colval , char **colname)
 {
-    assert(user);
-    assert(ncols == 3);
+    U_ASSERT(user);
+    U_ASSERT(ncols == 3);
 
     Q_UNUSED(colname)
 
@@ -7137,7 +7231,7 @@ bool DB_StoreSubDeviceItem(const Resource *sub, ResourceItem *item)
                    uniqueId->toCString(),
                    item->descriptor().suffix);
 
-    assert(size_t(ret) < sizeof(sqlBuf));
+    U_ASSERT(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
@@ -7174,14 +7268,14 @@ bool DB_StoreSubDeviceItem(const Resource *sub, ResourceItem *item)
             uint64_t storeDelay = 600;
 #endif
 
+            const DeviceDescription::Item &ddfItem = DeviceDescriptions::instance()->getItem(item);
+            if (ddfItem.isValid() && 0 < ddfItem.refreshInterval && (int)storeDelay < ddfItem.refreshInterval)
+            {
+                storeDelay = (unsigned)ddfItem.refreshInterval * 3 / 4;
+            }
+
             if (isEqual)
             {
-                if (item->descriptor().type == DataTypeString)
-                {
-                    item->clearNeedStore();
-                    return true; // don't check timestamp for strings
-                }
-
                 if (suffix[0] == 'a' && dt < storeDelay) // attr/*  but not a string
                 {
                     return true; // only update timestamp every 10 minutes
@@ -7227,10 +7321,7 @@ bool DB_StoreSubDeviceItem(const Resource *sub, ResourceItem *item)
     {
 //        DBG_Printf(DBG_INFO_L2, "%s\n", &sqlBuf[0]);
 
-        if (DBG_IsEnabled(DBG_MEASURE))
-        {
-            DBG_Printf(DBG_MEASURE, "DB store %s%s/%s ## %s\n", uniqueId->toCString(), sub->prefix(), item->descriptor().suffix, sqlBuf);
-        }
+        DBG_Printf(DBG_DEV, "DB store %s%s/%s ## %s\n", uniqueId->toCString(), sub->prefix(), item->descriptor().suffix, sqlBuf);
 
         char *errmsg = nullptr;
 
@@ -7294,7 +7385,7 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItemsOfDevice(QLatin1String deviceU
     int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT item,value,timestamp FROM resource_items"
                                  " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid LIKE '%%%s%%')",
                                  deviceUniqueId.data());
-    assert(size_t(ret) < sizeof(sqlBuf));
+    U_ASSERT(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
@@ -7316,7 +7407,7 @@ int DB_GetSubDeviceItemCount(QLatin1String uniqueId)
 {
     int result = 0;
 
-    assert(db); // should be called while db is open
+    U_ASSERT(db); // should be called while db is open
     if (!db)
     {
         return result;
@@ -7326,7 +7417,7 @@ int DB_GetSubDeviceItemCount(QLatin1String uniqueId)
                                          " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%s')",
                                          uniqueId.data());
 
-    assert(size_t(rc) < sizeof(sqlBuf));
+    U_ASSERT(size_t(rc) < sizeof(sqlBuf));
     if (size_t(rc) < sizeof(sqlBuf))
     {
         sqlite3_stmt *res = nullptr;
@@ -7360,7 +7451,7 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(QLatin1String uniqueId)
 {
     std::vector<DB_ResourceItem> result;
 
-    assert(uniqueId.size() <= 64);
+    U_ASSERT(uniqueId.size() <= 64);
     if (uniqueId.size() > 64)
     {
         return result;
@@ -7377,7 +7468,7 @@ std::vector<DB_ResourceItem> DB_LoadSubDeviceItems(QLatin1String uniqueId)
                                          " WHERE sub_device_id = (SELECT id FROM sub_devices WHERE uniqueid = '%s')",
                                          uniqueId.data());
 
-    assert(size_t(ret) < sizeof(sqlBuf));
+    U_ASSERT(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
@@ -7494,7 +7585,7 @@ bool DB_LoadLegacySensorValue(DB_LegacyItem *litem)
     int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT %s FROM sensors WHERE uniqueid = '%s' AND deletedState = 'normal'",
                        column.c_str(), litem->uniqueId.c_str());
 
-    assert(size_t(ret) < sizeof(sqlBuf));
+    U_ASSERT(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
@@ -7543,7 +7634,7 @@ std::vector<std::string> DB_LoadLegacySensorUniqueIds(QLatin1String deviceUnique
     int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT uniqueid FROM sensors WHERE uniqueid LIKE '%%%s%%' AND type = '%s' AND deletedState = 'normal'",
                        deviceUniqueId.data(), type);
 
-    assert(size_t(ret) < sizeof(sqlBuf));
+    U_ASSERT(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;
@@ -7574,7 +7665,7 @@ bool DB_LoadLegacyLightValue(DB_LegacyItem *litem)
     litem->value.clear();
 
     int ret = snprintf(sqlBuf, sizeof(sqlBuf), "SELECT %s FROM nodes WHERE mac = '%s'", litem->column .c_str(), litem->uniqueId.c_str());
-    assert(size_t(ret) < sizeof(sqlBuf));
+    U_ASSERT(size_t(ret) < sizeof(sqlBuf));
     if (size_t(ret) < sizeof(sqlBuf))
     {
         char *errmsg = nullptr;

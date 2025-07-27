@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2024 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -9,6 +9,7 @@
  */
 
 #include <QTimeZone>
+#include "deconz/u_assert.h"
 #include "device_access_fn.h"
 #include "device_descriptions.h"
 #include "device_js/device_js.h"
@@ -159,6 +160,7 @@ struct WriteFunction
 };
 
 quint8 zclNextSequenceNumber(); // todo defined in de_web_plugin_private.h
+uint8_t DEV_ResolveDestinationEndpoint(uint64_t extAddr, uint8_t hintEp, uint16_t cluster, uint8_t frameControl); // device.h
 
 /*! Helper to get an unsigned int from \p var which might be a number or string value.
 
@@ -224,6 +226,7 @@ static ZCL_Param getZclParam(const QVariantMap &param)
     }
     else
     {
+        result.frameControl = 0;
         result.hasFrameControl = 0;
     }
 
@@ -280,15 +283,25 @@ quint8 resolveAutoEndpoint(const Resource *r)
 {
     quint8 result = AutoEndpoint;
 
-    // hack to get endpoint. todo find better solution
-    const auto ls = r->item(RAttrUniqueId)->toString().split('-', SKIP_EMPTY_PARTS);
-    if (ls.size() >= 2)
+    U_ASSERT(r);
+    if (r)
     {
-        bool ok = false;
-        uint ep = ls[1].toUInt(&ok, 16);
-        if (ok && ep < BroadcastEndpoint)
+        const ResourceItem *itemUniqueId = r->item(RAttrUniqueId);
+
+        U_ASSERT(itemUniqueId);
+        if (itemUniqueId)
         {
-            result = ep;
+            // hack to get endpoint. todo find better solution
+            const auto ls = itemUniqueId->toString().split('-', SKIP_EMPTY_PARTS);
+            if (ls.size() >= 2)
+            {
+                bool ok = false;
+                uint ep = ls[1].toUInt(&ok, 16);
+                if (ok && ep < BroadcastEndpoint)
+                {
+                    result = ep;
+                }
+            }
         }
     }
 
@@ -1733,14 +1746,8 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
 
     if (param.endpoint == AutoEndpoint)
     {
-        if (r->prefix() == RDevices)
-        {
-            param.endpoint = item->readEndpoint();
-        }
-        else
-        {
-            param.endpoint = resolveAutoEndpoint(r);
-        }
+        param.endpoint = resolveAutoEndpoint(r);
+        param.endpoint = DEV_ResolveDestinationEndpoint(extAddr->toNumber(), param.endpoint, param.clusterId, param.frameControl);
 
         if (param.endpoint == AutoEndpoint)
         {
@@ -1806,6 +1813,7 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
     if (param.endpoint == AutoEndpoint)
     {
         param.endpoint = resolveAutoEndpoint(r);
+        param.endpoint = DEV_ResolveDestinationEndpoint(extAddr->toNumber(), param.endpoint, param.clusterId, param.frameControl);
 
         if (param.endpoint == AutoEndpoint)
         {
@@ -1923,6 +1931,17 @@ static DA_ReadResult sendZclCommand(const Resource *r, const ResourceItem *item,
         else
         {
             DBG_Printf(DBG_DDF, "failed to evaluate expression for %s/%s: %s, err: %s\n", qPrintable(r->item(RAttrUniqueId)->toString()), item->descriptor().suffix, qPrintable(expr), qPrintable(engine.errorString()));
+            return result;
+        }
+    }
+
+    if (param.endpoint == BroadcastEndpoint || param.endpoint == AutoEndpoint)
+    {
+        param.endpoint = resolveAutoEndpoint(r);
+        param.endpoint = DEV_ResolveDestinationEndpoint(extAddr->toNumber(), param.endpoint, param.clusterId, param.frameControl);
+
+        if (param.endpoint == BroadcastEndpoint || param.endpoint == AutoEndpoint)
+        {
             return result;
         }
     }

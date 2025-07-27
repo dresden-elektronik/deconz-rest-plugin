@@ -5,6 +5,7 @@
   "access": "R",
   "public": true,
   "implicit": false,
+  "default": 0,
   "description": "ZCL Basic cluster application version.",
   "parse": {
     "fn": "zcl:attr",
