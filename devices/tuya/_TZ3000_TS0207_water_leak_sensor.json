@@ -44,7 +44,7 @@
     "TS0207"
   ],
   "vendor": "Tuya",
-  "product": "Wwater leak sensor (TS0207)",
+  "product": "Water leak sensor (TS0207)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
