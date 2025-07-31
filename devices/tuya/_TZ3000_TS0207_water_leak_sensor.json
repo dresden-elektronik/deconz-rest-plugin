@@ -19,6 +19,7 @@
     "_TZ3000_awvmkayh",
     "_TZ3000_kstbkt6a",
     "_TZ3000_arw23zcs",
+    "_TZ3000_amis43tj",
     "_TZ3000_wuep9zng"
   ],
   "modelid": [
@@ -39,10 +40,11 @@
     "TS0207",
     "TS0207",
     "TS0207",
+    "TS0207",
     "TS0207"
   ],
   "vendor": "Tuya",
-  "product": "Wwater leak sensor (TS0207)",
+  "product": "Water leak sensor (TS0207)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
