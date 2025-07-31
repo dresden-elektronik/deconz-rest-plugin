@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "dbafbb9a-8a8e-4114-9b02-4f50d265747a",
   "manufacturername": "SONOFF",
   "modelid": "S60ZBTPF",
   "vendor": "Sonoff",
