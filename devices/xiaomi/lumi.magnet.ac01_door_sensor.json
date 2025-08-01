@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "a2e1d3e4-9d1b-4b02-8a91-eb60c260ea37",
   "manufacturername": "$MF_LUMI",
   "modelid": "lumi.magnet.ac01",
   "vendor": "Xiaomi Aqara",
