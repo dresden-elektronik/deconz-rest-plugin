@@ -13,6 +13,7 @@
   "product": "PLUG (COMPACT) EU EM T",
   "sleeper": false,
   "status": "Gold",
+  "supportsMgmtBind": false,
   "subdevices": [
     {
       "type": "$TYPE_SMART_PLUG",
