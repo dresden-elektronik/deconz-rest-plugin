@@ -522,7 +522,7 @@ void DeRestPluginPrivate::initWiFi()
     if (gwWifiLastUpdated == 0)
     {
         QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
-        gwWifiLastUpdated = currentDateTime.toTime_t();
+        gwWifiLastUpdated = currentDateTime.currentMSecsSinceEpoch() / 1000;
         queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
     }
 
@@ -2986,7 +2986,7 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
     if (changed)
     {
         QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
-        gwWifiLastUpdated = currentDateTime.toTime_t();
+        gwWifiLastUpdated = currentDateTime.currentMSecsSinceEpoch() / 1000;
 
         updateEtag(gwConfigEtag);
         queSaveDb(DB_CONFIG | DB_SYNC, DB_FAST_SAVE_DELAY);
