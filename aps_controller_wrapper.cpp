@@ -8,6 +8,7 @@
  *
  */
 
+#include <QIODevice>
 #include <deconz/zdp_profile.h>
 #include <deconz/aps_controller.h>
 #include <deconz/dbg_trace.h>
