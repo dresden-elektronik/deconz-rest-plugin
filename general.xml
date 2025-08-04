@@ -3398,6 +3398,15 @@ Displayed setpoint is not affected, but regulated setpoint will change. Can be u
           </attribute>
           <attribute id="0x0035" name="Lamp Burn Hours Trip Point" type="u24" access="rw" range="0x000000,0xfffffe" default="0x000000" required="o"></attribute>
         </attribute-set>
+        <attribute-set id="0xe000" description="Dimmer Mode" mfcode="0x105e">
+          <attribute id="0xE000" name="Dimmer Mode" type="enum8" default="0x00" access="rw" required="o" mfcode="0x105e">
+            <description>Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)</description>
+            <value name="Auto" value="0"></value>
+            <value name="RC" value="1"></value>
+            <value name="RL" value="2"></value>
+            <value name="RL_LED" value="3"></value>
+          </attribute>
+        </attribute-set>
       </server>
       <client>
       </client>
@@ -6828,3 +6837,4 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
     </device>
   </devices>
 </zcl>
+
