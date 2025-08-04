@@ -14,7 +14,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-find_package(Qt5 COMPONENTS Core Widgets Network WebSockets REQUIRED)
+if (QT_VERSION_MAJOR EQUAL 6)
+    find_package(Qt6 COMPONENTS Core Widgets Network WebSockets Core5Compat REQUIRED)
+else()
+    find_package(Qt5 COMPONENTS Core Widgets Network WebSockets REQUIRED)
+endif()
+
 find_package(Git REQUIRED)
 
 if (UNIX)
@@ -290,22 +295,29 @@ if (OPENSSL_FOUND)
     endif()
 endif()
 
-if (Qt5Core_VERSION_STRING VERSION_LESS "5.15.0")
+if (QT_VERSION_MAJOR GREATER 5)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE SKIP_EMPTY_PARTS=Qt::SkipEmptyParts )
+elseif (Qt5Core_VERSION_STRING VERSION_LESS "5.15.0")
     target_compile_definitions(${PROJECT_NAME} PRIVATE SKIP_EMPTY_PARTS=QString::SkipEmptyParts )
 else()
     target_compile_definitions(${PROJECT_NAME} PRIVATE SKIP_EMPTY_PARTS=Qt::SkipEmptyParts )
 endif()
 
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE Qt5::Core
-    PRIVATE Qt5::Gui
-    PRIVATE Qt5::Widgets
-    PRIVATE Qt5::Network
-    PRIVATE Qt5::WebSockets
+    PRIVATE Qt${QT_VERSION_MAJOR}::Core
+    PRIVATE Qt${QT_VERSION_MAJOR}::Gui
+    PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
+    PRIVATE Qt${QT_VERSION_MAJOR}::Network
+    PRIVATE Qt${QT_VERSION_MAJOR}::WebSockets
     PRIVATE SQLite::SQLite3
     PRIVATE deCONZLib
     PRIVATE am_plugin_hdr
 )
+
+# needed for a few classes like QRegExp
+if (QT_VERSION_MAJOR EQUAL 6)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Core5Compat)
+endif()
 
 #--------------------------------------------------------------
 include(GNUInstallDirs)
