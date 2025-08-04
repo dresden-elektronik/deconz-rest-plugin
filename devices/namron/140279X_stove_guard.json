@@ -144,8 +144,14 @@
                     "default": 0
                 },
                 {
+                    "name": "config/on"
+                },
+                {
+                    "name": "config/reachable"
+                },
+                {
                     "name": "state/alarm",
-                    "refresh.interval": 5,
+                    "refresh.interval": 360,
                     "read": {
                         "at": "0x0000",
                         "cl": "0x0006",
@@ -416,7 +422,7 @@
           "at": "0x0000",
           "dt": "0x10",
           "min": 1,
-          "max": 3600,
+          "max": 3540,
           "change": "0x00000001"
         }
       ]
