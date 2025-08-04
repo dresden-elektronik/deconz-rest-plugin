@@ -15,7 +15,9 @@
 #include <QtCore/qmath.h>
 #include <QNetworkAccessManager>
 #include <QPushButton>
-#include <QTextCodec>
+#if QT_VERSION_MAJOR < 6
+  #include <QTextCodec>
+#endif
 #include <QTime>
 #include <QTimer>
 #include <QTcpSocket>
@@ -15699,7 +15701,12 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     ScratchMemRewind(0);
     ScratchMemWaypoint swp;
 
+#if QT_VERSION_MAJOR < 6
     stream.setCodec(QTextCodec::codecForName("UTF-8"));
+#else
+    stream.setEncoding(QStringConverter::Utf8);
+#endif
+
     d->pushClientForClose(sock, 60);
 
     if (DBG_IsEnabled(DBG_HTTP))

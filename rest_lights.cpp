@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2023 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -9,7 +9,6 @@
  */
 
 #include <QString>
-#include <QTextCodec>
 #include <QTcpSocket>
 #include <QUrlQuery>
 #include <QVariantMap>
