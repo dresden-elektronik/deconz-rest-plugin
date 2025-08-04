@@ -1179,7 +1179,7 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
             {
                 DBG_HexToAscii(&mmoHash[0], mmoHash.size(), reinterpret_cast<unsigned char*>(&mmoHashHex[0]));
             }
-            m["key"] = &mmoHashHex[0];
+            m["key"] = QString::fromLatin1(&mmoHashHex[0]);
             if (ok && strlen(mmoHashHex) == 32)
             {
                 ok = deCONZ::ApsController::instance()->setParameter(deCONZ::ParamLinkKey, m);
@@ -1187,8 +1187,8 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
 #endif
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState["installcode"] = installCode.data();
-            rspItemState["mmohash"] = &mmoHashHex[0];
+            rspItemState["installcode"] = QString::fromLatin1(installCode.data());
+            rspItemState["mmohash"] = QString::fromLatin1(&mmoHashHex[0]);
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
             rsp.httpStatus = HttpStatusOk;
@@ -1388,7 +1388,7 @@ int RestDevices::putDeviceSetDDFPolicy(const ApiRequest &req, ApiResponse &rsp)
         QVariantMap result;
         QVariantMap item;
 
-        item[QString("/devices/%1/ddf/policy").arg(uniqueId)] = policyBuf;
+        item[QString("/devices/%1/ddf/policy").arg(uniqueId)] = QString::fromLatin1(policyBuf);
         result["success"] = item;
         rsp.list.append(result);
     }
@@ -1397,7 +1397,7 @@ int RestDevices::putDeviceSetDDFPolicy(const ApiRequest &req, ApiResponse &rsp)
     {
         QVariantMap result;
         QVariantMap item;
-        item[QString("/devices/%1/ddf/hash").arg(uniqueId)] = bundleHashBuf;
+        item[QString("/devices/%1/ddf/hash").arg(uniqueId)] = QString::fromLatin1(bundleHashBuf);
         result["success"] = item;
         rsp.list.append(result);
     }
