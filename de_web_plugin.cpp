@@ -966,6 +966,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         if (!item->toBool())
         {
             item->setValue(true);
+            item->setNeedStore();
             enqueueEvent(Event(device->prefix(), item->descriptor().suffix, 0, device->key()));
         }
     }
