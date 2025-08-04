@@ -657,7 +657,7 @@ std::vector<ButtonMeta> loadButtonMetaJson(const QJsonDocument &buttonMapsDoc, c
 
                 bool ok = false;
                 ButtonMeta::Button b;
-                b.button = k.midRef(buttonPrefix.size()).toInt(&ok);
+                b.button = k.mid(buttonPrefix.size()).toInt(&ok);
 
                 if (ok)
                 {
