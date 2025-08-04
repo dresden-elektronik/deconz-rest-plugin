@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8,6 +8,7 @@
  *
  */
 
+#include <QIODevice>
 #include <QTimeZone>
 #include "deconz/u_assert.h"
 #include "device_access_fn.h"
