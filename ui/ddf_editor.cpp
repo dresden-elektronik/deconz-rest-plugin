@@ -4,7 +4,6 @@
 #include <QDragEnterEvent>
 #include <QFileInfo>
 #include <QLineEdit>
-#include <QRegExpValidator>
 #include <QMimeData>
 #include <QUrlQuery>
 #include <QTimer>
