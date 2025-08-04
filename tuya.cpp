@@ -1604,8 +1604,8 @@ bool DeRestPluginPrivate::sendTuyaRequestThermostatSetWeeklySchedule(TaskItem &t
         {
             return false;
         }
-        hh = attributes.at(0).midRef(0, 2).toUInt();
-        mm = attributes.at(0).midRef(3, 2).toUInt();
+        hh = attributes.at(0).mid(0, 2).toUInt();
+        mm = attributes.at(0).mid(3, 2).toUInt();
         heatSetpoint = attributes.at(1).toInt();
 
         data.append(QByteArray::number(hh, 16));
