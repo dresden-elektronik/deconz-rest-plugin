@@ -3,18 +3,20 @@
   "uuid": "52815a37-6180-4ab8-83ef-021d75496a7b",
   "manufacturername": [
     "eWeLink",
+    "eWeLink",
     "SONOFF",
     "SONOFF",
     "eWeLink"
   ],
   "modelid": [
+    "CK-TLSR8656-SS5-01(7014)",
     "TH01",
     "SNZB-02D",
     "SNZB-02P",
     "SNZB-02P"
   ],
-  "vendor": "Sonoff",
-  "product": "Temperature and humidity sensor (SNZB-02)",
+  "vendor": "Sonoff/eWeLink",
+  "product": "Temperature and humidity sensor",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
