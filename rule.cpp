@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8,6 +8,7 @@
  *
  */
 
+#include <QRegExp>
 #include "ias_ace.h"
 #include "rule.h"
 

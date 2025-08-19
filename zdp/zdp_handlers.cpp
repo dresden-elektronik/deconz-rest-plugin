@@ -123,6 +123,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                 item->setValue(true); // refresh timestamp after device announce
                 if (i->state() == LightNode::StateNormal)
                 {
+                    item->setNeedStore();
                     Event e(i->prefix(), RStateReachable, i->id(), item);
                     enqueueEvent(e);
                 }

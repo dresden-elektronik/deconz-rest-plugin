@@ -1,24 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "d333ea82-790f-42e4-ac3b-c255f67a95be",
-  "manufacturername": [
-    "_TZ3000_gbm10jnj",
-    "_TZ3000_sj7jbgks",
-    "_TZ3000_famkxci2",
-    "_TZ3000_w3c7ouru",
-    "_TZ3000_yw5tvzsk",
-    "_TZ3000_pkeqinnt"
-  ],
-  "modelid": [
-    "TS0043",
-    "TS0043",
-    "TS0043",
-    "TS0043",
-    "TS0043",
-    "TS0043"
-  ],
+  "uuid": "88ea427a-0442-49cb-a824-25429bab7e88",
+  "manufacturername": "_TZ3000_w8jwkczz",
+  "modelid": "TS0043",
   "vendor": "Tuya",
-  "product": "3-gang remote (TS0043)",
+  "product": "3-gang remote (TS0043) locked version",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -101,25 +87,14 @@
         },
         {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "config/tuya_unlock"
         }
       ]
     }
   ],
   "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0001",
-      "report": [
-        {
-          "at": "0x0021",
-          "dt": "0x20",
-          "min": 60,
-          "max": 3600,
-          "change": "0x00000001"
-        }
-      ]
-    },
     {
       "bind": "unicast",
       "src.ep": 1,

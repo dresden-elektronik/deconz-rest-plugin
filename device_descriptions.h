@@ -47,14 +47,14 @@ class DDF_Binding
 public:
     union
     {
-        quint16 dstGroup;
-        quint64 dstExtAddress;
+        uint64_t dstExtAddress = 0;
+        uint16_t dstGroup;
     };
 
-    quint16 clusterId;
-    quint8 srcEndpoint;
-    quint8 dstEndpoint;
-    quint8 configGroup;
+    uint16_t clusterId = 0;
+    uint8_t srcEndpoint = 0;
+    uint8_t dstEndpoint = 0;
+    uint8_t configGroup = 0;
     struct
     {
         unsigned int isGroupBinding : 1;

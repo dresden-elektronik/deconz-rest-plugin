@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -11,7 +11,6 @@
 #include <QBuffer>
 #include <QString>
 #include <QVariantMap>
-#include <QRegExp>
 #include <QStringBuilder>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -1452,7 +1451,7 @@ int DeRestPluginPrivate::handleWebHook(const RuleAction &action)
 {
     QNetworkRequest req(QUrl(action.address()));
 
-    QBuffer *data = new QBuffer(this);
+    QBuffer *data = new QBuffer(webhookManager);
     DBG_Assert(data);
     if (!data)
     {

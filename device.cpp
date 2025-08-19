@@ -890,6 +890,7 @@ void DEV_CheckReachable(Device *device)
         if (item && ((item->toBool() != devReachable) || !item->lastSet().isValid()))
         {
             r->setValue(item->descriptor().suffix, devReachable);
+            item->setNeedStore();
         }
     }
 }

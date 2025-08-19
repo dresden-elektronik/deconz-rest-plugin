@@ -1,0 +1,104 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "a2e1d3e4-9d1b-4b02-8a91-eb60c260ea37",
+  "manufacturername": "$MF_LUMI",
+  "modelid": "lumi.magnet.ac01",
+  "vendor": "Xiaomi Aqara",
+  "product": "Aqara Door Window Sensor P1 Zigbee 3.0",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0500",
+          "0xFCC0"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "eval": "Item.val = '0.0.0_' + ('0000' + (Attr.val & 0xFF).toString()).slice(-4)",
+            "fn": "xiaomi:special",
+            "idx": "0x08",
+            "mf": "0x115f"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x01",
+            "mf": "0x115f",
+            "script": "xiaomi_battery.js"
+          }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/open",
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0006",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,322 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "e01a313e-24b3-4e72-a775-6f74b2fe2939",
+  "manufacturername": [
+    "_TZE200_npj9bug3"
+  ],
+  "modelid": [
+    "TS0601"
+  ],
+  "vendor": "Haozse",
+  "product": "Haozse Tuya Soil Sensor (TS0601)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "config/tuya_unlock"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 15,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lowbattery",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 14,
+            "eval": "Item.val = (Attr.val == 0 ? true : false);",
+            "fn": "tuya"
+          },
+          "default": false
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 5,
+            "eval": "Item.val = Attr.val * 10;",
+            "fn": "tuya"
+          },
+          "default": 0,
+          "awake": true
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_HUMIDITY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0405"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+		},
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 15,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lowbattery",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 14,
+            "eval": "Item.val = (Attr.val == 0 ? true : false);",
+            "fn": "tuya"
+          },
+          "default": false
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/humidity",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 109,
+            "eval": "Item.val = Attr.val * 100;",
+            "fn": "tuya"
+          },
+          "default": 0,
+          "awake": true
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_MOISTURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0408"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 15,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lowbattery",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 14,
+            "eval": "Item.val = (Attr.val == 0 ? true : false);",
+            "fn": "tuya"
+          },
+          "default": false
+        },
+        {
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/moisture",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 3,
+            "eval": "Item.val = Attr.val * 100;",
+            "fn": "tuya"
+          },
+          "default": 0,
+          "awake": true
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ]
+}
