@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2024 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2020-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8,6 +8,7 @@
  *
  */
 
+#include <QIODevice>
 #include <QDataStream>
 
 #ifdef HAS_OPENSSL

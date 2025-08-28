@@ -1,15 +1,15 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "4b16f6c7-b57e-4d7a-9eff-894c5023ab9e",
-  "manufacturername": ["innr", "innr"],
-  "modelid": ["SP 240", "SP 242"],
-  "vendor": "Innr",
-  "product": "Smart plug (SP 240)",
+  "uuid": "dbafbb9a-8a8e-4114-9b02-4f50d265747a",
+  "manufacturername": "SONOFF",
+  "modelid": "S60ZBTPF",
+  "vendor": "Sonoff",
+  "product": "Zigbee smart plug",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_ON_OFF_PLUGIN_UNIT",
+      "type": "$TYPE_SMART_PLUG",
       "restapi": "/lights",
       "uuid": [
         "$address.ext",
@@ -35,15 +35,6 @@
           "name": "attr/name"
         },
         {
-          "name": "cap/otau/file_version"
-        },
-        {
-          "name": "cap/otau/image_type"
-        },
-        {
-          "name": "cap/otau/manufacturer_code"
-        },
-        {
           "name": "attr/swversion"
         },
         {
@@ -51,6 +42,9 @@
         },
         {
           "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on/startup"
         },
         {
           "name": "state/alert"
@@ -92,15 +86,6 @@
           "name": "attr/name"
         },
         {
-          "name": "cap/otau/file_version"
-        },
-        {
-          "name": "cap/otau/image_type"
-        },
-        {
-          "name": "cap/otau/manufacturer_code"
-        },
-        {
           "name": "attr/swversion"
         },
         {
@@ -118,12 +103,20 @@
         {
           "name": "state/consumption",
           "refresh.interval": 360,
-          "parse": {
-            "at": "0x0000",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
             "cl": "0x0702",
-            "ep": 0,
-            "eval": "Item.val = Attr.val * 10;"
-          }
+            "at": "0x0000"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0702",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val"
+          },
+          "default": 0
         },
         {
           "name": "state/lastupdated"
@@ -136,7 +129,7 @@
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0b04"
+        "0x0B04"
       ],
       "items": [
         {
@@ -158,15 +151,6 @@
           "name": "attr/name"
         },
         {
-          "name": "cap/otau/file_version"
-        },
-        {
-          "name": "cap/otau/image_type"
-        },
-        {
-          "name": "cap/otau/manufacturer_code"
-        },
-        {
           "name": "attr/swversion"
         },
         {
@@ -183,6 +167,20 @@
         },
         {
           "name": "state/current",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x0508",
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val * 10; }"
+          },
+          "default": 0,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x0508"
+          },
           "refresh.interval": 360
         },
         {
@@ -190,10 +188,56 @@
         },
         {
           "name": "state/power",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x050B",
+            "eval": "if (Attr.val != -32768) { Item.val = Math.round(Attr.val / R.item('state/power_divisor').val) }"
+          },
+          "default": 0,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x050B"
+          },
+          "refresh.interval": 360
+        },
+        {
+          "name": "state/power_divisor",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x0605",
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; R.item('state/power').val = Math.round(R.item('state/power').val / R.item('state/power_divisor').val) }"
+          },
+          "default": 1,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x0605"
+          },
           "refresh.interval": 360
         },
         {
           "name": "state/voltage",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x0505",
+            "eval": "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 100) }"
+          },
+          "default": 0,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x0505"
+          },
           "refresh.interval": 360
         }
       ]
@@ -203,7 +247,6 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "dst.ep": 1,
       "cl": "0x0006",
       "report": [
         {
@@ -224,7 +267,7 @@
           "dt": "0x25",
           "min": 1,
           "max": 300,
-          "change": "0x0000000A"
+          "change": "0x000000000000000000000001"
         }
       ]
     },
@@ -238,7 +281,7 @@
           "dt": "0x21",
           "min": 1,
           "max": 300,
-          "change": "0x00000001"
+          "change": "0x0000000A"
         },
         {
           "at": "0x0508",
@@ -250,6 +293,13 @@
         {
           "at": "0x050B",
           "dt": "0x29",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0605",
+          "dt": "0x21",
           "min": 1,
           "max": 300,
           "change": "0x00000001"

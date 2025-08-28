@@ -1,20 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "52815a37-6180-4ab8-83ef-021d75496a7b",
-  "manufacturername": [
-    "eWeLink",
-    "SONOFF",
-    "SONOFF",
-    "eWeLink"
-  ],
-  "modelid": [
-    "TH01",
-    "SNZB-02D",
-    "SNZB-02P",
-    "SNZB-02P"
-  ],
+  "uuid": "5db6122f-8d0e-4ac4-93be-333f3f42e468",
+  "manufacturername": "SONOFF",
+  "modelid": "SNZB-02LD",
   "vendor": "Sonoff",
-  "product": "Temperature And Humidity Sensor (SNZB-02)",
+  "product": "Temperature sensor with screen (SNZB-02LD)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -115,104 +105,6 @@
           "default": 0
         }
       ]
-    },
-    {
-      "type": "$TYPE_HUMIDITY_SENSOR",
-      "restapi": "/sensors",
-      "uuid": [
-        "$address.ext",
-        "0x01",
-        "0x0405"
-      ],
-      "fingerprint": {
-        "profile": "0x0104",
-        "device": "0x0302",
-        "endpoint": "0x01",
-        "in": [
-          "0x0000",
-          "0x0001",
-          "0x0405"
-        ]
-      },
-      "items": [
-        {
-          "name": "attr/id"
-        },
-        {
-          "name": "attr/lastannounced"
-        },
-        {
-          "name": "attr/lastseen"
-        },
-        {
-          "name": "attr/manufacturername"
-        },
-        {
-          "name": "attr/modelid"
-        },
-        {
-          "name": "attr/name"
-        },
-        {
-          "name": "attr/swversion",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0006",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
-        },
-        {
-          "name": "config/battery",
-          "awake": true,
-          "refresh.interval": 7265,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          },
-          "default": 0
-        },
-        {
-          "name": "config/offset",
-          "default": 0
-        },
-        {
-          "name": "config/on"
-        },
-        {
-          "name": "config/reachable"
-        },
-        {
-          "name": "state/humidity",
-          "awake": true,
-          "default": 0
-        },
-        {
-          "name": "state/lastupdated"
-        }
-      ]
     }
   ],
   "bindings": [
@@ -228,21 +120,6 @@
           "min": 3600,
           "max": 7200,
           "change": "0x00000002"
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0405",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x21",
-          "min": 60,
-          "max": 600,
-          "change": "0x00000064"
         }
       ]
     },

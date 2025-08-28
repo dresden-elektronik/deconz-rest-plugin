@@ -4,13 +4,17 @@
   "manufacturername": [
     "$MF_PHILIPS",
     "$MF_PHILIPS",
+    "$MF_PHILIPS",
+    "$MF_SIGNIFY",
     "$MF_SIGNIFY",
     "$MF_SIGNIFY"
   ],
   "modelid": [
     "LOM001",
+    "LOM006",
     "LOM007",
-    "LOM001",
+    "LOM001",   
+    "LOM006",
     "LOM007"
   ],
   "vendor": "Philips",

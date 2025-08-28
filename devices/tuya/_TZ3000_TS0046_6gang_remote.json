@@ -1,25 +1,11 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "d333ea82-790f-42e4-ac3b-c255f67a95be",
-  "manufacturername": [
-    "_TZ3000_gbm10jnj",
-    "_TZ3000_sj7jbgks",
-    "_TZ3000_famkxci2",
-    "_TZ3000_w3c7ouru",
-    "_TZ3000_yw5tvzsk",
-    "_TZ3000_pkeqinnt"
-  ],
-  "modelid": [
-    "TS0043",
-    "TS0043",
-    "TS0043",
-    "TS0043",
-    "TS0043",
-    "TS0043"
-  ],
+  "uuid": "f793c757-9e37-483f-928a-08706086608d",
+  "manufacturername": "_TZ3000_nrfkrgf4",
+  "modelid": "TS0046",
   "vendor": "Tuya",
-  "product": "3-gang remote (TS0043)",
-  "sleeper": false,
+  "product": "Tuya 6-gang remote (TS0046)",
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
@@ -51,7 +37,6 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -74,24 +59,26 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "refresh.interval": 86400,
           "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
+            "fn": "zcl:attr",
             "ep": 1,
-            "fn": "zcl:attr"
+            "cl": "0x0001",
+            "at": "0x0021"
           },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          },
-          "default": 0
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "config/on"
+        },
+        {
+          "name": "config/tuya_unlock"
         },
         {
           "name": "config/reachable"
@@ -109,22 +96,22 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
       "cl": "0x0001",
       "report": [
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
-          "change": "0x00000001"
+          "min": 64500,
+          "max": 65500,
+          "change": "0x00000002"
         }
       ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0006"
     },
     {
       "bind": "unicast",
@@ -135,6 +122,12 @@
     {
       "bind": "unicast",
       "src.ep": 3,
+      "dst.ep": 1,
+      "cl": "0x0006"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 4,
       "dst.ep": 1,
       "cl": "0x0006"
     }
