@@ -6581,6 +6581,56 @@ Writing 1 to 0x0202 and 0x0302 makes 0x0300 writable. Then writing 1 to 0x0300 s
     </cluster>
   </domain>
 
+  <!-- Shelly -->
+  <domain name="Shelly Manufacturer Specific" useZcl="true" description="Shelly Manufacturer specific clusters.">
+    <cluster id="0xfc01" name="Shelly RPC Cluster" mfcode="0x1490">
+      <description>The Shelly RPC Cluster is a custom Zigbee cluster that acts as a channel for the Shelly RPC protocol. It accepts incoming frames and makes outgoing ones available for collection.</description>
+      <server>
+        <attribute id="0x0000" name="Data" type="cstring" mfcode="0x1490" access="rw" required="o">
+          <description>The Data attribute is used both to submit frames to the device and to read frames back from the device.</description>
+        </attribute>
+        <attribute id="0x0001" name="TxCtl" type="u32" mfcode="0x1490" access="w" required="o">
+          <description>Before sending a frame, the length of the frame must be written in the TxCtl attribute. Then, the data can be transmitted to the device by sequential write requests to the Data attribute.
+            Chunking can be arbitrary, but the result must add up to the specified length exactly, at which point the frame will be processed.
+            Writing to TxCtl clears out any half-written frame that might be buffered, so the writer needs to ensure that there is only one frame in flight at any time.</description>
+        </attribute>
+        <attribute id="0x0002" name="RxCtl" type="u32" mfcode="0x1490" access="r" required="o">
+          <description>The RxCtl attribute contains the length of the frame that the device wishes to transmit back.
+            If this value is not zero, frame data will be returned in response to sequential read requests to the Data attribute. In this case, chunking will be determined by the device.</description>
+        </attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
+    <cluster id="0xfc02" name="Shelly WiFi Setup Cluster" mfcode="0x1490">
+      <description>The Shelly WiFi Setup Cluster is a custom Zigbee cluster that allows Zigbee networks to read, modify, and apply the station configuration of the Shelly WiFi component.</description>
+      <server>
+        <attribute id="0x0000" name="Status" type="cstring" mfcode="0x1490" access="r" required="o"> </attribute>
+        <attribute id="0x0001" name="IP" type="cstring" mfcode="0x1490" access="r" required="o"> </attribute>
+        <attribute id="0x0002" name="Action" type="u8" mfcode="0x1490" access="w" required="o" range="0,1">
+          <description>Writing the value of 0 to the Action attribute will reset all attributes to the current device configuration. Writing the value of 1 will set and automatically apply the configuration
+            currently available in the Zigbee attributes.</description>
+        </attribute>
+        <attribute id="0x0003" name="DHCP" type="bool" mfcode="0x1490" access="r" required="o"> </attribute>
+        <attribute id="0x0004" name="Enable" type="bool" mfcode="0x1490" access="rw" required="o"> </attribute>
+        <attribute id="0x0005" name="SSID" type="cstring" mfcode="0x1490" access="rw" required="o"> </attribute>
+        <attribute id="0x0006" name="Password" type="cstring" mfcode="0x1490" access="w" required="o"> </attribute>
+        <attribute id="0x0007" name="StaticIP" type="cstring" mfcode="0x1490" access="rw" required="o"> </attribute>
+        <attribute id="0x0008" name="NetMask" type="cstring" mfcode="0x1490" access="rw" required="o"> </attribute>
+        <attribute id="0x0009" name="Gateway" type="cstring" mfcode="0x1490" access="rw" required="o"> </attribute>
+        <attribute id="0x000a" name="NameServer" type="cstring" mfcode="0x1490" access="rw" required="o"> </attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+  </domain>
+
+  <profile id="0xc001" name="Shelly Specific Profile" description="Profile used by Shelly." version="1.0" rev="1" icon="dev-unknown.svg">
+    <device id="0x2001" name="Devce Configuration" description=""></device>
+    <domain-ref name="Shelly Manufacturer Specific" low_bound="0xfc00" />
+  </profile>
+
   <profile id="0104" name="Home Automation" description="This profile defines device descriptions and standard practices for applications needed in a residential or light commercial environment. Installation scenarios range from a single room to an entire home up to 20,000 square feet (approximately 1850m2)." version="1.0" rev="25" icon="ha.png">
     <domain-ref name="General" low_bound="0000" />
     <domain-ref name="Measurement and Sensing" low_bound="0400" />
