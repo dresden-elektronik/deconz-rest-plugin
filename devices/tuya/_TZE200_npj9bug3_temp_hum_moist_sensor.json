@@ -2,10 +2,12 @@
   "schema": "devcap1.schema.json",
   "uuid": "e01a313e-24b3-4e72-a775-6f74b2fe2939",
   "manufacturername": [
-    "_TZE200_npj9bug3"
+    "_TZE200_npj9bug3",
+	"HOBEIAN"
   ],
   "modelid": [
-    "TS0601"
+    "TS0601",
+	"ZG-303Z"
   ],
   "vendor": "Haozse",
   "product": "Haozse Tuya Soil Sensor (TS0601)",
