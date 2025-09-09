@@ -1,7 +1,7 @@
 {
   "schema": "devcap1.schema.json",
-  "manufacturername": "TS0601",
-  "modelid": "_TZE200_u6x1zyv2",
+  "manufacturername": "_TZE200_u6x1zyv2",
+  "modelid": "TS0601",
   "vendor": "Tuya",
   "product": "Raindrop detection sensor",
   "sleeper": true,
