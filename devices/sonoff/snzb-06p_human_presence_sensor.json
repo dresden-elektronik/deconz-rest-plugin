@@ -3,7 +3,7 @@
   "uuid": "3c8bf87a-c713-40f4-81f5-794668662737",
   "manufacturername": "SONOFF",
   "modelid": "SNZB-06P",
-  "vendor": "Sonoff",
+  "vendor": "Sonoff/eWeLink",
   "product": "Human presence sensor (SNZB-06P)",
   "sleeper": false,
   "status": "Gold",

@@ -1,10 +1,16 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "788e1511-cf29-47c0-8344-20511dc9a120",
-  "manufacturername": "eWeLink",
-  "modelid": "SNZB-03",
-  "vendor": "SONOFF",
-  "product": "Water sensor",
+  "uuid": "3c8bf87a-c713-40f4-81f5-794668662738",
+  "manufacturername": [
+    "SONOFF",
+    "HOBEIAN"
+  ],
+  "modelid": [
+    "SNZB-05P",
+    "ZG-222Z"
+  ],
+  "vendor": "Sonoff/eWeLink",
+  "product": "Water leak sensor (SNZB-05P)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -16,16 +22,6 @@
         "0x01",
         "0x0500"
       ],
-      "fingerprint": {
-        "profile": "0x0104",
-        "device": "0x0402",
-        "endpoint": "0x01",
-        "in": [
-          "0x0000",
-          "0x0001",
-          "0x0500"
-        ]
-      },
       "items": [
         {
           "name": "attr/id"
@@ -56,6 +52,7 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "refresh.interval": 7265,
           "read": {
             "at": "0x0021",
@@ -83,12 +80,26 @@
         },
         {
           "name": "state/water",
-          "awake": true
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0500",
+            "at": "0x0002"
+          },
+          "parse": {
+            "fn": "ias:zonestatus",
+            "mask": "alarm1,alarm2"
+          }
         }
       ]
     }
   ],
   "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500"
+    },
     {
       "bind": "unicast",
       "src.ep": 1,
