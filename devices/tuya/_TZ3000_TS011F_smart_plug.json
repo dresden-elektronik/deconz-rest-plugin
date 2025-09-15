@@ -5,9 +5,13 @@
     "_TZ3000_okaz9tjs",
     "_TZ3000_dksbtrzs",
     "_TZ3000_gvn91tmx",
-    "_TZ3000_wzmuk9ai"
+    "_TZ3000_wzmuk9ai",
+    "_TZ3000_ksw8qtmt",
+    "_TZ3000_2putqrmw"
   ],
   "modelid": [
+    "TS011F",
+    "TS011F",
     "TS011F",
     "TS011F",
     "TS011F",
@@ -73,7 +77,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -159,7 +163,7 @@
             "ep": 1,
             "eval": "Item.val = Attr.val"
           },
-          "refresh.interval": 365
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
@@ -178,7 +182,7 @@
             "ep": 1,
             "eval": "Item.val = Attr.val"
           },
-          "refresh.interval": 365
+          "refresh.interval": 360
         },
         {
           "name": "state/voltage",
@@ -194,7 +198,7 @@
             "ep": 1,
             "eval": "Item.val = Attr.val"
           },
-          "refresh.interval": 365
+          "refresh.interval": 360
         }
       ]
     },
@@ -277,7 +281,7 @@
             "ep": 0,
             "eval": "Item.val = Attr.val * 10"
           },
-          "refresh.interval": 365
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
