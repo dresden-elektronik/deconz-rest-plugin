@@ -48,7 +48,8 @@
           "default": "none"
         },
         {
-          "name": "state/on"
+          "name": "state/on",
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
