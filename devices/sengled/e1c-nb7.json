@@ -48,7 +48,8 @@
           "default": "none"
         },
         {
-          "name": "state/on"
+          "name": "state/on",
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -104,23 +105,6 @@
         },
         {
           "name": "state/lastupdated"
-        },
-        {
-          "name": "state/power",
-          "refresh.interval": 360,
-          "read": {
-            "at": "0x0400",
-            "cl": "0x0702",
-            "ep": 0,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0400",
-            "cl": "0x0702",
-            "ep": 0,
-            "eval": "if (Attr.val != -32768) { Item.val = Attr.val / 10; }"
-          },
-          "default": 0
         }
       ]
     },
