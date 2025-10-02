@@ -6,14 +6,16 @@
     "eWeLink",
     "SONOFF",
     "SONOFF",
-    "eWeLink"
+    "eWeLink",
+    "SONOFF"
   ],
   "modelid": [
     "CK-TLSR8656-SS5-01(7014)",
     "TH01",
     "SNZB-02D",
     "SNZB-02P",
-    "SNZB-02P"
+    "SNZB-02P",
+    "SNZB-02WD"
   ],
   "vendor": "Sonoff/eWeLink",
   "product": "Temperature and humidity sensor",
