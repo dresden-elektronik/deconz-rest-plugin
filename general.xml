@@ -5328,18 +5328,6 @@ These devices can operate on either battery or mains power, and can have a wide 
             <attribute id="0x0001" type="u8" name="Sequence" required="m"/>
             <attribute id="0x0002" type="u32" name="Length" required="m"/>
             <attribute id="0x0003" type="ostring" name="Data" required="m"/>
-            <!-- <attribute id="0x0004" type="u8" name="Data 0" required="m" showas="hex"/>
-            <attribute id="0x0005" type="u8" name="Data 1" required="m" showas="hex"/>
-            <attribute id="0x0006" type="u8" name="Data 2" required="m" showas="hex"/>
-            <attribute id="0x0007" type="u8" name="Data 3" required="m" showas="hex"/>
-            <attribute id="0x0008" type="u8" name="Data 4" required="m" showas="hex"/>
-            <attribute id="0x0009" type="u8" name="Data 5" required="m" showas="hex"/>
-            <attribute id="0x000A" type="u8" name="Data 6" required="m" showas="hex"/>
-            <attribute id="0x000B" type="u8" name="Data 7" required="m" showas="hex"/>
-            <attribute id="0x000C" type="u8" name="Data 8" required="m" showas="hex"/>
-            <attribute id="0x000D" type="u8" name="Data 9" required="m" showas="hex"/>
-            <attribute id="0x000E" type="u8" name="Data 10" required="m" showas="hex"/>
-            <attribute id="0x000F" type="u8" name="Data 11" required="m" showas="hex"/> -->
           </payload>
         </command>
         <command id="0x10" dir="recv" name="Start" vendor="0x100b" required="m">
