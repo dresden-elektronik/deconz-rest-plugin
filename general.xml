@@ -321,12 +321,12 @@
           </attribute>
         </attribute-set>
         <attribute-set id="0x0030" description="Hue Specific" mfcode="0x100b">
-          <!--
           <attribute id="0x0000" name="Hue Unknown 0" type="cstring" mfcode="0x100b" access="r" required="o"></attribute>
           <attribute id="0x0001" name="Hue Unknown 1" type="u32" mfcode="0x100b" access="r" required="o"></attribute>
           <attribute id="0x0002" name="Hue Unknown 1" type="u32" mfcode="0x100b" access="r" required="o"></attribute>
           <attribute id="0x0003" name="Hue Unknown 1" type="u32" mfcode="0x100b" access="r" required="o"></attribute>
-          -->
+          <attribute id="0x0020" name="Hue Unknown 20" type="cstring" mfcode="0x100b" access="r" required="o"></attribute>
+          <attribute id="0x0021" name="Hue Unknown 21" type="u32" mfcode="0x100b" access="r" required="o" showas="hex"></attribute>
           <attribute id="0x0030" name="Sensitivity" description="Hue motion sensor related SML001" type="enum8" default="0" access="rw" required="o" mfcode="0x100b">
             <value name="default" value="0"></value>
             <value name="high" value="1"></value>
@@ -5294,9 +5294,84 @@ These devices can operate on either battery or mains power, and can have a wide 
       </client>
     </cluster>
 
-    <cluster id="0xfc04" name="Hue Unknown" mfcode="0x100b">
-      <description>Hue-specific cluster.</description>
+    <cluster id="0xfc04" name="Hue MotionAware" mfcode="0x100b">
+      <description>Hue-specific cluster for Hue MotionAware.</description>
       <server>
+        <command id="0x00" dir="recv" name="Configure" vendor="0x100b" required="m">
+          <description>Sent by bridge to each member to configure reporting.</description>
+          <payload>
+            <attribute id="0x0000" type="bmp16" name="Role" required="m">
+              <description>Proxy has all three roles, members only Sensor.</description>
+              <value name="Sensor" value="0"/>
+              <value name="Collector" value="1"/>
+              <value name="Sync" value="2"/>
+            </attribute>
+            <attribute id="0x0001" type="u32" name="ID" required="m"/>
+            <attribute id="0x0002" type="u8" name="# Members" required="m" default="3">
+              <description>Number of members in group: 3 or 4.</description>
+            </attribute>
+            <attribute id="0x0003" type="u8" name="Member Nr" required="m">
+              <description>Proxy has value 0, members 1, 2, 3.</description>
+            </attribute>
+            <attribute id="0x0004" type="u16" name="Unknown" required="m" default="0x0190" showas="hex">
+              <description>Only value 0x0190 has been observed.</description>
+            </attribute>
+            <attribute id="0x0005" type="u16" name="Unknown" required="m" default="0x0000">
+              <description>For groups of three, values 0, 133, 266 are used.  For groups of four, values 0, 100, 200, 300 are used.</description>
+            </attribute>
+          </payload>
+        </command>
+        <command id="0x00" dir="send" name="Report" vendor="0x100b" required="m">
+          <description>Sent by the proxy to the bridge.</description>
+          <payload>
+            <attribute id="0x0000" type="u32" name="ID" required="m"/>
+            <attribute id="0x0001" type="u8" name="Sequence" required="m"/>
+            <attribute id="0x0002" type="u32" name="Length" required="m"/>
+            <attribute id="0x0003" type="ostring" name="Data" required="m"/>
+            <!-- <attribute id="0x0004" type="u8" name="Data 0" required="m" showas="hex"/>
+            <attribute id="0x0005" type="u8" name="Data 1" required="m" showas="hex"/>
+            <attribute id="0x0006" type="u8" name="Data 2" required="m" showas="hex"/>
+            <attribute id="0x0007" type="u8" name="Data 3" required="m" showas="hex"/>
+            <attribute id="0x0008" type="u8" name="Data 4" required="m" showas="hex"/>
+            <attribute id="0x0009" type="u8" name="Data 5" required="m" showas="hex"/>
+            <attribute id="0x000A" type="u8" name="Data 6" required="m" showas="hex"/>
+            <attribute id="0x000B" type="u8" name="Data 7" required="m" showas="hex"/>
+            <attribute id="0x000C" type="u8" name="Data 8" required="m" showas="hex"/>
+            <attribute id="0x000D" type="u8" name="Data 9" required="m" showas="hex"/>
+            <attribute id="0x000E" type="u8" name="Data 10" required="m" showas="hex"/>
+            <attribute id="0x000F" type="u8" name="Data 11" required="m" showas="hex"/> -->
+          </payload>
+        </command>
+        <command id="0x10" dir="recv" name="Start" vendor="0x100b" required="m">
+          <description>Sent by bridge to each member to start sending reports.</description>
+          <payload>
+            <attribute id="0x0000" type="u32" name="ID" required="m"/>
+          </payload>
+        </command>
+        <command id="0x11" dir="recv" name="Stop" vendor="0x100b" required="m">
+          <description>Sent by bridge to the proxy to stop sending reports.</description>
+          <payload>
+            <attribute id="0x0000" type="u32" name="ID" required="m"/>
+          </payload>
+        </command>
+        <attribute id="0x0000" name="Capabilities" type="bmp16" mfcode="0x100b" access="r" required="m">
+          <value name="Sensor" value="0"/>
+          <value name="Collector" value="1"/>
+          <value name="Sync" value="2"/>
+          <value name="bit 3" value="3"/>
+          <value name="bit 4" value="4"/>
+          <value name="bit 5" value="5"/>
+          <value name="bit 6" value="6"/>
+          <value name="bit 7" value="7"/>
+          <value name="bit 8" value="8"/>
+          <value name="bit 9" value="9"/>
+          <value name="bit 10" value="10"/>
+          <value name="bit 11" value="11"/>
+          <value name="bit 12" value="12"/>
+          <value name="bit 13" value="13"/>
+          <value name="bit 14" value="14"/>
+          <value name="bit 15" value="15"/>
+        </attribute>
       </server>
       <client>
       </client>
