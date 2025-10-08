@@ -5310,6 +5310,78 @@ These devices can operate on either battery or mains power, and can have a wide 
       </client>
     </cluster>
 
+    <cluster id="0xfc07" name="Hue Chime" mfcode="0x100b">
+      <description>Hue-specific cluster for Hue Chime.</description>
+      <server>
+        <command id="0x00" dir="recv" name="Mute" vendor="0x100b" required="m"/>
+        <command id="0x01" dir="recv" name="Unmute" vendor="0x100b" required="m"/>
+        <command id="0x02" dir="recv" name="Set Alarm" vendor="0x100b" required="m">
+          <payload>
+            <attribute id="0x0000" type="enum8" name="Action" required="m" default="0x01">
+              <value name="Set" value="0x00"/>
+              <value name="Set with Volume" value="0x01"/>
+              <value name="Clear" value="0x02"/>
+            </attribute>
+            <attribute id="0x0001" type="enum16" name="Action" required="m" default="0x0006">
+              <value name="Siren" value="0x0006"/>
+            </attribute>
+            <attribute id="0x0002" type="u16" name="0000" required="m" default="0x0000" showas="hex"/>
+            <attribute id="0x0003" type="u8" name="Volume" required="m" default="25"/>
+            <attribute id="0x0004" type="u24" name="000000" required="m" default="0x000000" showas="hex"/>
+          </payload>
+        </command>
+        <command id="0x03" dir="recv" name="Set Chime" vendor="0x100b" required="m">
+          <payload>
+            <attribute id="0x0000" type="enum8" name="Action" required="m" default="0x01">
+              <value name="Set" value="0x00"/>
+              <value name="Set with Volume" value="0x01"/>
+            </attribute>
+            <attribute id="0x0001" type="enum16" name="Action" required="m" default="0x000A">
+              <value name="Bleep" value="0x0002"/>
+              <value name="Ding Dong Classic" value="0x0003"/>
+              <value name="Ding Dong Modern" value="0x0004"/>
+              <value name="Rise" value="0x00000005"/>
+              <value name="Westminster Classic" value="0x0007"/>
+              <value name="Westminster Modern" value="0x0008"/>
+              <value name="Ding Dong Xylo" value="0x0009"/>
+              <value name="Hue Default" value="0x000A"/>
+              <value name="Sonar" value="0x000B"/>
+              <value name="Swing" value="0x000C"/>
+              <value name="Bright" value="0x000D"/>
+              <value name="Glow" value="0x000E"/>
+              <value name="Bounce" value="0x000F"/>
+              <value name="Reveal" value="0x0010"/>
+              <value name="Welcome" value="0x0011"/>
+              <value name="Bright Modern" value="0x0012"/>
+              <value name="Fairy" value="0x0013"/>
+              <value name="Galaxy" value="0x0014"/>
+              <value name="Echo" value="0x0015"/>
+            </attribute>
+            <attribute id="0x0002" type="u16" name="0000" required="m" default="0x0000" showas="hex"/>
+            <attribute id="0x0003" type="u8" name="Volume" required="m" default="25"/>
+          </payload>
+        </command>
+        <command id="0x04" dir="recv" name="Set Alert" vendor="0x100b" required="m">
+          <payload>
+            <attribute id="0x0000" type="enum8" name="Action" required="m" default="0x01">
+              <value name="Set" value="0x00"/>
+              <value name="Set with Volume" value="0x01"/>
+            </attribute>
+            <attribute id="0x0001" type="enum16" name="Action" required="m" default="0x0001">
+              <value name="Alert" value="0x0001"/>
+            </attribute>
+            <attribute id="0x0002" type="u16" name="0000" required="m" default="0x0000" showas="hex"/>
+            <attribute id="0x0003" type="u8" name="Volume" required="m" default="25"/>
+          </payload>
+        </command>
+        <attribute id="0x0000" name="Muted" type="bool" mfcode="0x100b" access="r" required="m"/>
+        <attribute id="0x0001" name="Sound" type="u32" mfcode="0x100b" access="r" required="m" showas="hex"/>
+        <attribute id="0x0002" name="unknown" type="u32" mfcode="0x100b" access="r" required="m" showas="hex"/>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
     <!-- Hue for Lutron Aurora -->
     <cluster id="0xfc00" name="Hue Button" mfcode="0x1144">
       <description>Hue-specific cluster for Hue dimmer family.</description>
