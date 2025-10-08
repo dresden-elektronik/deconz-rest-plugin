@@ -71,25 +71,25 @@
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
-            "cl": "0x0102",
-            "at": "0x0008",
+            "cl": "0x000D",
+            "at": "0x0055",
             "eval": "Item.val = 100 - Attr.val"
           },
           "read": {
             "fn": "zcl:attr",
             "ep": 1,
-            "cl": "0x0102",
-            "at": "0x0008"
+            "cl": "0x000D",
+            "at": "0x0055"
           },
-          "refresh.interval": 30
+          "refresh.interval": 300
         },
         {
           "name": "state/open",
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
-            "cl": "0x0102",
-            "at": "0x0008",
+            "cl": "0x000D",
+            "at": "0x0055",
             "eval": "Item.val = Attr.val > 0"
           },
           "read": {
