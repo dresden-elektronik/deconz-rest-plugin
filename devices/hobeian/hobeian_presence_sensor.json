@@ -2,7 +2,7 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "HOBEIAN",
   "modelid": "ZG-204Z",
-  "vendor": "Tuya",
+  "vendor": "HOBEIAN",
   "product": "Presence sensor",
   "sleeper": true,
   "status": "Gold",
