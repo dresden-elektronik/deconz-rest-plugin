@@ -35,6 +35,15 @@
           "name": "attr/name"
         },
         {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
           "name": "attr/swversion",
           "parse": {
             "fn": "zcl:attr",
@@ -62,15 +71,15 @@
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
-            "cl": "0x0102",
-            "at": "0x0008",
+            "cl": "0x000D",
+            "at": "0x0055",
             "eval": "Item.val = 100 - Attr.val"
           },
           "read": {
             "fn": "zcl:attr",
             "ep": 1,
-            "cl": "0x0102",
-            "at": "0x0008"
+            "cl": "0x000D",
+            "at": "0x0055"
           },
           "refresh.interval": 300
         },
@@ -79,8 +88,8 @@
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
-            "cl": "0x0102",
-            "at": "0x0008",
+            "cl": "0x000D",
+            "at": "0x0055",
             "eval": "Item.val = Attr.val > 0"
           },
           "read": {
