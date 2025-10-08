@@ -35,6 +35,15 @@
           "name": "attr/name"
         },
         {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
           "name": "attr/swversion",
           "parse": {
             "fn": "zcl:attr",
@@ -72,7 +81,7 @@
             "cl": "0x0102",
             "at": "0x0008"
           },
-          "refresh.interval": 300
+          "refresh.interval": 30
         },
         {
           "name": "state/open",
