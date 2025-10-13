@@ -1,27 +1,15 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "cd25fbd8-9b9b-4051-9c01-1c08a9d65203",
-  "manufacturername": [
-    "eWeLink",
-    "eWeLink",
-    "zbeacon",
-    "eWeLink",
-    "eWeLink"
-  ],
-  "modelid": [
-    "CK-TLSR8656-SS5-01(7003)",
-    "DS01",
-    "DS01",
-    "SNZB-04P",
-    "SNZB-04"
-  ],
-  "vendor": "Sonoff/eWeLink",
-  "product": "Open/close sensor (DS01)",
+  "uuid": "d2cfac6d-fb7b-4384-a3f1-3b04ac6dbe86",
+  "manufacturername": "HOBEIAN",
+  "modelid": "ZG-204Z",
+  "vendor": "HOBEIAN",
+  "product": "Presence sensor (ZG-204Z)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "type": "$TYPE_PRESENCE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -58,8 +46,7 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion",
-          "refresh.interval": 86400
+          "name": "attr/swversion"
         },
         {
           "name": "attr/type"
@@ -69,23 +56,51 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2",
-            "fn": "zcl:attr"
+            "eval": "Item.val = Attr.val / 2"
           },
+          "default": 0
+        },
+        {
+          "name": "config/delay",
+          "refresh.interval": 86400,
+          "range": [
+            0,
+            2
+          ],
           "read": {
-            "fn": "none"
-          }
+            "at": "0xf001",
+            "cl": "0x0500",
+            "ep": 1
+          },
+          "write": {
+            "at": "0xf001",
+            "cl": "0x0500",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "Item.val"
+          },
+          "parse": {
+            "at": "0xf001",
+            "cl": "0x0500",
+            "ep": 1,
+            "eval": "Item.val = Attr.val"
+          },
+          "default": 0
         },
         {
-          "name": "config/checkin"
-        },
-        {
-          "name": "config/enrolled"
+          "name": "config/enrolled",
+          "public": false
         },
         {
           "name": "config/on"
@@ -100,17 +115,25 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery",
-          "awake": true
+          "name": "state/lowbattery"
         },
         {
-          "name": "state/open",
-          "awake": true
+          "name": "state/presence",
+          "awake": true,
+          "parse": {
+            "fn": "ias:zonestatus",
+            "mask": "alarm1"
+          }
         }
       ]
     }
   ],
   "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500"
+    },
     {
       "bind": "unicast",
       "src.ep": 1,
@@ -120,15 +143,10 @@
           "at": "0x0021",
           "dt": "0x20",
           "min": 3600,
-          "max": 7200,
-          "change": "0x00000002"
+          "max": 14400,
+          "change": "0x00000001"
         }
       ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0500"
     }
   ]
 }
