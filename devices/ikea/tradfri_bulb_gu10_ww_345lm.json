@@ -1,0 +1,106 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "$MF_IKEA",
+  "modelid": "TRADFRI bulb GU10 WW 345lm",
+  "product": "TRADFRI bulb GU10 WW 345lm",
+  "sleeper": false,
+  "status": "Gold",
+  "path": "/devices/tradfri_bulb_gu10_ww_345lm.json",
+  "subdevices": [
+    {
+      "type": "$TYPE_DIMMABLE_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/bri/move_with_onoff",
+          "public": false,
+          "description": "Device supports the _Move to Level (with On/Off)_ command.",
+          "static": true
+        },
+        {
+          "name": "cap/on/off_with_effect",
+          "public": false,
+          "description": "Device supports the _Off with Effect_ command.",
+          "static": true
+        },
+        {
+          "name": "state/alert",
+          "description": "The currently active alert effect.",
+          "default": "none"
+        },
+        {
+          "name": "state/bri",
+          "description": "The current brightness.",
+          "refresh.interval": 5,
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0008",
+            "ep": 0,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0008",
+            "ep": 0,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/on",
+          "description": "True when device is on; false when off.",
+          "refresh.interval": 5,
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0006",
+            "ep": 0,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0006",
+            "ep": 0,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          },
+          "default": false
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
+}
