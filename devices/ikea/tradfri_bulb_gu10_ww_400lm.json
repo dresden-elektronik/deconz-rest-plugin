@@ -4,7 +4,7 @@
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI bulb GU10 WW 400lm",
   "vendor": "IKEA",
-  "product": "Tradfri LED bulb GU10 400 lumen, dimmable/warm white (LED1837R5)",
+  "product": "Tradfri LED bulb GU10 400 lumen, dimmable warm white (LED1837R5)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
