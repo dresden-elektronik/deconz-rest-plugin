@@ -46,6 +46,23 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A"
+          },
+          "refresh.interval": 86400
+        },
+        {
           "name": "attr/swversion",
           "refresh.interval": 86400
         },
@@ -62,7 +79,7 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
           "read": {

@@ -4,7 +4,7 @@
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI bulb E27 WS clear 806lm",
   "vendor": "IKEA",
-  "product": "Tradfri LED bulb E27 806 lumen, dimmable, white spectrum, clear (LED1736G9)",
+  "product": "Tradfri LED bulb E27 806 lumen, dimmable white spectrum, clear (LED1736G9)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -33,6 +33,23 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A"
+          },
+          "refresh.interval": 86400
         },
         {
           "name": "attr/swversion"

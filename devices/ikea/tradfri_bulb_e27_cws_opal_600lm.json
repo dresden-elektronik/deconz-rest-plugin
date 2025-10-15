@@ -4,7 +4,8 @@
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI bulb E27 CWS opal 600lm",
   "vendor": "IKEA",
-  "product": "Tradfri LED bulb E27 600lm, dimmable colour and white spectrum opal white (LED1624G9)",
+  "product": "Tradfri LED bulb E27 600 lumen, dimmable colour and white spectrum, opal white (LED1624G9)",
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -239,6 +240,20 @@
     }
   ],
   "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0000",
+      "report": [
+        {
+          "at": "0x4000",
+          "dt": "0x42",
+          "min": 0,
+          "max": 65535
+        }
+      ]
+    },
     {
       "bind": "unicast",
       "src.ep": 1,

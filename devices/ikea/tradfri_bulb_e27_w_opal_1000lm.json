@@ -4,7 +4,7 @@
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRI bulb E27 W opal 1000lm",
   "vendor": "IKEA",
-  "product": "Tradfri LED bulb E27 1000 lumen, dimmable warm white globe opal white (LED1623G12)",
+  "product": "Tradfri LED bulb E27 1000 lumen, dimmable white, opal white (LED1623G12)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -124,6 +124,20 @@
     }
   ],
   "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0000",
+      "report": [
+        {
+          "at": "0x4000",
+          "dt": "0x42",
+          "min": 0,
+          "max": 65535
+        }
+      ]
+    },
     {
       "bind": "unicast",
       "src.ep": 1,
