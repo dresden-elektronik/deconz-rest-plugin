@@ -102,7 +102,7 @@ void DeRestPluginPrivate::initConfig()
     gwLANBridgeId = (deCONZ::appArgumentNumeric("--lan-bridgeid", 0) == 1) || gwHueMode;
     gwBridgeId = "0000000000000000";
     gwAllowLocal = (deCONZ::appArgumentNumeric("--allow-local", 1) == 1);
-    gwConfig["websocketport"] = 443;
+    gwConfig["websocketport"] = 0;
     fwUpdateState = FW_Idle;
 
     wifiPageActiveTimer = new QTimer(this);
@@ -1124,7 +1124,21 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["lightlastseeninterval"] = gwLightLastSeenInterval;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
-    map["websocketport"] = static_cast<double>(gwConfig["websocketport"].toUInt());
+
+    if (webSocketServer && apsCtrl)
+    {
+        auto wsPort = webSocketServer->port();
+        if (wsPort == 0)
+            wsPort = apsCtrl->getParameter(deCONZ::ParamHttpPort);
+        gwConfig["websocketport"] = wsPort;
+        map["websocketport"] = static_cast<double>(gwConfig["websocketport"].toUInt());
+
+#if DECONZ_LIB_VERSION >= 0x011204
+        wsPort = apsCtrl->getParameter(deCONZ::ParamHttpsPort);
+        if (wsPort != 0)
+            map["websocketport_wss"] = (double)wsPort;
+#endif
+    }
     map["websocketnotifyall"] = gwWebSocketNotifyAll;
     map["disablePermitJoinAutoOff"] = gwdisablePermitJoinAutoOff;
 
