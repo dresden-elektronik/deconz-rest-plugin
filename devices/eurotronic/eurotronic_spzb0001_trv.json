@@ -86,7 +86,7 @@
                     "read": {
                         "at": "0x4008",
                         "cl": "0x0201",
-                        "ep": 0,
+                        "ep": 1,
                         "fn": "zcl:attr",
                         "mf": "0x1037"
                     },
@@ -94,7 +94,7 @@
                         "at": "0x4008",
                         "cl": "0x0201",
                         "dt": "0x22",
-                        "ep": 0,
+                        "ep": 1,
                         "eval": "if (Item.val == true) { R.item('config/hostflags').val | 0x02 } else { R.item('config/hostflags').val & ~0x02};",
                         "fn": "zcl:attr",
                         "mf": "0x1037"
@@ -102,7 +102,7 @@
                     "parse": {
                         "at": "0x4008",
                         "cl": "0x0201",
-                        "ep": 0,
+                        "ep": 1,
                         "eval": "Item.val = ((Attr.val & 0x02) !== 0);",
                         "fn": "zcl:attr",
                         "mf": "0x1037"
@@ -115,21 +115,21 @@
                     "read": {
                         "at": "0x0012",
                         "cl": "0x0201",
-                        "ep": 0,
+                        "ep": 1,
                         "fn": "zcl:attr"
                     },
                     "write": {
                         "at": "0x0012",
                         "cl": "0x0201",
                         "dt": "0x29",
-                        "ep": 0,
+                        "ep": 1,
                         "eval": "Item.val",
                         "fn": "zcl:attr"
                     },
                     "parse": {
                         "at": "0x0012",
                         "cl": "0x0201",
-                        "ep": 0,
+                        "ep": 1,
                         "eval": "Item.val = Attr.val",
                         "fn": "zcl:attr"
                     },
@@ -142,7 +142,7 @@
                     "parse": {
                         "at": "0x4008",
                         "cl": "0x0201",
-                        "ep": 0,
+                        "ep": 1,
                         "fn": "zcl:attr",
                         "mf": "0x1037",
                         "eval": "Item.val = Attr.val"
@@ -150,7 +150,7 @@
                     "read": {
                         "at": "0x4008",
                         "cl": "0x0201",
-                        "ep": 0,
+                        "ep": 1,
                         "fn": "zcl:attr",
                         "mf": "0x1037"
                     },
@@ -162,7 +162,7 @@
                     "read": {
                         "at": "0x4008",
                         "cl": "0x0201",
-                        "ep": 0,
+                        "ep": 1,
                         "fn": "zcl:attr",
                         "mf": "0x1037"
                     },
@@ -170,7 +170,7 @@
                         "at": "0x4008",
                         "cl": "0x0201",
                         "dt": "0x22",
-                        "ep": 0,
+                        "ep": 1,
                         "eval": "if (Item.val == true) { R.item('config/hostflags').val | 0x80 } else { R.item('config/hostflags').val & ~0x80};",
                         "fn": "zcl:attr",
                         "mf": "0x1037"
@@ -178,7 +178,7 @@
                     "parse": {
                         "at": "0x4008",
                         "cl": "0x0201",
-                        "ep": 0,
+                        "ep": 1,
                         "eval": "Item.val = ((Attr.val & 0x80) !== 0);",
                         "fn": "zcl:attr",
                         "mf": "0x1037"
@@ -191,7 +191,7 @@
                     "read": {
                         "at": "0x4008",
                         "cl": "0x0201",
-                        "ep": 0,
+                        "ep": 1,
                         "fn": "zcl:attr",
                         "mf": "0x1037"
                     },
@@ -199,7 +199,7 @@
                         "at": "0x4008",
                         "cl": "0x0201",
                         "dt": "0x22",
-                        "ep": 0,
+                        "ep": 1,
                         "eval": "if (Item.val == 'off') { R.item('config/hostflags').val & ~0x04 | 0x20 } else if (Item.val == 'heat') { R.item('config/hostflags').val & ~0x20 | 0x04 } else if (Item.val == 'auto') { R.item('config/hostflags').val & ~0x20 & ~0x04 };",
                         "fn": "zcl:attr",
                         "mf": "0x1037"
@@ -207,7 +207,7 @@
                     "parse": {
                         "at": "0x4008",
                         "cl": "0x0201",
-                        "ep": 0,
+                        "ep": 1,
                         "eval": "if ((Attr.val & 0x30) !== 0) { Item.val = 'off' } else if ((Attr.val & 0x04) !== 0) { Item.val = 'heat' } else { Item.val = 'auto' };",
                         "fn": "zcl:attr",
                         "mf": "0x1037"
@@ -228,18 +228,18 @@
                         "cl": "0x0201",
                         "ep": 1,
                         "eval": "var res = ''; if (Attr.val & 0x08) { res = 'E1'; } else if (Attr.val & 0x10) { res = 'E2'; } else if (Attr.val & 0x20) { res = 'E3'; } else { res = 'none'; } Item.val = res;",
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x1037"
                     },
                     "read": {
                         "at": "0x4002",
                         "cl": "0x0201",
                         "ep": 1,
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x1037"
                     },
                     "default": "none"
-                }
+                },
                 {
                     "name": "state/lastupdated"
                 },
@@ -249,13 +249,13 @@
                     "read": {
                         "at": "0x0000",
                         "cl": "0x0006",
-                        "ep": 0,
+                        "ep": 1,
                         "fn": "zcl:attr"
                     },
                     "parse": {
                         "at": "0x0000",
                         "cl": "0x0006",
-                        "ep": 0,
+                        "ep": 1,
                         "eval": "Item.val = Attr.val",
                         "fn": "zcl:attr"
                     },
@@ -267,13 +267,13 @@
                     "read": {
                         "at": "0x0000",
                         "cl": "0x0201",
-                        "ep": 0,
+                        "ep": 1,
                         "fn": "zcl:attr"
                     },
                     "parse": {
                         "at": "0x0000",
                         "cl": "0x0201",
-                        "ep": 0,
+                        "ep": 1,
                         "eval": "Item.val = Attr.val",
                         "fn": "zcl:attr"
                     },
@@ -301,7 +301,7 @@
                         "cl": "0x0201",
                         "ep": 1,
                         "eval": "Item.val = (R.item('config/hostflags').val >> 3) & 0x01;",
-                        "fn": "zcl",
+                        "fn": "zcl:attr",
                         "mf": "0x1037"
                     },
                     "read": {
