@@ -4,7 +4,7 @@
   "manufacturername": "MLI",
   "modelid": "ZBT-ColorTemperature",
   "vendor": "Müller Licht",
-  "product": "Tint GU10 spot ZBT-ColorTemperature",
+  "product": "Color temperature bulbs",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -44,16 +44,28 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "cap/color/capabilities"
+          "name": "cap/bri/move_with_onoff",
+          "static": true
         },
         {
-          "name": "cap/color/ct/max"
+          "name": "cap/color/capabilities",
+          "refresh.interval": 86400
         },
         {
-          "name": "cap/color/ct/min"
+          "name": "cap/color/ct/max",
+          "static": 370
         },
         {
-          "name": "state/alert"
+          "name": "cap/color/ct/min",
+          "static": 153
+        },
+        {
+          "name": "cap/on/off_with_effect",
+          "static": true
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
         },
         {
           "name": "state/bri",
@@ -61,10 +73,7 @@
         },
         {
           "name": "state/colormode",
-          "static": "ct",
-          "read": {
-            "fn": "none"
-          }
+          "refresh.interval": 360
         },
         {
           "name": "state/ct",
@@ -81,6 +90,20 @@
     }
   ],
   "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0000",
+      "report": [
+        {
+          "at": "0x4000",
+          "dt": "0x42",
+          "min": 0,
+          "max": 65535
+        }
+      ]
+    },
     {
       "bind": "unicast",
       "src.ep": 1,
