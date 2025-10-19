@@ -1,14 +1,10 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "62a57ed7-8ddd-4e86-bd8f-03f7822a50cd",
-  "manufacturername": [
-    "MLI"
-  ],
-  "modelid": [
-    "ZBT-ExtendedColor"
-  ],
+  "manufacturername": "MLI",
+  "modelid": "ZBT-ExtendedColor",
   "vendor": "Müller Licht",
-  "product": "Tint GU10 spot",
+  "product": "Extended color bulbs",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -109,11 +105,11 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 365
+          "refresh.interval": 360
         },
         {
           "name": "state/bri",
-          "refresh.interval": 365
+          "refresh.interval": 360
         },
         {
           "name": "state/colormode",
@@ -156,7 +152,7 @@
               "0x0001"
             ]
           },
-          "refresh.interval": 365
+          "refresh.interval": 360
         },
         {
           "name": "state/ct",
@@ -249,6 +245,20 @@
     }
   ],
   "bindings": [
+        {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0000",
+      "report": [
+        {
+          "at": "0x4000",
+          "dt": "0x42",
+          "min": 0,
+          "max": 65535
+        }
+      ]
+    },
     {
       "bind": "unicast",
       "src.ep": 1,
