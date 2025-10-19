@@ -65,7 +65,11 @@
         },
         {
           "name": "state/colormode",
-          "refresh.interval": 360
+          "refresh.interval": 360,
+          "static": "ct",
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/ct",
