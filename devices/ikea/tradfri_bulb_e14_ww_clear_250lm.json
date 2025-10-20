@@ -4,7 +4,7 @@
   "manufacturername": "$MF_IKEA",
   "modelid": "TRADFRIbulbE14WWclear250lm",
   "vendor": "IKEA",
-  "product": "Tradfri LED bulb E14 250 lumen WW clear, dimmable (LED1935C3)",
+  "product": "Tradfri LED bulb E14 250 lumen, dimmable warm white, clear (LED1935C3)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -35,6 +35,23 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A"
+          },
+          "refresh.interval": 86400
+        },
+        {
           "name": "attr/swversion"
         },
         {
@@ -42,6 +59,14 @@
         },
         {
           "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/bri/move_with_onoff",
+          "static": true
+        },
+        {
+          "name": "cap/on/off_with_effect",
+          "static": true
         },
         {
           "name": "state/alert",
