@@ -13,7 +13,10 @@
     "_TZ3000_saiqcn0y",
     "_TZ3000_utwgoauk",
     "_TZ3000_bjawzodf",
-    "_TZ3000_bjawzodf"
+    "_TZ3000_bjawzodf",
+    "_TZ3000_rdhukkmi",
+    "Zbeacon",
+    "Zbeacon"
   ],
   "modelid": [
     "TS0201",
@@ -27,7 +30,10 @@
     "TS0201",
     "TS0201",
     "TS0201",
-    "TY0201"
+    "TY0201",
+    "TS0201",
+    "TS0201",
+    "TH01"
   ],
   "vendor": "Tuya",
   "product": "Temperature and humidity sensor (TS0201)",
