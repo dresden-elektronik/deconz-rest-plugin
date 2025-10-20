@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "91b9c12c-2b50-4efc-a23f-2d3042e60b73",
-  "manufacturername": "Third Reality, Inc",
-  "modelid": "3RDS17BZ",
+  "manufacturername": [
+    "Third Reality, Inc",
+    "Third Reality, Inc"
+  ],
+  "modelid": [
+    "3RDS17BZ",
+    "3RDTS01056Z"
+  ],
   "vendor": "Third Reality",
   "product": "Contact Sensor (3RDS17BZ)",
   "sleeper": true,
@@ -56,7 +62,7 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
           "awake": true,
@@ -136,7 +142,16 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0x0001"
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 3600,
+          "max": 43200,
+          "change": "0x00000002"
+        }
+      ]
     }
   ]
 }
