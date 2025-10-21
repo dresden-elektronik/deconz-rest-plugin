@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_RANGE_EXTENDER",
   "name": "Range extender",
+  "ui_name": "Range extender",
   "restapi": "/lights",
   "order": 11,
   "uuid": [

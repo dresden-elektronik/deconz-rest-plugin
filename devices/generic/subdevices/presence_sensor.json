@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_PRESENCE_SENSOR",
   "name": "ZHAPresence",
+  "ui_name": "Presence sensor",
   "restapi": "/sensors",
   "order": 20,
   "uuid": [

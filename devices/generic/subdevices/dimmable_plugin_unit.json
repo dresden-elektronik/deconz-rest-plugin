@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_DIMMABLE_PLUGIN_UNIT",
   "name": "Dimmable plug-in unit",
+  "ui_name": "Dimmable plug-in unit",
   "restapi": "/lights",
   "order": 11,
   "uuid": [

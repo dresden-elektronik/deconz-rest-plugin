@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_WINDOW_COVERING_DEVICE",
   "name": "Window covering device",
+  "ui_name": "Window covering device",
   "restapi": "/lights",
   "order": 11,
   "uuid": [

@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_SWITCH",
   "name": "ZHASwitch",
+  "ui_name": "Switch",
   "restapi": "/sensors",
   "order": 20,
   "uuid": [

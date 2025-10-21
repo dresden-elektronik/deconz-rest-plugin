@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_PARTICULATEMATTER_SENSOR",
   "name": "ZHAParticulateMatter",
+  "ui_name": "Particulate matter sensor",
   "restapi": "/sensors",
   "order": 20,
   "uuid": [

@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_WARNING_DEVICE",
   "name": "Warning device",
+  "ui_name": "Warning device",
   "restapi": "/lights",
   "order": 11,
   "uuid": [

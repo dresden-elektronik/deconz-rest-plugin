@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_DIMMABLE_LIGHT",
   "name": "Dimmable light",
+  "ui_name": "Dimmable light",
   "restapi": "/lights",
   "order": 11,
   "uuid": [

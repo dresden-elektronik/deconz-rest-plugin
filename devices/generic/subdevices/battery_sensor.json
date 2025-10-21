@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_BATTERY_SENSOR",
   "name": "ZHABattery",
+  "ui_name": "Battery sensor",
   "restapi": "/sensors",
   "order": 30,
   "uuid": [

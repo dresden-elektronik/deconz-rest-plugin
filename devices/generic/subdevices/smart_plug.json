@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_SMART_PLUG",
   "name": "Smart plug",
+  "ui_name": "Smart plug",
   "restapi": "/lights",
   "order": 11,
   "uuid": [
