@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_AIR_QUALITY_SENSOR",
   "name": "ZHAAirQuality",
+  "ui_name": "Air quality sensor",
   "restapi": "/sensors",
   "order": 20,
   "uuid": [
