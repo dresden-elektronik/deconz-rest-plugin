@@ -3,6 +3,6 @@
   "id": "config/hostflags",
   "datatype": "Int32",
   "access": "RW",
-  "public": true,
+  "public": false,
   "description": "Device options."
 }
