@@ -87,7 +87,7 @@
             "at": "0x4008",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = ((Attr.val & 0x02) !== 0);",
+            "eval": "Item.val = (Attr.val & 0x02) !== 0;",
             "fn": "zcl:attr",
             "mf": "0x1037"
           },
@@ -152,7 +152,7 @@
             "at": "0x4008",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = ((Attr.val & 0x80) !== 0);",
+            "eval": "Item.val = (Attr.val & 0x80) !== 0;",
             "fn": "zcl:attr",
             "mf": "0x1037"
           },
@@ -283,7 +283,7 @@
             "at": "0x4008",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = (R.item('config/hostflags').val >> 3) & 0x01;",
+            "eval": "Item.val = (Attr.val >> 3) & 0x01;",
             "fn": "zcl:attr",
             "mf": "0x1037"
           },
