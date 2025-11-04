@@ -10,7 +10,7 @@
     "4512771"
   ],
   "vendor": "NAMRON",
-  "product": "4in1-MultiSensor",
+  "product": "4in1 multisensor",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -51,10 +51,6 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/productname",
-          "static": "4in1-MultiSensor"
-        },
-        {
           "name": "attr/swversion"
         },
         {
@@ -62,6 +58,48 @@
         },
         {
           "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "default": 0
+        },
+                {
+          "name": "config/delay",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0406",
+            "at": "0x0010",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0406",
+            "at": "0x0010"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0406",
+            "at": "0x0010",
+            "dt": "0x21",
+            "eval": "Item.val"
+          },
+          "refresh.interval": 86400
         },
         {
           "name": "config/on"
@@ -123,10 +161,6 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/productname",
-          "static": "4in1-MultiSensor"
-        },
-        {
           "name": "attr/swversion"
         },
         {
@@ -136,8 +170,24 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/battery",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "default": 0
+        },
+        {
           "name": "config/offset",
-          "description": "Relative offset to the main measured value.",
           "default": 0
         },
         {
@@ -155,7 +205,7 @@
           "parse": {
             "at": "0x0000",
             "cl": "0x0402",
-            "ep": 0,
+            "ep": 3,
             "eval": "Item.val = Attr.val + R.item('config/offset').val",
             "fn": "zcl:attr"
           },
@@ -200,10 +250,6 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/productname",
-          "static": "4in1-MultiSensor"
-        },
-        {
           "name": "attr/swversion"
         },
         {
@@ -213,8 +259,24 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/battery",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "default": 0
+        },
+        {
           "name": "config/offset",
-          "description": "Relative offset to the main measured value.",
           "default": 0
         },
         {
@@ -229,7 +291,7 @@
           "parse": {
             "at": "0x0000",
             "cl": "0x0405",
-            "ep": 0,
+            "ep": 4,
             "eval": "Item.val = Attr.val + R.item('config/offset').val",
             "fn": "zcl:attr"
           },
@@ -277,10 +339,6 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/productname",
-          "static": "4in1-MultiSensor"
-        },
-        {
           "name": "attr/swversion"
         },
         {
@@ -290,6 +348,23 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/battery",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "default": 0
+        },
+        {
           "name": "config/on"
         },
         {
@@ -297,22 +372,18 @@
         },
         {
           "name": "config/tholddark",
-          "description": "Specifies at which <code class=\"api-attribute\">lightlevel</code> the <code class=\"api-attribute\">dark</code> attribute turns false.",
           "default": 12000
         },
         {
           "name": "config/tholdoffset",
-          "description": "Relative offset to <code class=\"api-attribute\">tholddark</code>. Sets <code class=\"api-attribute\">daylight</code> attribute to true when when lightlevel is at or above (tholddark + tholdoffset).",
           "default": 7000
         },
         {
           "name": "state/dark",
-          "description": "True when <code class=\"api-attribute\">lightlevel</code> is lower than <code class=\"api-attribute\">tholddark</code>.",
           "default": false
         },
         {
           "name": "state/daylight",
-          "description": "True when <code class=\"api-attribute\">lightlevel</code> suits daylight according <code class=\"api-attribute\">tholddark</code> and <code class=\"api-attribute\">tholdoffset</code> configuration.",
           "default": false
         },
         {
@@ -325,89 +396,32 @@
             "at": "0x0000",
             "cl": "0x0400",
             "ep": 5,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
+            "script": "../generic/illuminance_cluster/sml_light_level.js"
           },
           "default": 0
         },
         {
           "name": "state/lux",
-          "description": "The current Light level in lux.",
           "default": 0
-        }
-      ]
-    },
-    {
-      "type": "$TYPE_BATTERY_SENSOR",
-      "restapi": "/sensors",
-      "uuid": [
-        "$address.ext",
-        "0x01",
-        "0x0001"
-      ],
-      "items": [
-        {
-          "name": "attr/id"
-        },
-        {
-          "name": "attr/lastannounced"
-        },
-        {
-          "name": "attr/lastseen"
-        },
-        {
-          "name": "attr/manufacturername"
-        },
-        {
-          "name": "attr/modelid"
-        },
-        {
-          "name": "attr/name"
-        },
-        {
-          "name": "attr/productname",
-          "static": "4in1-MultiSensor"
-        },
-        {
-          "name": "attr/swversion"
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
-        },
-        {
-          "name": "config/on"
-        },
-        {
-          "name": "config/reachable"
-        },
-        {
-          "name": "state/battery",
-          "awake": true,
-          "refresh.interval": 3603,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 0,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
-        },
-        {
-          "name": "state/lastupdated"
         }
       ]
     }
   ],
   "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000001"
+        }
+      ]
+    },
     {
       "bind": "unicast",
       "src.ep": 1,
@@ -459,20 +473,6 @@
           "dt": "0x21",
           "min": 5,
           "max": 300,
-          "change": "0x00000001"
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0001",
-      "report": [
-        {
-          "at": "0x0021",
-          "dt": "0x20",
-          "min": 60,
-          "max": 3600,
           "change": "0x00000001"
         }
       ]
