@@ -863,7 +863,12 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
             this, SLOT(openClientTimerFired()));
     openClientTimer->start(1000);
 
-    quint16 wsPort = deCONZ::appArgumentNumeric(QLatin1String("--ws-port"), gwConfig["websocketport"].toUInt());
+    uint16_t wsPort = deCONZ::appArgumentNumeric(QLatin1String("--ws-port"), 0);
+    if (wsPort == apsCtrl->getParameter(deCONZ::ParamHttpPort) || wsPort == apsCtrl->getParameter(deCONZ::ParamHttpsPort))
+    {
+        wsPort = 0; // already listening on this port
+    }
+
     webSocketServer = new WebSocketServer(this, wsPort);
     gwConfig["websocketport"] = webSocketServer->port();
 
