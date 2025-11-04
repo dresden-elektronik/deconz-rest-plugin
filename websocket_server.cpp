@@ -16,17 +16,10 @@
 
 /*! Constructor.
  */
-WebSocketServer::WebSocketServer(QObject *parent, quint16 port) :
+WebSocketServer::WebSocketServer(QObject *parent, uint16_t wsPort) :
     QObject(parent)
 {
     srv = new QWebSocketServer("deconz", QWebSocketServer::NonSecureMode, this);
-
-    quint16 p = 0;
-    quint16 ports[] = { 8087, 20877, 0 }; // start with proxy frinedly ports first, use random port as fallback
-    if (port > 0)
-    {
-        ports[0] = port;
-    }
 
     QHostAddress address;
     QString addrArg = deCONZ::appArgumentString("--http-listen", QString());
@@ -40,26 +33,20 @@ WebSocketServer::WebSocketServer(QObject *parent, quint16 port) :
         address = QHostAddress(addrArg);
     }
 
-    int wsPort = deCONZ::appArgumentNumeric("--ws-port", 0);
-
     if (wsPort != 0)
     {
-        while (!srv->listen(address, ports[p]))
+        if (srv->listen(address, wsPort))
         {
-            if (ports[p] == 0)
-            {
-                DBG_Printf(DBG_ERROR, "Giveup starting websocket server on %s, port: %u. error: %s\n", qPrintable(address.toString()), ports[p], qPrintable(srv->errorString()));
-                break;
-            }
-
-            DBG_Printf(DBG_ERROR, "Failed to start websocket server on %s, port: %u. error: %s\n", qPrintable(address.toString()), ports[p], qPrintable(srv->errorString()));
-            p++;
+            DBG_Printf(DBG_INFO, "Started websocket server on %s, port: %u\n", qPrintable(address.toString()), srv->serverPort());
+        }
+        else
+        {
+            DBG_Printf(DBG_ERROR, "Failed starting websocket server on %s, port: %u. error: %s\n", qPrintable(address.toString()), wsPort, qPrintable(srv->errorString()));
         }
     }
-
-    if (srv->isListening())
+    else
     {
-        DBG_Printf(DBG_INFO, "Started websocket server on %s, port: %u\n", qPrintable(address.toString()), srv->serverPort());
+        DBG_Printf(DBG_INFO, "Started websocket server on REST-API HTTP(S) ports\n");
     }
 
     connect(srv, &QWebSocketServer::newConnection, this, &WebSocketServer::onNewConnection);
