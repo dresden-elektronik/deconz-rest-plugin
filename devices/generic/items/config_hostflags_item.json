@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/hostflags",
+  "datatype": "Int32",
+  "access": "RW",
+  "public": false,
+  "description": "Device options."
+}
