@@ -7404,15 +7404,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
             }
 
-            if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
-            {
-                sensorNode.addItem(DataTypeUInt8, RStateValve);
-                sensorNode.addItem(DataTypeUInt32, RConfigHostFlags)->setIsPublic(false);
-                sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
-                sensorNode.addItem(DataTypeBool, RConfigLocked)->setValue(false);
-                sensorNode.addItem(DataTypeString, RConfigMode);
-            }
-            else if (sensorNode.modelId() == QLatin1String("902010/32"))  // Bitron
+            if (sensorNode.modelId() == QLatin1String("902010/32"))  // Bitron
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
                 sensorNode.addItem(DataTypeUInt8, RConfigControlSequence)->setValue(4);
@@ -15353,8 +15345,7 @@ void DeRestPlugin::idleTimerFired()
                                 val = sensorNode->getZclValue(*ci, 0x0029); // heating operation state
                             }
 
-                            if (sensorNode->modelId().startsWith(QLatin1String("SPZB")) ||      // Eurotronic Spirit
-                                sensorNode->modelId().startsWith(QLatin1String("SLT2")) ||      // Hive Active Heating Thermostat
+                            if (sensorNode->modelId().startsWith(QLatin1String("SLT2")) ||      // Hive Active Heating Thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("SLT3")) ||      // Hive Active Heating Thermostat
                                 sensorNode->modelId().startsWith(QLatin1String("SLR2")) ||      // Hive Active Heating Receiver 2 channel
                                 sensorNode->modelId().startsWith(QLatin1String("SLR1b")) ||     // Hive Active Heating Receiver 1 channel
