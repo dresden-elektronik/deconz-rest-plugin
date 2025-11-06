@@ -51,6 +51,10 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/productname",
+          "static": "4-in-1 multisensor"
+        },
+        {
           "name": "attr/swversion"
         },
         {
@@ -76,7 +80,7 @@
           },
           "default": 0
         },
-                {
+        {
           "name": "config/delay",
           "parse": {
             "fn": "zcl:attr",
@@ -159,6 +163,10 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "attr/productname",
+          "static": "4-in-1 multisensor"
         },
         {
           "name": "attr/swversion"
@@ -250,6 +258,10 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/productname",
+          "static": "4-in-1 multisensor"
+        },
+        {
           "name": "attr/swversion"
         },
         {
@@ -337,6 +349,10 @@
         },
         {
           "name": "attr/name"
+        },
+        {
+          "name": "attr/productname",
+          "static": "4-in-1 multisensor"
         },
         {
           "name": "attr/swversion"
