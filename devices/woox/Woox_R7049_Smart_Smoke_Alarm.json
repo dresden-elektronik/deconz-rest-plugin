@@ -46,6 +46,7 @@
         },
         {
           "name": "attr/swversion",
+          "refresh.interval": 86400,
           "awake": true,
           "parse": {
             "fn": "zcl:attr",
