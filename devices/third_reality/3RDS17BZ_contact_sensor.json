@@ -10,7 +10,7 @@
     "3RDTS01056Z"
   ],
   "vendor": "Third Reality",
-  "product": "Contact Sensor (3RDS17BZ)",
+  "product": "Contact sensor (3RDS17BZ)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -70,7 +70,6 @@
         },
         {
           "name": "config/delay",
-          "description": "Delay (in seconds) until opening is reported.",
           "parse": {
             "fn": "zcl:attr",
             "mf": "0x1233",
