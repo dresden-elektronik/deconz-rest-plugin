@@ -3,11 +3,13 @@
   "uuid": "08dc1145-5065-4dbd-a0dc-3433984f7088",
   "manufacturername": [
     "_TYZB01_cbiezpds",
-    "_TYZB01_zqvwka4k"
+    "_TYZB01_zqvwka4k",
+    "_TZ3000_bgsigers"
   ],
   "modelid": [
     "SM0201",
-    "SM0201"
+    "SM0201",
+    "TS0201"
   ],
   "vendor": "Tuya",
   "product": "Temperature and humidity sensor with LCD display (SM0201)",
