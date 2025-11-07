@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "240fb1b8-8965-4549-a7eb-df13c38678e1",
-  "manufacturername": "Third Reality, Inc",
-  "modelid": "3RMS16BZ",
+  "manufacturername": [
+    "Third Reality, Inc",
+    "Third Reality, Inc"
+  ],
+  "modelid": [
+    "3RMS16BZ",
+    "3RSMR01067Z"
+  ],
   "vendor": "Third Reality",
   "product": "Motion Sensor, Pet Friendly (3RMS16BZ)",
   "sleeper": true,
