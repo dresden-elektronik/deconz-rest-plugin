@@ -46,14 +46,14 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
           "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 0,
             "eval": "Item.val = Attr.val / 2"
-          }
+          },
+          "default": 0
         },
         {
           "name": "config/offset",

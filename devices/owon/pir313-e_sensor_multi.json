@@ -87,7 +87,6 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
           "awake": true,
           "parse": {
             "at": "0x0021",
@@ -95,7 +94,8 @@
             "ep": 1,
             "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
-          }
+          },
+          "default": 0
         },
         {
           "name": "state/lowbattery"
@@ -173,7 +173,6 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
           "awake": true,
           "parse": {
             "at": "0x0021",
@@ -181,7 +180,8 @@
             "ep": 1,
             "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
-          }
+          },
+          "default": 0
         },
         {
           "name": "state/lastupdated"
@@ -253,7 +253,6 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
           "awake": true,
           "parse": {
             "at": "0x0021",
@@ -261,7 +260,8 @@
             "ep": 1,
             "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
-          }
+          },
+          "default": 0
         },
         {
           "name": "state/humidity"
@@ -335,7 +335,6 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
           "awake": true,
           "parse": {
             "at": "0x0021",
@@ -343,7 +342,8 @@
             "ep": 1,
             "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
-          }
+          },
+          "default": 0
         },
         {
           "name": "config/reachable"
