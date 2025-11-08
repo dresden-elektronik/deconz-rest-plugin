@@ -60,7 +60,8 @@
             "ep": 1,
             "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
-          }
+          },
+          "default": 0
         },
         {
           "name": "config/offset",
@@ -132,7 +133,8 @@
             "ep": 1,
             "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
-          }
+          },
+          "default": 0
         },
         {
           "name": "config/offset",
@@ -146,7 +148,6 @@
         },
         {
           "name": "state/moisture",
-          "awake": true,
           "parse": {
             "at": "0x0000",
             "cl": "0x0405",

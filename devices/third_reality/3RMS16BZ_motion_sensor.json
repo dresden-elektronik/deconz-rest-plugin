@@ -68,12 +68,14 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
             "eval": "Item.val = Attr.val"
-          }
+          },
+          "default": 0
         },
         {
           "name": "config/duration"
