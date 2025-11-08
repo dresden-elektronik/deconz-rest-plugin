@@ -100,14 +100,14 @@
             "cl": "0x0201",
             "dt": "0x29",
             "ep": 0,
-            "eval": "Item.val;",
+            "eval": "Item.val",
             "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0011",
             "cl": "0x0201",
             "ep": 0,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr"
           },
           "default": 0
