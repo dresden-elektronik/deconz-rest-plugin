@@ -52,6 +52,8 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
+          "awake": true,
           "read": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -64,12 +66,11 @@
             "ep": 1,
             "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
-          },
-          "awake": true,
-          "refresh.interval": 84600
+          }
         },
         {
           "name": "config/delay",
+          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "mf": "0x1233",
@@ -116,6 +117,8 @@
         },
         {
           "name": "state/open",
+          "refresh.interval": 86400,
+          "awake": true,
           "parse": {
             "fn": "ias:zonestatus",
             "mask": "alarm1"
@@ -125,9 +128,7 @@
             "ep": 1,
             "cl": "0x0500",
             "at": "0x0002"
-          },
-          "awake": true,
-          "refresh.interval": 84600
+          }
         }
       ]
     }
