@@ -83,13 +83,15 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery"
+          "name": "state/lowbattery",
+          "awake": true
         },
         {
           "name": "state/tampered"
         },
         {
-          "name": "state/water"
+          "name": "state/water",
+          "awake": true
         }
       ]
     }

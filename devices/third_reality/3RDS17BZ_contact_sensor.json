@@ -110,17 +110,10 @@
         },
         {
           "name": "state/open",
-          "refresh.interval": 86400,
           "awake": true,
           "parse": {
             "fn": "ias:zonestatus",
             "mask": "alarm1"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0500",
-            "at": "0x0002"
           }
         }
       ]
