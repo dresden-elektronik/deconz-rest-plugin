@@ -71,7 +71,7 @@
         "values": {
           "config/mode": {
             "auto": 4,
-            "manual": 3
+            "manu": 3
           }
         }
       },
@@ -125,7 +125,7 @@
             "at": "0x0000",
             "cl": "0xFC01",
             "ep": "0x01",
-            "eval": "if (Attr.val == 4) {Item.val = 'auto';} else if (Attr.val == 3) {Item.val = 'manual';}",
+            "eval": "if (Attr.val == 4) {Item.val = 'auto';} else if (Attr.val == 3) {Item.val = 'manu';}",
             "fn": "zcl:attr"
           },
           "write": {
@@ -133,7 +133,7 @@
             "cl": "0xFC01",
             "dt": "0x09",
             "ep": "0x01",
-            "eval": "if (Item.val == 'auto') {4} else if (Item.val == 'manual') {3};",
+            "eval": "if (Item.val == 'auto') {4} else if (Item.val == 'manu') {3};",
             "fn": "zcl:attr"
           }
         },
