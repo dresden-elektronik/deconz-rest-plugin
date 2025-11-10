@@ -89,12 +89,10 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery",
-          "awake": true
+          "name": "state/lowbattery"
         },
         {
-          "name": "state/water",
-          "awake": true
+          "name": "state/water"
         }
       ]
     },
@@ -147,20 +145,16 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/tholddark",
-          "default": 12000
+          "name": "config/tholddark"
         },
         {
-          "name": "config/tholdoffset",
-          "default": 7000
+          "name": "config/tholdoffset"
         },
         {
-          "name": "state/dark",
-          "default": false
+          "name": "state/dark"
         },
         {
-          "name": "state/daylight",
-          "default": false
+          "name": "state/daylight"
         },
         {
           "name": "state/lastupdated"
@@ -173,12 +167,10 @@
             "cl": "0x0400",
             "ep": 1,
             "script": "../generic/illuminance_cluster/sml_light_level.js"
-          },
-          "default": 0
+          }
         },
         {
-          "name": "state/lux",
-          "default": 0
+          "name": "state/lux"
         }
       ]
     }
