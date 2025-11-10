@@ -4,7 +4,7 @@
   "manufacturername": "Third Reality, Inc",
   "modelid": "3RSPE01044BZ",
   "vendor": "Third Reality",
-  "product": "Smart plug",
+  "product": "Smart plug (3RSPE01044BZ)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -194,7 +194,7 @@
             "ep": 1,
             "eval": "Item.val = Attr.val / 10"
           },
-          "refresh.interval": 365
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"

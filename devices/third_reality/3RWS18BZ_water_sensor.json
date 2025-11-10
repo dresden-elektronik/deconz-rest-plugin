@@ -56,11 +56,13 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
           },
           "default": 0
         },
@@ -81,13 +83,15 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery"
+          "name": "state/lowbattery",
+          "awake": true
         },
         {
           "name": "state/tampered"
         },
         {
-          "name": "state/water"
+          "name": "state/water",
+          "awake": true
         }
       ]
     }

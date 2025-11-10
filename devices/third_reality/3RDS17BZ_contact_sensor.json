@@ -10,7 +10,7 @@
     "3RDTS01056Z"
   ],
   "vendor": "Third Reality",
-  "product": "Contact Sensor (3RDS17BZ)",
+  "product": "Contact sensor (3RDS17BZ)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -52,12 +52,7 @@
         },
         {
           "name": "config/battery",
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0001",
-            "at": "0x0021"
-          },
+          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -65,12 +60,10 @@
             "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
-          "awake": true,
-          "refresh.interval": 84600
+          "default": 0
         },
         {
           "name": "config/delay",
-          "description": "Delay (in seconds) until opening is reported.",
           "parse": {
             "fn": "zcl:attr",
             "mf": "0x1233",
@@ -117,18 +110,11 @@
         },
         {
           "name": "state/open",
+          "awake": true,
           "parse": {
             "fn": "ias:zonestatus",
             "mask": "alarm1"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0500",
-            "at": "0x0002"
-          },
-          "awake": true,
-          "refresh.interval": 84600
+          }
         }
       ]
     }

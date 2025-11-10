@@ -3,7 +3,7 @@
   "uuid": "160b5e9e-8cfc-43d8-bc16-c128f09e4d40",
   "manufacturername": "Third Reality, Inc",
   "modelid": "3RSB22BZ",
-  "product": "Smart Button 3RSB22BZ",
+  "product": "Smart button (3RSB22BZ)",
   "status": "Gold",
   "sleeper": true,
   "subdevices": [
@@ -56,7 +56,7 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           }
         },
