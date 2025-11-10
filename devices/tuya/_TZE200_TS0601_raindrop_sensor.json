@@ -80,21 +80,25 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          }
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
+          },
+          "default": 0
         },
         {
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery"
+          "name": "state/lowbattery",
+          "awake": true
         },
         {
-          "name": "state/water"
+          "name": "state/water",
+          "awake": true
         }
       ]
     },
-        {
+    {
       "type": "$TYPE_LIGHT_LEVEL_SENSOR",
       "restapi": "/sensors",
       "uuid": [
@@ -120,11 +124,12 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
           "default": 0
@@ -142,19 +147,23 @@
           "name": "config/reachable"
         },
         {
+          "name": "config/tholddark",
+          "default": 12000
+        },
+        {
+          "name": "config/tholdoffset",
+          "default": 7000
+        },
+        {
+          "name": "state/dark",
+          "default": false
+        },
+        {
+          "name": "state/daylight",
+          "default": false
+        },
+        {
           "name": "state/lastupdated"
-        },
-        {
-          "name": "state/dark"
-        },
-        {
-          "name": "config/tholddark"
-        },
-        {
-          "name": "config/tholdoffset"
-        },
-        {
-          "name": "state/daylight"
         },
         {
           "name": "state/lightlevel",
@@ -164,10 +173,12 @@
             "cl": "0x0400",
             "ep": 1,
             "script": "../generic/illuminance_cluster/sml_light_level.js"
-          }
+          },
+          "default": 0
         },
         {
-          "name": "state/lux"
+          "name": "state/lux",
+          "default": 0
         }
       ]
     }
