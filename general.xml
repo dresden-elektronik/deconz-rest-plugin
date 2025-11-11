@@ -6011,6 +6011,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x020E" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x023B" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x023E" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x02d0" name="Interlock" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
         </attribute-set>
         <attribute-set id="0x0270" description="Smart Radiator Thermostat E1">
             <attribute id="0x0270" name="Calibrate" type="u8" mfcode="0x115f" access="rw" required="m"> 
