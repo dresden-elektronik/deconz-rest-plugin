@@ -1,11 +1,19 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "f9973a48-846a-4cee-b1ae-6a202331bdf6",
-  "manufacturername": "_TZ3000_j5fbnjeh",
-  "modelid": "TS0201",
-  "vendor": "Tesla Global Limited",
-  "product": "Temperature and humidity sensor (TSL-SEN-TAH)",
-  "sleeper": true,
+  "uuid": "6aa5a6c3-8bd0-4cf8-8f02-279cb0bf4ee2",
+  "manufacturername": [
+    "Technicolor",
+    "Universal Electronics Inc",
+    "Universal Electronics Inc"
+  ],
+  "modelid": [
+    "TKA105",
+    "URC4450BC0-X-R",
+    "H34450BA00-00007"
+  ],
+  "vendor": "Xfinity",
+  "product": "Security keypad",
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -16,6 +24,16 @@
         "0x01",
         "0x0402"
       ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0401",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0402"
+        ]
+      },
       "items": [
         {
           "name": "attr/id"
@@ -46,13 +64,12 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "parse": {
-            "at": "0x0021",
+            "at": "0x0020",
             "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
-            "fn": "zcl:attr"
+            "cppsrc": "power_configuration.cpp:44",
+            "ep": 255,
+            "eval": "const vmin = 36; const vmax = 60; let bat = Attr.val; if (bat > vmax) { bat = vmax; } else if (bat < vmin) { bat = vmin; } bat = ((bat - vmin) / (vmax - vmin)) * 100; if (bat > 100) { bat = 100; } else if (bat <= 0)  { bat = 1; } Item.val = bat;"
           },
           "default": 0
         },
@@ -70,18 +87,32 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/temperature"
+          "name": "state/temperature",
+          "default": 0
         }
       ]
     },
     {
-      "type": "$TYPE_HUMIDITY_SENSOR",
+      "type": "$TYPE_ANCILLARY_CONTROL",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0405"
+        "0x0501"
       ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0401",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0500"
+        ],
+        "out": [
+          "0x0501"
+        ]
+      },
       "items": [
         {
           "name": "attr/id"
@@ -112,30 +143,47 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "parse": {
-            "at": "0x0021",
+            "at": "0x0020",
             "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
-            "fn": "zcl:attr"
+            "cppsrc": "power_configuration.cpp:44",
+            "ep": 255,
+            "eval": "const vmin = 36; const vmax = 60; let bat = Attr.val; if (bat > vmax) { bat = vmax; } else if (bat < vmin) { bat = vmin; } bat = ((bat - vmin) / (vmax - vmin)) * 100; if (bat > 100) { bat = 100; } else if (bat <= 0)  { bat = 1; } Item.val = bat;"
           },
           "default": 0
         },
         {
-          "name": "config/offset"
+          "name": "config/enrolled"
         },
         {
           "name": "config/on"
         },
         {
+          "name": "config/pending"
+        },
+        {
           "name": "config/reachable"
         },
         {
-          "name": "state/humidity"
+          "name": "state/action",
+          "default": "disarmed"
         },
         {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery"
+        },
+        {
+          "name": "state/panel",
+          "default": "disarmed"
+        },
+        {
+          "name": "state/seconds_remaining",
+          "default": 0
+        },
+        {
+          "name": "state/tampered"
         }
       ]
     }
@@ -144,42 +192,41 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0000"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0001",
       "report": [
         {
-          "at": "0x0021",
+          "at": "0x0020",
           "dt": "0x20",
           "min": 3600,
-          "max": 14400,
-          "change": "0x00000001"
+          "max": 3600
         }
       ]
     },
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0402",
       "report": [
         {
           "at": "0x0000",
           "dt": "0x29",
-          "min": 60,
+          "min": 10,
           "max": 300,
-          "change": "0x00000064"
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0405",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x21",
-          "min": 60,
-          "max": 300,
-          "change": "0x00000064"
+          "change": "0x00000014"
         }
       ]
     }

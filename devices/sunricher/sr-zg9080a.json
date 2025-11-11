@@ -78,7 +78,7 @@
             "at": "0x0000",
             "cl": "0x0102",
             "ep": 0,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr"
           },
           "default": 0,

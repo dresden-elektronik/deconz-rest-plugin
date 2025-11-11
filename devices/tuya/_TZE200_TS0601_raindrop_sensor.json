@@ -80,8 +80,10 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          }
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
+          },
+          "default": 0
         },
         {
           "name": "state/lastupdated"
@@ -94,7 +96,7 @@
         }
       ]
     },
-        {
+    {
       "type": "$TYPE_LIGHT_LEVEL_SENSOR",
       "restapi": "/sensors",
       "uuid": [
@@ -120,11 +122,12 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
           "default": 0
@@ -142,19 +145,19 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/lastupdated"
-        },
-        {
-          "name": "state/dark"
-        },
-        {
           "name": "config/tholddark"
         },
         {
           "name": "config/tholdoffset"
         },
         {
+          "name": "state/dark"
+        },
+        {
           "name": "state/daylight"
+        },
+        {
+          "name": "state/lastupdated"
         },
         {
           "name": "state/lightlevel",

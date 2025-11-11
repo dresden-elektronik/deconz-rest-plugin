@@ -83,14 +83,14 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/colormode"
         },
         {
           "name": "state/ct",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/effect",
@@ -101,18 +101,18 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
         },
         {
           "name": "state/sat",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/x",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/y"
@@ -159,8 +159,8 @@
         {
           "at": "0x0007",
           "dt": "0x21",
-          "min": 154,
-          "max": 500,
+          "min": 5,
+          "max": 1800,
           "change": "0x00000001"
         },
         {

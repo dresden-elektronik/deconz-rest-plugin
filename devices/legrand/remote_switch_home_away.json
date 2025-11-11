@@ -1,10 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "3666edf3-7d38-4c80-857b-94610b5ef239",
+  "uuid": "9b705c23-87d1-4a69-8f2f-10f452a6bdf9",
   "manufacturername": "Legrand",
-  "modelid": "Remote switch Wake up / Sleep",
+  "modelid": "Master remote SW Home / Away",
   "vendor": "Legrand",
-  "product": "Valena life scene switch wakeup and sleep (752x89/064884)",
+  "product": "Home and Away wireless master switch celiane (064873)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -14,7 +14,7 @@
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0005"
+        "0x000f"
       ],
       "items": [
         {
@@ -67,7 +67,7 @@
             "cl": "0x0005",
             "cmd": "0x05",
             "ep": 1,
-            "eval": "const t={'-11':1002,'-12':2002,'244':1002,'245':2002};if(ZclFrame.at(0) in t){Item.val=t[ZclFrame.at(0)]}"
+            "eval": "const t={'-9':1002,'-10':2002,'247':1002,'246':2002};if(ZclFrame.at(0) in t){Item.val=t[ZclFrame.at(0)]}"
           }
         },
         {

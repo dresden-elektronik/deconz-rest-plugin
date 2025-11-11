@@ -57,8 +57,7 @@
         },
         {
           "name": "config/externalsensortemp",
-          "description": "External sensor temperature used as Outdoor temperature on display.",
-          "refresh.interval": 3660,
+          "refresh.interval": 360,
           "read": {
             "at": "0x0010",
             "cl": "0xff01",
@@ -79,7 +78,7 @@
             "at": "0x0010",
             "cl": "0xff01",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x119c"
           },
@@ -91,8 +90,7 @@
         },
         {
           "name": "config/ledindication",
-          "description": "Use it for Backlight configuration.\n0 = On demand\n1 = Always ON",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "read": {
             "at": "0x0402",
             "cl": "0x0201",
@@ -113,7 +111,7 @@
             "at": "0x0402",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x119c"
           },
@@ -161,7 +159,7 @@
             "at": "0x0014",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x119c"
           },
@@ -178,7 +176,7 @@
         },
         {
           "name": "state/temperature",
-          "refresh.interval": 420,
+          "refresh.interval": 360,
           "read": {
             "at": "0x0000",
             "cl": "0x0201",
@@ -196,7 +194,7 @@
         },
         {
           "name": "state/valve",
-          "refresh.interval": 30,
+          "refresh.interval": 360,
           "read": {
             "at": "0x0008",
             "cl": "0x0201",
@@ -208,7 +206,7 @@
             "at": "0x0008",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x119c"
           },
@@ -280,7 +278,7 @@
             "at": "0x0508",
             "cl": "0x0b04",
             "ep": 1,
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 1000; }"
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 1000 }"
           },
           "default": 0
         },
@@ -300,7 +298,7 @@
             "at": "0x050b",
             "cl": "0x0b04",
             "ep": 1,
-            "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val; }"
+            "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val }"
           },
           "default": 0
         },
@@ -317,7 +315,7 @@
             "at": "0x0505",
             "cl": "0x0b04",
             "ep": 1,
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 10 ; }"
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 10 }"
           },
           "default": 0
         }
@@ -376,7 +374,7 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 30,
+          "refresh.interval": 360,
           "read": {
             "at": "0x0000",
             "cl": "0x0702",
@@ -455,7 +453,7 @@
         },
         {
           "name": "state/temperature",
-          "refresh.interval": 30,
+          "refresh.interval": 360,
           "read": {
             "at": "0x0000",
             "cl": "0x0402",
@@ -527,7 +525,7 @@
           "at": "0x0000",
           "dt": "0x29",
           "min": 30,
-          "max": 360,
+          "max": 300,
           "change": "0x0000000A"
         }
       ]
@@ -541,8 +539,8 @@
           "at": "0x0010",
           "dt": "0x29",
           "mf": "0x119C",
-          "min": 60,
-          "max": 3600,
+          "min": 30,
+          "max": 300,
           "change": "0x0000000A"
         }
       ]

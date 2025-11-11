@@ -139,7 +139,7 @@
         },
         {
           "name": "state/power",
-          "refresh.interval": 800,
+          "refresh.interval": 360,
           "default": 0
         }
       ]
