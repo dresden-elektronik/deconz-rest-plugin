@@ -189,7 +189,7 @@
         },
         {
           "name": "config/clickmode",
-          "refresh.interval": 300,
+          "refresh.interval": 86400,
           "read": {
             "at": "0x000a",
             "cl": "0xfcc0",
@@ -219,6 +219,35 @@
             ["\"rocker\"", "Rocker mode"] 
           ],
           "default": "rocker"
+        },
+        {
+          "name": "config/interlock",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x02d0",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "parse": {
+            "at": "0x02d0",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "write": {
+            "at": "0x02d0",
+            "cl": "0xFCC0",
+            "dt": "0x10",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "default": false
         },
         {
           "name": "state/buttonevent"

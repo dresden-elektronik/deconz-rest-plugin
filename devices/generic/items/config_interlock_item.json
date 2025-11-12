@@ -1,0 +1,9 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/interlock",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "default": false,
+  "description": "Prevent the use of 2 relays in same time."
+}
