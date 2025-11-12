@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2023 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -45,41 +45,69 @@ void DeRestPluginPrivate::initUpnpDiscovery()
     upnpTimer->start(1000); // setup phase fast interval
 }
 
-/*! Replaces description_in.xml template with dynamic content. */
+/*! Builds description.xml with dynamic content. */
 void DeRestPluginPrivate::initDescriptionXml()
 {
-    if (!apsCtrl)
+        QString templ = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n"
+"<root xmlns=\"urn:schemas-upnp-org:device-1-0\">\r\n"
+"  <specVersion>\r\n"
+"    <major>1</major>\r\n"
+"    <minor>0</minor>\r\n"
+"  </specVersion>\r\n"
+"  <URLBase>http://{{IPADDRESS}}:{{PORT}}/</URLBase>\r\n"
+"  <device>\r\n"
+"    <deviceType>urn:schemas-upnp-org:device:Basic:1</deviceType>\r\n"
+"    <friendlyName>{{GWNAME}} ({{IPADDRESS}})</friendlyName>\r\n"
+"    <manufacturer>Royal Philips Electronics</manufacturer>\r\n"
+"    <manufacturerURL>http://www.dresden-elektronik.de</manufacturerURL>\r\n"
+"    <modelDescription>Philips hue compatible Personal Wireless Lighting</modelDescription>\r\n"
+"    <modelName>Philips hue bridge 2015</modelName>\r\n"
+"    <modelNumber>BSB002</modelNumber>\r\n"
+"    <modelURL>http://www.dresden-elektronik.de</modelURL>\r\n"
+"    <serialNumber>{{SERIAL}}</serialNumber>\r\n"
+"    <UDN>uuid:{{UUID}}</UDN>\r\n"
+"    <presentationURL>index.html</presentationURL>\r\n"
+"    <iconList>\r\n"
+"      <icon>\r\n"
+"        <mimetype>image/png</mimetype>\r\n"
+"        <height>48</height>\r\n"
+"        <width>48</width>\r\n"
+"        <depth>24</depth>\r\n"
+"        <url>hue_logo_0.png</url>\r\n"
+"      </icon>\r\n"
+"    </iconList>\r\n"
+"    <deconz:info>\r\n"
+"      <httpsPort>{{HTTPSPORT}}</httpsPort>\r\n"
+"    </deconz:info>\r\n"
+"  </device>\r\n"
+"</root>\r\n";
+
+    descriptionXml.clear();
+    const QString gwPortStr = QString::number(gwPort);
+    const QString gwSerial = gwBridgeId.left(6) + gwBridgeId.right(6);
+
+    QTextStream stream(&templ);
+    while (!stream.atEnd())
     {
-        return;
-    }
+        QString line = stream.readLine(320);
 
-    QString serverRoot = apsCtrl->getParameter(deCONZ::ParamHttpRoot);
-
-    if (!serverRoot.isEmpty())
-    {
-        descriptionXml.clear();
-        QFile f(serverRoot + "/description_in.xml");
-
-        if (f.open(QFile::ReadOnly))
+        if (line.contains("{{HTTPSPORT}}"))
         {
-            const QString gwPortStr = QString::number(gwPort);
-            const QString gwSerial = gwBridgeId.left(6) + gwBridgeId.right(6);
-
-            QTextStream stream(&f);
-            while (!stream.atEnd())
+            uint16_t httpsPort = apsCtrl->getParameter(deCONZ::ParamHttpsPort);
+            if (httpsPort > 0)
             {
-                QString line = stream.readLine(320);
-
-                if (!line.isEmpty())
-                {
-                    line.replace(QLatin1String("{{IPADDRESS}}"), gwIPAddress);
-                    line.replace(QLatin1String("{{PORT}}"), gwPortStr);
-                    line.replace(QLatin1String("{{GWNAME}}"), gwName);
-                    line.replace(QLatin1String("{{SERIAL}}"), gwSerial);
-                    line.replace(QLatin1String("{{UUID}}"), gwUuid);
-                    descriptionXml.append(line.toUtf8());
-                }
+                line.replace(QLatin1String("{{HTTPSPORT}}"), QString::number(httpsPort));
+                descriptionXml.append(line.toUtf8() + "\n");
             }
+        }
+        else if (!line.isEmpty())
+        {
+            line.replace(QLatin1String("{{IPADDRESS}}"), gwIPAddress);
+            line.replace(QLatin1String("{{PORT}}"), gwPortStr);
+            line.replace(QLatin1String("{{GWNAME}}"), gwName);
+            line.replace(QLatin1String("{{SERIAL}}"), gwSerial);
+            line.replace(QLatin1String("{{UUID}}"), gwUuid);
+            descriptionXml.append(line.toUtf8() + "\n");
         }
     }
 }
@@ -125,6 +153,12 @@ void DeRestPluginPrivate::announceUpnp()
             .arg(gwConfig["ipaddress"].toString())
             .arg(gwConfig["port"].toDouble())
             .arg(gwBridgeId.toUpper()).toLocal8Bit();
+
+    uint16_t httpsPort = apsCtrl->getParameter(deCONZ::ParamHttpsPort);
+    if (httpsPort > 0)
+    {
+        datagram.append(QString("HTTPS.phoscon.de: %1\r\n").arg(httpsPort).toLocal8Bit());
+    }
     QByteArray nt1 = QString(QLatin1String(
         "NT: upnp:rootdevice\r\n"
         "USN: uuid:%1::upnp:rootdevice\r\n")).arg(gwConfig["uuid"].toString()).toLocal8Bit();
