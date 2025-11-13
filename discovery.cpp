@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -192,6 +192,11 @@ void DeRestPluginPrivate::internetDiscoveryTimerFired()
     map["mac"] = gwBridgeId;
     map["internal_ip"] = gwConfig["ipaddress"].toString();
     map["internal_port"] = gwConfig["port"].toDouble();
+    uint16_t httpsPort = ctrl->getParameter(deCONZ::ParamHttpsPort);
+    if (httpsPort > 0)
+    {
+        map["https_port"] = (double)httpsPort;
+    }
     map["interval"] = gwAnnounceInterval;
     map["swversion"] = gwConfig["swversion"].toString();
     map["fwversion"] = gwConfig["fwversion"].toString();
