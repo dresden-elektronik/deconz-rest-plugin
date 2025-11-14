@@ -2074,6 +2074,13 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 sensorNode.setManufacturer("PhilipsFoH");
                 sensorNode.setSwVersion("PTM216Z");
             }
+            else if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0xc1 && extOptions.byte == 0xf2)
+            {
+                // NOTE(mpi): this is a internal test not an actual product
+                sensorNode.setModelId("ZGPSWITCH");
+                sensorNode.setManufacturer("Philips");
+                sensorNode.setSwVersion("1.0");
+            }
             else
             {
                 DBG_Printf(DBG_INFO, "ZGP srcId: 0x%08X unsupported green power device gpdDeviceId 0x%02X, options.byte: 0x%02X, extOptions.byte: 0x%02X, numGPDCommands: %u, ind.payload: 0x%s\n", ind.gpdSrcId(), gpdDeviceId, options.byte, extOptions.byte, numberOfGPDCommands, qPrintable(ind.payload().toHex()));
