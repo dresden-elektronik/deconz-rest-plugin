@@ -326,26 +326,26 @@
           "default": 0
         },
         {
-          "name": "config/delay",
-          "refresh.interval": 86400,
+          "name": "config/sensitivity",
           "range": [
             0,
             2
           ],
+          "refresh.interval": 86400,
           "read": {
-            "at": "0xf001",
+            "at": "0x0013",
             "cl": "0x0500",
             "ep": 1
           },
           "write": {
-            "at": "0xf001",
+            "at": "0x0013",
             "cl": "0x0500",
             "dt": "0x20",
             "ep": 1,
             "eval": "Item.val"
           },
           "parse": {
-            "at": "0xf001",
+            "at": "0x0013",
             "cl": "0x0500",
             "ep": 1,
             "eval": "Item.val = Attr.val"
