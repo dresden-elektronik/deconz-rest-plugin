@@ -3,7 +3,7 @@
   "manufacturername": "HOBEIAN",
   "modelid": "ZG-204ZV",
   "vendor": "HOBEIAN",
-  "product": "3 In 1 presence sensor with temperature and humidity and light level (ZG-204Z)",
+  "product": "3-in-1 presence sensor with temperature, humidity and light sensor (ZG-204ZV)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -329,7 +329,7 @@
           "name": "config/sensitivity",
           "range": [
             0,
-            2
+            19
           ],
           "refresh.interval": 86400,
           "read": {
