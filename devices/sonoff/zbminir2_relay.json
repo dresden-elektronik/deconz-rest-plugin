@@ -190,7 +190,7 @@
         },
         {
           "name": "config/mode",
-          "description": "Enables or disable the Turbo Mode to Boost the signal.",
+          "description": "Enables or disables the Turbo Mode to Boost the signal.",
           "default": "off",
           "read": {
             "fn": "zcl:attr",
@@ -224,7 +224,7 @@
         },
         {
           "name": "config/on/delayedpoweron",
-          "description": "Enables or disable the timedelay for On/Off state on device startup (power on).",
+          "description": "Enables or disables the timedelay for On/Off state on device startup (power on).",
           "refresh.interval": 3600,
           "read": {
             "fn": "zcl:attr",
