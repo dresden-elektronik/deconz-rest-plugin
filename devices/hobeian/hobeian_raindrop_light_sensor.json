@@ -1,15 +1,14 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "583960f0-9783-463e-81d8-744f6573fdc8",
   "manufacturername": "HOBEIAN",
-  "modelid": "ZG-204ZL",
+  "modelid": "ZG-223Z",
   "vendor": "HOBEIAN",
-  "product": "Presence and light sensor (ZG-204ZL)",
+  "product": "Raindrop and light sensor (ZG-223Z)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_PRESENCE_SENSOR",
+      "type": "$TYPE_WATER_LEAK_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -56,20 +55,18 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
+          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
           },
           "default": 0
+        },
+        {
+          "name": "config/checkin"
         },
         {
           "name": "config/enrolled",
@@ -88,7 +85,7 @@
           "name": "config/sensitivity",
           "range": [
             0,
-            2
+            9
           ],
           "refresh.interval": 86400,
           "read": {
@@ -115,7 +112,10 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/presence",
+          "name": "state/tampered"
+        },
+        {
+          "name": "state/water",
           "awake": true,
           "parse": {
             "fn": "ias:zonestatus",
@@ -129,16 +129,10 @@
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x03",
+        "0x01",
         "0x0400"
       ],
       "items": [
-        {
-          "name": "attr/id"
-        },
-        {
-          "name": "attr/lastannounced"
-        },
         {
           "name": "attr/lastseen"
         },
@@ -162,18 +156,13 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
+          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
+            "eval": "Item.val = Attr.val / 2",
+            "fn": "zcl:attr"
           },
           "default": 0
         },
@@ -218,21 +207,23 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0x0500"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0001",
       "report": [
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
-          "max": 14400,
+          "min": 60,
+          "max": 3600,
           "change": "0x00000001"
         }
       ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0500"
     },
     {
       "bind": "unicast",
