@@ -48,8 +48,8 @@ void DeRestPluginPrivate::initUpnpDiscovery()
 /*! Builds description.xml with dynamic content. */
 void DeRestPluginPrivate::initDescriptionXml()
 {
-        QString templ = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n"
-"<root xmlns=\"urn:schemas-upnp-org:device-1-0\">\r\n"
+    QString templ = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n"
+"<root xmlns=\"urn:schemas-upnp-org:device-1-0\" xmlns:deconz=\"urn:phoscon:device:deconz\">\r\n"
 "  <specVersion>\r\n"
 "    <major>1</major>\r\n"
 "    <minor>0</minor>\r\n"
