@@ -1,16 +1,15 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "788e1511-cf29-47c0-8344-20511dc9a120",
   "manufacturername": "eWeLink",
   "modelid": "SNZB-03",
   "vendor": "Sonoff/eWeLink",
-  "product": "Water leak sensor (SNZB-03)",
-  "matchexpr": "R.item('attr/zonetype').val === 0x002a",
+  "product": "Motion sensor (SNZB-03)",
+  "matchexpr": "R.item('attr/zonetype').val === 0x000d",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
-      "type": "$TYPE_WATER_LEAK_SENSOR",
+      "type": "$TYPE_PRESENCE_SENSOR",
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
@@ -74,7 +73,14 @@
           "default": 0
         },
         {
+          "name": "config/enrolled",
+          "public": false
+        },
+        {
           "name": "config/on"
+        },
+        {
+          "name": "config/pending"
         },
         {
           "name": "config/reachable"
@@ -83,8 +89,15 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/water",
-          "awake": true
+          "name": "state/lowbattery"
+        },
+        {
+          "name": "state/presence",
+          "awake": true,
+          "parse": {
+            "fn": "ias:zonestatus",
+            "mask": "alarm1"
+          }
         }
       ]
     }
@@ -105,7 +118,7 @@
           "dt": "0x20",
           "min": 3600,
           "max": 14400,
-          "change": "0x00000002"
+          "change": "0x00000001"
         }
       ]
     }
