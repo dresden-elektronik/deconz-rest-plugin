@@ -450,6 +450,13 @@ static duk_ret_t DJS_GetAttributeValue(duk_context *ctx)
         break;
     }
 
+    case deCONZ::ZclOctedString:
+    {
+        QString str = attr->toString();
+        duk_push_string(ctx, qPrintable(str));
+        break;
+    }
+
     case deCONZ::ZclCharacterString:
     {
         QString str = attr->toString();
@@ -806,6 +813,10 @@ static duk_ret_t DJS_SetItemVal(duk_context *ctx)
             {
                 DBG_Printf(DBG_JS, "%s: %s --> %s\n", __FUNCTION__, item->descriptor().suffix, str);
                 ok = item->setValue(QString(QLatin1String(str, out_len)), ResourceItem::SourceDevice);
+            }
+            else
+            {
+                ok = item->setValue(QString(""), ResourceItem::SourceDevice);
             }
             duk_pop(ctx); /* conversion result*/
         }
