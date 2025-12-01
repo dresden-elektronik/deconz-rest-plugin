@@ -370,9 +370,6 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery"
-        },
-        {
           "name": "state/presence",
           "awake": true,
           "parse": {
