@@ -1,10 +1,16 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "fa44b7d1-6b46-4bae-9264-2dea7c216d9e",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRI bulb GU10 WS 400lm",
+  "manufacturername": [
+    "$MF_IKEA",
+    "$MF_IKEA"
+  ],
+  "modelid": [
+    "TRADFRI bulb GU10 WS 345lm",
+    "TRADFRI bulb GU10 WS 400lm"
+  ],
   "vendor": "IKEA",
-  "product": "Tradfri LED bulb GU10 400 lumen, dimmable white spectrum (LED1737R5)",
+  "product": "Tradfri LED bulb GU10 345/400 lumen, dimmable white spectrum (LED2106R3/LED1737R5)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
