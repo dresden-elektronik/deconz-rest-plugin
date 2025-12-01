@@ -182,9 +182,14 @@ void DeRestPluginPrivate::internetDiscoveryTimerFired()
     const deCONZ::Node *node;
     deCONZ::ApsController *ctrl = deCONZ::ApsController::instance();
 
-    while (ctrl && ctrl->getNode(i, &node) == 0)
+    if (!ctrl)
     {
-      i++;
+        return;
+    }
+
+    while (ctrl->getNode(i, &node) == 0)
+    {
+        i++;
     }
 
     QVariantMap map;

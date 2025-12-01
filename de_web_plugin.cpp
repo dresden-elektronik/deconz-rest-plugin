@@ -12821,12 +12821,12 @@ void DeRestPluginPrivate::handleSceneClusterIndication(const deCONZ::ApsDataIndi
             bool hasBri = false;
             bool hasXY = false;
             bool hasHueSat = false;
-            quint8 onOff;
-            quint8 bri;
-            quint16 x;
-            quint16 y;
-            quint16 ehue;
-            quint8 sat;
+            quint8 onOff = 0;
+            quint8 bri = 0;
+            quint16 x = 0;
+            quint16 y = 0;
+            quint16 ehue = 0;
+            quint8 sat = 0;
 
             DBG_Printf(DBG_INFO_L2, "View scene rsp 0x%016llX group 0x%04X scene 0x%02X\n", lightNode->address().ext(), groupId, sceneId);
 
