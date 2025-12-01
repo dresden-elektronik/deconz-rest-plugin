@@ -576,16 +576,6 @@ bool ddfSerializeV1(JsonDoc &doc, const DeviceDescription &ddf, char *buf, size_
         doc["matchexpr"] = ddf.matchExpr.toStdString();
     }
 
-    if (!ddf.path.isEmpty())
-    {
-        int idx = ddf.path.indexOf(QLatin1String("/devices/"));
-
-        if (idx >= 0)
-        {
-            doc["path"] = ddf.path.mid(idx).toStdString();
-        }
-    }
-
     {
         JsonArray subDevices = doc.createNestedArray("subdevices");
 
