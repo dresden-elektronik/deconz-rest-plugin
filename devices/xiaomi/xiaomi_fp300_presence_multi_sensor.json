@@ -384,11 +384,35 @@
             "mf": "0x115F",
             "state.timeout": 2
           },
-          "range": [
-            1,
-            65535
-          ],
+          "range": [1, 65535],
           "default": 30
+        },
+        {
+          "name": "config/detectionrange",
+          "refresh.interval": 360,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x015B",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x015B"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x015B",
+            "dt": "0x23",
+            "eval": "Item.val"
+          },
+          "range": [0, 600],
+          "default": 600
         },
         {
           "name": "config/devicemode",
@@ -399,7 +423,7 @@
             "cl": "0xFCC0",
             "mf": "0x115F",
             "at": "0x0199",
-            "eval": "Item.val = ['pir','mmwave' , 'combined'][Attr.val]"
+            "eval": "Item.val = ['pir', 'mmwave', 'combined'][Attr.val]"
           },
           "read": {
             "fn": "zcl:attr",
@@ -415,7 +439,7 @@
             "mf": "0x115F",
             "at": "0x0199",
             "dt": "0x20",
-            "eval": "['pir','mmwave' , 'combined'].indexOf(Item.val)"
+            "eval": "['pir', 'mmwave', 'combined'].indexOf(Item.val)"
           },
           "values": [
             ["\"pir\"", "Use pir only"],
@@ -466,6 +490,23 @@
             [3, "High"]
           ],
           "default": 3
+        },
+        {
+          "name": "state/distance",
+          "refresh.interval": 360,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x015F",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x015F"
+          }
         },
         {
            "name": "state/lastupdated"
