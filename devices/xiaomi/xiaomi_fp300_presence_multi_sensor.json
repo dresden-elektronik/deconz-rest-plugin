@@ -455,6 +455,35 @@
           "name": "config/reachable"
         },
         {
+          "name": "config/restart_device",
+          "parse": {
+            "at": "0x00E8",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "at": "0x00E8",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "write": {
+            "at": "0x00E8",
+            "change.timeout": 3600,
+            "cl": "0xFCC0",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
+          }
+        },
+        {
           "name": "config/sensitivity",
           "refresh.interval": 3600,
           "awake": true,
@@ -490,6 +519,35 @@
             [3, "High"]
           ],
           "default": 3
+        },
+        {
+          "name": "config/spatial_learning",
+          "parse": {
+            "at": "0x0157",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "at": "0x0157",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "write": {
+            "at": "0x0157",
+            "change.timeout": 3600,
+            "cl": "0xFCC0",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
+          }
         },
         {
           "name": "state/distance",

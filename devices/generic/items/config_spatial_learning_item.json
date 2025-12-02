@@ -1,0 +1,9 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/spatial_learning",
+  "datatype": "Bool",
+  "access": "RW",
+  "public": true,
+  "description": "Enable AI spatial learning to analyze surroundings and improve the sensor's detection accuracy. Keep the area empty while running.",
+  "default": false
+}
