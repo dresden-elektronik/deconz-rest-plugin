@@ -343,6 +343,35 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/adaptive_sensitivity",
+          "parse": {
+            "at": "0x015D",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "at": "0x015D",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "write": {
+            "at": "0x015D",
+            "change.timeout": 3600,
+            "cl": "0xFCC0",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "Item.val ? 1 : 0",
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
+          }
+        },
+        {
           "name": "config/battery",
           "awake": true,
           "parse": {
@@ -449,6 +478,35 @@
           "default": "combined"
         },
         {
+          "name": "config/interference_identification",
+          "parse": {
+            "at": "0x015E",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "at": "0x015E",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "write": {
+            "at": "0x015E",
+            "change.timeout": 3600,
+            "cl": "0xFCC0",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "Item.val ? 1 : 0",
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
+          }
+        },
+        {
           "name": "config/on"
         },
         {
@@ -477,7 +535,7 @@
             "cl": "0xFCC0",
             "dt": "0x20",
             "ep": 1,
-            "eval": "Item.val",
+            "eval": "Item.val ? 1 : 0",
             "fn": "zcl:attr",
             "mf": "0x115F",
             "state.timeout": 2
@@ -543,7 +601,7 @@
             "cl": "0xFCC0",
             "dt": "0x20",
             "ep": 1,
-            "eval": "Item.val",
+            "eval": "Item.val ? 1 : 0",
             "fn": "zcl:attr",
             "mf": "0x115F",
             "state.timeout": 2
