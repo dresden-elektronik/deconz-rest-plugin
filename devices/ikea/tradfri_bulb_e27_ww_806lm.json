@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "833cf9e4-5d14-407a-a3c4-deff36c22a49",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRI bulb E27 WW 806lm",
+  "manufacturername": [
+    "$MF_IKEA",
+    "$MF_IKEA"
+  ],
+  "modelid": [
+    "TRADFRI bulb E26 WW 806lm",
+    "TRADFRI bulb E27 WW 806lm"
+  ],
   "vendor": "IKEA",
   "product": "Tradfri LED bulb E27 806 lumen, dimmable warm white, opal white (LED1836G9)",
   "sleeper": false,

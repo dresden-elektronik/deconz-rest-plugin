@@ -1,10 +1,22 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "e4776ddf-be28-4f6e-8984-bad49a78d38b",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRI bulb E27 WS clear 806lm",
+  "manufacturername": [
+    "$MF_IKEA",
+    "$MF_IKEA",
+    "$MF_IKEA",
+    "$MF_IKEA",
+    "$MF_IKEA"
+  ],
+  "modelid": [
+    "TRADFRI bulb E26 WS clear 806lm",
+    "TRADFRI bulb E26 WS clear 950lm",
+    "TRADFRI bulb E27 WS clear 806lm",
+    "TRADFRI bulb E27 WS clear 950lm",
+    "TRADFRI bulb E27 WS\uFFFDclear 950lm"
+  ],
   "vendor": "IKEA",
-  "product": "Tradfri LED bulb E27 806 lumen, dimmable white spectrum, clear (LED1736G9)",
+  "product": "Tradfri LED bulb E27 806/950 lumen, dimmable white spectrum, clear (LED1736G9/LED1546G12)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

@@ -3,14 +3,20 @@
   "uuid": "8ecd84ad-4015-4b9e-bee2-311e750ee974",
   "manufacturername": [
     "$MF_IKEA",
+    "$MF_IKEA",
+    "$MF_IKEA",
+    "$MF_IKEA",
     "$MF_IKEA"
   ],
   "modelid": [
+    "TRADFRI bulb E12 WS opal 400lm",
+    "TRADFRI bulb E12 WS opal 600lm",
     "TRADFRI bulb E14 WS opal 400lm",
+    "TRADFRIbulbE14WSglobeopal470lm",
     "TRADFRI bulb E14 WS opal 600lm"
   ],
   "vendor": "IKEA",
-  "product": "Tradfri LED bulb E14 400/600 lumen, dimmable white spectrum, opal white (LED1536G5/LED1733G7)",
+  "product": "Tradfri LED bulb E14 400/470/600 lumen, dimmable white spectrum, opal white (LED1536G5/LED1733G7/LED1738G7/LED2002G5)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
