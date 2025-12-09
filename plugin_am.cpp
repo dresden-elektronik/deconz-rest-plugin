@@ -20,7 +20,10 @@
 #include "device.h"
 #include "utils/scratchmem.h"
 
-#define VFS_MAX_URL_LENGTH 256
+#ifndef VFS_MAX_URL_LENGTH
+#define VFS_MAX_URL_LENGTH 256 // todo remove now defined in am_vfs.h
+#endif
+
 #define AM_ACTOR_ID_REST_PLUGIN 4001
 
 
