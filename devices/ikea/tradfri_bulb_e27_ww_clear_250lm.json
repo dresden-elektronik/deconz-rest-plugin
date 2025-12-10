@@ -1,10 +1,20 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "61da5d05-ff1d-4bb8-bac6-3bd8fa62690b",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRIbulbE27WWclear250lm",
+  "manufacturername": [
+    "$MF_IKEA",
+    "$MF_IKEA",
+    "$MF_IKEA",
+    "$MF_IKEA"
+  ],
+  "modelid": [
+    "TRADFRI bulb E26 WW clear 250lm",
+    "TRADFRIbulbE26WWclear250lm",
+    "TRADFRI bulb E27 WW clear 250lm",
+    "TRADFRIbulbE27WWclear250lm"
+  ],
   "vendor": "IKEA",
-  "product": "Tradfri LED bulb E27 250 lumen, dimmable warm white, clear (LED1934G3)",
+  "product": "Tradfri LED bulb E27 250 lumen, dimmable warm white, clear (LED1842G3/LED1934G3)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

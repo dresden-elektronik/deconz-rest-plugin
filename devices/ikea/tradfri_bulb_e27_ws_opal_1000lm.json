@@ -3,9 +3,11 @@
   "uuid": "75aad11e-f313-4ce0-a5b1-5c62566ed1d6",
   "manufacturername": [
     "$MF_IKEA",
+    "$MF_IKEA",
     "$MF_IKEA"
   ],
   "modelid": [
+    "TRADFRI bulb E26 WS opal 1000lm",
     "TRADFRI bulb E27 WS opal 1000lm",
     "TRADFRIbulbE27WSglobeopal1055lm"
   ],

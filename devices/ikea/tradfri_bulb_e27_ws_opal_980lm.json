@@ -1,8 +1,16 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "43b5d1f9-25c9-4ca9-bd89-0300571221fc",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRI bulb E27 WS opal 980lm",
+  "manufacturername": [
+    "$MF_IKEA",
+    "$MF_IKEA",
+    "$MF_IKEA"
+  ],
+  "modelid": [
+    "TRADFRI bulb E26 WS opal 980lm",
+    "TRADFRI bulb E27 WS opal 980lm",
+    "TRADFRI bulb E27 WS\uFFFDopal 980lm"
+  ],
   "vendor": "IKEA",
   "product": "Tradfri LED bulb E27 980 lumen, dimmable white spectrum, opal white (LED1545G12)",
   "sleeper": false,

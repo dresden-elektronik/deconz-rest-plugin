@@ -3,14 +3,18 @@
   "uuid": "5d4a970d-3a95-4e2b-8aa8-82a885221fe1",
   "manufacturername": [
     "$MF_IKEA",
+    "$MF_IKEA",
+    "$MF_IKEA",
     "$MF_IKEA"
   ],
   "modelid": [
+    "TRADFRI bulb E12 WS 450lm",
     "TRADFRI bulb E14 WS 470lm",
-    "TRADFRIbulbE14WScandleopal470lm"
+    "TRADFRIbulbE14WScandleopal470lm",
+    "TRADFRI bulb E17 WS 440lm"
   ],
   "vendor": "IKEA",
-  "product": "Tradfri LED bulb E14 470 lumen, dimmable white spectrum, chandelier opal (LED1835C6/LED1949C5)",
+  "product": "Tradfri LED bulb E14 440/450/470 lumen, dimmable white spectrum, chandelier opal (LED1835C6/LED1903C5/LED1949C5)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
