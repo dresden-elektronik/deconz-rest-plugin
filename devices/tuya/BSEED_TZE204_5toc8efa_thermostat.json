@@ -1,20 +1,15 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "90e437ea-e697-4490-8944-e0d8ef0dc1d0",
   "manufacturername": [
-    "_TZE200_ztvwu4nk",
-    "_TZE200_ye5jkfsb",
-    "_TZE204_aoclfnxz",
-    "_TZE200_u9bfwha0"
+    "_TZE200_5toc8efa",
+    "_TZE204_5toc8efa"
   ],
   "modelid": [
     "TS0601",
-    "TS0601",
-    "TS0601",
     "TS0601"
   ],
-  "vendor": "Moes",
-  "product": "Thermostat for Water/Gas Boiler (BHT-002)",
+  "vendor": "BSEED",
+  "product": "LED thermostat controller (GL86HTBZ1)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -81,16 +76,16 @@
           "parse": {
             "fn": "tuya",
             "dpid": 16,
-            "eval": "Item.val = Attr.val * 100;"
+            "eval": "Item.val = Attr.val * 10;"
           },
           "write": {
             "fn": "tuya",
             "dpid": 16,
             "dt": "0x2b",
-            "eval": "Item.val / 100;"
+            "eval": "Item.val / 10;"
           },
           "read": {
-            "fn": "tuya"
+            "fn": "none"
           },
           "refresh.interval": 84000
         },
