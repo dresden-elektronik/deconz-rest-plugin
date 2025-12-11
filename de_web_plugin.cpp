@@ -946,6 +946,7 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
         inetDiscoveryManager->deleteLater();
         inetDiscoveryManager = 0;
     }
+    upnpTimer->stop();
     delete deviceJs;
     deviceJs = nullptr;
     eventEmitter = nullptr;

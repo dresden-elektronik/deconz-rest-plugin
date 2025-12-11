@@ -115,6 +115,11 @@ void DeRestPluginPrivate::initDescriptionXml()
 /*! Sends SSDP broadcast for announcement. */
 void DeRestPluginPrivate::announceUpnp()
 {
+    if (!apsCtrl)
+    {
+        return;
+    }
+
     if (udpSock->state() != QAbstractSocket::BoundState)
     {
         joinedMulticastGroup = false;
