@@ -19,6 +19,7 @@
     "$TYPE_CARBONMONOXIDE_SENSOR": "ZHACarbonMonoxide",
     "$TYPE_FORMALDEHYDE_SENSOR": "ZHAFormaldehyde",
     "$TYPE_PARTICULATEMATTER_SENSOR": "ZHAParticulateMatter",
+    "$TYPE_CONTROL_SENSOR": "ZHAControl",
     "$TYPE_ALARM_SENSOR": "ZHAAlarm",
     "$TYPE_ANCILLARY_CONTROL": "ZHAAncillaryControl",
     "$TYPE_BATTERY_SENSOR": "ZHABattery",
