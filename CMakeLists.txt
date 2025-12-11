@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.13)
 
 project(de_rest_plugin VERSION 2.32.02 LANGUAGES C;CXX)
 
+option(USE_GATEWAY_API  "Enable legacy gateway api code" OFF)
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_AUTOUIC ON)
@@ -79,8 +81,6 @@ set(PLUGIN_INCLUDE_FILES
     event.h
     event_emitter.h
     fan_control.h
-    gateway.h
-    gateway_scanner.h
     green_power.h
     group.h
     group_info.h
@@ -126,6 +126,10 @@ set(PLUGIN_INCLUDE_FILES
     zdp/zdp.h
     zdp/zdp_handlers.h
     )
+
+if (USE_GATEWAY_API)
+    list(APPEND PLUGIN_INCLUDE_FILES gateway.h gateway_scanner.h)
+endif()
 
 add_library(${PROJECT_NAME} SHARED
     ${PLUGIN_INCLUDE_FILES}
@@ -173,8 +177,6 @@ add_library(${PROJECT_NAME} SHARED
     event_queue.cpp
     fan_control.cpp
     firmware_update.cpp
-    gateway.cpp
-    gateway_scanner.cpp
     green_power.cpp
     group.cpp
     group_info.cpp
@@ -202,7 +204,6 @@ add_library(${PROJECT_NAME} SHARED
     rest_configuration.cpp
     rest_ddf.cpp
     rest_devices.cpp
-    rest_gateways.cpp
     rest_groups.cpp
     rest_info.cpp
     rest_lights.cpp
@@ -283,6 +284,11 @@ target_compile_definitions(${PROJECT_NAME}
     GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
     GW_DEFAULT_NAME="\"\"Phoscon-GW\"\""
 )
+
+if (USE_GATEWAY_API)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE USE_GATEWAY_API)
+    target_sources(${PROJECT_NAME} PRIVATE  gateway.cpp  gateway_scanner.cpp rest_gateways.cpp)
+endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE cj)
 

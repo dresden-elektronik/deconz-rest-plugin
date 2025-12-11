@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2024 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -22,7 +22,9 @@
 #include "deconz/u_sstream_ex.h"
 #include "deconz/u_memory.h"
 #include "device_descriptions.h"
+#ifdef USE_GATEWAY_API
 #include "gateway.h"
+#endif
 #include "json.h"
 #include "product_match.h"
 #include "utils/ArduinoJson.h"
@@ -73,7 +75,9 @@ static int sqliteLoadAllRulesCallback(void *user, int ncols, char **colval , cha
 static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteGetAllLightIdsCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , char **colname);
+#ifdef USE_GATEWAY_API
 static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , char **colname);
+#endif
 
 /******************************************************************************
                     Implementation
@@ -1432,7 +1436,9 @@ void DeRestPluginPrivate::readDb()
     loadAllRulesFromDb();
     loadAllSchedulesFromDb();
     loadAllSensorsFromDb();
+#ifdef USE_GATEWAY_API
     loadAllGatewaysFromDb();
+#endif
 }
 
 /*! Sqlite callback to load authorisation data.
@@ -4576,6 +4582,7 @@ void DeRestPluginPrivate::loadAllSensorsFromDb()
     }
 }
 
+#ifdef USE_GATEWAY_API
 /*! Loads all gateways from database
  */
 void DeRestPluginPrivate::loadAllGatewaysFromDb()
@@ -4604,6 +4611,7 @@ void DeRestPluginPrivate::loadAllGatewaysFromDb()
         }
     }
 }
+#endif // USE_GATEWAY_API
 
 /*! Sqlite callback to load all light ids into temporary array.
  */
@@ -4725,7 +4733,7 @@ static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , 
     return 0;
 }
 
-
+#ifdef USE_GATEWAY_API
 static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , char **colname)
 {
     DBG_Assert(user != 0);
@@ -4801,6 +4809,7 @@ static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , 
 
     return 0;
 }
+#endif // USE_GATEWAY_API
 
 /*! Determines a unused id for a sensor.
  */
@@ -5191,6 +5200,7 @@ void DeRestPluginPrivate::saveDb()
     // save gateways
     if (saveDatabaseItems & DB_GATEWAYS)
     {
+#ifdef USE_GATEWAY_API
         std::vector<Gateway*>::iterator i = gateways.begin();
         std::vector<Gateway*>::iterator end = gateways.end();
 
@@ -5262,7 +5272,7 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
         }
-
+#endif // USE_GATEWAY_API
         saveDatabaseItems &= ~DB_GATEWAYS;
     }
 
