@@ -46,7 +46,9 @@
 #include "de_web_plugin_private.h"
 #include "de_web_widget.h"
 #include "ui/device_widget.h"
+#ifdef USE_GATEWAY_API
 #include "gateway_scanner.h"
+#endif
 #include "ias_ace.h"
 #include "ias_zone.h"
 #include "json.h"
@@ -650,11 +652,12 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
     webSocketServer = 0;
 
+#ifdef USE_GATEWAY_API
     gwScanner = new GatewayScanner(this);
     connect(gwScanner, SIGNAL(foundGateway(QHostAddress,quint16,QString,QString)),
             this, SLOT(foundGateway(QHostAddress,quint16,QString,QString)));
 //    gwScanner->startScan();
-
+#endif
     QString dataPath = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
 
     saveDatabaseItems = 0;
@@ -1263,7 +1266,9 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case SCENE_CLUSTER_ID:
             handleSceneClusterIndication(ind, zclFrame);
+#ifdef USE_GATEWAY_API
             handleClusterIndicationGateways(ind, zclFrame);
+#endif
             break;
 
         case OTAU_CLUSTER_ID:
@@ -1275,14 +1280,18 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case LEVEL_CLUSTER_ID:
+#ifdef USE_GATEWAY_API
             handleClusterIndicationGateways(ind, zclFrame);
+#endif
             break;
 
         case ONOFF_CLUSTER_ID:
             if (!DEV_TestStrict())
             {
                 handleOnOffClusterIndication(ind, zclFrame);
+#ifdef USE_GATEWAY_API
                 handleClusterIndicationGateways(ind, zclFrame);
+#endif
             }
             break;
 
@@ -15935,10 +15944,12 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
                 {
                     ret = d->handleUserparameterApi(req, rsp);
                 }
+#ifdef USE_GATEWAY_API
                 else if (apiModule == QLatin1String("gateways"))
                 {
                     ret = d->handleGatewaysApi(req, rsp);
                 }
+#endif // USE_GATEWAY_API
                 else if (apiModule == QLatin1String("alarmsystems") && d->alarmSystems)
                 {
                     ret = AS_handleAlarmSystemsApi(req, rsp, *d->alarmSystems, d->eventEmitter);
