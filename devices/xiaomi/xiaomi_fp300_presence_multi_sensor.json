@@ -76,6 +76,9 @@
             "idx": "0x17",
             "mf": "0x115F",
             "script": "xiaomi_battery.js"
+          },
+          "read": {
+            "fn": "none"
           }
         },
         {
@@ -91,7 +94,8 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/temperature"
+          "name": "state/temperature",
+          "awake": true
         }
       ]
     },
@@ -164,6 +168,9 @@
             "idx": "0x17",
             "mf": "0x115F",
             "script": "xiaomi_battery.js"
+          },
+          "read": {
+            "fn": "none"
           }
         },
         {
@@ -176,7 +183,8 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/humidity"
+          "name": "state/humidity",
+          "awake": true
         },
         {
           "name": "state/lastupdated"
@@ -248,6 +256,9 @@
             "idx": "0x17",
             "mf": "0x115F",
             "script": "xiaomi_battery.js"
+          },
+          "read": {
+            "fn": "none"
           }
         },
         {
@@ -261,6 +272,7 @@
         },
         {
           "name": "state/lightlevel",
+          "awake": true,
           "parse": {
             "at": "0x0000",
             "cl": "0x0400",
@@ -344,6 +356,8 @@
         },
         {
           "name": "config/adaptive_sensitivity",
+          "refresh.interval": 3600,
+          "awake": true,
           "parse": {
             "at": "0x015D",
             "cl": "0xFCC0",
@@ -381,6 +395,9 @@
             "idx": "0x17",
             "mf": "0x115F",
             "script": "xiaomi_battery.js"
+          },
+          "read": {
+            "fn": "none"
           }
         },
         {
@@ -418,7 +435,8 @@
         },
         {
           "name": "config/detectionrange",
-          "refresh.interval": 360,
+          "refresh.interval": 3600,
+          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -445,7 +463,8 @@
         },
         {
           "name": "config/devicemode",
-          "refresh.interval": 360,
+          "refresh.interval": 3600,
+          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -479,6 +498,8 @@
         },
         {
           "name": "config/interference_identification",
+          "refresh.interval": 3600,
+          "awake": true,
           "parse": {
             "at": "0x015E",
             "cl": "0xFCC0",
@@ -514,6 +535,8 @@
         },
         {
           "name": "config/restart_device",
+          "refresh.interval": 3600,
+          "awake": true,
           "parse": {
             "at": "0x00E8",
             "cl": "0xFCC0",
@@ -533,7 +556,7 @@
             "at": "0x00E8",
             "change.timeout": 3600,
             "cl": "0xFCC0",
-            "dt": "0x20",
+            "dt": "0x10",
             "ep": 1,
             "eval": "Item.val ? 1 : 0",
             "fn": "zcl:attr",
@@ -580,6 +603,8 @@
         },
         {
           "name": "config/spatial_learning",
+          "refresh.interval": 3600,
+          "awake": true,
           "parse": {
             "at": "0x0157",
             "cl": "0xFCC0",
@@ -609,7 +634,8 @@
         },
         {
           "name": "state/distance",
-          "refresh.interval": 360,
+          "refresh.interval": 3600,
+          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -629,8 +655,9 @@
         },
         {
           "name": "state/presence",
+          "awake": true,
           "parse": {
-            "at": "0x014D",
+            "at": "0x0142",
             "cl": "0xFCC0",
             "ep": 1,
             "eval": "Item.val = Attr.val",
