@@ -471,7 +471,7 @@
             "cl": "0xFCC0",
             "mf": "0x115F",
             "at": "0x0199",
-            "eval": "Item.val = ['pir', 'mmwave', 'combined'][Attr.val]"
+            "eval": "Item.val = ['combined', 'mmwave', 'pir'][Attr.val]"
           },
           "read": {
             "fn": "zcl:attr",
@@ -487,7 +487,7 @@
             "mf": "0x115F",
             "at": "0x0199",
             "dt": "0x20",
-            "eval": "['pir', 'mmwave', 'combined'].indexOf(Item.val)"
+            "eval": "['combined', 'mmwave', 'pir'].indexOf(Item.val)"
           },
           "values": [
             ["\"pir\"", "Use pir only"],
