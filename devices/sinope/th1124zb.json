@@ -67,14 +67,14 @@
         },
         {
           "name": "config/resetpresence",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "description": "Use it to address Occupancy specific attribute.\nfalse = Unoccupied\ntrue = Occupied",
           "parse": {
             "at": "0x0400",
             "cl": "0x0201",
             "ep": 1,
             "mf": "0x119c",
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr"
           },
           "read": {
@@ -127,7 +127,7 @@
             "at": "0x0014",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x119c"
           },
@@ -140,12 +140,12 @@
             "fn": "zcl:attr",
             "mf": "0x119c"
           },
-          "default": 1800
+          "default": 0
         },
         {
           "name": "config/externalsensortemp",
           "description": "External sensor temperature used as Outdoor temperature on display.",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "read": {
             "at": "0x0010",
             "cl": "0xff01",
@@ -157,7 +157,7 @@
             "at": "0x0010",
             "cl": "0xff01",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x119c"
           },
@@ -170,7 +170,7 @@
             "mf": "0x119c",
             "eval": "Item.val"
           },
-          "default": -32768
+          "default": 0
         },
         {
           "name": "config/ledindication",
@@ -224,10 +224,10 @@
             "at": "0x0014",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr"
           },
-          "default": 17
+          "default": 0
         },
         {
           "name": "state/lastupdated"
@@ -308,12 +308,12 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "parse": {
             "at": "0x0508",
-            "cl": "0x0b04",
+            "cl": "0x0B04",
             "ep": 1,
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 1000; }"
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 1000 }"
           },
           "default": 0
         },
@@ -322,17 +322,24 @@
         },
         {
           "name": "state/power",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
+          "parse": {
+            "at": "0x050B",
+            "cl": "0x0B04",
+            "ep": 1,
+            "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val }",
+            "fn": "zcl:attr"
+          },
           "default": 0
         },
         {
           "name": "state/voltage",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "parse": {
             "at": "0x0505",
-            "cl": "0x0b04",
+            "cl": "0x0B04",
             "ep": 0,
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 10 ; }"
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 10 }"
           },
           "default": 0
         }
@@ -391,23 +398,11 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 300,
+          "refresh.interval": 360,
           "default": 0
         },
         {
           "name": "state/lastupdated"
-        },
-        {
-          "name": "state/power",
-          "refresh.interval": 300,
-          "default": 0,
-          "parse": {
-            "at": "0x050B",
-            "cl": "0x0B04",
-            "ep": 1,
-            "eval": "if (Attr.val != -32768 && Attr.val != 32768) { Item.val = Attr.val; }",
-            "fn": "zcl:attr"
-          }
         }
       ]
     }
