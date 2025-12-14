@@ -289,7 +289,7 @@
             "ep": 1,
             "cl": "0x0B04",
             "at": "0x050B",
-            "eval": "if (Attr.val != -32768) { Item.val = Math.round(Attr.val / R.item('state/power_divisor').val) }"
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val.val }"
           },
           "read": {
             "fn": "zcl:attr",
@@ -298,24 +298,6 @@
             "at": "0x050B"
           },
           "default": 0
-        },
-        {
-          "name": "state/power_divisor",
-          "refresh.interval": 360,
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0B04",
-            "at": "0x0605",
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; R.item('state/power').val = Math.round(R.item('state/power').val / R.item('state/power_divisor').val) }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0B04",
-            "at": "0x0605"
-          },
-          "default": 1
         },
         {
           "name": "state/voltage",
@@ -619,7 +601,7 @@
             "ep": 2,
             "cl": "0x0B04",
             "at": "0x050B",
-            "eval": "if (Attr.val != -32768) { Item.val = Math.round(Attr.val / R.item('state/power_divisor').val) }"
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val.val }"
           },
           "read": {
             "fn": "zcl:attr",
@@ -628,24 +610,6 @@
             "at": "0x050B"
           },
           "default": 0
-        },
-        {
-          "name": "state/power_divisor",
-          "refresh.interval": 360,
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0B04",
-            "at": "0x0605",
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; R.item('state/power').val = Math.round(R.item('state/power').val / R.item('state/power_divisor').val) }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0B04",
-            "at": "0x0605"
-          },
-          "default": 1
         },
         {
           "name": "state/voltage",
@@ -949,7 +913,7 @@
             "ep": 3,
             "cl": "0x0B04",
             "at": "0x050B",
-            "eval": "if (Attr.val != -32768) { Item.val = Math.round(Attr.val / R.item('state/power_divisor').val) }"
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val.val }"
           },
           "read": {
             "fn": "zcl:attr",
@@ -958,24 +922,6 @@
             "at": "0x050B"
           },
           "default": 0
-        },
-        {
-          "name": "state/power_divisor",
-          "refresh.interval": 360,
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 3,
-            "cl": "0x0B04",
-            "at": "0x0605",
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; R.item('state/power').val = Math.round(R.item('state/power').val / R.item('state/power_divisor').val) }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 3,
-            "cl": "0x0B04",
-            "at": "0x0605"
-          },
-          "default": 1
         },
         {
           "name": "state/voltage",
@@ -1279,7 +1225,7 @@
             "ep": 4,
             "cl": "0x0B04",
             "at": "0x050B",
-            "eval": "if (Attr.val != -32768) { Item.val = Math.round(Attr.val / R.item('state/power_divisor').val) }"
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val.val }"
           },
           "read": {
             "fn": "zcl:attr",
@@ -1288,24 +1234,6 @@
             "at": "0x050B"
           },
           "default": 0
-        },
-        {
-          "name": "state/power_divisor",
-          "refresh.interval": 360,
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 4,
-            "cl": "0x0B04",
-            "at": "0x0605",
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; R.item('state/power').val = Math.round(R.item('state/power').val / R.item('state/power_divisor').val) }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 4,
-            "cl": "0x0B04",
-            "at": "0x0605"
-          },
-          "default": 1
         },
         {
           "name": "state/voltage",
@@ -1381,13 +1309,6 @@
           "min": 1,
           "max": 300,
           "change": "0x00000001"
-        },
-        {
-          "at": "0x0605",
-          "dt": "0x21",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
         }
       ]
     },
@@ -1440,13 +1361,6 @@
         {
           "at": "0x050B",
           "dt": "0x29",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
-        },
-        {
-          "at": "0x0605",
-          "dt": "0x21",
           "min": 1,
           "max": 300,
           "change": "0x00000001"
@@ -1505,13 +1419,6 @@
           "min": 1,
           "max": 300,
           "change": "0x00000001"
-        },
-        {
-          "at": "0x0605",
-          "dt": "0x21",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
         }
       ]
     },
@@ -1564,13 +1471,6 @@
         {
           "at": "0x050B",
           "dt": "0x29",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
-        },
-        {
-          "at": "0x0605",
-          "dt": "0x21",
           "min": 1,
           "max": 300,
           "change": "0x00000001"
