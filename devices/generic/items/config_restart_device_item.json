@@ -4,6 +4,6 @@
   "datatype": "Bool",
   "access": "RW",
   "public": true,
-  "description": "Have the device restarted.",
+  "description": "Restart the device.",
   "default": false
 }
