@@ -472,6 +472,42 @@
           "default": "combined"
         },
         {
+          "name": "config/ledindication",
+          "refresh.interval": 3600,
+          "awake": true,
+          "parse": {
+            "at": "0x0203",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "at": "0x0203",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "write": {
+            "at": "0x0203",
+            "change.timeout": 600,
+            "cl": "0xFCC0",
+            "dt": "0x10",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
+          },
+          "values": [
+            [true, "Device flashes on presence"],
+            [false, "Device gives no visual feedback on presence"]
+          ],
+          "default": false
+        },
+        {
           "name": "config/on"
         },
         {
