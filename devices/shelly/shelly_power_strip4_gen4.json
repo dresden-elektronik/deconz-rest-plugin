@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "8f82215d-ab54-428d-bd3a-47c20e4f564a",
   "manufacturername": "Shelly",
   "modelid": "Power Strip",
   "vendor": "Shelly",
