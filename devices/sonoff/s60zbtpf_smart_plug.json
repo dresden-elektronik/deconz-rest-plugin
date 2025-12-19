@@ -4,7 +4,7 @@
   "manufacturername": "SONOFF",
   "modelid": "S60ZBTPF",
   "vendor": "Sonoff",
-  "product": "Zigbee smart plug",
+  "product": "Smart plug (S60ZBTPF)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -167,63 +167,46 @@
         },
         {
           "name": "state/current",
+          "refresh.interval": 360,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0B04",
             "at": "0x0508",
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val * 10; }"
+            "eval": "if (Attr.val != 65535) { Item.val = Attr.val * 10 }"
           },
-          "default": 0,
           "read": {
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0B04",
             "at": "0x0508"
           },
-          "refresh.interval": 360
+          "default": 0
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
+          "refresh.interval": 360,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0B04",
             "at": "0x050B",
-            "eval": "if (Attr.val != -32768) { Item.val = Math.round(Attr.val / R.item('state/power_divisor').val) }"
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val }"
           },
-          "default": 0,
           "read": {
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0B04",
             "at": "0x050B"
           },
-          "refresh.interval": 360
-        },
-        {
-          "name": "state/power_divisor",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0B04",
-            "at": "0x0605",
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val; R.item('state/power').val = Math.round(R.item('state/power').val / R.item('state/power_divisor').val) }"
-          },
-          "default": 1,
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0B04",
-            "at": "0x0605"
-          },
-          "refresh.interval": 360
+          "default": 0
         },
         {
           "name": "state/voltage",
+          "refresh.interval": 360,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -231,14 +214,13 @@
             "at": "0x0505",
             "eval": "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 100) }"
           },
-          "default": 0,
           "read": {
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0B04",
             "at": "0x0505"
           },
-          "refresh.interval": 360
+          "default": 0
         }
       ]
     }
@@ -293,13 +275,6 @@
         {
           "at": "0x050B",
           "dt": "0x29",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
-        },
-        {
-          "at": "0x0605",
-          "dt": "0x21",
           "min": 1,
           "max": 300,
           "change": "0x00000001"
