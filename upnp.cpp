@@ -16,7 +16,9 @@
 #include <QUdpSocket>
 #include <QVariantMap>
 #include "de_web_plugin_private.h"
+#ifdef USE_GATEWAY_API
 #include "gateway_scanner.h"
+#endif
 
 /*! Inits the UPnP discorvery. */
 void DeRestPluginPrivate::initUpnpDiscovery()
@@ -341,11 +343,12 @@ void DeRestPluginPrivate::upnpReadyRead()
                     continue;
                 }
 
+#ifdef USE_GATEWAY_API
                 // http://192.168.14.103:80/description.xml
-
                 QUrl url(ls[1]);
                 location = QString("http://%1:%2/api/config").arg(url.host()).arg(url.port(80));
                 gwScanner->queryGateway(location);
+#endif // USE_GATEWAY_API
             }
         }
     }

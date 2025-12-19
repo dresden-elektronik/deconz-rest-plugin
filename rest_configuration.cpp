@@ -1408,6 +1408,7 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+#ifdef USE_GATEWAY_API
     // add more details if this was requested from discover page
     // this should speedup multi-gateway discovery
     if (!gateways.empty())
@@ -1435,6 +1436,7 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
             }
         }
     }
+#endif // USE_GATEWAY_API
 
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = gwConfigEtag;

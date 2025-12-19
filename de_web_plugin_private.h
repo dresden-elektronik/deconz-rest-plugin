@@ -667,8 +667,10 @@ const deCONZ::Node *getCoreNode(uint64_t extAddress);
 class DeviceDescriptions;
 class DeviceWidget;
 class DeviceJs;
+#ifdef USE_GATEWAY_API
 class Gateway;
 class GatewayScanner;
+#endif
 class QUdpSocket;
 class QTcpSocket;
 class DeRestPlugin;
@@ -964,6 +966,7 @@ public:
     bool allowedToCreateApikey(const ApiRequest &req, ApiResponse &rsp, QVariantMap &map);
     void authorise(ApiRequest &req, ApiResponse &rsp);
 
+#ifdef USE_GATEWAY_API
     // REST API gateways
     int handleGatewaysApi(const ApiRequest &req, ApiResponse &rsp);
     int getAllGateways(const ApiRequest &req, ApiResponse &rsp);
@@ -972,6 +975,7 @@ public:
     int addCascadeGroup(const ApiRequest &req, ApiResponse &rsp);
     int deleteCascadeGroup(const ApiRequest &req, ApiResponse &rsp);
     void gatewayToMap(const ApiRequest &req, const Gateway *gw, QVariantMap &map);
+#endif
 
     // REST API configuration
     void initConfig();
@@ -1303,8 +1307,10 @@ public Q_SLOTS:
     void timeManagerTimerFired();
     void ntpqFinished();
 
+#ifdef USE_GATEWAY_API
     // gateways
     void foundGateway(const QHostAddress &host, quint16 port, const QString &uuid, const QString &name);
+#endif // USE_GATEWAY_API
 
     // window covering
     void calibrateWindowCoveringNextStep();
@@ -1447,7 +1453,9 @@ public:
     void handleGroupClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOnOffClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+#ifdef USE_GATEWAY_API
     void handleClusterIndicationGateways(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+#endif // USE_GATEWAY_API
     void handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool sendIasZoneEnrollResponse(Sensor *sensor);
     bool sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1538,7 +1546,9 @@ public:
     void loadAllSensorsFromDb();
     void loadSensorDataFromDb(Sensor *sensor, QVariantList &ls, qint64 fromTime, int max);
     void loadLightDataFromDb(LightNode *lightNode, QVariantList &ls, qint64 fromTime, int max);
+#ifdef USE_GATEWAY_API
     void loadAllGatewaysFromDb();
+#endif // USE_GATEWAY_API
     void saveDb();
     void saveApiKey(QString apikey);
     void closeDb();
@@ -1567,8 +1577,10 @@ public:
     std::vector<ButtonProduct> buttonProductMap;
 
     // gateways
+#ifdef USE_GATEWAY_API
     std::vector<Gateway*> gateways;
     GatewayScanner *gwScanner;
+#endif
 
     // authorisation
     QElapsedTimer apiAuthSaveDatabaseTime;
