@@ -2,7 +2,7 @@
 "schema": "devcap1.schema.json",
 "manufacturername": ["_TZE204_81yrt3lo", "_TZE284_81yrt3lo"],
 "modelid": ["TS0601", "TS0601"],
-"product": "PJ-1203A - Zigbee power meter with 2 clips",
+"product": "Bidirectional energy meter with 80A current clamp (PJ-1203A)",
 "sleeper": false,
 "status": "Gold",
 "subdevices": [
