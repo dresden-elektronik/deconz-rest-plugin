@@ -410,7 +410,7 @@
           "refresh.interval": 3600,
           "awake": true,
           "parse": {
-            "at": ["0x197", "0x014F"],
+            "at": ["0x0197", "0x014F"],
             "cl": "0xFCC0",
             "ep": 1,
             "eval": "if ((R.item('config/devicemode').val == 'pir' && Attr.id == '0x014F') || Attr.id == '0x0197') { Item.val = Attr.val; }",
