@@ -448,7 +448,7 @@
             "at": "0x019A",
             "cl": "0xFCC0",
             "ep": 1,
-            "eval": "if (R.item('config/devicemode').val != 'pir') { var r = 0; for (var i = 0; i < 3; i++) { if (ZclFrame.cmd == '0x0A') { start = 6 } else { start = 7 } var v = ZclFrame.at(start + i) & 0xFF; while (v) { r += v & 1; v >>>= 1; } } Item.val = r * 25; } else { Item.val = 65535; }",
+            "eval": "if (R.item('config/devicemode').val != 'pir') { var r = 0; for (var i = 0; i < 3; i++) { var start = (ZclFrame.cmd === 0x0A) ? 6 : 7; var v = ZclFrame.at(start + i) & 0xFF; while (v) { r += v & 1; v >>>= 1; } } Item.val = r * 25; } else { Item.val = 65535; }",
             "fn": "zcl:attr",
             "mf": "0x115F"
           },
@@ -467,7 +467,7 @@
             "cl": "0xFCC0",
             "cmd": "0x02",
             "ep": 1,
-            "eval": "if (R.item('config/devicemode').val != 'pir') { v = Item.val; if (v < 25) { v = 25 } else if (v > 600) { v = 600 } steps = Math.floor(v / 25); const u24 = (1 << steps) - 1; const reversed = ((u24 & 0xFF) << 16) | (u24 & 0xFF00) | ((u24 >> 16) & 0xFF);'980120019A0141050003' + ((reversed >>> 0).toString(16).padStart(6, '0')); } else { }",
+            "eval": "if (R.item('config/devicemode').val != 'pir') { var v = Item.val; if (v < 25) { v = 25 } else if (v > 600) { v = 600 } var steps = Math.floor(v / 25); const u24 = (1 << steps) - 1; const reversed = ((u24 & 0xFF) << 16) | (u24 & 0xFF00) | ((u24 >> 16) & 0xFF);'980120019A0141050003' + reversed.toString(16).padStart(6, '0'); }",
             "fc": "0x04",
             "fn": "zcl:cmd",
             "mf": "0x115F",
