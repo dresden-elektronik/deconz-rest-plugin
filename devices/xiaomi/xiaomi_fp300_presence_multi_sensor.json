@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "3e2e4f8b-1996-428a-a7bd-e95ae02e1dee",
   "manufacturername": "$MF_AQARA",
   "modelid": "lumi.sensor_occupy.agl8",
   "vendor": "Xiaomi Aqara",
