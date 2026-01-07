@@ -178,7 +178,7 @@
             "ep": 1,
             "cl": "0x0702",
             "at": "0x0000",
-            "eval": "Item.val = Attr.val"
+            "eval": "Item.val = Attr.val / 1000;"
           },
           "default": 0
         },
@@ -263,58 +263,30 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 360,
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0B04",
-            "at": "0x0508",
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0B04",
-            "at": "0x0508"
-          },
-          "default": 0
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
-          "refresh.interval": 360,
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0B04",
-            "at": "0x050B",
-            "eval": "if (Attr.val != -32768) { Item.val = Attr.val.val }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0B04",
-            "at": "0x050B"
-          },
-          "default": 0
+          "refresh.interval": 360
         },
         {
           "name": "state/voltage",
           "refresh.interval": 360,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x0505"
+          },
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0B04",
             "at": "0x0505",
             "eval": "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 100) }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0B04",
-            "at": "0x0505"
           },
           "default": 0
         }
@@ -338,38 +310,10 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
@@ -421,38 +365,10 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
@@ -490,7 +406,7 @@
             "ep": 2,
             "cl": "0x0702",
             "at": "0x0000",
-            "eval": "Item.val = Attr.val"
+            "eval": "Item.val = Attr.val / 1000;"
           },
           "default": 0
         },
@@ -518,38 +434,10 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
@@ -575,58 +463,30 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 360,
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0B04",
-            "at": "0x0508",
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0B04",
-            "at": "0x0508"
-          },
-          "default": 0
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
-          "refresh.interval": 360,
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0B04",
-            "at": "0x050B",
-            "eval": "if (Attr.val != -32768) { Item.val = Attr.val.val }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0B04",
-            "at": "0x050B"
-          },
-          "default": 0
+          "refresh.interval": 360
         },
         {
           "name": "state/voltage",
           "refresh.interval": 360,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0B04",
+            "at": "0x0505"
+          },
           "parse": {
             "fn": "zcl:attr",
             "ep": 2,
             "cl": "0x0B04",
             "at": "0x0505",
             "eval": "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 100) }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 2,
-            "cl": "0x0B04",
-            "at": "0x0505"
           },
           "default": 0
         }
@@ -650,38 +510,10 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
@@ -733,38 +565,10 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
@@ -802,7 +606,7 @@
             "ep": 3,
             "cl": "0x0702",
             "at": "0x0000",
-            "eval": "Item.val = Attr.val"
+            "eval": "Item.val = Attr.val / 1000;"
           },
           "default": 0
         },
@@ -830,38 +634,10 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
@@ -887,58 +663,30 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 360,
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 3,
-            "cl": "0x0B04",
-            "at": "0x0508",
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 3,
-            "cl": "0x0B04",
-            "at": "0x0508"
-          },
-          "default": 0
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
-          "refresh.interval": 360,
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 3,
-            "cl": "0x0B04",
-            "at": "0x050B",
-            "eval": "if (Attr.val != -32768) { Item.val = Attr.val.val }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 3,
-            "cl": "0x0B04",
-            "at": "0x050B"
-          },
-          "default": 0
+          "refresh.interval": 360
         },
         {
           "name": "state/voltage",
           "refresh.interval": 360,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 3,
+            "cl": "0x0B04",
+            "at": "0x0505"
+          },
           "parse": {
             "fn": "zcl:attr",
             "ep": 3,
             "cl": "0x0B04",
             "at": "0x0505",
             "eval": "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 100) }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 3,
-            "cl": "0x0B04",
-            "at": "0x0505"
           },
           "default": 0
         }
@@ -962,38 +710,10 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
@@ -1045,38 +765,10 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
@@ -1114,7 +806,7 @@
             "ep": 4,
             "cl": "0x0702",
             "at": "0x0000",
-            "eval": "Item.val = Attr.val"
+            "eval": "Item.val = Attr.val / 1000;"
           },
           "default": 0
         },
@@ -1142,38 +834,10 @@
           "name": "attr/lastseen"
         },
         {
-          "name": "attr/manufacturername",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0004",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/manufacturername"
         },
         {
-          "name": "attr/modelid",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0005",
-            "cl": "0x0000",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "name": "attr/modelid"
         },
         {
           "name": "attr/name"
@@ -1199,58 +863,30 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 360,
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 4,
-            "cl": "0x0B04",
-            "at": "0x0508",
-            "eval": "if (Attr.val != 65535) { Item.val = Attr.val }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 4,
-            "cl": "0x0B04",
-            "at": "0x0508"
-          },
-          "default": 0
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
-          "refresh.interval": 360,
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 4,
-            "cl": "0x0B04",
-            "at": "0x050B",
-            "eval": "if (Attr.val != -32768) { Item.val = Attr.val.val }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 4,
-            "cl": "0x0B04",
-            "at": "0x050B"
-          },
-          "default": 0
+          "refresh.interval": 360
         },
         {
           "name": "state/voltage",
           "refresh.interval": 360,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 4,
+            "cl": "0x0B04",
+            "at": "0x0505"
+          },
           "parse": {
             "fn": "zcl:attr",
             "ep": 4,
             "cl": "0x0B04",
             "at": "0x0505",
             "eval": "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 100) }"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 4,
-            "cl": "0x0B04",
-            "at": "0x0505"
           },
           "default": 0
         }
