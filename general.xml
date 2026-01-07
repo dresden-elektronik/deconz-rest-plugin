@@ -5953,7 +5953,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           </attribute>
           <attribute id="0x000C" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x000D" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x00E8" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x00E8" name="Restart Device" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00E9" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00EA" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00EB" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
@@ -5977,7 +5977,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x0102" name="Motion cool off time" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Time in seconds when RTCGQ13LM sets motion to false if no further motion has been detected</description>
           </attribute>
-          <attribute id="0x010C" name="Motion sensitivity" type="u8" mfcode="0x115f" access="rw" required="m">
+          <attribute id="0x010C" name="Detection sensitivity" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Motion sensitivity: 1 - low, 2 - medium, 3 - high</description>
           </attribute>
           <attribute id="0x0112" name="Unknown" type="u32" mfcode="0x115f" access="r" required="m"></attribute>
@@ -5992,7 +5992,30 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x0136" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0137" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0138" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0142" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x014D" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x014F" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0152" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0157" name="Spatial Learning" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x015B" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0160" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0162" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0163" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0164" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0165" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x016A" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x016B" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x016C" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0170" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0192" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0193" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0194" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0195" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0196" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0197" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0198" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0199" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x019A" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0200" name="Child lock off" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Child lock off: 0 - false, 1 - true</description>
           </attribute>
@@ -6010,7 +6033,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x020D" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x020E" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x023B" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x023E" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x023E" name="LED off-time" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x02d0" name="Interlock" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
         </attribute-set>
         <attribute-set id="0x0270" description="Smart Radiator Thermostat E1">

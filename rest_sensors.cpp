@@ -811,7 +811,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                 }
 				
-				if (rid.suffix == RConfigHostFlags) // Eurotronic Spirit
+                if (rid.suffix == RConfigHostFlags) // Eurotronic Spirit
                 {
                     if (devManaged && rsub)
                     {
@@ -895,6 +895,24 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     if (devManaged && rsub)
                     {
                         change.addTargetValue(rid.suffix, data.string);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigRestartDevice) // Boolean
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigSpatialLearning) // Boolean
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.boolean);
                         rsub->addStateChange(change);
                         updated = true;
                     }
