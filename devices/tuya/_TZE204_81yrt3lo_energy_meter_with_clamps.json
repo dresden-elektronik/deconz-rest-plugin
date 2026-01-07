@@ -1,5 +1,6 @@
 {
 "schema": "devcap1.schema.json",
+"uuid": "44b0e885-f4d6-4c2a-a6f0-a9efd3522ad2",
 "manufacturername": ["_TZE204_81yrt3lo", "_TZE284_81yrt3lo"],
 "modelid": ["TS0601", "TS0601"],
 "product": "Bidirectional energy meter with 80A current clamp (PJ-1203A)",
