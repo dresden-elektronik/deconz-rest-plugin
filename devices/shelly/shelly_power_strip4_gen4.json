@@ -178,7 +178,7 @@
             "ep": 1,
             "cl": "0x0702",
             "at": "0x0000",
-            "eval": "Item.val = Attr.val / 1000"
+            "eval": "Item.val = Attr.val / 1000;"
           },
           "default": 0
         },
@@ -275,13 +275,20 @@
         {
           "name": "state/voltage",
           "refresh.interval": 360,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0B04",
+            "at": "0x0505"
+          },
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0B04",
             "at": "0x0505",
             "eval": "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 100) }"
-          }
+          },
+          "default": 0
         }
       ]
     },
@@ -399,7 +406,7 @@
             "ep": 2,
             "cl": "0x0702",
             "at": "0x0000",
-            "eval": "Item.val = Attr.val / 1000"
+            "eval": "Item.val = Attr.val / 1000;"
           },
           "default": 0
         },
@@ -468,13 +475,20 @@
         {
           "name": "state/voltage",
           "refresh.interval": 360,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 2,
+            "cl": "0x0B04",
+            "at": "0x0505"
+          },
           "parse": {
             "fn": "zcl:attr",
             "ep": 2,
             "cl": "0x0B04",
             "at": "0x0505",
             "eval": "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 100) }"
-          }
+          },
+          "default": 0
         }
       ]
     },
@@ -592,7 +606,7 @@
             "ep": 3,
             "cl": "0x0702",
             "at": "0x0000",
-            "eval": "Item.val = Attr.val / 1000"
+            "eval": "Item.val = Attr.val / 1000;"
           },
           "default": 0
         },
@@ -661,13 +675,20 @@
         {
           "name": "state/voltage",
           "refresh.interval": 360,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 3,
+            "cl": "0x0B04",
+            "at": "0x0505"
+          },
           "parse": {
             "fn": "zcl:attr",
             "ep": 3,
             "cl": "0x0B04",
             "at": "0x0505",
             "eval": "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 100) }"
-          }
+          },
+          "default": 0
         }
       ]
     },
@@ -785,7 +806,7 @@
             "ep": 4,
             "cl": "0x0702",
             "at": "0x0000",
-            "eval": "Item.val = Attr.val / 1000"
+            "eval": "Item.val = Attr.val / 1000;"
           },
           "default": 0
         },
@@ -854,13 +875,20 @@
         {
           "name": "state/voltage",
           "refresh.interval": 360,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 4,
+            "cl": "0x0B04",
+            "at": "0x0505"
+          },
           "parse": {
             "fn": "zcl:attr",
             "ep": 4,
             "cl": "0x0B04",
             "at": "0x0505",
             "eval": "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 100) }"
-          }
+          },
+          "default": 0
         }
       ]
     }
