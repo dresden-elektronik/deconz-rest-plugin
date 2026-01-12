@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2026 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -16,7 +16,7 @@
 #include <QTimer>
 #include <QElapsedTimer>
 #include <stdint.h>
-#include <queue>
+#include <deque>
 #include <memory>
 #include <sqlite3.h>
 #include <deconz.h>
@@ -1196,7 +1196,7 @@ public Q_SLOTS:
     void otauTimerFired();
     void lockGatewayTimerFired();
     void openClientTimerFired();
-    void clientSocketDestroyed();
+    void clientSocketDestroyed(QObject *obj);
     void saveDatabaseTimerFired();
     void userActivity();
     bool sendBindRequest(BindingTask &bt);
@@ -1993,7 +1993,6 @@ public:
     QTimer *groupTaskTimer;
     QTimer *checkSensorsTimer;
     uint8_t zclSeq;
-    std::list<QTcpSocket*> eventListeners;
     bool joinedMulticastGroup;
     QTimer *upnpTimer;
     QUdpSocket *udpSock;

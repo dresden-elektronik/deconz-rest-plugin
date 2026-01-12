@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2025 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2026 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -10,6 +10,7 @@
 
 #ifdef USE_WEBSOCKETS
 
+#include "deconz/u_assert.h"
 #include "deconz/dbg_trace.h"
 #include "deconz/util.h"
 #include "websocket_server.h"
@@ -58,6 +59,7 @@ WebSocketServer::WebSocketServer(QObject *parent, uint16_t wsPort) :
  */
 void WebSocketServer::handleExternalTcpSocket(const QHttpRequestHeader &hdr, QTcpSocket *sock)
 {
+    U_ASSERT(sock);
     if (srv)
     {
         srv->handleConnection(sock);
@@ -101,7 +103,6 @@ void WebSocketServer::onSocketDisconnected()
         DBG_Assert(sock);
         if (sock && clients[i] == sock)
         {
-            DBG_Printf(DBG_INFO, "Websocket disconnected %s:%u, state: %d, close-code: %d, reason: %s\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), sock->state(), sock->closeCode(), qPrintable(sock->closeReason()));
             sock->deleteLater();
             clients[i] = clients.back();
             clients.pop_back();
@@ -121,8 +122,6 @@ void WebSocketServer::onSocketError(QAbstractSocket::SocketError err)
         DBG_Assert(sock);
         if (sock && clients[i] == sock)
         {
-            DBG_Printf(DBG_INFO, "Remove websocket %s:%u after error %s, close-code: %d, reason: %s\n",
-                       qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(sock->errorString()), sock->closeCode(), qPrintable(sock->closeReason()));
             sock->deleteLater();
             clients[i] = clients.back();
             clients.pop_back();
