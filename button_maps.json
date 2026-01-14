@@ -1455,7 +1455,7 @@
         "TuyaSmartButton": {
             "vendor": "Tuya",
             "doc": "Smart Button with two modes (remote mode not mapped)",
-            "modelids": ["_TZ3000_ja5osu5g"],
+            "modelids": ["_TZ3000_ja5osu5g","_TZ3000_lrfvzq1e"],
             "map": [
                 [1, "0x01", "ONOFF", "0xfd", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Short"],
                 [1, "0x01", "ONOFF", "0xfd", "1", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double"],
