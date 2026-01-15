@@ -1,8 +1,20 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "080b92aa-0dc3-4596-8160-457e9a3738f9",
-  "manufacturername": ["_TZ3000_8uxxzz4b", "_TZ3000_hy6ncvmw", "_TZ3000_9kbbfeho", "_TZ3000_l6rsaipj"],
-  "modelid": ["TS0222", "TS0222", "TS0222", "TS0222"],
+  "manufacturername": [
+    "_TZ3000_8uxxzz4b",
+    "_TZ3000_hy6ncvmw",
+    "_TZ3000_9kbbfeho",
+    "_TZ3000_l6rsaipj",
+    "_TZ3000_j6adk9id"
+  ],
+  "modelid": [
+    "TS0222",
+    "TS0222",
+    "TS0222",
+    "TS0222",
+    "TS0222"
+  ],
   "vendor": "Tuya",
   "product": "Tuya Luminance sensor",
   "sleeper": false,
@@ -55,7 +67,7 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
           "default": 0
