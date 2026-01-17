@@ -1,0 +1,42 @@
+FROM --platform=$BUILDPLATFORM ubuntu:18.04 as builder
+
+# Install required packages
+RUN apt-get update \
+    && apt-get install -y \
+    lsb-release \
+    ca-certificates \
+    build-essential \
+    qt5-default \
+    libqt5serialport5-dev \
+    libqt5websockets5-dev \
+    qtdeclarative5-dev \
+    sqlite3 \
+    libsqlite3-dev \
+    libssl-dev \
+    libgpiod-dev \
+    pkg-config \
+    dpkg-dev \
+    git \
+    make \
+    wget \
+    cmake \
+    ninja-build \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# We need a more current version supporting some used features
+RUN wget https://cmake.org/files/v3.19/cmake-3.19.8-Linux-x86_64.tar.gz \
+    && tar -xzf cmake-3.19.8-Linux-x86_64.tar.gz \
+    && mv cmake-3.19.8-Linux-x86_64 cmake
+
+# Download and compile deconz. Build debian package
+RUN git clone https://github.com/dresden-elektronik/deconz.git \
+    && cd deconz \
+    && git submodule update --init --recursive \
+    && /cmake/bin/cmake -DBUILD_CHANNEL=${BUILD_CHANNEL} -DQT_VERSION_MAJOR=5 -DCMAKE_BUILD_TYPE=Release -B build . \
+    && /cmake/bin/cmake --build build --parallel 4 \
+    && cd build \
+    && /cmake/bin/cpack -G DEB .
+
+FROM scratch
+COPY --from=builder /deconz/build/*.deb ./
