@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(de_rest_plugin VERSION 2.32.03 LANGUAGES C;CXX)
+project(de_rest_plugin VERSION 2.32.04 LANGUAGES C;CXX)
 
 option(USE_GATEWAY_API  "Enable legacy gateway api code" OFF)
 
