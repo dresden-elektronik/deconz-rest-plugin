@@ -340,7 +340,7 @@
         },
 	"ikeaSomrigMap": {
             "vendor": "IKEA of Sweden",
-            "doc": "IKEA SOMRIG Shortcut Button",
+            "doc": "IKEA SOMRIG shortcut button",
             "modelids": ["SOMRIG shortcut button"],
             "buttons": [
                 {"S_BUTTON_1": "One Dot"},
@@ -361,7 +361,7 @@
         },
         "osramMiniRemoteMap": {
             "vendor": "OSRAM",
-            "doc": "Lightify Switch Mini",
+            "doc": "Lightify switch mini",
             "modelids": ["Lightify Switch Mini"],
             "buttons": [
                 {"S_BUTTON_1": "Up"},
@@ -1239,7 +1239,7 @@
         },
         "sunricherZG2855Map": {
             "vendor": "Sunricher",
-            "doc": "Zigbee 3 in 1 remote ZG2855-RGB",
+            "doc": "3 in 1 remote ZG2855-RGB",
             "modelids": ["ZG2855-RGB"],
             "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
@@ -1252,7 +1252,7 @@
         },
         "sunricherC4Map": {
             "vendor": "Sunricher",
-            "doc": "Zigbee Push-Button Coupler SR-ZG2833PAC-C4",
+            "doc": "Push-Button Coupler SR-ZG2833PAC-C4",
             "modelids": ["ZG2833PAC"],
             "map": [
                 [1, "0x01", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
@@ -1396,7 +1396,7 @@
         "Tuya3gangMap": {
             "vendor": "Tuya",
             "doc": "3-gang remote",
-            "modelids": ["_TZ3000_yw5tvzsk", "_TZ3000_czuyt8lz","_TZ3000_ee8nrt2l", "_TZ3000_ygvf9xzp", "_TZ3000_t8hzpgnd", "_TZ3000_wkai4ga5", "_TZ3000_bi6lpsew", "_TZ3400_keyjhapk", "_TYZB02_key8kk7r", "_TZ3400_keyjqthh", "_TZ3400_key8kk7r", "_TZ3000_vp6clf9d", "_TYZB02_keyjqthh", "_TZ3000_peszejy7", "_TZ3000_qzjcsmar", "_TZ3000_owgcnkrh", "_TZ3000_adkvzooy", "_TZ3000_arfwfgoa", "_TZ3000_a7ouggvs", "_TZ3000_rrjr1q0u", "_TZ3000_abci1hiu", "_TZ3000_dfgbtub0", "_TZ3000_rco1yzb1", "_TZ3000_gbm10jnj", "_TZ3000_5e235jpa", "_TZ3000_sj7jbgks", "_TZ3000_w8jwkczz", "_TZ3000_dziaict4", "_TZ3000_famkxci2", "_TZ3000_itb0omhv", "_TZ3000_tzvbimpq", "_TZ3000_mh9px7cq", "_TZ3000_b7bxojrg", "_TZ3000_ufhtxr59", "_TZ3000_4upl1fcj", "_TZ3000_i3rjdrwu", "_TZ3000_w3c7ouru", "_TZ3000_abci1hiu","_TZ3000_wqcbzbae", "_TZ3000_pkeqinnt", "_TZ3000_uaa99arv", "_TZ3000_wbfgbpxq", "_TZ3000_fa9mlvja", "_TZ3000_tk3s5tyg", "_TZ3000_mrpevh8p", "_TZ3000_qgwcxxws", "_TZ3000_yj6k7vfo", "_TZ3000_axpdxqgu", "_TZ3000_a4xycprs", "_TZ3000_u3nv1jwk", "_TZ3000_fkvaniuu", "_TZ3000_j61x9rxn", "_TZ3000_xwuveizv", "_TZ3000_5tqxpine", "_TZ3000_zgyzgdua"],
+            "modelids": ["_TZ3000_yw5tvzsk", "_TZ3000_czuyt8lz", "_TZ3000_ee8nrt2l", "_TZ3000_ygvf9xzp", "_TZ3000_t8hzpgnd", "_TZ3000_wkai4ga5", "_TZ3000_bi6lpsew", "_TZ3400_keyjhapk", "_TYZB02_key8kk7r", "_TZ3400_keyjqthh", "_TZ3400_key8kk7r", "_TZ3000_vp6clf9d", "_TYZB02_keyjqthh", "_TZ3000_peszejy7", "_TZ3000_qzjcsmar", "_TZ3000_owgcnkrh", "_TZ3000_adkvzooy", "_TZ3000_arfwfgoa", "_TZ3000_a7ouggvs", "_TZ3000_rrjr1q0u", "_TZ3000_abci1hiu", "_TZ3000_dfgbtub0", "_TZ3000_rco1yzb1", "_TZ3000_gbm10jnj", "_TZ3000_5e235jpa", "_TZ3000_sj7jbgks", "_TZ3000_w8jwkczz", "_TZ3000_dziaict4", "_TZ3000_famkxci2", "_TZ3000_itb0omhv", "_TZ3000_tzvbimpq", "_TZ3000_mh9px7cq", "_TZ3000_b7bxojrg", "_TZ3000_ufhtxr59", "_TZ3000_4upl1fcj", "_TZ3000_i3rjdrwu", "_TZ3000_w3c7ouru", "_TZ3000_abci1hiu", "_TZ3000_wqcbzbae", "_TZ3000_pkeqinnt", "_TZ3000_uaa99arv", "_TZ3000_wbfgbpxq", "_TZ3000_fa9mlvja", "_TZ3000_tk3s5tyg", "_TZ3000_mrpevh8p", "_TZ3000_qgwcxxws", "_TZ3000_yj6k7vfo", "_TZ3000_axpdxqgu", "_TZ3000_a4xycprs", "_TZ3000_u3nv1jwk", "_TZ3000_fkvaniuu", "_TZ3000_j61x9rxn", "_TZ3000_xwuveizv", "_TZ3000_5tqxpine", "_TZ3000_zgyzgdua"],
             "map": [
                 [1, "0x01", "ONOFF", "0xfd", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "B1 short"],
                 [1, "0x01", "ONOFF", "0xfd", "1", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "B1 double"],
@@ -1455,7 +1455,7 @@
         "TuyaSmartButton": {
             "vendor": "Tuya",
             "doc": "Smart Button with two modes (remote mode not mapped)",
-            "modelids": ["_TZ3000_ja5osu5g","_TZ3000_lrfvzq1e"],
+            "modelids": ["_TZ3000_ja5osu5g", "_TZ3000_lrfvzq1e"],
             "map": [
                 [1, "0x01", "ONOFF", "0xfd", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Short"],
                 [1, "0x01", "ONOFF", "0xfd", "1", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double"],
@@ -1862,7 +1862,7 @@
         "lidlDoorbellMap": {
             "vendor": "LIDL Silvercrest",
             "doc": "Lidl / Silvercrest doorbell (_TZ1800_ladpngdx)",
-            "modelids": ["HG06668","_TZ1800_ladpngdx", "TS0211"],
+            "modelids": ["HG06668", "TS0211", "_TZ1800_ladpngdx"],
             "buttons": [
                 {"S_BUTTON_1": "Button"}
             ],
