@@ -4145,15 +4145,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigWindowOpen)->setValue(false);
                 }
 
-                if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
-                {
-                    sensor.addItem(DataTypeUInt8, RStateValve);
-                    sensor.addItem(DataTypeUInt32, RConfigHostFlags)->setIsPublic(false);
-                    sensor.addItem(DataTypeBool, RConfigDisplayFlipped)->setValue(false);
-                    sensor.addItem(DataTypeBool, RConfigLocked)->setValue(false);
-                    sensor.addItem(DataTypeString, RConfigMode);
-                }
-                else if (sensor.modelId() == QLatin1String("902010/32"))  // Bitron
+                if (sensor.modelId() == QLatin1String("902010/32"))  // Bitron
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
                     sensor.addItem(DataTypeUInt8, RConfigControlSequence)->setValue(4);

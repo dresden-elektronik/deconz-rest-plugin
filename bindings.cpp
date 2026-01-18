@@ -1051,55 +1051,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == THERMOSTAT_CLUSTER_ID)
     {
-        if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
-        {
-            rq.dataType = deCONZ::Zcl16BitInt;
-            rq.attributeId = 0x0000;        // Local Temperature
-            rq.minInterval = 1;             // report changes every second
-            rq.maxInterval = 600;           // recommended value
-            rq.reportableChange16bit = 20;  // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
-
-            ConfigureReportingRequest rq2;
-            rq2.dataType = deCONZ::Zcl8BitUint;
-            rq2.attributeId = 0x0008;        // Pi Heating Demand (valve position %)
-            rq2.minInterval = 1;             // report changes every second
-            rq2.maxInterval = 600;           // recommended value
-            rq2.reportableChange8bit = 1;    // recommended value
-
-            ConfigureReportingRequest rq3;
-            rq3.dataType = deCONZ::Zcl16BitInt;
-            rq3.attributeId = 0x0012;        // Occupied Heating Setpoint - unused
-            rq3.minInterval = 65535;         // disable
-            rq3.maxInterval = 65535;         // disable
-            rq3.reportableChange16bit = 0;   // disable
-
-            ConfigureReportingRequest rq4;
-            rq4.dataType = deCONZ::Zcl16BitInt;
-            rq4.attributeId = 0x0014;        // Unoccupied Heating Setpoint - unused
-            rq4.minInterval = 65535;         // disable
-            rq4.maxInterval = 65535;         // disable
-            rq4.reportableChange16bit = 0;   // disable
-
-            ConfigureReportingRequest rq5;
-            rq5.dataType = deCONZ::Zcl16BitInt;
-            rq5.attributeId = 0x4003;        // Current Temperature Set point
-            rq5.minInterval = 1;             // report changes every second
-            rq5.maxInterval = 600;           // recommended value
-            rq5.reportableChange16bit = 50;  // recommended value
-            rq5.manufacturerCode = VENDOR_JENNIC;
-
-            ConfigureReportingRequest rq6;
-            rq6.dataType = deCONZ::Zcl24BitUint;
-            rq6.attributeId = 0x4008;        // Host Flags
-            rq6.minInterval = 1;             // report changes every second
-            rq6.maxInterval = 600;           // recommended value
-            rq6.reportableChange24bit = 1;   // recommended value
-            rq6.manufacturerCode = VENDOR_JENNIC;
-
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4}) || // Use OR because of manuf. specific attributes
-                   sendConfigureReportingRequest(bt, {rq5, rq6});
-        }
-        else if (modelId == QLatin1String("Thermostat")) // eCozy
+        if (modelId == QLatin1String("Thermostat")) // eCozy
         {
             rq.dataType = deCONZ::Zcl16BitInt;
             rq.attributeId = 0x0000;        // Local Temperature
@@ -1562,13 +1514,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         rq.dataType = deCONZ::Zcl8BitUint;
         rq.attributeId = 0x0021;   // battery percentage remaining
-        if (modelId.startsWith(QLatin1String("SPZB")))   // Eurotronic Spirit
-        {
-            rq.minInterval = 7200;       // value used by Hue bridge
-            rq.maxInterval = 7200;       // value used by Hue bridge
-            rq.reportableChange8bit = 0; // value used by Hue bridge
-        }
-        else if (modelId == QLatin1String("0x8020") ||   // Danfoss RT24V Display thermostat
+        if (modelId == QLatin1String("0x8020") ||   // Danfoss RT24V Display thermostat
                  modelId == QLatin1String("0x8021") ||   // Danfoss RT24V Display thermostat with floor sensor
                  modelId == QLatin1String("0x8030") ||   // Danfoss RTbattery Display thermostat
                  modelId == QLatin1String("0x8031") ||   // Danfoss RTbattery Display thermostat with infrared
@@ -2457,8 +2403,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // innr
         sensor->modelId().startsWith(QLatin1String("SP ")) ||
         sensor->modelId().startsWith(QLatin1String("RC 110")) ||
-        // Eurotronic
-        sensor->modelId() == QLatin1String("SPZB0001") ||
         // Heiman
         // I don't think the IAS Zone sensor need to be listed here?
         sensor->modelId().startsWith(QLatin1String("SmartPlug")) ||
