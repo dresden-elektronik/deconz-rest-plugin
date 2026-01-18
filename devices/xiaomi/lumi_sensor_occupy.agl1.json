@@ -119,19 +119,61 @@
           "default": false
         },
         {
-          "name": "state/lastupdated"
-        },
-        {
-          "name": "state/presence",
+          "name": "config/restart_device",
           "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
+            "at": "0x00E8",
             "cl": "0xFCC0",
-            "at": "0x0142",
-            "eval": "Item.val = (Attr.val !== 0); R.item('config/resetpresence').val = false"
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
           },
           "read": {
-            "fn": "none"
+            "at": "0x00E8",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "write": {
+            "at": "0x00E8",
+            "change.timeout": 3600,
+            "cl": "0xFCC0",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
+          }
+        },
+        {
+          "name": "config/spatial_learning",
+          "parse": {
+            "at": "0x0157",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "at": "0x0157",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "write": {
+            "at": "0x0157",
+            "change.timeout": 3600,
+            "cl": "0xFCC0",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
           }
         },
         {
@@ -149,6 +191,23 @@
             "ep": 1,
             "cl": "0xFCC0",
             "at": "0x015F"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/presence",
+          "refresh.interval": 86400,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFCC0",
+            "at": "0x0142",
+            "eval": "Item.val = (Attr.val !== 0); R.item('config/resetpresence').val = false"
+          },
+          "read": {
+            "fn": "none"
           }
         }
       ]
