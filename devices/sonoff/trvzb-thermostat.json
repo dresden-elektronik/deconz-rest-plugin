@@ -69,7 +69,7 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
           "read": {
@@ -102,7 +102,7 @@
           "write": {
             "at": "0x001C",
             "cl": "0x0201",
-            "dt": "0x10",
+            "dt": "0x30",
             "ep": 1,
             "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'auto') { 1 } else if (Item.val == 'heat') { 4 };",
             "fn": "zcl:attr"
@@ -155,7 +155,7 @@
             "at": "0x0000",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr"
           },
           "read": {
