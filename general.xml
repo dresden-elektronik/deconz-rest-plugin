@@ -2693,19 +2693,16 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x400F" name="Unknown" type="u16" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4020" name="Valve Opening" type="enum8" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4021" name="Unknown" type="u16" access="rw" required="o" mfcode="0x1209"></attribute>
-          <attribute id="0x4022" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
-            <value name="0" value="0x00"></value>
-            <value name="1" value="0x01"></value>
-            <value name="2" value="0x02"></value>
-            <value name="3" value="0x03"></value>
-            <value name="4" value="0x04"></value>
-          </attribute>
+          <attribute id="0x4022" name="Valve State" type="bool" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4023" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
             <value name="0" value="0x00"></value>
             <value name="1" value="0x01"></value>
             <value name="2" value="0x02"></value>
             <value name="3" value="0x03"></value>
             <value name="4" value="0x04"></value>
+            <value name="5" value="0x05"></value>
+            <value name="6" value="0x06"></value>
+            <value name="7" value="0x07"></value>
           </attribute>
           <attribute id="0x4024" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
             <value name="0" value="0x00"></value>
@@ -2713,6 +2710,48 @@ Note: It does not clear or delete previous weekly schedule programming configura
             <value name="2" value="0x02"></value>
             <value name="3" value="0x03"></value>
             <value name="4" value="0x04"></value>
+            <value name="5" value="0x05"></value>
+            <value name="6" value="0x06"></value>
+            <value name="7" value="0x07"></value>
+            <value name="8" value="0x08"></value>
+            <value name="9" value="0x09"></value>
+            <value name="10" value="0x0A"></value>
+            <value name="11" value="0x0B"></value>
+            <value name="12" value="0x0C"></value>
+            <value name="13" value="0x0D"></value>
+            <value name="14" value="0x0E"></value>
+            <value name="15" value="0x0F"></value>
+            <value name="16" value="0x10"></value>
+            <value name="17" value="0x11"></value>
+            <value name="18" value="0x12"></value>
+            <value name="19" value="0x13"></value>
+            <value name="20" value="0x14"></value>
+            <value name="21" value="0x15"></value>
+            <value name="22" value="0x16"></value>
+            <value name="23" value="0x17"></value>
+          </attribute>
+          <attribute id="0x4032" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="0" value="0x00"></value>
+            <value name="1" value="0x01"></value>
+            <value name="2" value="0x02"></value>
+            <value name="3" value="0x03"></value>
+            <value name="4" value="0x04"></value>
+            <value name="5" value="0x05"></value>
+            <value name="6" value="0x06"></value>
+            <value name="7" value="0x07"></value>
+            <value name="8" value="0x08"></value>
+            <value name="9" value="0x09"></value>
+            <value name="10" value="0x0A"></value>
+            <value name="11" value="0x0B"></value>
+            <value name="12" value="0x0C"></value>
+            <value name="13" value="0x0D"></value>
+            <value name="14" value="0x0E"></value>
+            <value name="15" value="0x0F"></value>
+          </attribute>
+          <attribute id="0x4033" name="Valve Status LED" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="Off" value="0x00"></value>
+            <value name="Normal" value="0x01"></value>
+            <value name="On" value="0x02"></value>
           </attribute>
           <attribute id="0x4040" name="External Measured Room Sensor" type="s16" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4041" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
@@ -2731,11 +2770,29 @@ Note: It does not clear or delete previous weekly schedule programming configura
             <value name="On" value="0x01"></value>
           </attribute>
           <attribute id="0x4050" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
-            <value name="0" value="0x00"></value>
-            <value name="1" value="0x01"></value>
-            <value name="2" value="0x02"></value>
-            <value name="3" value="0x03"></value>
-            <value name="4" value="0x04"></value>
+            <value name="5" value="0x05"></value>
+            <value name="6" value="0x06"></value>
+            <value name="7" value="0x07"></value>
+            <value name="8" value="0x08"></value>
+            <value name="9" value="0x09"></value>
+            <value name="10" value="0x0A"></value>
+          </attribute>
+          <attribute id="0x4051" name="Outdoor Temperature" type="s16" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x4052" name="External Sensor" type="s16" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x4060" name="Actuator Type Setting" type="enum8" access="rw" required="o" mfcode="0x1209">            
+            <value name="Normally Closed" value="0x00"></value>
+            <value name="Normally Open" value="0x01"></value>
+          </attribute>
+          <attribute id="0x4062" name="External Sensor Connection Config" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="Not Used" value="0x00"></value>
+            <value name="Without Regulation " value="0xB0"></value>
+            <value name="With Regulation" value="0xB1"></value>
+          </attribute>
+          <attribute id="0x4063" name="Heater Type" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="Under Floor Heating" value="0x00"></value>
+            <value name="Boiler" value="0x01"></value>
+            <value name="Radiator" value="0x02"></value>
+            <value name="Central Heating " value="0x03"></value>
           </attribute>
           <attribute id="0x5000" name="Error Code" type="bmp8" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x5010" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
