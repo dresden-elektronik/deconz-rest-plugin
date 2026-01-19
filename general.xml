@@ -2693,7 +2693,13 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x400F" name="Unknown" type="u16" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4020" name="Valve Opening" type="enum8" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4021" name="Unknown" type="u16" access="rw" required="o" mfcode="0x1209"></attribute>
-          <attribute id="0x4022" name="Valve State" type="bool" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x4022" name="Valve Adaptation Status" type="enum8" access="rw" required="o" mfcode="0x1209"></attribute>
+            <value name="Unknown" value="0x00"></value>
+            <value name="Ready To Calibrate" value="0x01"></value>
+            <value name="Calibration In Progress" value="0x02"></value>
+            <value name="Error" value="0x03"></value>
+            <value name="Success" value="0x04"></value>
+          </attribute>
           <attribute id="0x4023" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
             <value name="0" value="0x00"></value>
             <value name="1" value="0x01"></value>
