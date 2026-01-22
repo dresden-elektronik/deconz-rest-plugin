@@ -1273,11 +1273,11 @@ public Q_SLOTS:
     void resetDeviceSendConfirm(bool success);
 
     // lights
-    void startSearchLights();
+    void startSearchLights(int duration);
     void searchLightsTimerFired();
 
     // sensors
-    void startSearchSensors();
+    void startSearchSensors(int duration);
     void searchSensorsTimerFired();
     void checkInstaModelId(Sensor *sensor);
     void delayedFastEnddeviceProbe(const deCONZ::NodeEvent *event = nullptr);
