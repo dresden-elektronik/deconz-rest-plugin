@@ -72,9 +72,6 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lowbattery"
-        },
-        {
           "name": "state/water",
           "read": {
             "fn": "zcl:attr",
