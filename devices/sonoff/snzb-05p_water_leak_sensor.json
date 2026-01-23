@@ -64,9 +64,7 @@
           "default": 0
         },
         {
-          "name": "config/checkin",
-          "public": false,
-          "default": 14400
+          "name": "config/checkin"
         },
         {
           "name": "config/on"
