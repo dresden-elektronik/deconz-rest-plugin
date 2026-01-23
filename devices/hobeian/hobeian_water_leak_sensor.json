@@ -1,10 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "3c8bf87a-c713-40f4-81f5-794668662738",
-  "manufacturername": "SONOFF",
-  "modelid": "SNZB-05P",
-  "vendor": "Sonoff/eWeLink",
-  "product": "Water leak sensor (SNZB-05P)",
+  "manufacturername": "HOBEIAN",
+  "modelid": "ZG-222Z",
+  "vendor": "HOBEIAN",
+  "product": "Water leak sensor (ZG-222Z)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -62,11 +61,6 @@
             "fn": "zcl:attr"
           },
           "default": 0
-        },
-        {
-          "name": "config/checkin",
-          "public": false,
-          "default": 14400
         },
         {
           "name": "config/on"
