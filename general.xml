@@ -2736,6 +2736,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
             <value name="22" value="0x16"></value>
             <value name="23" value="0x17"></value>
           </attribute>
+          <attribute id="0x4025" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4032" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
             <value name="0" value="0x00"></value>
             <value name="1" value="0x01"></value>
@@ -2785,10 +2786,12 @@ Note: It does not clear or delete previous weekly schedule programming configura
           </attribute>
           <attribute id="0x4051" name="Outdoor temperature" type="s16" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4052" name="External sensor" type="s16" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x405b" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4060" name="Actuator type setting" type="enum8" access="rw" required="o" mfcode="0x1209">            
             <value name="Normally closed" value="0x00"></value>
             <value name="Normally open" value="0x01"></value>
           </attribute>
+          <attribute id="0x4061" name="Unknown" type="enum8" access="r" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4062" name="External sensor connection config" type="enum8" access="rw" required="o" mfcode="0x1209">
             <value name="Not used" value="0x00"></value>
             <value name="Without regulation " value="0xB0"></value>
@@ -3060,8 +3063,26 @@ Displayed setpoint is not affected, but regulated setpoint will change. Can be u
             <value name="0x00" value="0x00"></value>
             <value name="0x01" value="0x01"></value>
           </attribute>
+          <attribute id="0x4032" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="0" value="0x00"></value>
+            <value name="1" value="0x01"></value>
+            <value name="2" value="0x02"></value>
+            <value name="3" value="0x03"></value>
+            <value name="4" value="0x04"></value>
+            <value name="5" value="0x05"></value>
+            <value name="6" value="0x06"></value>
+            <value name="7" value="0x07"></value>
+            <value name="8" value="0x08"></value>
+            <value name="9" value="0x09"></value>
+            <value name="10" value="0x0A"></value>
+            <value name="11" value="0x0B"></value>
+            <value name="12" value="0x0C"></value>
+            <value name="13" value="0x0D"></value>
+            <value name="14" value="0x0E"></value>
+            <value name="15" value="0x0F"></value>
+          </attribute>
           <attribute id="0x4039" name="Displayed temperature" type="enum8" access="rw" required="o" mfcode="0x1209">
-            <value name="Target" value="0x00"></value>
+            <value name="Setpoint" value="0x00"></value>
             <value name="Measured" value="0x01"></value>
           </attribute>
           <attribute id="0x403a" name="Display on-time" type="enum8" access="rw" required="o" mfcode="0x1209">
@@ -3093,6 +3114,10 @@ Displayed setpoint is not affected, but regulated setpoint will change. Can be u
             <value name="9" value="0x09"></value>
             <value name="10" value="0x0A"></value>
           </attribute>
+          <attribute id="0x406a" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x406b" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x406c" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x406d" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209"></attribute>
         </attribute-set>
 
       </server>
