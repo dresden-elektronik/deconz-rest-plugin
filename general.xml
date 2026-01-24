@@ -2755,11 +2755,6 @@ Note: It does not clear or delete previous weekly schedule programming configura
             <value name="14" value="0x0E"></value>
             <value name="15" value="0x0F"></value>
           </attribute>
-          <attribute id="0x4033" name="Valve status LED" type="enum8" access="rw" required="o" mfcode="0x1209">
-            <value name="Off" value="0x00"></value>
-            <value name="Normal" value="0x01"></value>
-            <value name="On" value="0x02"></value>
-          </attribute>
           <attribute id="0x4040" name="External measured sensor" type="s16" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4041" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
             <value name="0" value="0x00"></value>
@@ -3080,6 +3075,11 @@ Displayed setpoint is not affected, but regulated setpoint will change. Can be u
             <value name="13" value="0x0D"></value>
             <value name="14" value="0x0E"></value>
             <value name="15" value="0x0F"></value>
+          </attribute>
+          <attribute id="0x4033" name="Valve status LED" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="Off" value="0x00"></value>
+            <value name="Normal" value="0x01"></value>
+            <value name="On" value="0x02"></value>
           </attribute>
           <attribute id="0x4039" name="Displayed temperature" type="enum8" access="rw" required="o" mfcode="0x1209">
             <value name="Setpoint" value="0x00"></value>
