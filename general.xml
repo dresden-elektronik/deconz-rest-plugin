@@ -3065,6 +3065,10 @@ Displayed setpoint is not affected, but regulated setpoint will change. Can be u
             <value name="Measured" value="0x01"></value>
           </attribute>
           <attribute id="0x403a" name="Display on-time" type="enum8" access="rw" required="o" mfcode="0x1209">
+            <value name="1" value="0x01"></value>
+            <value name="2" value="0x02"></value>
+            <value name="3" value="0x03"></value>
+            <value name="4" value="0x04"></value>
             <value name="5" value="0x05"></value>
             <value name="6" value="0x06"></value>
             <value name="7" value="0x07"></value>
