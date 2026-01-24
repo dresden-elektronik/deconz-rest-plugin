@@ -78,6 +78,9 @@
           "public": false
         },
         {
+          "name": "config/checkin"
+        },
+        {
           "name": "config/on"
         },
         {

@@ -74,6 +74,9 @@
           "default": 0
         },
         {
+          "name": "config/checkin"
+        },
+        {
           "name": "config/delay",
           "refresh.interval": 3600,
           "read": {
