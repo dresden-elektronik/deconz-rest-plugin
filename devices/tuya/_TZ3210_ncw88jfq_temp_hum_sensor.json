@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "f490468c-83c1-4367-9168-4043f59e23cc",
-  "manufacturername": "_TZ3210_ncw88jfq",
-  "modelid": "TS0201",
+  "manufacturername": [
+    "_TZ3210_ncw88jfq",
+    "_TZ3000_isw9u95y"
+  ],
+  "modelid": [
+    "TS0201",
+    "TS0201"
+  ],
   "vendor": "Tuya",
   "product": "Temperature and humidity sensor",
   "sleeper": true,
@@ -70,7 +76,7 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val/2"
+            "eval": "Item.val = Attr.val / 2"
           },
           "default": 0
         },
@@ -159,7 +165,7 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val/2"
+            "eval": "Item.val = Attr.val / 2"
           },
           "default": 0
         },
@@ -180,7 +186,7 @@
             "at": "0x0000",
             "cl": "0x0405",
             "ep": 1,
-            "eval": "Item.val = Attr.val * 10 + R.item('config/offset').val",
+            "eval": "Item.val = (Attr.val * 10) + R.item('config/offset').val",
             "fn": "zcl:attr"
           },
           "default": 0
