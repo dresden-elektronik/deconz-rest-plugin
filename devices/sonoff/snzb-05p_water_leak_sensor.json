@@ -67,7 +67,13 @@
           "name": "config/checkin"
         },
         {
+          "name": "config/enrolled"
+        },
+        {
           "name": "config/on"
+        },
+        {
+          "name": "config/pending"
         },
         {
           "name": "config/reachable"
