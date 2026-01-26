@@ -104,7 +104,7 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val/2"
+            "eval": "Item.val = Attr.val / 2"
           },
           "default": 0
         },
@@ -188,7 +188,7 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val/2"
+            "eval": "Item.val = Attr.val / 2"
           },
           "default": 0
         },
