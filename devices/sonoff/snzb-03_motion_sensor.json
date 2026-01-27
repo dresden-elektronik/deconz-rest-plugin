@@ -74,11 +74,11 @@
           "default": 0
         },
         {
-          "name": "config/enrolled",
-          "public": false
+          "name": "config/checkin"
         },
         {
-          "name": "config/checkin"
+          "name": "config/enrolled",
+          "public": false
         },
         {
           "name": "config/on"
