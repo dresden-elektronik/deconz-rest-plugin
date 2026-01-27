@@ -57,7 +57,8 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 7265,
+          "refresh.interval": 86400,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -127,6 +128,7 @@
         },
         {
           "name": "state/presence",
+          "awake": true,
           "read": {
             "fn": "none"
           },
