@@ -72,12 +72,6 @@
           "default": 0
         },
         {
-          "name": "state/tampered"
-        },
-        {
-          "name": "config/checkin"
-        },
-        {
           "name": "config/enrolled",
           "public": false
         },
