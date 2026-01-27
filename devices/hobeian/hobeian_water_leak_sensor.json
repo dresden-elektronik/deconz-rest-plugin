@@ -63,7 +63,8 @@
           "default": 0
         },
         {
-          "name": "config/enrolled"
+          "name": "config/enrolled",
+          "public": false
         },
         {
           "name": "config/on"

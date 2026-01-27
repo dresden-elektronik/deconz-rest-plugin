@@ -77,7 +77,8 @@
           "name": "config/checkin"
         },
         {
-          "name": "config/enrolled"
+          "name": "config/enrolled",
+          "public": false
         },
         {
           "name": "config/on"
