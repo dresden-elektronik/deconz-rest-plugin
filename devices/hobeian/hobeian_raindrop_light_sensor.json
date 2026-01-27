@@ -67,9 +67,6 @@
           "default": 0
         },
         {
-          "name": "config/checkin"
-        },
-        {
           "name": "config/enrolled",
           "public": false
         },
@@ -111,9 +108,6 @@
         },
         {
           "name": "state/lastupdated"
-        },
-        {
-          "name": "state/tampered"
         },
         {
           "name": "state/water",
