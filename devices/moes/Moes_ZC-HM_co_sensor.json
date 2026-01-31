@@ -223,7 +223,7 @@
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0040C"
+        "0x040C"
       ],
       "items": [
         {
@@ -302,7 +302,7 @@
           "parse": {
             "fn": "tuya",
             "dpid": 1,
-            "eval": "Item.val = Attr.val == 0 ? true : false"
+            "eval": "Item.val = (Attr.val == 0 ? true : false);"
           },
           "read": {
             "fn": "none"
