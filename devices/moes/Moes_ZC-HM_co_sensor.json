@@ -10,6 +10,7 @@
     "TS0601",
     "TS0601"
   ],
+  "vendor": "Moes",
   "product": "Carbon monoxide alarm (ZC-HM)",
   "sleeper": true,
   "status": "Gold",
