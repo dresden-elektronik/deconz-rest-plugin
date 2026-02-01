@@ -91,8 +91,9 @@
         {
           "name": "state/alert",
           "write": {
-            "dpid": 16,
             "fn": "tuya",
+            "dpid": 16,
+            "dt": "0x10",
             "eval": "if (Item.val=='none') { true }"
           },
           "read": {
@@ -204,9 +205,9 @@
         {
           "name": "state/measured_value",
           "parse": {
+            "fn": "tuya",
             "dpid": 2,
-            "eval": "Item.val = Attr.val",
-            "fn": "tuya"
+            "eval": "Item.val = Attr.val"
           },
           "read": {
             "fn": "none"
