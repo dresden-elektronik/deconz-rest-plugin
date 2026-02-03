@@ -131,6 +131,12 @@
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0001",
       "report": [
         {
@@ -139,20 +145,6 @@
           "min": 3600,
           "max": 14400,
           "change": "0x00000001"
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0500",
-      "report": [
-        {
-          "at": "0x0002",
-          "dt": "0x19",
-          "min": 60,
-          "max": 3600
         }
       ]
     }
