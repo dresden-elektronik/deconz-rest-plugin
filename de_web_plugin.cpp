@@ -4819,6 +4819,13 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     {
                         ok = false;
                     }
+                    // SonOff
+                    if (sensor->manufacturer() == QLatin1String("SONOFF"))
+                    {
+                        // payload: u16 attrId, u8 datatype, u8 data
+                        // Comparing only data
+                        ok = buttonMap.zclParam0 == zclFrame.payload().at(3);
+                    }
                     else if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
                     {
                         quint8 value;
