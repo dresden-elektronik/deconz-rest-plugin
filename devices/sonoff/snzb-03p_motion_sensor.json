@@ -57,7 +57,8 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 7265,
+          "refresh.interval": 86400,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -68,14 +69,17 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
           "default": 0
         },
         {
+          "name": "config/checkin"
+        },
+        {
           "name": "config/delay",
-          "refresh.interval": 3600,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x0020",
             "cl": "0x0406",
@@ -124,6 +128,7 @@
         },
         {
           "name": "state/presence",
+          "awake": true,
           "read": {
             "fn": "none"
           },
@@ -143,6 +148,20 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 7200,
+          "max": 14400,
+          "change": "0x00000002"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
       "cl": "0x0406",
       "report": [
         {
@@ -155,7 +174,7 @@
           "at": "0x0020",
           "dt": "0x21",
           "min": 5,
-          "max": 60
+          "max": 3600
         }
       ]
     },
@@ -170,20 +189,6 @@
           "min": 1,
           "max": 300,
           "change": "0x00000001"
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0001",
-      "report": [
-        {
-          "at": "0x0021",
-          "dt": "0x20",
-          "min": 3600,
-          "max": 7200,
-          "change": "0x00000002"
         }
       ]
     }
