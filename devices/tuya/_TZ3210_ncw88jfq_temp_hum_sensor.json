@@ -1,11 +1,17 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "5f124e57-55fc-42c8-821f-c89854d1f031",
-  "manufacturername": "_TZ3000_dowj6gyi",
-  "modelid": "TS0201",
+  "uuid": "f490468c-83c1-4367-9168-4043f59e23cc",
+  "manufacturername": [
+    "_TZ3210_ncw88jfq",
+    "_TZ3000_isw9u95y"
+  ],
+  "modelid": [
+    "TS0201",
+    "TS0201"
+  ],
   "vendor": "Tuya",
-  "product": "Temperature and Humidity Sensor (IH-K009)",
-  "sleeper": false,
+  "product": "Temperature and humidity sensor",
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
@@ -59,13 +65,18 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
-            "fn": "zcl:attr"
+            "eval": "Item.val = Attr.val / 2"
           },
           "default": 0
         },
@@ -78,6 +89,9 @@
         },
         {
           "name": "config/reachable"
+        },
+        {
+          "name": "config/tuya_unlock"
         },
         {
           "name": "state/lastupdated"
@@ -140,13 +154,18 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
-            "fn": "zcl:attr"
+            "eval": "Item.val = Attr.val / 2"
           },
           "default": 0
         },
@@ -163,6 +182,13 @@
         {
           "name": "state/humidity",
           "awake": true,
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0405",
+            "ep": 1,
+            "eval": "Item.val = (Attr.val * 10) + R.item('config/offset').val",
+            "fn": "zcl:attr"
+          },
           "default": 0
         },
         {
@@ -180,9 +206,9 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
-          "change": "0x00000001"
+          "min": 3600,
+          "max": 43200,
+          "change": "0x00000002"
         }
       ]
     },
