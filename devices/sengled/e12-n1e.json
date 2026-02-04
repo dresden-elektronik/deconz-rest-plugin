@@ -6,7 +6,7 @@
   "vendor": "Sengled",
   "product": "Soft white BR30 bulb (E12-N1E)",
   "sleeper": false,
-  "status": "Bronze",
+  "status": "Silver",
   "subdevices": [
     {
       "type": "$TYPE_EXTENDED_COLOR_LIGHT",
