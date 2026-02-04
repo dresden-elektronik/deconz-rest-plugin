@@ -44,12 +44,6 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/on"
-        },
-        {
-          "name": "config/reachable"
-        },
-        {
           "name": "config/battery",
           "awake": true,
           "parse": {
@@ -59,6 +53,12 @@
             "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
         },
         {
           "name": "state/buttonevent",

@@ -68,6 +68,7 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "awake": true,
           "parse": {
             "at": "0x0021",
@@ -81,13 +82,13 @@
           "name": "config/duration"
         },
         {
+          "name": "config/enrolled"
+        },
+        {
           "name": "config/on"
         },
         {
           "name": "config/pending"
-        },
-        {
-          "name": "config/enrolled"
         },
         {
           "name": "config/reachable"
@@ -96,7 +97,8 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/presence"
+          "name": "state/presence",
+          "awake": true
         }
       ]
     }
@@ -105,13 +107,18 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "cl": "0x0500"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
       "cl": "0x0001",
       "report": [
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 300,
-          "max": 7200,
+          "min": 7200,
+          "max": 14400,
           "change": "0x01"
         }
       ]
