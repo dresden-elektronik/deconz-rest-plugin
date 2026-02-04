@@ -884,6 +884,14 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     QVariantMap gradient;
     bool hasMusicSync = false;
     bool targetMusicSync = false;
+    bool hasMusicSyncEffect = false;
+    quint32 targetMusicSyncEffect = 0;
+    bool hasMusicSyncSensitivity = false;
+    quint8 targetMusicSyncSensitivity = 0;
+    bool hasPresetEffect = false;
+    quint32 targetPresetEffect = 0;
+    bool hasPresetSpeed = false;
+    quint8 targetPresetSpeed = 0;
     QString alert;
     bool hasSpeed = false;
     quint8 targetSpeed = 0;
@@ -1050,6 +1058,54 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 valueOk = true;
                 hasMusicSync = true;
                 targetMusicSync = map[param].toBool();
+            }
+        }
+        else if (param == "music_sync_effect" && taskRef.lightNode->item(RStateMusicSyncEffect))
+        {
+            paramOk = true;
+            hasCmd = true;
+            const uint effect = map[param].toUInt(&ok);
+            if (ok && effect <= 0xFF)
+            {
+                valueOk = true;
+                hasMusicSyncEffect = true;
+                targetMusicSyncEffect = effect;
+            }
+        }
+        else if (param == "music_sync_sensitivity" && taskRef.lightNode->item(RStateMusicSyncSensitivity))
+        {
+            paramOk = true;
+            hasCmd = true;
+            const uint sensitivity = map[param].toUInt(&ok);
+            if (ok && sensitivity <= 0xFF)
+            {
+                valueOk = true;
+                hasMusicSyncSensitivity = true;
+                targetMusicSyncSensitivity = sensitivity;
+            }
+        }
+        else if (param == "preset_effect" && taskRef.lightNode->item(RStatePresetEffect))
+        {
+            paramOk = true;
+            hasCmd = true;
+            const uint presetEffect = map[param].toUInt(&ok);
+            if (ok && presetEffect <= 0xFF)
+            {
+                valueOk = true;
+                hasPresetEffect = true;
+                targetPresetEffect = presetEffect;
+            }
+        }
+        else if (param == "preset_speed" && taskRef.lightNode->item(RStatePresetSpeed))
+        {
+            paramOk = true;
+            hasCmd = true;
+            const uint presetSpeed = map[param].toUInt(&ok);
+            if (ok && presetSpeed <= 0xFF)
+            {
+                valueOk = true;
+                hasPresetSpeed = true;
+                targetPresetSpeed = presetSpeed;
             }
         }
         else if (param == "colorloopspeed" && taskRef.lightNode->item(RStateEffect))
@@ -1634,6 +1690,58 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         rsp.list.append(rspItem);
     }
 
+    if (hasMusicSyncEffect)
+    {
+        change.addTargetValue(RStateMusicSyncEffect, targetMusicSyncEffect);
+        taskRef.lightNode->setValue(RStateMusicSyncEffect, targetMusicSyncEffect);
+        DB_StoreSubDeviceItem(taskRef.lightNode, taskRef.lightNode->item(RStateMusicSyncEffect));
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState[QString("/lights/%1/state/music_sync_effect").arg(id)] = targetMusicSyncEffect;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    if (hasMusicSyncSensitivity)
+    {
+        change.addTargetValue(RStateMusicSyncSensitivity, targetMusicSyncSensitivity);
+        taskRef.lightNode->setValue(RStateMusicSyncSensitivity, targetMusicSyncSensitivity);
+        DB_StoreSubDeviceItem(taskRef.lightNode, taskRef.lightNode->item(RStateMusicSyncSensitivity));
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState[QString("/lights/%1/state/music_sync_sensitivity").arg(id)] = targetMusicSyncSensitivity;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    if (hasPresetEffect)
+    {
+        change.addTargetValue(RStatePresetEffect, targetPresetEffect);
+        taskRef.lightNode->setValue(RStatePresetEffect, targetPresetEffect);
+        DB_StoreSubDeviceItem(taskRef.lightNode, taskRef.lightNode->item(RStatePresetEffect));
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState[QString("/lights/%1/state/preset_effect").arg(id)] = targetPresetEffect;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    if (hasPresetSpeed)
+    {
+        change.addTargetValue(RStatePresetSpeed, targetPresetSpeed);
+        taskRef.lightNode->setValue(RStatePresetSpeed, targetPresetSpeed);
+        DB_StoreSubDeviceItem(taskRef.lightNode, taskRef.lightNode->item(RStatePresetSpeed));
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState[QString("/lights/%1/state/preset_speed").arg(id)] = targetPresetSpeed;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
     // state.alert
     if (!alert.isEmpty())
     {
@@ -2172,7 +2280,25 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
                                             }
                                         }
                                     }
-
+                                }
+                                else if (key == "segments")
+                                {
+                                    ResourceItem *item = lightNode->item(RConfigColorGradientSegments);
+                                    if (item)
+                                    {
+                                        paramOk = true;
+                                        if (value.type() == QVariant::Double)
+                                        {
+                                            const quint8 segments = value.toUInt(&ok);
+                                            if (ok)
+                                            {
+                                                valueOk = true;
+                                                change.addTargetValue(RConfigColorGradientSegments, segments);
+                                                lightNode->setValue(RConfigColorGradientSegments, segments);
+                                                DB_StoreSubDeviceItem(lightNode, item);
+                                            }
+                                        }
+                                    }
                                 }
                                 else if (key == "reversed")
                                 {
