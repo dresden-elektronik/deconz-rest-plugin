@@ -79,7 +79,7 @@
         },
         {
           "name": "config/delay",
-          "refresh.interval": 3600,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x0020",
             "cl": "0x0406",
@@ -174,7 +174,7 @@
           "at": "0x0020",
           "dt": "0x21",
           "min": 5,
-          "max": 3660
+          "max": 3600
         }
       ]
     },
