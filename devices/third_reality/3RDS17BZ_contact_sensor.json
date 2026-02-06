@@ -52,6 +52,7 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "awake": true,
           "parse": {
             "at": "0x0021",
@@ -133,8 +134,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
-          "max": 43200,
+          "min": 7200,
+          "max": 14400,
           "change": "0x00000002"
         }
       ]

@@ -3,6 +3,7 @@
   "uuid": "160b5e9e-8cfc-43d8-bc16-c128f09e4d40",
   "manufacturername": "Third Reality, Inc",
   "modelid": "3RSB22BZ",
+  "vendor": "Third Reality",
   "product": "Smart button (3RSB22BZ)",
   "status": "Gold",
   "sleeper": true,
@@ -44,12 +45,6 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/on"
-        },
-        {
-          "name": "config/reachable"
-        },
-        {
           "name": "config/battery",
           "awake": true,
           "parse": {
@@ -59,6 +54,12 @@
             "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
         },
         {
           "name": "state/buttonevent",
