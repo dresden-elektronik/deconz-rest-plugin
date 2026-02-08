@@ -71,24 +71,6 @@
           "static": 0
         },
         {
-          "name": "config/battery",
-          "refresh.interval": 86400,
-          "awake": true,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          },
-          "default": 0
-        },
-        {
           "name": "state/alert",
           "default": "none"
         },
@@ -163,24 +145,6 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/battery",
-          "refresh.interval": 86400,
-          "awake": true,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          },
-          "default": 0
-        },
-        {
           "name": "config/on"
         },
         {
@@ -253,24 +217,6 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/battery",
-          "refresh.interval": 86400,
-          "awake": true,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          },
-          "default": 0
-        },
-        {
           "name": "config/on"
         },
         {
@@ -301,20 +247,6 @@
     }
   ],
   "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0001",
-      "report": [
-        {
-          "at": "0x0021",
-          "dt": "0x20",
-          "min": 7200,
-          "max": 14400,
-          "change": "0x01"
-        }
-      ]
-    },
     {
       "bind": "unicast",
       "src.ep": 1,
