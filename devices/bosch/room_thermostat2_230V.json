@@ -82,6 +82,35 @@
           "refresh.interval": 360
         },
         {
+          "name": "config/externalsensortemp",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x4051",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "parse": {
+            "at": "0x4051",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "write": {
+            "at": "0x4051",
+            "cl": "0x0201",
+            "dt": "0x29",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl:attr",
+            "mf": "0x1209"
+          },
+          "default": 0
+        },
+        {
           "name": "config/externalwindowopen",
           "refresh.interval": 3660,
           "read": {
@@ -158,14 +187,14 @@
             "cl": "0x0201",
             "dt": "0x28",
             "ep": 1,
-            "eval": "Item.val / 10",
+            "eval": "Item.val / 10;",
             "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0010",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val * 10",
+            "eval": "Item.val = Attr.val * 10;",
             "fn": "zcl:attr"
           }
         },
@@ -306,7 +335,7 @@
             "at": "0x4020",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1209"
           },
@@ -400,7 +429,7 @@
             "at": "0x0000",
             "cl": "0x0405",
             "ep": 1,
-            "eval": "Item.val = Attr.val + R.item('config/offset').val",
+            "eval": "Item.val = Attr.val + R.item('config/offset').val;",
             "fn": "zcl:attr"
           }
         },

@@ -77,7 +77,7 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
           "read": {
@@ -106,7 +106,7 @@
             "at": "0x400B",
             "cl": "0x0204",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1209"
           },
@@ -135,7 +135,7 @@
             "at": "0x4040",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1209"
           },
@@ -164,7 +164,7 @@
             "at": "0x4042",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1209"
           },
@@ -294,7 +294,7 @@
             "at": "0x5000",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1209"
           },
@@ -330,7 +330,7 @@
             "at": "0x0000",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr"
           },
           "read": {
@@ -347,7 +347,7 @@
             "at": "0x4020",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1209"
           },
