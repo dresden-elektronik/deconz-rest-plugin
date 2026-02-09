@@ -1,14 +1,8 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "3c8bf87a-c713-40f4-81f5-794668662738",
-  "manufacturername": [
-    "SONOFF",
-    "HOBEIAN"
-  ],
-  "modelid": [
-    "SNZB-05P",
-    "ZG-222Z"
-  ],
+  "manufacturername": "SONOFF",
+  "modelid": "SNZB-05P",
   "vendor": "Sonoff/eWeLink",
   "product": "Water leak sensor (SNZB-05P)",
   "sleeper": true,
@@ -52,8 +46,8 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "awake": true,
-          "refresh.interval": 7265,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -64,13 +58,23 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
           "default": 0
         },
         {
+          "name": "config/checkin"
+        },
+        {
+          "name": "config/enrolled",
+          "public": false
+        },
+        {
           "name": "config/on"
+        },
+        {
+          "name": "config/pending"
         },
         {
           "name": "config/reachable"
@@ -79,7 +83,11 @@
           "name": "state/lastupdated"
         },
         {
+          "name": "state/lowbattery"
+        },
+        {
           "name": "state/water",
+          "awake": true,
           "read": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -108,8 +116,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
-          "max": 7200,
+          "min": 7200,
+          "max": 14400,
           "change": "0x00000002"
         }
       ]

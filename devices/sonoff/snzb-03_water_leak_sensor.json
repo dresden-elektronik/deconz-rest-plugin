@@ -58,6 +58,7 @@
         {
           "name": "config/battery",
           "refresh.interval": 86400,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -74,7 +75,17 @@
           "default": 0
         },
         {
+          "name": "config/checkin"
+        },
+        {
+          "name": "config/enrolled",
+          "public": false
+        },
+        {
           "name": "config/on"
+        },
+        {
+          "name": "config/pending"
         },
         {
           "name": "config/reachable"
@@ -103,7 +114,7 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
+          "min": 7200,
           "max": 14400,
           "change": "0x00000002"
         }
