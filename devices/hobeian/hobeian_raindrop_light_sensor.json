@@ -1,8 +1,16 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "d429cd2c-8a7e-42c0-80e5-50550318e56a",
-  "manufacturername": "HOBEIAN",
-  "modelid": "ZG-223Z",
+  "manufacturername": [
+    "HOBEIAN",
+    "_TZE200_jsaqgakf",
+    "_TZE200_u6x1zyv2"
+  ],
+  "modelid": [
+    "ZG-223Z",
+    "TS0601",
+    "TS0601"
+  ],
   "vendor": "HOBEIAN",
   "product": "Raindrop and light sensor (ZG-223Z)",
   "sleeper": true,
@@ -67,9 +75,6 @@
           "default": 0
         },
         {
-          "name": "config/checkin"
-        },
-        {
           "name": "config/enrolled",
           "public": false
         },
@@ -113,15 +118,8 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/tampered"
-        },
-        {
           "name": "state/water",
-          "awake": true,
-          "parse": {
-            "fn": "ias:zonestatus",
-            "mask": "alarm1"
-          }
+          "awake": true
         }
       ]
     },
@@ -214,8 +212,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
+          "min": 7200,
+          "max": 14400,
           "change": "0x00000001"
         }
       ]

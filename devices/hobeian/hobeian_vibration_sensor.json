@@ -57,6 +57,7 @@
         {
           "name": "config/battery",
           "refresh.interval": 86400,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -70,12 +71,6 @@
             "eval": "Item.val = Attr.val / 2"
           },
           "default": 0
-        },
-        {
-          "name": "state/tampered"
-        },
-        {
-          "name": "config/checkin"
         },
         {
           "name": "config/enrolled",
@@ -136,28 +131,20 @@
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
-      "cl": "0x0001",
-      "report": [
-        {
-          "at": "0x0021",
-          "dt": "0x20",
-          "min": 60,
-          "max": 3600,
-          "change": "0x00000001"
-        }
-      ]
+      "cl": "0x0500"
     },
     {
       "bind": "unicast",
       "src.ep": 1,
       "dst.ep": 1,
-      "cl": "0x0500",
+      "cl": "0x0001",
       "report": [
         {
-          "at": "0x0002",
-          "dt": "0x19",
-          "min": 60,
-          "max": 3600
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 7200,
+          "max": 14400,
+          "change": "0x00000001"
         }
       ]
     }
