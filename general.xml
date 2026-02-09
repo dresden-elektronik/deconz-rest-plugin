@@ -6082,6 +6082,8 @@ Contactor > On/off=0003 - HP/HC=0004</description>
             <description>0 - µg/m³ + °C, 1 - ppb + °C, 16 - µg/m³ + °F, 17 - ppb + °F</description>
           </attribute>
           <attribute id="0x0125" name="Multiclick mode" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0126" name="Buzer manual mute" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0127" name="Self test" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0129" name="Air Quality" type="u8" mfcode="0x115f" access = "r" required="o">
             <description>Air Quality: 1 - excellent, 2 - good, 3 - moderate, 4 - poor, 5 unhealthy</description>
           </attribute>
@@ -6089,7 +6091,14 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x0136" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0137" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0138" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x013A" name="Smoke" type="bool" mfcode="0x115f" access="r" required="m"></attribute>
+          <attribute id="0x013B" name="Smoke density" type="u8" mfcode="0x115f" access="r" required="m"></attribute>
+          <attribute id="0x013C" name="HeartBeat indicator" type="u8" mfcode="0x115f" access="r" required="m"></attribute>
+          <attribute id="0x013D" name="Buzer manual alarm 1" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x013E" name="Buzer manual alarm 2" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0142" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x014B" name="linkage alarm" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x014C" name="linkage alarm state" type="bool" mfcode="0x115f" access="r" required="m"></attribute>
           <attribute id="0x014D" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x014F" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0152" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
