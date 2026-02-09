@@ -106,6 +106,7 @@
         },
         {
           "name": "state/power",
+          "refresh.interval": 360,
           "read": {
             "at": "0x050b",
             "cl": "0x0b04",
@@ -117,11 +118,11 @@
             "cl": "0x0b04",
             "ep": 1,
             "eval": "Item.val = Attr.val / 10"
-          },
-          "refresh.interval": 360
+          }
         },
         {
           "name": "state/voltage",
+          "refresh.interval": 360,
           "read": {
             "at": "0x0505",
             "cl": "0x0b04",
@@ -133,8 +134,7 @@
             "cl": "0x0b04",
             "ep": 1,
             "eval": "Item.val = Attr.val / 10"
-          },
-          "refresh.interval": 360
+          }
         }
       ]
     }

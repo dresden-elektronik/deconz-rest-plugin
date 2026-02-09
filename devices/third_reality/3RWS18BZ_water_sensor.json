@@ -56,6 +56,7 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "awake": true,
           "parse": {
             "at": "0x0021",
@@ -97,6 +98,11 @@
     }
   ],
   "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500"
+    },
     {
       "bind": "unicast",
       "src.ep": 1,
