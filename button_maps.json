@@ -56,6 +56,7 @@
         "IAS_ACE": 1281,
         "SENGLED": 64528,
         "FC80": 64640,
+        "FC12" : 64530,
         "XIAOMI": 64704,
         "ADUROLIGHT": 64716,
         "XIAOYAN": 64716
