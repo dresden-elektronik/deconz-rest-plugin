@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/color/gradient/segments",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "description": "Number of 20cm segments on Aqara LED Strip T1."
+}

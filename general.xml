@@ -6206,11 +6206,17 @@ Contactor > On/off=0003 - HP/HC=0004</description>
           <attribute id="0x051C" name="Music Sync" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Music Sync: 0: off, 1: on.</description>
           </attribute>
-          <attribute id="0x051D" name="Music Sync Effect" type="u8" mfcode="0x115f" access="rw" required="m">
-            <description>Music Sync Effecy: 0: random, 1: breathing, 2: rainbow, 3: chasing.</description>
+          <attribute id="0x051D" name="Music Sync Effect" type="u32" mfcode="0x115f" access="rw" required="m">
+            <description>Music Sync Effect: 0: random, 1: breathing, 2: rainbow, 3: chasing.</description>
           </attribute>
           <attribute id="0x051E" name="Music Sync Sensitivity" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Music Sync Sensitivity: 0: low, 2: high.</description>
+          </attribute>
+          <attribute id="0x051F" name="Preset Effect" type="u32" mfcode="0x115f" access="rw" required="m">
+            <description>Preset Effect: 0: breathing, 1: raindbow, 2: chasing, 3: flash, 4: jumping, 5: flapping, 6: running.</description>
+          </attribute>
+          <attribute id="0x0520" name="Preset Speed" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Effect Speed: 0%~100%.</description>
           </attribute>
         </attribute-set>
         <attribute-set id="0x0700" description="Unknown">

@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/music_sync_sensitivity",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "description": "Music sync sensitivity 0: low, 2: high."
+}
