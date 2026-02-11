@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "255f7886-62d1-40da-b1fd-40f51ef06698",
   "manufacturername": "SONOFF",
   "modelid": "SNZB-01M",
   "vendor": "Sonoff",
