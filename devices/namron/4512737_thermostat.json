@@ -72,32 +72,6 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/externalsensortemp",
-          "refresh.interval": 360,
-          "read": {
-            "at": "0x1001",
-            "cl": "0x0201",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x1001",
-            "cl": "0x0201",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          },
-          "write": {
-            "at": "0x1001",
-            "cl": "0x0201",
-            "dt": "0x29",
-            "ep": 1,
-            "eval": "Item.val",
-            "fn": "zcl:attr"
-          },
-          "default": 0
-        },
-        {
           "name": "config/heatsetpoint",
           "refresh.interval": 360
         },
@@ -149,7 +123,20 @@
         },
         {
           "name": "state/temperature",
-          "refresh.interval": 360
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
         }
       ]
     },
@@ -229,7 +216,7 @@
           "parse": {
             "at": "0x0505",
             "cl": "0x0b04",
-            "ep": 0,
+            "ep": 1,
             "eval": "if (Attr.val != 65535) { Item.val = Attr.val * 100 }"
           },
           "default": 0
@@ -311,13 +298,6 @@
           "min": 60,
           "max": 300,
           "change": "0x00000032"
-        },
-        {
-          "at": "0x0011",
-          "dt": "0x29",
-          "min": 1,
-          "max": 300,
-          "change": "0x00000001"
         },
         {
           "at": "0x0012",
