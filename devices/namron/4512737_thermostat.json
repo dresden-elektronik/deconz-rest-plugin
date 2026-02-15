@@ -106,6 +106,32 @@
         },
         {
           "name": "config/offset",
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x0010",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0010",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val * 10;",
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x0010",
+            "cl": "0x0201",
+            "dt": "0x28",
+            "ep": 1,
+            "eval": "Item.val / 10;",
+            "fn": "zcl:attr"
+          },
+          "range": [
+            -300,
+            300
+          ],
           "default": 0
         },
         {
@@ -119,7 +145,20 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 360
+          "refresh.interval": 3660,
+          "parse": {
+            "at": "0x0029",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "at": "0x0029",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "state/temperature",
