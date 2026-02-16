@@ -87,7 +87,7 @@
         },
         {
           "name": "config/mode",
-          "refresh.interval": 3660,
+          "refresh.interval": 3600,
           "read": {
             "at": "0x001C",
             "cl": "0x0201",
@@ -419,6 +419,12 @@
           "min": 1,
           "max": 300,
           "change": "0x00000001"
+        },
+        {
+          "at": "0x001C",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300
         }
       ]
     },
