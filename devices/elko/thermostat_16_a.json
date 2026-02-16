@@ -104,7 +104,7 @@
           "write": {
             "at": "0x001C",
             "cl": "0x0201",
-            "dt": "0x10",
+            "dt": "0x30",
             "ep": 1,
             "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'heat') { 4 };",
             "fn": "zcl:attr"
