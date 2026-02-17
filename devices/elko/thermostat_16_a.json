@@ -76,10 +76,8 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/heatsetpoint"
-        },
-        {
-          "name": "config/unoccupiedheatsetpoint"
+          "name": "config/heatsetpoint",
+          "refresh.interval": 360
         },
         {
           "name": "config/locked",
@@ -143,10 +141,15 @@
           "name": "config/reachable"
         },
         {
+          "name": "config/unoccupiedheatsetpoint",
+          "refresh.interval": 360
+        },
+        {
           "name": "state/lastupdated"
         },
         {
           "name": "state/on",
+          "refresh.interval": 3600,
           "parse": {
             "at": "0x0008",
             "cl": "0x0201",
