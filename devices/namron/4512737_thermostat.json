@@ -145,12 +145,20 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/windowopen_set",
+          "name": "config/windowopendetectionenabled",
           "refresh.interval": 3660,
           "read": {
             "at": "0x1009",
             "cl": "0x0201",
             "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x1224"
+          },
+          "parse": {
+            "at": "0x1009",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1224"
           },
@@ -162,14 +170,6 @@
             "eval": "Item.val",
             "fn": "zcl:attr",
             "mf": "0x1224"
-          },
-          "parse": {
-            "at": "0x1009",
-            "cl": "0x0201",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr",
-            "mf": "0x1224"
           }
         },
         {
@@ -178,17 +178,17 @@
         {
           "name": "state/on",
           "refresh.interval": 3660,
+          "read": {
+            "at": "0x0029",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
           "parse": {
             "at": "0x0029",
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          },
-          "read": {
-            "at": "0x0029",
-            "cl": "0x0201",
-            "ep": 1,
             "fn": "zcl:attr"
           }
         },
@@ -380,13 +380,6 @@
         {
           "at": "0x1007",
           "dt": "0x30",
-          "mf": "0x1224",
-          "min": 1,
-          "max": 300
-        },
-        {
-          "at": "0x1009",
-          "dt": "0x10",
           "mf": "0x1224",
           "min": 1,
           "max": 300
