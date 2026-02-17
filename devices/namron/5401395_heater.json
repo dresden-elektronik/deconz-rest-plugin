@@ -123,19 +123,19 @@
             "ep": 1,
             "fn": "zcl:attr"
           },
+          "parse": {
+            "at": "0x0010",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val * 10;",
+            "fn": "zcl:attr"
+          },
           "write": {
             "at": "0x0010",
             "cl": "0x0201",
             "dt": "0x28",
             "ep": 1,
             "eval": "Item.val / 10;",
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0010",
-            "cl": "0x0201",
-            "ep": 1,
-            "eval": "Item.val = Attr.val * 10;",
             "fn": "zcl:attr"
           }
         },
@@ -155,20 +155,20 @@
             "fn": "zcl:attr",
             "mf": "0x1224"
           },
+          "parse": {
+            "at": "0x1009",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x1224"
+          },
           "write": {
             "at": "0x1009",
             "cl": "0x0201",
             "dt": "0x10",
             "ep": 1,
             "eval": "Item.val",
-            "fn": "zcl:attr",
-            "mf": "0x1224"
-          },
-          "parse": {
-            "at": "0x1009",
-            "cl": "0x0201",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1224"
           }
@@ -179,17 +179,17 @@
         {
           "name": "state/on",
           "refresh.interval": 3660,
+          "read": {
+            "at": "0x0029",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
           "parse": {
             "at": "0x0029",
             "cl": "0x0201",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          },
-          "read": {
-            "at": "0x0029",
-            "cl": "0x0201",
-            "ep": 1,
             "fn": "zcl:attr"
           }
         },
@@ -213,14 +213,14 @@
         {
           "name": "state/windowopen",
           "refresh.interval": 3660,
-          "parse": {
+          "read": {
             "at": "0x100B",
             "cl": "0x0201",
             "ep": 1,
             "fn": "zcl:attr",
             "mf": "0x1224"
           },
-          "read": {
+          "parse": {
             "at": "0x100B",
             "cl": "0x0201",
             "ep": 1,
