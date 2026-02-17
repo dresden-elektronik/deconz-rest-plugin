@@ -86,20 +86,20 @@
             "fn": "zcl:attr",
             "mf": "0x1185"
           },
+          "parse": {
+            "at": "0x4001",
+            "cl": "0x0201",
+            "ep": 25,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x1185"
+          },
           "write": {
             "at": "0x4001",
             "cl": "0x0201",
             "dt": "0x29",
             "ep": 25,
             "eval": "Item.val",
-            "fn": "zcl:attr",
-            "mf": "0x1185"
-          },
-          "parse": {
-            "at": "0x4001",
-            "cl": "0x0201",
-            "ep": 25,
-            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1185"
           },
@@ -122,19 +122,19 @@
             "ep": 25,
             "fn": "zcl:attr"
           },
+          "parse": {
+            "at": "0x001C",
+            "cl": "0x0201",
+            "ep": 25,
+            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 1) { Item.val = 'auto' } else if (Attr.val == 4) { Item.val = 'heat' }",
+            "fn": "zcl:attr"
+          },
           "write": {
             "at": "0x001C",
             "cl": "0x0201",
             "dt": "0x30",
             "ep": 25,
             "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'auto') { 1 } else if (Item.val == 'heat') { 4 }",
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x001C",
-            "cl": "0x0201",
-            "ep": 25,
-            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 1) { Item.val = 'auto' } else if (Attr.val == 4) { Item.val = 'heat' }",
             "fn": "zcl:attr"
           },
           "default": "heat"
@@ -184,19 +184,19 @@
             "ep": 25,
             "fn": "zcl:attr"
           },
+          "parse": {
+            "at": "0x0014",
+            "cl": "0x0201",
+            "ep": 25,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          },
           "write": {
             "at": "0x0014",
             "cl": "0x0201",
             "dt": "0x29",
             "ep": 25,
             "eval": "Item.val",
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0014",
-            "cl": "0x0201",
-            "ep": 25,
-            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr"
           },
           "default": 17
@@ -207,17 +207,17 @@
         {
           "name": "state/on",
           "refresh.interval": 3600,
+          "read": {
+            "at": "0x0029",
+            "cl": "0x0201",
+            "ep": 25,
+            "fn": "zcl:attr"
+          },
           "parse": {
             "at": "0x0029",
             "cl": "0x0201",
             "ep": 25,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          },
-          "read": {
-            "at": "0x0029",
-            "cl": "0x0201",
-            "ep": 25,
             "fn": "zcl:attr"
           }
         },
