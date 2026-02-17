@@ -146,7 +146,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/windowopen_set",
+          "name": "config/windowopendetectionenabled",
           "refresh.interval": 3660,
           "read": {
             "at": "0x1009",
@@ -238,7 +238,7 @@
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0B04"
+        "0x0b04"
       ],
       "fingerprint": {
         "profile": "0x0104",
@@ -404,13 +404,6 @@
           "min": 1,
           "max": 300,
           "change": "0x00000001"
-        },
-        {
-          "at": "0x1009",
-          "dt": "0x10",
-          "mf": "0x1224",
-          "min": 1,
-          "max": 300
         },
         {
           "at": "0x100B",
