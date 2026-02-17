@@ -55,17 +55,17 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
+          "read": {
+            "at": "0xE001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
           "parse": {
             "at": "0xE001",
             "cl": "0x0000",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          },
-          "read": {
-            "at": "0xE001",
-            "cl": "0x0000",
-            "ep": 1,
             "fn": "zcl:attr"
           }
         },
@@ -118,19 +118,19 @@
             "ep": 1,
             "fn": "zcl:attr"
           },
+          "parse": {
+            "at": "0x0010",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val * 10;",
+            "fn": "zcl:attr"
+          },
           "write": {
             "at": "0x0010",
             "cl": "0x0201",
             "dt": "0x28",
             "ep": 1,
             "eval": "Item.val / 10;",
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0010",
-            "cl": "0x0201",
-            "ep": 1,
-            "eval": "Item.val = Attr.val * 10;",
             "fn": "zcl:attr"
           }
         },
@@ -210,17 +210,17 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
+          "read": {
+            "at": "0xE001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
           "parse": {
             "at": "0xE001",
             "cl": "0x0000",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          },
-          "read": {
-            "at": "0xE001",
-            "cl": "0x0000",
-            "ep": 1,
             "fn": "zcl:attr"
           }
         },
@@ -277,17 +277,17 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
+          "read": {
+            "at": "0xE001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
           "parse": {
             "at": "0xE001",
             "cl": "0x0000",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          },
-          "read": {
-            "at": "0xE001",
-            "cl": "0x0000",
-            "ep": 1,
             "fn": "zcl:attr"
           }
         },
@@ -353,17 +353,17 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
+          "read": {
+            "at": "0xE001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
           "parse": {
             "at": "0xE001",
             "cl": "0x0000",
             "ep": 1,
             "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          },
-          "read": {
-            "at": "0xE001",
-            "cl": "0x0000",
-            "ep": 1,
             "fn": "zcl:attr"
           }
         },
