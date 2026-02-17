@@ -107,7 +107,7 @@
         },
         {
           "name": "config/heatsetpoint",
-          "default": 0
+          "refresh.interval": 360
         },
         {
           "name": "config/locked",
@@ -206,7 +206,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 3660,
+          "refresh.interval": 3600,
           "parse": {
             "at": "0x0029",
             "cl": "0x0201",
