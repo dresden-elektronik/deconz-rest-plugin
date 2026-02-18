@@ -145,7 +145,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/windowopendetectionenabled",
+          "name": "config/windowopen_set",
           "refresh.interval": 3660,
           "read": {
             "at": "0x1009",
