@@ -134,6 +134,10 @@
           "default": true
         },
         {
+          "name": "config/locked",
+          "refresh.interval": 3660
+        },
+        {
           "name": "config/mode",
           "refresh.interval": 3600,
           "read": {
