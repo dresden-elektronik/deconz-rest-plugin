@@ -344,8 +344,7 @@
           "awake": true
         },
         {
-          "name": "state/tampered",
-          "awake": true
+          "name": "state/tampered"
         }
       ]
     }
@@ -362,6 +361,20 @@
           "min": 7200,
           "max": 14400,
           "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0400",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 5,
+          "max": 300,
+          "change": "0x000007D0"
         }
       ]
     },
@@ -390,20 +403,6 @@
           "min": 10,
           "max": 600,
           "change": "0x00000032"
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0400",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x21",
-          "min": 5,
-          "max": 300,
-          "change": "0x000007D0"
         }
       ]
     },
