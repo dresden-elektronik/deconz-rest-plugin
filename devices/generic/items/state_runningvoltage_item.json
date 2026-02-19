@@ -1,0 +1,9 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/runningvoltage",
+  "datatype": "UInt16",
+  "access": "R",
+  "public": true,
+  "description": "Motor running voltage in millivolts (read-only).",
+  "default": 0
+}

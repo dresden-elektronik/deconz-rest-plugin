@@ -1,0 +1,10 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/frostprotection",
+  "datatype": "Int16",
+  "access": "RW",
+  "public": true,
+  "description": "Frost protection setpoint (in 1/100 °C), active when system is off.",
+  "range": [400, 3500],
+  "default": 400
+}

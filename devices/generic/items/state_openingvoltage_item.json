@@ -1,0 +1,9 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/openingvoltage",
+  "datatype": "UInt16",
+  "access": "R",
+  "public": true,
+  "description": "Opening voltage limit in millivolts (read-only).",
+  "default": 0
+}

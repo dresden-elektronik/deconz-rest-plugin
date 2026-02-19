@@ -1,0 +1,10 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/valveopeningdegree",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "description": "Valve opening degree in percent (firmware v1.1.4+).",
+  "range": [0, 100],
+  "default": 100
+}

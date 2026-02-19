@@ -1,0 +1,9 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/closingsteps",
+  "datatype": "UInt16",
+  "access": "R",
+  "public": true,
+  "description": "Valve closing steps (read-only calibration).",
+  "default": 0
+}
