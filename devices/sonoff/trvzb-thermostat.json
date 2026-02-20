@@ -84,6 +84,31 @@
           "refresh.interval": 3660
         },
         {
+          "name": "config/locked",
+          "read": {
+            "at": "0x0000",
+            "cl": "0xFC11",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0xFC11",
+            "ep": 1,
+            "eval": "Item.val = Attr.val == 1",
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x0000",
+            "cl": "0xFC11",
+            "dt": "0x10",
+            "ep": 1,
+            "eval": "Item.val ? 1 : 0",
+            "fn": "zcl:attr"
+          },
+          "default": false
+        },
+        {
           "name": "config/mode",
           "refresh.interval": 3660,
           "read": {
@@ -146,7 +171,49 @@
           "name": "config/reachable"
         },
         {
+          "name": "config/windowopen_set",
+          "read": {
+            "at": "0x6000",
+            "cl": "0xFC11",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x6000",
+            "cl": "0xFC11",
+            "ep": 1,
+            "eval": "Item.val = Attr.val == 1",
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x6000",
+            "cl": "0xFC11",
+            "dt": "0x10",
+            "ep": 1,
+            "eval": "Item.val ? 1 : 0",
+            "fn": "zcl:attr"
+          },
+          "default": true
+        },
+        {
           "name": "state/lastupdated"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x0029",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0029",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "state/temperature",
