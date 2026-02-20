@@ -294,7 +294,7 @@
           }
         },
         {
-          "name": "state/heating",
+          "name": "state/on",
           "parse": {
             "at": "0x0029",
             "cl": "0x0201",
@@ -305,86 +305,6 @@
           "read": {
             "at": "0x0029",
             "cl": "0x0201",
-            "ep": 1,
-            "fn": "zcl:attr"
-          }
-        },
-        {
-          "name": "state/idlesteps",
-          "parse": {
-            "at": "0x6003",
-            "cl": "0xFC11",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          },
-          "read": {
-            "at": "0x6003",
-            "cl": "0xFC11",
-            "ep": 1,
-            "fn": "zcl:attr"
-          }
-        },
-        {
-          "name": "state/closingsteps",
-          "parse": {
-            "at": "0x6004",
-            "cl": "0xFC11",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          },
-          "read": {
-            "at": "0x6004",
-            "cl": "0xFC11",
-            "ep": 1,
-            "fn": "zcl:attr"
-          }
-        },
-        {
-          "name": "state/openingvoltage",
-          "parse": {
-            "at": "0x6005",
-            "cl": "0xFC11",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          },
-          "read": {
-            "at": "0x6005",
-            "cl": "0xFC11",
-            "ep": 1,
-            "fn": "zcl:attr"
-          }
-        },
-        {
-          "name": "state/closingvoltage",
-          "parse": {
-            "at": "0x6006",
-            "cl": "0xFC11",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          },
-          "read": {
-            "at": "0x6006",
-            "cl": "0xFC11",
-            "ep": 1,
-            "fn": "zcl:attr"
-          }
-        },
-        {
-          "name": "state/runningvoltage",
-          "parse": {
-            "at": "0x6007",
-            "cl": "0xFC11",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          },
-          "read": {
-            "at": "0x6007",
-            "cl": "0xFC11",
             "ep": 1,
             "fn": "zcl:attr"
           }

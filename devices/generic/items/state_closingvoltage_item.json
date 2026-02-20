@@ -1,9 +1,0 @@
-{
-  "schema": "resourceitem1.schema.json",
-  "id": "state/closingvoltage",
-  "datatype": "UInt16",
-  "access": "R",
-  "public": true,
-  "description": "Closing voltage limit in millivolts (read-only).",
-  "default": 0
-}

@@ -1,9 +1,0 @@
-{
-  "schema": "resourceitem1.schema.json",
-  "id": "state/idlesteps",
-  "datatype": "UInt16",
-  "access": "R",
-  "public": true,
-  "description": "Valve idle steps (read-only calibration baseline).",
-  "default": 0
-}

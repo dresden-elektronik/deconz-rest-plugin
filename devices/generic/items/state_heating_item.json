@@ -1,9 +1,0 @@
-{
-  "schema": "resourceitem1.schema.json",
-  "id": "state/heating",
-  "datatype": "Bool",
-  "access": "R",
-  "public": true,
-  "default": false,
-  "description": "Determines heating state for ELKO Super TR thermostat."
-}
