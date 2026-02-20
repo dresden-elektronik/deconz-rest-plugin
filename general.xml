@@ -5983,11 +5983,41 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 	  
     <!-- SONOFF -->
     <cluster id="0xfc11" name="Sonoff specific" mfcode="0x1286">
-      <description>Cluster for light sensor</description>
+      <description>Cluster for light sensor and thermostat</description>
       <server>
-        <attribute id="0x2001" name="Brightness" type="u8" access="r" required="m" mfcode="0x1286">
-          <description></description>
+        <attribute id="0x0000" name="Child lock" type="bool" access="rw" required="m"></attribute>
+        <attribute id="0x0003" name="Comfort temperature min" type="s16" access="rw" required="m"></attribute>
+        <attribute id="0x0004" name="Comfort temperature max" type="s16" access="rw" required="m"></attribute>
+        <attribute id="0x0005" name="Comfort humidity min" type="u16" access="rw" required="m"></attribute>
+        <attribute id="0x0006" name="Comfort humidity max" type="u16" access="rw" required="m"></attribute>
+        <attribute id="0x0007" name="Display unit" type="enum8" access="rw" required="m">
+            <value name="Celsius" value="0"></value>
+            <value name="Fahrenheit" value="1"></value>
         </attribute>
+        <attribute id="0x2001" name="Illumination status" type="enum8" access="r" required="m">
+            <value name="Dark" value="0x00"></value>
+            <value name="Light" value="0x01"></value>
+        </attribute>
+        <attribute id="0x2003" name="Temperature offset" type="s16" access="rw" required="m"></attribute>
+        <attribute id="0x2004" name="Humidity offset" type="s16" access="rw" required="m"></attribute>
+        <attribute id="0x500C" name="Water valve state" type="enum8" access="rw" required="m">
+            <value name="Normal" value="0"></value>
+            <value name="Water shortage" value="1"></value>
+            <value name="Water leakage" value="2"></value>
+            <value name="Water shortage and leakage" value="3"></value>
+        </attribute>
+        <attribute id="0x5011" name="Auto close water shortage" type="u16" access="rw" required="m"></attribute>
+        <attribute id="0x6000" name="Window open detection" type="bool" access="rw" required="m"></attribute>
+        <attribute id="0x6002" name="Frost protection temperature" type="s16" access="rw" required="m"></attribute>
+        <attribute id="0x6003" name="Idle steps" type="u16" access="r" required="m"></attribute>
+        <attribute id="0x6005" name="Valve opening limit voltage" type="u16" access="r" required="m"></attribute>
+        <attribute id="0x6006" name="Valve closing limit voltage" type="u16" access="r" required="m"></attribute>
+        <attribute id="0x6007" name="Valve motor running voltage" type="u16" access="r" required="m"></attribute>
+        <attribute id="0x600B" name="Valve opening degree" type="u8" access="rw" required="m"></attribute>
+        <attribute id="0x600C" name="Valve closing degree" type="u8" access="rw" required="m"></attribute>
+        <attribute id="0x600D" name="External temperature sensor" type="u8" access="rw" required="m"></attribute>
+        <attribute id="0x600E" name="External temperature sensor enable" type="s16" access="rw" required="m"></attribute>
+        <attribute id="0x6011" name="Temperature accuracy" type="s16" access="rw" required="m"></attribute>
       </server>
       <client>
       </client>
@@ -6576,7 +6606,9 @@ Contactor > On/off=0003 - HP/HC=0004</description>
         </attribute>
         <attribute id="0x0002" name="Calibration opening time" type="u32" mfcode="0x1209" access="rw" required="m"></attribute>
         <attribute id="0x0003" name="Calibration closing time" type="u32" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0005" name="Calibration button hold time" type="u8" mfcode="0x1209" access="rw" required="m"></attribute>
         <attribute id="0x0008" name="Child lock" type="bool" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x000F" name="Calibration motor start delay" type="u8" mfcode="0x1209" access="rw" required="m"></attribute>
         <attribute id="0x0013" name="Motor state" type="enum8" mfcode="0x1209" access="r" required="m">
           <value name="Idle" value="0x00"></value>
           <value name="Opening" value="0x01"></value>
