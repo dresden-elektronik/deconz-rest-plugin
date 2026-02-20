@@ -109,7 +109,7 @@
             "at": "0x4000",
             "cl": "0x0204",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -138,7 +138,7 @@
             "at": "0x4015",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -173,7 +173,7 @@
             "at": "0x4003",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -214,7 +214,7 @@
             "at": "0x4032",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -275,7 +275,7 @@
             "at": "0x4013",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -340,7 +340,7 @@
             "at": "0x4016",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -373,7 +373,7 @@
           "refresh.interval": 3660
         },
         {
-          "name": "config/windowopendetectionenabled",
+          "name": "config/windowopen_set",
           "refresh.interval": 3660,
           "read": {
             "at": "0x4051",
@@ -386,7 +386,7 @@
             "at": "0x4051",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -462,7 +462,7 @@
             "at": "0x0000",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr"
           }
         },
