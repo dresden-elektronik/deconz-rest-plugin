@@ -80,6 +80,32 @@
           "name": "config/checkin"
         },
         {
+          "name": "config/externalsensortemp",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x600D",
+            "cl": "0xFC11",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x600D",
+            "cl": "0xFC11",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x600D",
+            "cl": "0xFC11",
+            "dt": "0x29",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl:attr"
+          },
+          "default": 0
+        },
+        {
           "name": "config/heatsetpoint",
           "refresh.interval": 3660
         },
