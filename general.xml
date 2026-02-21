@@ -6015,8 +6015,8 @@ Contactor > On/off=0003 - HP/HC=0004</description>
         <attribute id="0x6007" name="Valve motor running voltage" type="u16" access="r" required="m"></attribute>
         <attribute id="0x600B" name="Valve opening degree" type="u8" access="rw" required="m"></attribute>
         <attribute id="0x600C" name="Valve closing degree" type="u8" access="rw" required="m"></attribute>
-        <attribute id="0x600D" name="External temperature sensor" type="u8" access="rw" required="m"></attribute>
-        <attribute id="0x600E" name="External temperature sensor enable" type="s16" access="rw" required="m"></attribute>
+        <attribute id="0x600D" name="External temperature sensor" type="s16" access="rw" required="m"></attribute>
+        <attribute id="0x600E" name="External temperature sensor enable" type="u8" access="rw" required="m"></attribute>
         <attribute id="0x6011" name="Temperature accuracy" type="s16" access="rw" required="m"></attribute>
       </server>
       <client>
