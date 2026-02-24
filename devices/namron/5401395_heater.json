@@ -7,15 +7,19 @@
     "NAMRON AS",
     "NAMRON AS",
     "NAMRON AS",
+    "NAMRON AS",
+    "NAMRON AS",
     "NAMRON AS"
   ],
   "modelid": [
-    "5401395",
-    "5401399",
-    "5401393",
-    "5401397",
     "5401392",
-    "5401396"
+    "5401393",
+    "5401394",
+    "5401395",
+    "5401396",
+    "5401397",
+    "5401398",
+    "5401399"
   ],
   "vendor": "Namron",
   "product": "Panel heater",
@@ -39,6 +43,14 @@
           "0x0201",
           "0x0204"
         ]
+      },
+      "meta": {
+        "values": {
+          "config/mode": {
+            "off": 0,
+            "heat": 4
+          }
+        }
       },
       "items": [
         {
@@ -70,43 +82,153 @@
         },
         {
           "name": "config/heatsetpoint",
-          "default": 0
+          "refresh.interval": 360
         },
         {
-          "name": "config/mode"
+          "name": "config/locked",
+          "refresh.interval": 3660
+        },
+        {
+          "name": "config/mode",
+          "refresh.interval": 3600,
+          "read": {
+            "at": "0x001C",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x001C",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 4) { Item.val = 'heat' };",
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x001C",
+            "cl": "0x0201",
+            "dt": "0x30",
+            "ep": 1,
+            "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'heat') { 4 };",
+            "fn": "zcl:attr"
+          },
+          "default": "heat"
         },
         {
           "name": "config/offset",
-          "default": 0
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x0010",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0010",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val * 10;",
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x0010",
+            "cl": "0x0201",
+            "dt": "0x28",
+            "ep": 1,
+            "eval": "Item.val / 10;",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "config/on"
         },
         {
-          "name": "config/locked",
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/windowopen_set",
           "refresh.interval": 3660,
-          "parse": {
-            "at": "0x0001",
-            "cl": "0x0204",
+          "read": {
+            "at": "0x1009",
+            "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "fn": "zcl:attr",
+            "mf": "0x1224"
+          },
+          "parse": {
+            "at": "0x1009",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x1224"
+          },
+          "write": {
+            "at": "0x1009",
+            "cl": "0x0201",
+            "dt": "0x10",
+            "ep": 1,
+            "eval": "Item.val",
+            "fn": "zcl:attr",
+            "mf": "0x1224"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x0029",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0029",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr"
           }
         },
         {
-          "name": "state/on"
+          "name": "state/temperature",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
         },
         {
-          "name": "config/reachable"
-        },
-        {
-          "name": "state/lastupdated"
-        },
-        {
-          "name": "state/lastupdated"
-        },
-        {
-          "name": "state/temperature"
+          "name": "state/windowopen",
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x100B",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x1224"
+          },
+          "parse": {
+            "at": "0x100B",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x1224"
+          },
+          "default": false
         }
       ]
     },
@@ -162,29 +284,31 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/current"
+          "name": "state/current",
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
-          "refresh.interval": 365,
+          "refresh.interval": 360,
           "read": {
-            "at": "0x050b",
-            "cl": "0x0b04",
+            "at": "0x050B",
+            "cl": "0x0B04",
             "ep": 1,
             "fn": "zcl:attr"
           },
           "parse": {
-            "at": "0x050b",
-            "cl": "0x0b04",
+            "at": "0x050B",
+            "cl": "0x0B04",
             "ep": 1,
-            "eval": "Item.val = Attr.val/10"
+            "eval": "Item.val = Attr.val / 10;"
           }
         },
         {
-          "name": "state/voltage"
+          "name": "state/voltage",
+          "refresh.interval": 360
         }
       ]
     },
@@ -241,6 +365,7 @@
         },
         {
           "name": "state/consumption",
+          "refresh.interval": 360,
           "read": {
             "at": "0x0000",
             "cl": "0x0702",
@@ -251,9 +376,8 @@
             "at": "0x0000",
             "cl": "0x0702",
             "ep": 1,
-            "eval": "Item.val = Attr.val*100"
-          },
-          "refresh.interval": 365
+            "eval": "Item.val = Attr.val * 100;"
+          }
         },
         {
           "name": "state/lastupdated"
@@ -262,6 +386,40 @@
     }
   ],
   "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0201",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 60,
+          "max": 300,
+          "change": "0x0000000A"
+        },
+        {
+          "at": "0x0012",
+          "dt": "0x29",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x100B",
+          "dt": "0x10",
+          "mf": "0x1224",
+          "min": 1,
+          "max": 3600
+        },
+        {
+          "at": "0x001C",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
     {
       "bind": "unicast",
       "src.ep": 1,
@@ -316,20 +474,6 @@
           "min": 1,
           "max": 300,
           "change": "0x00000001"
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0201",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x29",
-          "min": 30,
-          "max": 360,
-          "change": "0x0000000A"
         }
       ]
     }
