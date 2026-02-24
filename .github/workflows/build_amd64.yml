@@ -1,0 +1,32 @@
+name: Compile for amd64
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build_ubuntu:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            dockerfiles
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+          
+      - name: Build Ubuntu 18.04 Image and Compile App
+        run: |
+          docker buildx build -o ./release -f dockerfiles/amd64 .
+      
+      - name: Upload Package to Release
+        run: |
+          gh release upload ${GITHUB_REF#refs/*/} release/deconz_*_amd64.deb
+        env:
+          GITHUB_TOKEN: ${{ github.TOKEN }}
+        shell: bash
