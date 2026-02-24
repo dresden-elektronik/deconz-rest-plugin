@@ -47,6 +47,7 @@
         {
           "name": "config/battery",
           "refresh.interval": 86400,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -127,6 +128,7 @@
         {
           "name": "config/battery",
           "refresh.interval": 86400,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -207,6 +209,7 @@
         {
           "name": "config/battery",
           "refresh.interval": 86400,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -269,7 +272,7 @@
       "uuid": [
         "$address.ext",
         "0x01",
-        "0x0406"
+        "0x0500"
       ],
       "items": [
         {
@@ -302,6 +305,7 @@
         {
           "name": "config/battery",
           "refresh.interval": 86400,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -317,7 +321,14 @@
           "default": 0
         },
         {
+          "name": "config/enrolled",
+          "public": false
+        },
+        {
           "name": "config/on"
+        },
+        {
+          "name": "config/pending"
         },
         {
           "name": "config/reachable"
@@ -326,12 +337,14 @@
           "name": "state/lastupdated"
         },
         {
+          "name": "state/lowbattery"
+        },
+        {
           "name": "state/presence",
-          "parse": {
-            "fn": "ias:zonestatus",
-            "mask": "alarm1"
-          },
-          "default": false
+          "awake": true
+        },
+        {
+          "name": "state/tampered"
         }
       ]
     }
@@ -345,9 +358,23 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
+          "min": 7200,
           "max": 14400,
           "change": "0x00000001"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0400",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x21",
+          "min": 5,
+          "max": 300,
+          "change": "0x000007D0"
         }
       ]
     },
@@ -382,16 +409,8 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0x0400",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x21",
-          "min": 5,
-          "max": 300,
-          "change": "0x000007D0"
-        }
-      ]
+      "dst.ep": 1,
+      "cl": "0x0500"
     }
   ]
 }
