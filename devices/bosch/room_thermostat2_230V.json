@@ -30,8 +30,8 @@
         "values": {
           "config/mode": {
             "off": 0,
-            "heat": 3,
-            "cool": 4
+            "cool": 3,
+            "heat": 4
           }
         }
       },
