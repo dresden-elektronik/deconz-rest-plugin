@@ -9641,7 +9641,7 @@ Group *DeRestPluginPrivate::getGroupForId(const QString &id)
     }
     if (gid == 0)
     {
-        gid = gwGroup0;
+        // Do nothing, hence preventing automatic binding to gwGroup0 aka "all" group. Gid 0 ist used for initialization
     }
 
     for (auto &group : groups)
