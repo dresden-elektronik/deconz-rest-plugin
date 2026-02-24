@@ -364,7 +364,6 @@ const char *RConfigUsertest = "config/usertest";
 const char *RConfigVolume = "config/volume";
 const char *RConfigWindowCoveringType = "config/windowcoveringtype";
 const char *RConfigWindowOpen = "config/windowopen_set";
-const char *RConfigWindowOpenDetectionEnabled = "config/windowopendetectionenabled";
 
 const QStringList RConfigDeviceModeValues({
     "singlerocker", "singlepushbutton", "dualrocker", "dualpushbutton"

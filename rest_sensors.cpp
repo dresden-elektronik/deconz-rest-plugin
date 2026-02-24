@@ -1790,7 +1790,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
-                else if (rid.suffix == RConfigWindowOpenDetectionEnabled) // Boolean
+                else if (rid.suffix == RConfigWindowOpen) // Boolean
                 {
                     if (devManaged && rsub)
                     {
