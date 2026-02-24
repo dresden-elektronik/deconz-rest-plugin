@@ -25,6 +25,14 @@
           "0x0201"
         ]
       },
+      "meta": {
+        "values": {
+          "config/mode": {
+            "off": 0,
+            "heat": 4
+          }
+        }
+      },
       "items": [
         {
           "name": "attr/id"
@@ -45,7 +53,21 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0xE001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0xE001",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "attr/type"
@@ -54,16 +76,63 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/heatsetpoint"
+          "name": "config/heatsetpoint",
+          "refresh.interval": 360
         },
         {
-          "name": "config/unoccupiedheatsetpoint"
+          "name": "config/locked",
+          "refresh.interval": 3660
         },
         {
-          "name": "config/mode"
+          "name": "config/mode",
+          "refresh.interval": 3600,
+          "read": {
+            "at": "0x001C",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x001C",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 4) { Item.val = 'heat' };",
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x001C",
+            "cl": "0x0201",
+            "dt": "0x30",
+            "ep": 1,
+            "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'heat') { 4 };",
+            "fn": "zcl:attr"
+          },
+          "default": "heat"
         },
         {
-          "name": "config/offset"
+          "name": "config/offset",
+          "refresh.interval": 3660,
+          "read": {
+            "at": "0x0010",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0010",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val * 10;",
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x0010",
+            "cl": "0x0201",
+            "dt": "0x28",
+            "ep": 1,
+            "eval": "Item.val / 10;",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "config/on"
@@ -72,10 +141,15 @@
           "name": "config/reachable"
         },
         {
+          "name": "config/unoccupiedheatsetpoint",
+          "refresh.interval": 360
+        },
+        {
           "name": "state/lastupdated"
         },
         {
           "name": "state/on",
+          "refresh.interval": 3600,
           "parse": {
             "at": "0x0008",
             "cl": "0x0201",
@@ -88,11 +162,21 @@
           }
         },
         {
-          "name": "config/locked",
-          "refresh.interval": 3660
-        },
-        {
-          "name": "state/temperature"
+          "name": "state/temperature",
+          "refresh.interval": 360,
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
         }
       ]
     },
@@ -124,7 +208,21 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0xE001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0xE001",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "attr/type"
@@ -177,7 +275,21 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0xE001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0xE001",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "attr/type"
@@ -239,7 +351,21 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0xE001",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0xE001",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
         },
         {
           "name": "attr/type"
@@ -277,6 +403,13 @@
           "change": "0x00000032"
         },
         {
+          "at": "0x0008",
+          "dt": "0x20",
+          "min": 60,
+          "max": 3600,
+          "change": "0x00000001"
+        },
+        {
           "at": "0x0012",
           "dt": "0x29",
           "min": 1,
@@ -284,11 +417,17 @@
           "change": "0x00000001"
         },
         {
-          "at": "0x0008",
-          "dt": "0x20",
-          "min": 60,
-          "max": 3600,
+          "at": "0x0014",
+          "dt": "0x29",
+          "min": 1,
+          "max": 300,
           "change": "0x00000001"
+        },
+        {
+          "at": "0x001C",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300
         }
       ]
     },
