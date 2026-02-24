@@ -5622,6 +5622,68 @@ These devices can operate on either battery or mains power, and can have a wide 
       </server>
     </cluster>
 
+    <!-- HEIMAN  -->
+    <cluster id="0xfc82" name="Heiman specific" mfcode="0x120b">
+      <description>Heiman specific attributes for the device HS2IRC.</description>
+      <server>
+        <command id="0xf4" dir="recv" name="Create ID" required="m" response="0xf5">
+          <description>Create model ID</description>
+          <payload>
+             <attribute id="0x0000" name="Model type" type="u8" default="0" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0xf1" dir="recv" name="Learn key" required="m" response="0xf2">
+          <description>Learn new code</description>
+          <payload>
+             <attribute id="0x0000" name="Id" type="u8" default="0" required="m"></attribute>
+             <attribute id="0x0001" name="Keycode" type="u8" default="0" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0xf0" dir="recv" name="Send key" required="m">
+          <description>Send a key</description>
+          <payload>
+             <attribute id="0x0000" name="Id" type="u8" default="0" required="m"></attribute>
+             <attribute id="0x0001" name="Keycode" type="u8" default="0" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0xf3" dir="recv" name="Delete key" required="m">
+          <description>Delete a key</description>
+          <payload>
+             <attribute id="0x0000" name="Id" type="u8" default="0" required="m"></attribute>
+             <attribute id="0x0001" name="Keycode" type="u8" default="0" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0xf6" dir="recv" name="Get list" required="m" response="0xf7">
+          <description>Get list code</description>
+        </command>
+      </server>
+      <client>
+        <command id="0xf2" dir="recv" name="Learn key response" required="m">
+          <description>The Response to the learn key request.</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="Id" required="m" default="0x00"></attribute>
+            <attribute id="0x0001" type="u8" name="Key Code" required="m" default="0x00"></attribute>
+            <attribute id="0x0002" type="u8" name="Result" required="m" default="0x00"></attribute>
+          </payload>
+        </command>
+        <command id="0xf7" dir="recv" name="Get list response" required="m">
+          <description>The Response to the Get list request.</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="Total" required="m" default="0x00"></attribute>
+            <attribute id="0x0001" type="u8" name="Number" required="m" default="0x00"></attribute>
+            <attribute id="0x0002" type="ostring" name="Payload" required="m" showas="hex"></attribute>
+          </payload>
+        </command>
+        <command id="0xf5" dir="recv" name="Create model response" required="m">
+          <description>The Response to the Create model request.</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="ID" required="m" default="0x00"></attribute>
+            <attribute id="0x0001" type="u8" name="Model type" required="m" default="0x00"></attribute>
+          </payload>
+        </command>
+      </client>
+    </cluster>
+
     <!-- Tuya -->
     <cluster id="0xe001" name="Tuya specific" mfcode="0x1141">
 			<description>Tuya Specific switch mode cluster.</description>
