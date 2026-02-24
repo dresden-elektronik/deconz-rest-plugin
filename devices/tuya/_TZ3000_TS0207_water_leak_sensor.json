@@ -20,7 +20,8 @@
     "_TZ3000_kstbkt6a",
     "_TZ3000_arw23zcs",
     "_TZ3000_amis43tj",
-    "_TZ3000_wuep9zng"
+    "_TZ3000_wuep9zng",
+    "_TZ3000_upgcbody"
   ],
   "modelid": [
     "TS0207",
@@ -41,7 +42,8 @@
     "TS0207",
     "TS0207",
     "TS0207",
-    "TS0207"
+    "TS0207",
+    "SNZB-05"
   ],
   "vendor": "Tuya",
   "product": "Water leak sensor (TS0207)",
