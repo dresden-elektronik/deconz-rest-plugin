@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "de5b52be-b0d9-4b05-bf11-efbd26544b2f",
   "manufacturername": "TexasInstruments",
   "modelid": "ti.router",
   "vendor": "SMLight",
