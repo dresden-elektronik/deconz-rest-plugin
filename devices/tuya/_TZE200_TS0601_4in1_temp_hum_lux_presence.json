@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "8a15c175-ecaa-4c8d-83d5-1af6a22b2f41",
-  "manufacturername": "_TZE200_rhgsbacq",
-  "modelid": "TS0601",
+  "manufacturername": [
+    "_TZE200_rhgsbacq",
+    "_TZE200_vuqzj1ej"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601"
+  ],
   "vendor": "Tuya",
   "product": "4-in-1 sensor (Temp, hum., lux, presence)",
   "sleeper": true,
