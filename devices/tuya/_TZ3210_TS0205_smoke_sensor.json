@@ -5,7 +5,7 @@
   "modelid": "TS0205",
   "vendor": "Tuya",
   "product": "Smoke sensor (TS0205)",
-  "sleeper": false,
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
@@ -69,6 +69,7 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -78,7 +79,8 @@
           }
         },
         {
-          "name": "config/enrolled"
+          "name": "config/enrolled",
+          "public": false
         },
         {
           "name": "config/on"
@@ -90,7 +92,8 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/fire"
+          "name": "state/fire",
+          "awake": true
         },
         {
           "name": "state/lastupdated"
@@ -113,7 +116,7 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 600,
+          "min": 7200,
           "max": 43200,
           "change": "0x00000001"
         }
