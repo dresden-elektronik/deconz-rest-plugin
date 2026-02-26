@@ -1,10 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "8efbe479-64af-4781-9a85-dfd0176c0335",
-  "manufacturername": "_TYZB01_wqcac7lo",
-  "modelid": "TS0205",
-  "vendor": "Tuya",
-  "product": "Smoke sensor (ZBDS10WT)",
+  "manufacturername": "Trust",
+  "modelid": "ZSDR-850",
+  "vendor": "Trust",
+  "product": "Smoke sensor (ZSDR-850)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -48,17 +47,17 @@
         {
           "name": "attr/swversion",
           "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
+            "at": "0x0006",
             "cl": "0x0000",
-            "at": "0x0001",
-            "script": "tuya_swversion.js"
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
           },
           "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
+            "at": "0x0006",
             "cl": "0x0000",
-            "at": "0x0001"
+            "ep": 1,
+            "fn": "zcl:attr"
           }
         },
         {
@@ -102,7 +101,7 @@
           "name": "state/lowbattery"
         },
         {
-          "name": "state/test"
+          "name": "state/tampered"
         }
       ]
     }
