@@ -5,7 +5,7 @@
   "modelid": "TS0601",
   "vendor": "Nous",
   "product": "Smoke sensor E8",
-  "sleeper": true,
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -46,7 +46,6 @@
         },
         {
           "name": "attr/swversion",
-          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -75,7 +74,6 @@
         },
         {
           "name": "state/fire",
-          "awake": true,
           "parse": {
             "dpid": 1,
             "eval": "Item.val = (Attr.val == 0 ? true : false);",
@@ -97,7 +95,6 @@
         },
         {
           "name": "state/tampered",
-          "awake": true,
           "parse": {
             "dpid": 4,
             "eval": "Item.val = (Attr.val == 0 ? false : true);",

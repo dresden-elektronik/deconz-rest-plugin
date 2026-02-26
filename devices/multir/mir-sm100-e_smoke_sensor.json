@@ -4,7 +4,7 @@
   "manufacturername": "MultIR",
   "modelid": "MIR-SM100-E",
   "product": "Smoke sensor (MIR-SM100-E)",
-  "sleeper": true,
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -55,7 +55,7 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -78,8 +78,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/fire",
-          "awake": true
+          "name": "state/fire"
         },
         {
           "name": "state/lastupdated"

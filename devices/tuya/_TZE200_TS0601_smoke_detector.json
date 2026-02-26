@@ -17,7 +17,7 @@
   ],
   "vendor": "Tuya",
   "product": "Photoelectric smoke sensor (TS0601)",
-  "sleeper": true,
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -71,14 +71,13 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
-          "refresh.interval": 3600,
+          "refresh.interval": 86400,
           "read": {
             "fn": "none"
           },
           "parse": {
             "dpid": 15,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 0
@@ -110,7 +109,6 @@
         },
         {
           "name": "state/fire",
-          "awake": true,
           "read": {
             "fn": "none"
           },
@@ -131,19 +129,12 @@
           },
           "parse": {
             "dpid": 101,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 0
         }
       ]
-    }
-  ],
-  "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0xEF00"
     }
   ]
 }

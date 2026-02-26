@@ -5,7 +5,7 @@
   "modelid": "HESZB-120",
   "vendor": "Develco Products",
   "product": "Intelligent heat alarm (HESZB-120)",
-  "sleeper": true,
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -47,7 +47,6 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
           "read": {
             "at": "0x8000",
             "cl": "0x0000",
@@ -72,7 +71,7 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0020",
             "cl": "0x0001",
@@ -94,8 +93,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "state/fire",
-          "awake": true
+          "name": "state/fire"
         },
         {
           "name": "state/lastupdated"
@@ -147,7 +145,6 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
           "read": {
             "at": "0x8000",
             "cl": "0x0000",
@@ -172,7 +169,7 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0020",
             "cl": "0x0001",
@@ -193,8 +190,7 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/temperature",
-          "awake": true
+          "name": "state/temperature"
         }
       ]
     },
@@ -226,7 +222,6 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
           "read": {
             "at": "0x8000",
             "cl": "0x0000",
@@ -252,7 +247,6 @@
         {
           "name": "state/alert",
           "description": "Start warning command payload has 5 Bytes. Byte 1: Options. 0x17 = Warning mode 1 (burglar), Strobe, Very high sound. Byte 2-3: Duration, Byte 4: Strobe duty cycle, Byte 5: Strobe level",
-          "awake": true,
           "read": {
             "fn": "none"
           },
