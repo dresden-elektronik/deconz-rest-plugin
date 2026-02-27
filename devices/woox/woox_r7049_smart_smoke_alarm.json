@@ -78,13 +78,20 @@
             "dpid": 11,
             "eval": "Item.val = String(Attr.val);",
             "fn": "tuya"
-          }
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": "0"
         },
         {
           "name": "state/fire",
           "parse": {
             "dpid": 1,
             "eval": "Item.val = (Attr.val == 0 ? true : false);",
+            "fn": "tuya"
+          },
+          "read": {
             "fn": "tuya"
           },
           "default": false
@@ -99,6 +106,9 @@
             "eval": "Item.val = (Attr.val == 0 ? true : false);",
             "fn": "tuya"
           },
+          "read": {
+            "fn": "none"
+          },
           "default": false
         },
         {
@@ -107,6 +117,9 @@
             "dpid": 8,
             "eval": "Item.val = (Attr.val == 0 ? false : true);",
             "fn": "tuya"
+          },
+          "read": {
+            "fn": "none"
           },
           "default": false
         }

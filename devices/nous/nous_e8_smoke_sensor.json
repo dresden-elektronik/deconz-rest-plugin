@@ -85,6 +85,9 @@
             "eval": "Item.val = (Attr.val == 0 ? true : false);",
             "fn": "tuya"
           },
+          "read": {
+            "fn": "tuya"
+          },
           "default": false
         },
         {
@@ -97,6 +100,9 @@
             "eval": "Item.val = (Attr.val == 0 ? true : false);",
             "fn": "tuya"
           },
+          "read": {
+            "fn": "none"
+          },
           "default": false
         },
         {
@@ -105,6 +111,9 @@
             "dpid": 4,
             "eval": "Item.val = (Attr.val == 0 ? false : true);",
             "fn": "tuya"
+          },
+          "read": {
+            "fn": "none"
           },
           "default": false
         }
