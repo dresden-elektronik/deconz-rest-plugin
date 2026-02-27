@@ -46,7 +46,6 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
           "parse": {
             "fn": "tuya",
             "dpid": 14,

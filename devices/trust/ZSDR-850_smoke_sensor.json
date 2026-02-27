@@ -98,9 +98,6 @@
         },
         {
           "name": "state/lowbattery"
-        },
-        {
-          "name": "state/tampered"
         }
       ]
     }
