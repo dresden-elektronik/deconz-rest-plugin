@@ -1,11 +1,17 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "cafa911a-8019-416e-afac-f50c8d4ad475",
-  "manufacturername": "_TZE284_0zaf1cr8",
-  "modelid": "TS0601",
+  "manufacturername": [
+    "_TZE200_0zaf1cr8",
+    "_TZE284_0zaf1cr8"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601"
+  ],
   "vendor": "Nous",
   "product": "Smoke sensor E8",
-  "sleeper": true,
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -46,7 +52,6 @@
         },
         {
           "name": "attr/swversion",
-          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -75,10 +80,12 @@
         },
         {
           "name": "state/fire",
-          "awake": true,
           "parse": {
             "dpid": 1,
             "eval": "Item.val = (Attr.val == 0 ? true : false);",
+            "fn": "tuya"
+          },
+          "read": {
             "fn": "tuya"
           },
           "default": false
@@ -93,15 +100,20 @@
             "eval": "Item.val = (Attr.val == 0 ? true : false);",
             "fn": "tuya"
           },
+          "read": {
+            "fn": "none"
+          },
           "default": false
         },
         {
           "name": "state/tampered",
-          "awake": true,
           "parse": {
             "dpid": 4,
             "eval": "Item.val = (Attr.val == 0 ? false : true);",
             "fn": "tuya"
+          },
+          "read": {
+            "fn": "none"
           },
           "default": false
         }

@@ -5,7 +5,7 @@
   "modelid": "TS0601",
   "vendor": "Woox",
   "product": "Smart smoke alarm (R7049)",
-  "sleeper": true,
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -46,8 +46,6 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 86400,
-          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -76,19 +74,24 @@
         },
         {
           "name": "state/errorcode",
-          "awake": true,
           "parse": {
             "dpid": 11,
             "eval": "Item.val = String(Attr.val);",
             "fn": "tuya"
-          }
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": "0"
         },
         {
           "name": "state/fire",
-          "awake": true,
           "parse": {
             "dpid": 1,
             "eval": "Item.val = (Attr.val == 0 ? true : false);",
+            "fn": "tuya"
+          },
+          "read": {
             "fn": "tuya"
           },
           "default": false
@@ -103,15 +106,20 @@
             "eval": "Item.val = (Attr.val == 0 ? true : false);",
             "fn": "tuya"
           },
+          "read": {
+            "fn": "none"
+          },
           "default": false
         },
         {
           "name": "state/test",
-          "awake": true,
           "parse": {
             "dpid": 8,
             "eval": "Item.val = (Attr.val == 0 ? false : true);",
             "fn": "tuya"
+          },
+          "read": {
+            "fn": "none"
           },
           "default": false
         }

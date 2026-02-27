@@ -1,10 +1,9 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "34e7ba38-6b11-4e13-9a82-110260b9f3c2",
-  "manufacturername": "_TZ3210_up3pngle",
-  "modelid": "TS0205",
-  "vendor": "Tuya",
-  "product": "Smoke sensor (TS0205)",
+  "manufacturername": "Trust",
+  "modelid": "ZSDR-850",
+  "vendor": "Trust",
+  "product": "Smoke sensor (ZSDR-850)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -48,17 +47,17 @@
         {
           "name": "attr/swversion",
           "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
+            "at": "0x0006",
             "cl": "0x0000",
-            "at": "0x0001",
-            "script": "tuya_swversion.js"
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
           },
           "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
+            "at": "0x0006",
             "cl": "0x0000",
-            "at": "0x0001"
+            "ep": 1,
+            "fn": "zcl:attr"
           }
         },
         {
@@ -69,6 +68,7 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -78,7 +78,8 @@
           }
         },
         {
-          "name": "config/enrolled"
+          "name": "config/enrolled",
+          "public": false
         },
         {
           "name": "config/on"
@@ -97,9 +98,6 @@
         },
         {
           "name": "state/lowbattery"
-        },
-        {
-          "name": "state/test"
         }
       ]
     }
@@ -113,7 +111,7 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 600,
+          "min": 7200,
           "max": 43200,
           "change": "0x00000001"
         }

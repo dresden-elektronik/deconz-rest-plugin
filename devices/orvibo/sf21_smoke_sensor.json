@@ -56,7 +56,7 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 7300,
+          "refresh.interval": 86400,
           "awake": true,
           "parse": {
             "at": "0x0021",
@@ -86,7 +86,7 @@
         },
         {
           "name": "state/fire",
-          "default": false
+          "awake": true
         },
         {
           "name": "state/lastupdated"
@@ -107,8 +107,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 300,
-          "max": 7200,
+          "min": 7200,
+          "max": 43200,
           "change": "0x00000002"
         }
       ]

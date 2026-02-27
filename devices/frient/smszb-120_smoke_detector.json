@@ -47,7 +47,6 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
           "read": {
             "at": "0x8000",
             "cl": "0x0000",
@@ -72,6 +71,7 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0020",
             "cl": "0x0001",
@@ -80,7 +80,8 @@
           }
         },
         {
-          "name": "config/enrolled"
+          "name": "config/enrolled",
+          "public": false
         },
         {
           "name": "config/on"
@@ -144,7 +145,6 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
           "read": {
             "at": "0x8000",
             "cl": "0x0000",
@@ -169,6 +169,7 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0020",
             "cl": "0x0001",
@@ -221,7 +222,6 @@
         },
         {
           "name": "attr/swversion",
-          "refresh.interval": 84000,
           "read": {
             "at": "0x8000",
             "cl": "0x0000",
@@ -273,7 +273,7 @@
         {
           "at": "0x0020",
           "dt": "0x20",
-          "min": 300,
+          "min": 7200,
           "max": 43200,
           "change": "0x00000001"
         }
