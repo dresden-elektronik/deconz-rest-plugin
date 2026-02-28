@@ -1,0 +1,179 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": ["_TZE284_iwn0gpzz", "_TZE200_iwn0gpzz", "_TZE204_iwn0gpzz"],
+  "modelid": ["TS0601", "TS0601", "TS0601"],
+  "product": "1 Phase Energy meter SPM01",
+  "vendor": "Tuya Zemismart",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_CONSUMPTION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0702"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/consumption",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 1,
+            "eval": "Item.val = Attr.val/100;"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_POWER_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0b04"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/current",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 103,
+            "eval": "Item.val = Attr.val / 1000;"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/voltage",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 102,
+            "eval": "Item.val = Attr.val/10;"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/power",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 104,
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        }
+      ]
+    }
+  ]
+}
