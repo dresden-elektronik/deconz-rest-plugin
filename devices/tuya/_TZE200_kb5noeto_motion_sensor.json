@@ -3,7 +3,7 @@
   "uuid": "a0230c0c-8d4e-4f19-8d61-3441ab99dbc2",
   "manufacturername": "_TZE200_kb5noeto",
   "modelid": "TS0601",
-  "product": "Tuya PIR 24G Radar Sensor",
+  "product": "24G PIR radar sensor",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -33,7 +33,7 @@
           "parse": {
             "fn": "tuya",
             "dpid": 121,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val"
           },
           "read": {
             "fn": "none"
@@ -134,7 +134,7 @@
           "parse": {
             "fn": "tuya",
             "dpid": 121,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val"
           },
           "read": {
             "fn": "none"
@@ -176,12 +176,12 @@
           "write": {
             "dpid": 102,
             "dt": "0x2b",
-            "eval": "Item.val;",
+            "eval": "Item.val",
             "fn": "tuya"
           },
           "parse": {
             "dpid": 102,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 90
@@ -204,12 +204,12 @@
           "write": {
             "dpid": 2,
             "dt": "0x2b",
-            "eval": "Item.val;",
+            "eval": "Item.val",
             "fn": "tuya"
           },
           "parse": {
             "dpid": 2,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 7
@@ -287,7 +287,7 @@
           },
           "parse": {
             "dpid": 9,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 0
@@ -315,19 +315,12 @@
           },
           "parse": {
             "dpid": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": false
         }
       ]
-    }
-  ],
-  "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0xEF00"
     }
   ]
 }
