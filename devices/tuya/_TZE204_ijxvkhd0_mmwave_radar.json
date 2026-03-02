@@ -148,12 +148,12 @@
           "write": {
             "dpid": 112,
             "dt": "0x2b",
-            "eval": "Item.val;",
+            "eval": "Item.val",
             "fn": "tuya"
           },
           "parse": {
             "dpid": 112,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 1
@@ -171,12 +171,12 @@
           "write": {
             "dpid": 110,
             "dt": "0x2b",
-            "eval": "Item.val;",
+            "eval": "Item.val",
             "fn": "tuya"
           },
           "parse": {
             "dpid": 110,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 90
@@ -200,12 +200,12 @@
           "write": {
             "dpid": 111,
             "dt": "0x2b",
-            "eval": "Item.val;",
+            "eval": "Item.val",
             "fn": "tuya"
           },
           "parse": {
             "dpid": 111,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 7
@@ -259,7 +259,7 @@
           },
           "parse": {
             "dpid": 109,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 0
@@ -274,19 +274,12 @@
           },
           "parse": {
             "dpid": 105,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": false
         }
       ]
-    }
-  ],
-  "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0xEF00"
     }
   ]
 }

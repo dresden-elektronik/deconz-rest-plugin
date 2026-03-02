@@ -4,7 +4,7 @@
   "manufacturername": "_TZE204_laokfqwu",
   "modelid": "TS0601",
   "vendor": "Tuya",
-  "product": "MmwRadar Human Presence Detector (TS0601)",
+  "product": "Human presence detector (TS0601)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -150,12 +150,12 @@
           "write": {
             "dpid": 105,
             "dt": "0x2b",
-            "eval": "Item.val;",
+            "eval": "Item.val",
             "fn": "tuya"
           },
           "parse": {
             "dpid": 105,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 1
@@ -173,12 +173,12 @@
           "write": {
             "dpid": 106,
             "dt": "0x2b",
-            "eval": "Item.val;",
+            "eval": "Item.val",
             "fn": "tuya"
           },
           "parse": {
             "dpid": 106,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 90
@@ -202,12 +202,12 @@
           "write": {
             "dpid": 2,
             "dt": "0x2b",
-            "eval": "Item.val;",
+            "eval": "Item.val",
             "fn": "tuya"
           },
           "parse": {
             "dpid": 2,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 7
@@ -285,7 +285,7 @@
           },
           "parse": {
             "dpid": 9,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 0
@@ -313,19 +313,12 @@
           },
           "parse": {
             "dpid": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": false
         }
       ]
-    }
-  ],
-  "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0xEF00"
     }
   ]
 }
