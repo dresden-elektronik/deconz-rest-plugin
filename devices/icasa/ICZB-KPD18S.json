@@ -14,6 +14,106 @@
         "0x01",
         "0x1000"
       ],
+      "buttons": {
+        "1": {
+          "name": "Off"
+        },
+        "2": {
+          "name": "On"
+        },
+        "3": {
+          "name": "S1"
+        },
+        "4": {
+          "name": "S2"
+        },
+        "5": {
+          "name": "S3"
+        },
+        "6": {
+          "name": "S4"
+        },
+        "7": {
+          "name": "S5"
+        },
+        "8": {
+          "name": "S6"
+        }
+      },
+      "buttonevents": {
+        "1001": {
+          "action": "HOLD",
+          "button": 1
+        },
+        "1002": {
+          "action": "SHORT_RELEASE",
+          "button": 1
+        },
+        "1003": {
+          "action": "LONG_RELEASE",
+          "button": 1
+        },
+        "2001": {
+          "action": "HOLD",
+          "button": 2
+        },
+        "2002": {
+          "action": "SHORT_RELEASE",
+          "button": 2
+        },
+        "2003": {
+          "action": "LONG_RELEASE",
+          "button": 2
+        },
+        "3002": {
+          "action": "SHORT_RELEASE",
+          "button": 3
+        },
+        "3003": {
+          "action": "LONG_RELEASE",
+          "button": 3
+        },
+        "4002": {
+          "action": "SHORT_RELEASE",
+          "button": 4
+        },
+        "4003": {
+          "action": "LONG_RELEASE",
+          "button": 4
+        },
+        "5002": {
+          "action": "SHORT_RELEASE",
+          "button": 5
+        },
+        "5003": {
+          "action": "LONG_RELEASE",
+          "button": 5
+        },
+        "6002": {
+          "action": "SHORT_RELEASE",
+          "button": 6
+        },
+        "6003": {
+          "action": "LONG_RELEASE",
+          "button": 6
+        },
+        "7002": {
+          "action": "SHORT_RELEASE",
+          "button": 7
+        },
+        "7003": {
+          "action": "LONG_RELEASE",
+          "button": 7
+        },
+        "8002": {
+          "action": "SHORT_RELEASE",
+          "button": 8
+        },
+        "8003": {
+          "action": "LONG_RELEASE",
+          "button": 8
+        }
+      },
       "meta": {
         "group.endpoints": [
           1

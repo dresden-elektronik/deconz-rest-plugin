@@ -14,6 +14,40 @@
         "0x01",
         "0x1000"
       ],
+      "buttons": {
+        "1": {
+          "name": "Off"
+        },
+        "2": {
+          "name": "On"
+        }
+      },
+      "buttonevents": {
+        "1001": {
+          "action": "HOLD",
+          "button": 1
+        },
+        "1002": {
+          "action": "SHORT_RELEASE",
+          "button": 1
+        },
+        "1003": {
+          "action": "LONG_RELEASE",
+          "button": 1
+        },
+        "2001": {
+          "action": "HOLD",
+          "button": 2
+        },
+        "2002": {
+          "action": "SHORT_RELEASE",
+          "button": 2
+        },
+        "2003": {
+          "action": "LONG_RELEASE",
+          "button": 2
+        }
+      },
       "meta": {
         "group.endpoints": [
           1
