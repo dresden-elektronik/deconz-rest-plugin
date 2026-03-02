@@ -16,7 +16,7 @@
     "TS0222"
   ],
   "vendor": "Tuya",
-  "product": "Tuya Luminance sensor",
+  "product": "Illuminance sensor",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [

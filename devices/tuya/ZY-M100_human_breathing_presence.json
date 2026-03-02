@@ -18,7 +18,7 @@
     "TS0601"
   ],
   "vendor": "Tuya",
-  "product": "MmwRadar Human Presence Detector (TS0601)",
+  "product": "Human presence detector (TS0601)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
