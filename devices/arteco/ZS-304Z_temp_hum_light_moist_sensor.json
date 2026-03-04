@@ -75,7 +75,11 @@
           }
         },
         {
-          "name": "config/offset"
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/on"
         },
         {
           "name": "config/reachable"
@@ -166,7 +170,11 @@
           }
         },
         {
-          "name": "config/offset"
+          "name": "config/offset",
+          "default": 0
+        },
+        {
+          "name": "config/on"
         },
         {
           "name": "config/reachable"
@@ -276,7 +284,8 @@
           },
           "read": {
             "fn": "tuya"
-          }
+          },
+          "default": 0
         },
         {
           "name": "state/lastupdated"
