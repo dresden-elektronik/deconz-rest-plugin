@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "d7755f17-30a8-46cb-ab30-5d2076968e25",
   "manufacturername": "icasa",
   "modelid": "ICZB-KPD18S",
   "product": "Pulse 8S Zigbee Wall Controller",

@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "9883c520-ef81-4fb8-8ddf-6fabf7ca3cc2",
   "manufacturername": "icasa",
   "modelid": "ICZB-KPD14S",
   "product": "Pulse 4S Zigbee Wall Controller",

@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "3b279473-dfd0-49b2-b0a8-5294ad1b1c23",
   "manufacturername": "icasa",
   "modelid": "ICZB-KPD12",
   "product": "Pulse 2 Zigbee Wall Controller",
