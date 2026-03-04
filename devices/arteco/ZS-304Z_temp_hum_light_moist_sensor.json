@@ -366,31 +366,30 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/tholddark",
-          "default": 12000
+          "name": "config/tholddark"
         },
         {
-          "name": "config/tholdoffset",
-          "default": 7000
+          "name": "config/tholdoffset"
         },
         {
-          "name": "state/dark",
-          "default": false
+          "name": "state/dark"
         },
         {
-          "name": "state/daylight",
-          "default": false
+          "name": "state/daylight"
         },
         {
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lightlevel",
+          "name": "state/lightlevel"
+        },
+        {
+          "name": "state/lux",
           "awake": true,
           "parse": {
-            "fn": "tuya",
             "dpid": 102,
-            "eval": "Item.val = Attr.val"
+            "script": "../generic/illuminance_cluster/lux_to_lightlevel.js",
+            "fn": "tuya"
           },
           "read": {
             "fn": "none"
