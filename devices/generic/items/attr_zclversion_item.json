@@ -1,0 +1,24 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "attr/zclversion",
+  "datatype": "UInt32",
+  "access": "R",
+  "public": true,
+  "implicit": false,
+  "default": 0,
+  "description": "ZCL Basic cluster Zigbee Cluster Library version.",
+  "parse": {
+    "fn": "zcl:attr",
+    "ep": 255,
+    "cl": "0x0000",
+    "at": "0x0000",
+    "eval": "Item.val = Attr.val"
+  },
+  "read": {
+    "fn": "zcl:attr",
+    "ep": 0,
+    "cl": "0x0000",
+    "at": "0x0000"
+  },
+  "refresh.interval": 86400
+}
