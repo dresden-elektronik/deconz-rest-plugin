@@ -2689,7 +2689,7 @@
           <attribute id="0x400F" name="Unknown" type="u16" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4020" name="Valve position" type="enum8" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4021" name="Unknown" type="u16" access="rw" required="o" mfcode="0x1209"></attribute>
-          <attribute id="0x4022" name="Valve adaptation status" type="enum8" access="rw" required="o" mfcode="0x1209"></attribute>
+          <attribute id="0x4022" name="Valve adaptation status" type="enum8" access="rw" required="o" mfcode="0x1209">
           <value name="Unknown" value="0x00"></value>
           <value name="Ready to calibrate" value="0x01"></value>
           <value name="Calibration in progress" value="0x02"></value>
