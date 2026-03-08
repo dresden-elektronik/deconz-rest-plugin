@@ -45,7 +45,11 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "static": "N/A",
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
