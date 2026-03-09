@@ -152,38 +152,14 @@
         },
         {
           "name": "state/current",
-          "refresh.interval": 360,
-          "read": {
-            "at": "0x0508",
-            "cl": "0x0b04",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0508",
-            "cl": "0x0b04",
-            "ep": 1,
-            "eval": "Item.val = Attr.val;"
-          }
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/power",
-          "refresh.interval": 360,
-          "read": {
-            "at": "0x050b",
-            "cl": "0x0b04",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x050b",
-            "cl": "0x0b04",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 100;"
-          }
+          "refresh.interval": 360
         },
         {
           "name": "state/voltage",
@@ -198,7 +174,7 @@
             "at": "0x0505",
             "cl": "0x0b04",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 100;"
+            "eval": "if (Attr.val != 65535) { Item.val = Math.round(Attr.val / 100) }"
           }
         }
       ]
