@@ -1,5 +1,6 @@
 {
   "schema": "devcap1.schema.json",
+  "uuid": "f8a66e39-597b-4fea-a1c6-361212870d57",
   "manufacturername": "Shelly",
   "modelid": "Flood",
   "vendor": "Shelly",
