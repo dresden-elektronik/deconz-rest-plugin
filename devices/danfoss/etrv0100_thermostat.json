@@ -373,7 +373,8 @@
           "refresh.interval": 3660
         },
         {
-          "name": "config/windowopen_set",
+          "name": "config/windowopendetectionenabled",
+          "deprecated": "2026-03-10",
           "refresh.interval": 3660,
           "read": {
             "at": "0x4051",
@@ -429,7 +430,7 @@
             "at": "0x4012",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
