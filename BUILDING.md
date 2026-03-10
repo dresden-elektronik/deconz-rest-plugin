@@ -59,8 +59,8 @@ The compiled plugin is located at: `tmp/share/deCONZ/plugins/libde_rest_plugin.s
 --------
 
 
-### Linix with Qt5
-Buiklding on older Debian versions uses Qt5.  The following development packages need to be installed.
+### Linux with Qt5
+Building on older Debian versions uses Qt5.  The following development packages need to be installed.
 
 **Note:** On newer Ubuntu versions `qt5-default` isn't available, replace it with `qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools` instead.
 
