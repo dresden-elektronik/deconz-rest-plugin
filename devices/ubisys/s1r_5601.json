@@ -1,16 +1,13 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "d275912e-9490-4deb-9225-c17b882703ae",
   "manufacturername": [
-    "ubisys",
     "ubisys"
   ],
   "modelid": [
-    "S1 (5501)",
     "S1-R (5601)"
   ],
   "vendor": "ubisys",
-  "product": "Power switch (S1 (5501)/S1-R (5601))",
+  "product": "Power switch (S1-R (5601))",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -183,13 +180,13 @@
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x03",
+        "0x04",
         "0x0b04"
       ],
       "fingerprint": {
         "profile": "0x0104",
         "device": "0x0501",
-        "endpoint": "0x03",
+        "endpoint": "0x04",
         "in": [
           "0x0000",
           "0x0B04"
@@ -235,13 +232,13 @@
           "read": {
             "at": "0x0508",
             "cl": "0x0b04",
-            "ep": 3,
+            "ep": 4,
             "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0508",
             "cl": "0x0b04",
-            "ep": 3,
+            "ep": 4,
             "eval": "if (Attr.val != 65535) { Item.val = Attr.val; }"
           }
         },
@@ -254,7 +251,7 @@
           "read": {
             "at": "0x050b",
             "cl": "0x0b04",
-            "ep": 3,
+            "ep": 4,
             "fn": "zcl:attr"
           }
         },
@@ -264,7 +261,7 @@
           "read": {
             "at": "0x0505",
             "cl": "0x0b04",
-            "ep": 3,
+            "ep": 4,
             "fn": "zcl:attr"
           }
         }
@@ -275,13 +272,13 @@
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x03",
+        "0x04",
         "0x0702"
       ],
       "fingerprint": {
         "profile": "0x0104",
         "device": "0x0501",
-        "endpoint": "0x03",
+        "endpoint": "0x04",
         "in": [
           "0x0000",
           "0x0702"
@@ -327,13 +324,13 @@
           "read": {
             "at": "0x0000",
             "cl": "0x0702",
-            "ep": 3,
+            "ep": 4,
             "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0000",
             "cl": "0x0702",
-            "ep": 3,
+            "ep": 4,
             "eval": "Item.val = Attr.val"
           }
         },
@@ -346,13 +343,13 @@
           "read": {
             "at": "0x0400",
             "cl": "0x0702",
-            "ep": 3,
+            "ep": 4,
             "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0400",
             "cl": "0x0702",
-            "ep": 3,
+            "ep": 4,
             "eval": "Item.val = Attr.val"
           }
         }
@@ -387,7 +384,7 @@
     },
     {
       "bind": "unicast",
-      "src.ep": 3,
+      "src.ep": 4,
       "cl": "0x0702",
       "report": [
         {

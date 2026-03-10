@@ -2,15 +2,13 @@
   "schema": "devcap1.schema.json",
   "uuid": "d275912e-9490-4deb-9225-c17b882703ae",
   "manufacturername": [
-    "ubisys",
     "ubisys"
   ],
   "modelid": [
-    "S1 (5501)",
-    "S1-R (5601)"
+    "S1 (5501)"
   ],
   "vendor": "ubisys",
-  "product": "Power switch (S1 (5501)/S1-R (5601))",
+  "product": "Power switch (S1 (5501))",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
