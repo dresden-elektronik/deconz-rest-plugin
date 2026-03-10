@@ -1,7 +1,7 @@
 # Building
 
 ## Supported platforms
-* Raspbian / Debian ~~Jessie~~, ~~Stretch~~, Buster, Bullseye and Bookworm
+* Raspbian / Debian ~~Jessie~~, ~~Stretch~~, Buster, Bullseye, Bookworm, and Trixie
 * Ubuntu ~~Xenial~~, Bionic, Focal Fossa and Jammy
 * Windows 7, 10, 11
 
@@ -13,9 +13,54 @@ There are two ways to build the plugin:
 
 CMake is the new build system to compile the REST-API plugin. The former `deconz-dev` package isn't needed anymore since the headers and sources of the deCONZ library are pulled from https://github.com/dresden-elektronik/deconz-lib automatically.
 
-### Linux
+### Linux with Qt6
+Building on Debian Trixie uses Qt6.  The following development packages need to be installed:
+```
+apt-get update && \
+    apt-get install --no-install-recommends -y \
+    lsb-release \
+    ca-certificates \
+    build-essential \
+    cmake \
+    pkg-config \
+    git \
+    sqlite3 \
+    libsqlite3-dev \
+    libgpiod-dev \
+    libssl-dev \
+    qt6-base-dev \
+    qt6-base-dev-tools \
+    qt6-serialport-dev \
+    qt6-websockets-dev \
+    qt6-declarative-dev \
+    qt6-5compat-dev \
+    dpkg-dev \
+    fakeroot \
+    curl \
+    wget
+```
 
-On Debian Buster the following development packages need to be installed.
+1. Checkout the repository
+
+        git clone https://github.com/dresden-elektronik/deconz-rest-plugin.git
+
+2. Compile the plugin
+
+        cmake -DCMAKE_INSTALL_PREFIX=/usr -DQT_VERSION_MAJOR=6 -G Ninja -B build
+        cmake --build build
+   
+3. Install in local temporary directory
+   (This step changes the RPATH so the plugin can find the official `/usr/lib/libdeCONZ.so` library.)
+
+        cmake --install build --prefix tmp
+
+The compiled plugin is located at: `tmp/share/deCONZ/plugins/libde_rest_plugin.so`
+
+--------
+
+
+### Linix with Qt5
+Buiklding on older Debian versions uses Qt5.  The following development packages need to be installed.
 
 **Note:** On newer Ubuntu versions `qt5-default` isn't available, replace it with `qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools` instead.
 
@@ -34,7 +79,7 @@ sqlite3 libsqlite3-dev libgpiod-dev libssl-dev curl cmake ninja-build
 
 2. Compile the plugin
 
-        cmake -DCMAKE_INSTALL_PREFIX=/usr -G Ninja -B build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr -DQT_VERSION_MAJOR=5 -G Ninja -B build
         cmake --build build
    
 3. Install in local temporary directory
