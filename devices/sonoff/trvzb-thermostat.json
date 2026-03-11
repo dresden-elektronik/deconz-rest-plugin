@@ -64,6 +64,7 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "awake": true,
           "parse": {
             "at": "0x0021",
@@ -111,6 +112,7 @@
         },
         {
           "name": "config/locked",
+          "refresh.interval": 3660,
           "read": {
             "at": "0x0000",
             "cl": "0xFC11",
@@ -198,6 +200,8 @@
         },
         {
           "name": "config/windowopen_set",
+          "deprecated": "2026-03-10",
+          "refresh.interval": 3660,
           "read": {
             "at": "0x6000",
             "cl": "0xFC11",
