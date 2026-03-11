@@ -51,9 +51,9 @@
       "meta": {
         "values": {
           "config/mode": {
+            "off": 0,
             "auto": 1,
-            "heat": 2,
-            "off": 0
+            "heat": 2
           }
         }
       },

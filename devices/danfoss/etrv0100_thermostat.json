@@ -79,11 +79,12 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
           "read": {
@@ -126,7 +127,7 @@
         },
         {
           "name": "config/externalsensortemp",
-          "refresh.interval": 3660,
+          "refresh.interval": 3600,
           "read": {
             "at": "0x4015",
             "cl": "0x0201",
@@ -190,7 +191,7 @@
         },
         {
           "name": "config/heatsetpoint",
-          "refresh.interval": 3660,
+          "refresh.interval": 3600,
           "write": {
             "fn": "zcl:cmd",
             "ep": "0x01",
@@ -234,7 +235,7 @@
         },
         {
           "name": "config/mode",
-          "refresh.interval": 3660,
+          "refresh.interval": 3600,
           "read": {
             "at": "0x4030",
             "cl": "0x0201",
@@ -445,6 +446,7 @@
         },
         {
           "name": "state/on",
+          "refresh.interval": 3660,
           "parse": {
             "at": "0x0008",
             "cl": "0x0201",
@@ -540,11 +542,12 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 86400,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
           "read": {
