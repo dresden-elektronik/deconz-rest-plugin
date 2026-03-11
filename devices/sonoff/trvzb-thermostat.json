@@ -22,7 +22,9 @@
         "endpoint": "0x01",
         "in": [
           "0x0000",
-          "0x0201"
+          "0x0001",
+          "0x0201",
+          "0xFC11"
         ]
       },
       "meta": {
@@ -65,7 +67,6 @@
         {
           "name": "config/battery",
           "refresh.interval": 86400,
-          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -230,7 +231,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 3660,
+          "refresh.interval": 3600,
           "read": {
             "at": "0x0029",
             "cl": "0x0201",

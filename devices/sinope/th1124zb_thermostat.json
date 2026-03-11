@@ -29,7 +29,7 @@
           "0x0000",
           "0x0201",
           "0x0204",
-          "0x0B05"
+          "0xFF01"
         ]
       },
       "meta": {
@@ -74,14 +74,14 @@
           "refresh.interval": 360,
           "read": {
             "at": "0x0010",
-            "cl": "0xff01",
+            "cl": "0xFF01",
             "ep": 1,
             "fn": "zcl:attr",
             "mf": "0x119c"
           },
           "parse": {
             "at": "0x0010",
-            "cl": "0xff01",
+            "cl": "0xFF01",
             "ep": 1,
             "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
@@ -89,7 +89,7 @@
           },
           "write": {
             "at": "0x0010",
-            "cl": "0xff01",
+            "cl": "0xFF01",
             "ep": 1,
             "fn": "zcl:attr",
             "dt": "0x29",
@@ -261,6 +261,7 @@
         },
         {
           "name": "state/on",
+          "refresh.interval": 3600,
           "parse": {
             "at": "0x0008",
             "cl": "0x0201",
