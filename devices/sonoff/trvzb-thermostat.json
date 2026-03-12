@@ -24,6 +24,7 @@
           "0x0000",
           "0x0001",
           "0x0201",
+          "0x0204",
           "0xFC11"
         ]
       },
@@ -66,7 +67,7 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
+          "refresh.interval": 43260,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -231,7 +232,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 3600,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x0029",
             "cl": "0x0201",
@@ -276,7 +277,7 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
+          "min": 7200,
           "max": 43200,
           "change": "0x00000002"
         }

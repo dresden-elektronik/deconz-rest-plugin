@@ -80,7 +80,7 @@
         },
         {
           "name": "config/mode",
-          "refresh.interval": 3600,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x1007",
             "cl": "0x0201",
@@ -177,7 +177,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 3600,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x0029",
             "cl": "0x0201",
