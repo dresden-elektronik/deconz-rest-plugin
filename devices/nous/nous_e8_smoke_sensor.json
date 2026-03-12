@@ -11,7 +11,7 @@
   ],
   "vendor": "Nous",
   "product": "Smoke sensor E8",
-  "sleeper": false,
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
@@ -52,6 +52,7 @@
         },
         {
           "name": "attr/swversion",
+          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -80,6 +81,7 @@
         },
         {
           "name": "state/fire",
+          "awake": true,
           "parse": {
             "dpid": 1,
             "eval": "Item.val = (Attr.val == 0 ? true : false);",

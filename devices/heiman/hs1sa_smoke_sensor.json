@@ -27,6 +27,7 @@
         "device": "0x0402",
         "endpoint": "0x01",
         "in": [
+          "0x0000",
           "0x0001",
           "0x0500"
         ]
@@ -74,7 +75,7 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
+          "refresh.interval": 43260,
           "awake": true,
           "parse": {
             "at": "0x0021",
