@@ -185,8 +185,7 @@
           }
         },
         {
-          "name": "config/windowopen_set",
-          "deprecated": "2026-03-10",
+          "name": "config/windowopendetectionenabled",
           "parse": {
             "fn": "tuya",
             "dpid": 18,
