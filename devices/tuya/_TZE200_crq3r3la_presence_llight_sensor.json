@@ -12,7 +12,7 @@
     "TS0225",
     "TS0225"
   ],
-  "product": "5.8Ghz/24Ghz Human presence sensor",
+  "product": "5.8Ghz/24Ghz human presence and light sensor",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
