@@ -12,6 +12,7 @@
     "TS0225",
     "TS0225"
   ],
+  "vendor": "Tuya",
   "product": "5.8Ghz/24Ghz human presence and light sensor",
   "sleeper": false,
   "status": "Gold",
