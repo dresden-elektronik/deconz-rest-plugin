@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/preset_speed",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "description": "Preset effect speed 0%~100%."
+}
