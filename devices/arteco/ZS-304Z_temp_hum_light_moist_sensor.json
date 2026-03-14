@@ -5,7 +5,7 @@
   "modelid": "ZS-304Z",
   "vendor": "Arteco",
   "product": "Soil moisture sensor (ZS-304Z)",
-  "sleeper": true,
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -37,7 +37,6 @@
         },
         {
           "name": "attr/swversion",
-          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -60,20 +59,15 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0001",
-            "at": "0x0021",
-            "eval": "Item.val = Attr.val / 2"
+            "fn": "tuya",
+            "dpid": 14,
+            "eval": "if (Attr.val == 0) { Item.val=25 } else if (Attr.val == 1) { Item.val=50 } else { Item.val=100 }"
           },
           "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0001",
-            "at": "0x0021"
-          }
+            "fn": "none"
+          },
+          "default": 0
         },
         {
           "name": "config/offset",
@@ -90,7 +84,6 @@
         },
         {
           "name": "state/temperature",
-          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 5,
@@ -132,7 +125,6 @@
         },
         {
           "name": "attr/swversion",
-          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -155,20 +147,15 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0001",
-            "at": "0x0021",
-            "eval": "Item.val = Attr.val / 2"
+            "fn": "tuya",
+            "dpid": 14,
+            "eval": "if (Attr.val == 0) { Item.val=25 } else if (Attr.val == 1) { Item.val=50 } else { Item.val=100 }"
           },
           "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0001",
-            "at": "0x0021"
-          }
+            "fn": "none"
+          },
+          "default": 0
         },
         {
           "name": "config/offset",
@@ -185,7 +172,6 @@
         },
         {
           "name": "state/humidity",
-          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 101,
@@ -227,7 +213,6 @@
         },
         {
           "name": "attr/swversion",
-          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -250,20 +235,15 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0001",
-            "at": "0x0021",
-            "eval": "Item.val = Attr.val / 2"
+            "fn": "tuya",
+            "dpid": 14,
+            "eval": "if (Attr.val == 0) { Item.val=25 } else if (Attr.val == 1) { Item.val=50 } else { Item.val=100 }"
           },
           "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0001",
-            "at": "0x0021"
-          }
+            "fn": "none"
+          },
+          "default": 0
         },
         {
           "name": "config/offset",
@@ -277,7 +257,6 @@
         },
         {
           "name": "state/moisture",
-          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 3,
@@ -322,7 +301,6 @@
         },
         {
           "name": "attr/swversion",
-          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -345,20 +323,15 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0001",
-            "at": "0x0021",
-            "eval": "Item.val = Attr.val / 2"
+            "fn": "tuya",
+            "dpid": 14,
+            "eval": "if (Attr.val == 0) { Item.val=25 } else if (Attr.val == 1) { Item.val=50 } else { Item.val=100 }"
           },
           "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0001",
-            "at": "0x0021"
-          }
+            "fn": "none"
+          },
+          "default": 0
         },
         {
           "name": "config/on"
@@ -386,7 +359,6 @@
         },
         {
           "name": "state/lux",
-          "awake": true,
           "parse": {
             "dpid": 102,
             "script": "../generic/illuminance_cluster/lux_to_lightlevel.js",
@@ -428,7 +400,6 @@
         },
         {
           "name": "attr/swversion",
-          "awake": true,
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -451,20 +422,15 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0001",
-            "at": "0x0021",
-            "eval": "Item.val = Attr.val / 2"
+            "fn": "tuya",
+            "dpid": 14,
+            "eval": "if (Attr.val == 0) { Item.val=25 } else if (Attr.val == 1) { Item.val=50 } else { Item.val=100 }"
           },
           "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0x0001",
-            "at": "0x0021"
-          }
+            "fn": "none"
+          },
+          "default": 0
         },
         {
           "name": "config/on"
@@ -477,7 +443,6 @@
         },
         {
           "name": "state/water",
-          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 111,
@@ -487,23 +452,6 @@
             "fn": "none"
           },
           "default": 0
-        }
-      ]
-    }
-  ],
-  "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "dst.ep": 1,
-      "cl": "0x0001",
-      "report": [
-        {
-          "at": "0x0021",
-          "dt": "0x20",
-          "min": 3600,
-          "max": 43200,
-          "change": "0x00000001"
         }
       ]
     }
