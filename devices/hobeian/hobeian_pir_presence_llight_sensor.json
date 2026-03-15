@@ -5,125 +5,9 @@
   "modelid": "ZG-204ZM",
   "vendor": "HOBEIAN",
   "product": "PIR+ presence and light sensor (ZG-204ZM)",
-  "sleeper": true,
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
-    {
-      "type": "$TYPE_PRESENCE_SENSOR",
-      "restapi": "/sensors",
-      "uuid": [
-        "$address.ext",
-        "0x01",
-        "0x0500"
-      ],
-      "fingerprint": {
-        "profile": "0x0104",
-        "device": "0x0402",
-        "endpoint": "0x01",
-        "in": [
-          "0x0000",
-          "0x0001",
-          "0x0500"
-        ]
-      },
-      "items": [
-        {
-          "name": "attr/id"
-        },
-        {
-          "name": "attr/lastannounced"
-        },
-        {
-          "name": "attr/lastseen"
-        },
-        {
-          "name": "attr/manufacturername"
-        },
-        {
-          "name": "attr/modelid"
-        },
-        {
-          "name": "attr/name"
-        },
-        {
-          "name": "attr/swversion"
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
-        },
-        {
-          "name": "config/battery",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          },
-          "default": 0
-        },
-        {
-          "name": "config/enrolled",
-          "public": false
-        },
-        {
-          "name": "config/on"
-        },
-        {
-          "name": "config/pending"
-        },
-        {
-          "name": "config/reachable"
-        },
-        {
-          "name": "config/sensitivity",
-          "refresh.interval": 86400,
-          "range": [
-            0,
-            10
-          ],
-          "read": {
-            "at": "0x0013",
-            "cl": "0x0500",
-            "ep": 1
-          },
-          "write": {
-            "at": "0x0013",
-            "cl": "0x0500",
-            "dt": "0x20",
-            "ep": 1,
-            "eval": "Item.val"
-          },
-          "parse": {
-            "at": "0x0013",
-            "cl": "0x0500",
-            "ep": 1,
-            "eval": "Item.val = Attr.val"
-          },
-          "default": 0
-        },
-        {
-          "name": "state/lastupdated"
-        },
-        {
-          "name": "state/presence",
-          "awake": true,
-          "parse": {
-            "fn": "ias:zonestatus",
-            "mask": "alarm1"
-          }
-        }
-      ]
-    },
     {
       "type": "$TYPE_PRESENCE_SENSOR",
       "restapi": "/sensors",
@@ -162,20 +46,47 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
           "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
+            "fn": "tuya",
+            "dpid": 121,
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
           },
           "default": 0
+        },
+        {
+          "name": "config/devicemode",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "fn": "tuya",
+            "dpid": 122,
+            "eval": "if (Attr.val == 0) { Item.val = 'only pir' } else if (Attr.val == 1) { Item.val = 'pir and radar' } else { Item.val = 'only radar' }"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 122,
+            "dt": "0x30",
+            "eval": "if (Item.val == 'only pir') { 0 } else if (Item.val == 'pir and radar') { 1 } else { 'only radar' }"
+          },
+          "values": [
+            [
+              "only pir",
+              0
+            ],
+            [
+              "pir and radar",
+              1
+            ],
+            [
+              "only radar",
+              2
+            ]
+          ],
+          "default": "pir and radar"
         },
         {
           "name": "config/fadingtime",
@@ -197,7 +108,26 @@
             "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
-          "default": 90
+          "default": 60
+        },
+        {
+          "name": "config/ledindication",
+          "description": "Turn the onboard LED On or Off",
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 107,
+            "dt": "0x10",
+            "eval": "Item.val == 1 ? 1 : 0;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 107,
+            "eval": "Item.val = Attr.val",
+            "fn": "tuya"
+          },
+          "default": 0
         },
         {
           "name": "config/on"
@@ -236,7 +166,7 @@
           "write": {
             "dpid": 4,
             "dt": "0x2b",
-            "eval": "Far = ['0','1','2','3','4','5','6']; Attr.val = Math.max(0,Far.indexOf(Item.val)*100);",
+            "eval": "Far = ['0','1','2','3','4','5','6','7','8','9','10']; Attr.val = Math.max(0,Far.indexOf(Item.val)*100);",
             "fn": "tuya"
           },
           "parse": {
@@ -270,24 +200,31 @@
               "6m"
             ],
             [
+              "\"6\"",
+              "6m"
+            ],
+            [
+              "\"7\"",
+              "7m"
+            ],
+            [
+              "\"8\"",
+              "8m"
+            ],
+            [
+              "\"9\"",
+              "9m"
+            ],
+            [
+              "\"10\"",
+              "10m"
+            ],
+            [
               "\"0\"",
               "Off"
             ]
           ],
           "default": "6"
-        },
-        {
-          "name": "state/targetdistance",
-          "description": "Distance from detected target in cm (from 0 to 1000).",
-          "read": {
-            "fn": "none"
-          },
-          "parse": {
-            "dpid": 9,
-            "eval": "Item.val = Attr.val",
-            "fn": "tuya"
-          },
-          "default": 0
         },
         {
           "name": "state/lastupdated"
@@ -311,7 +248,7 @@
       "restapi": "/sensors",
       "uuid": [
         "$address.ext",
-        "0x03",
+        "0x01",
         "0x0400"
       ],
       "items": [
@@ -344,18 +281,13 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
           "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
+            "fn": "tuya",
+            "dpid": 121,
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
           },
           "default": 0
         },
@@ -381,57 +313,19 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lightlevel",
-          "awake": true,
-          "parse": {
-            "at": "0x0000",
-            "cl": "0x0400",
-            "ep": 1,
-            "script": "../generic/illuminance_cluster/sml_light_level.js"
-          }
+          "name": "state/lightlevel"
         },
         {
-          "name": "state/lux"
-        }
-      ]
-    }
-  ],
-  "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0001",
-      "report": [
-        {
-          "at": "0x0021",
-          "dt": "0x20",
-          "min": 3600,
-          "max": 14400,
-          "change": "0x00000001"
-        }
-      ]
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0xEF00"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0500"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0x0400",
-      "report": [
-        {
-          "at": "0x0000",
-          "dt": "0x21",
-          "min": 60,
-          "max": 600,
-          "change": "0x0000FFFF"
+          "name": "state/lux",
+          "parse": {
+            "dpid": 106,
+            "script": "../generic/illuminance_cluster/lux_to_lightlevel.js",
+            "fn": "tuya"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
         }
       ]
     }
