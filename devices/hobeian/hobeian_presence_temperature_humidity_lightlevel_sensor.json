@@ -53,6 +53,18 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/battery",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 110,
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        },
+        {
           "name": "config/fadingtime",
           "range": [
             0,
