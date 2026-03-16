@@ -5,7 +5,7 @@
   "modelid": "ZG-204ZM",
   "vendor": "HOBEIAN",
   "product": "PIR+ presence and light sensor (ZG-204ZM)",
-  "sleeper": false,
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
@@ -59,6 +59,7 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 121,
@@ -244,6 +245,7 @@
         },
         {
           "name": "state/presence",
+          "awake": true,
           "read": {
             "fn": "none"
           },
@@ -307,6 +309,7 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 121,
@@ -343,6 +346,7 @@
         },
         {
           "name": "state/lux",
+          "awake": true,
           "parse": {
             "dpid": 106,
             "script": "../generic/illuminance_cluster/lux_to_lightlevel.js",
