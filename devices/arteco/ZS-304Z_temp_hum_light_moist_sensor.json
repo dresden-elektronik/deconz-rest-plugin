@@ -5,7 +5,7 @@
   "modelid": "ZS-304Z",
   "vendor": "Arteco",
   "product": "Soil moisture sensor (ZS-304Z)",
-  "sleeper": false,
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
@@ -59,6 +59,7 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 14,
@@ -84,6 +85,7 @@
         },
         {
           "name": "state/temperature",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 5,
@@ -147,6 +149,7 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 14,
@@ -172,6 +175,7 @@
         },
         {
           "name": "state/humidity",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 101,
@@ -235,6 +239,7 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 14,
@@ -257,6 +262,7 @@
         },
         {
           "name": "state/moisture",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 3,
@@ -323,6 +329,7 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 14,
@@ -359,6 +366,7 @@
         },
         {
           "name": "state/lux",
+          "awake": true,
           "parse": {
             "dpid": 102,
             "script": "../generic/illuminance_cluster/lux_to_lightlevel.js",
@@ -422,6 +430,7 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 14,
@@ -443,6 +452,7 @@
         },
         {
           "name": "state/water",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 111,
