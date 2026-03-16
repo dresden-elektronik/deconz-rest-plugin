@@ -13,7 +13,7 @@
   ],
   "vendor": "HOBEIAN",
   "product": "Human presence sensor with temperature, humidity and light sensor (ZG-204ZV)",
-  "sleeper": false,
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
@@ -67,6 +67,7 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 110,
@@ -151,6 +152,7 @@
         },
         {
           "name": "state/presence",
+          "awake": true,
           "read": {
             "fn": "none"
           },
@@ -214,6 +216,7 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 110,
@@ -239,6 +242,7 @@
         },
         {
           "name": "state/temperature",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 111,
@@ -302,6 +306,7 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 110,
@@ -324,6 +329,7 @@
         },
         {
           "name": "state/humidity",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 101,
@@ -390,6 +396,7 @@
         },
         {
           "name": "config/battery",
+          "awake": true,
           "parse": {
             "fn": "tuya",
             "dpid": 110,
@@ -426,6 +433,7 @@
         },
         {
           "name": "state/lux",
+          "awake": true,
           "parse": {
             "dpid": 106,
             "script": "../generic/illuminance_cluster/lux_to_lightlevel.js",
