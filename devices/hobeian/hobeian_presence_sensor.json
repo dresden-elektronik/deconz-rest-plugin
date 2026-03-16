@@ -5,7 +5,7 @@
   "modelid": "ZG-204Z",
   "vendor": "HOBEIAN",
   "product": "Presence sensor (ZG-204Z)",
-  "sleeper": false,
+  "sleeper": true,
   "status": "Gold",
   "subdevices": [
     {
@@ -71,6 +71,7 @@
         {
           "name": "config/battery",
           "refresh.interval": 43260,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -174,6 +175,7 @@
         },
         {
           "name": "state/presence",
+          "awake": true,
           "parse": {
             "fn": "ias:zonestatus",
             "mask": "alarm1"
