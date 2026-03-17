@@ -961,6 +961,31 @@ DeRestPluginPrivate *DeRestPluginPrivate::instance()
     return plugin;
 }
 
+void DeRestPluginPrivate::apsdeDataIndicationWebSocket(const deCONZ::ApsDataIndication &ind, Device *device)
+{
+    // if (ind.clusterId() == 0x0019)
+    //     return;
+
+    if (device)
+    {
+        QByteArray data;
+        {
+            QDataStream stream(&data, QIODevice::WriteOnly);
+            stream.setByteOrder(QDataStream::LittleEndian);
+            ind.writeToStream(stream);
+        }
+
+        QVariantMap map;
+        map[QLatin1String("t")] = QLatin1String("event");
+        map[QLatin1String("e")] = QLatin1String("aps.ind");
+        map[QLatin1String("r")] = QLatin1String("devices");
+        map[QLatin1String("uniqueid")] = device->item(RAttrUniqueId)->toLatin1String();
+        map["ind"] = data.toHex();
+
+        webSocketServer->broadcastTextMessage(Json::serialize(map));
+    }
+}
+
 void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndication &ind, Device *device)
 {
     if (!device)
@@ -1247,6 +1272,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
     auto *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
 
     apsdeDataIndicationDevice(ind, device);
+    apsdeDataIndicationWebSocket(ind, device);
 
     if ((ind.profileId() == HA_PROFILE_ID) || (ind.profileId() == ZLL_PROFILE_ID))
     {
