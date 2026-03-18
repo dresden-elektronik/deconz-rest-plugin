@@ -23,7 +23,8 @@
         "in": [
           "0x0000",
           "0x0001",
-          "0x0500"
+          "0x0500",
+          "0xef00"
         ]
       },
       "items": [
@@ -46,7 +47,20 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -56,7 +70,8 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
+          "refresh.interval": 43260,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -72,31 +87,36 @@
           "default": 0
         },
         {
-          "name": "config/delay",
-          "refresh.interval": 86400,
-          "range": [
-            0,
-            2
-          ],
-          "read": {
-            "at": "0xf001",
-            "cl": "0x0500",
-            "ep": 1
+          "name": "config/duration",
+          "parse": {
+            "dpid": 10,
+            "eval": "Item.val = Attr.val",
+            "fn": "tuya"
           },
           "write": {
-            "at": "0xf001",
-            "cl": "0x0500",
-            "dt": "0x20",
-            "ep": 1,
-            "eval": "Item.val"
+            "dpid": 10,
+            "dt": "0x2b",
+            "eval": "Item.val",
+            "fn": "tuya"
           },
-          "parse": {
-            "at": "0xf001",
-            "cl": "0x0500",
-            "ep": 1,
-            "eval": "Item.val = Attr.val"
+          "read": {
+            "fn": "none"
           },
-          "default": 0
+          "values": [
+            [
+              0,
+              "30"
+            ],
+            [
+              1,
+              "60"
+            ],
+            [
+              2,
+              "120"
+            ]
+          ],
+          "default": 30
         },
         {
           "name": "config/enrolled",
@@ -110,6 +130,38 @@
         },
         {
           "name": "config/reachable"
+        },
+        {
+          "name": "config/sensitivity",
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 2,
+            "dt": "0x2b",
+            "eval": "Item.val",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 2,
+            "eval": "Item.val = Attr.val",
+            "fn": "tuya"
+          },
+          "values": [
+            [
+              0,
+              "Low"
+            ],
+            [
+              1,
+              "Medium"
+            ],
+            [
+              2,
+              "High"
+            ]
+          ],
+          "default": 2
         },
         {
           "name": "state/lastupdated"
@@ -132,21 +184,22 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0x0500"
-    },
-    {
-      "bind": "unicast",
-      "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0001",
       "report": [
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
-          "max": 14400,
+          "min": 7200,
+          "max": 43200,
           "change": "0x00000001"
         }
       ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0500"
     }
   ]
 }
