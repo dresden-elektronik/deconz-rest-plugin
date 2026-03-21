@@ -29,8 +29,7 @@
         "in": [
           "0x0000",
           "0x0201",
-          "0x0204",
-          "0x0B05"
+          "0x0204"
         ]
       },
       "meta": {
@@ -81,7 +80,7 @@
         },
         {
           "name": "config/mode",
-          "refresh.interval": 3600,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x1007",
             "cl": "0x0201",
@@ -146,6 +145,7 @@
         },
         {
           "name": "config/windowopen_set",
+          "deprecated": "2026-03-10",
           "refresh.interval": 3660,
           "read": {
             "at": "0x1009",
@@ -267,7 +267,7 @@
           "refresh.interval": 360,
           "parse": {
             "at": "0x0508",
-            "cl": "0x0b04",
+            "cl": "0x0B04",
             "ep": 1,
             "eval": "if (Attr.val != 65535) { Item.val = Attr.val / 1000 }"
           },
@@ -286,7 +286,7 @@
           "refresh.interval": 360,
           "parse": {
             "at": "0x0505",
-            "cl": "0x0b04",
+            "cl": "0x0B04",
             "ep": 1,
             "eval": "if (Attr.val != 65535) { Item.val = Attr.val * 100 }"
           },
