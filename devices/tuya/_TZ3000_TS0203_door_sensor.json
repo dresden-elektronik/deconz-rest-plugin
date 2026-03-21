@@ -22,11 +22,13 @@
     "_TZ3000_wut53hfm",
     "_TZ3000_bpkijo14",
     "_TZ3000_pjb1ua0m",
-    "_TZ3000_996rpfy6"
+    "_TZ3000_996rpfy6",
+    "ZBeacon"
   ],
   "modelid": [
     "TS0203",
     "SNZB-04",
+    "TS0203",
     "TS0203",
     "TS0203",
     "TS0203",
@@ -90,7 +92,20 @@
           "name": "attr/name"
         },
         {
-          "name": "attr/swversion"
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -99,7 +114,15 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "state/tampered"
+          "name": "config/battery",
+          "refresh.interval": 43260,
+          "awake": true,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2"
+          }
         },
         {
           "name": "config/checkin"
@@ -118,23 +141,17 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/battery",
-          "awake": true,
-          "parse": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "eval": "Item.val = Attr.val / 2"
-          }
-        },
-        {
           "name": "state/lastupdated"
         },
         {
           "name": "state/lowbattery"
         },
         {
-          "name": "state/open"
+          "name": "state/open",
+          "awake": true
+        },
+        {
+          "name": "state/tampered"
         }
       ]
     }
@@ -149,8 +166,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
+          "min": 7200,
+          "max": 43200,
           "change": "0x00000001"
         }
       ]
