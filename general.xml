@@ -2677,15 +2677,39 @@
         </attribute-set>
         <!-- Namron manufacturer specific -->
         <attribute-set id="0x8000" description="Namron specific" mfcode="0x126a">
-          <attribute id="0x8000" name="Window check" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
-          <attribute id="0x8001" name="Frost" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
-          <attribute id="0x8002" name="Window state" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8000" name="Window open check" type="bool" access="rw" required="o" mfcode="0x126a">
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
+          <attribute id="0x8001" name="Frost" type="bool" access="rw" required="o" mfcode="0x126a">
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
+          <attribute id="0x8002" name="Window open state" type="bool" access="rw" required="o" mfcode="0x126a">
+            <value name="Closed" value="0x00"></value>
+            <value name="Open" value="0x01"></value>
+          </attribute>
           <attribute id="0x8003" name="Work days" type="enum8" access="rw" required="o" mfcode="0x126a"></attribute>
-          <attribute id="0x8004" name="Sensor mode" type="enum8" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8004" name="Sensor mode" type="enum8" access="rw" required="o" mfcode="0x126a">
+            <value name="Air" value="0x00"></value>
+            <value name="Floor" value="0x01"></value>
+            <value name="External" value="0x02"></value>
+            <value name="Regulator" value="0x03"></value>
+          </attribute>
           <attribute id="0x8005" name="Backlight" type="u8" access="rw" required="o" mfcode="0x126a"></attribute>
-          <attribute id="0x8006" name="Fault" type="enum8" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8006" name="Fault" type="enum8" access="rw" required="o" mfcode="0x126a">
+            <value name="No fault" value="0x00"></value>
+            <value name="Over current error" value="0x01"></value>
+            <value name="Over heat error" value="0x02"></value>
+            <value name="Built-in sensor error" value="0x03"></value>
+            <value name="Air sensor error" value="0x04"></value>
+            <value name="Floor sensor error" value="0x05"></value>
+          </attribute>
           <attribute id="0x8007" name="Regulator" type="u8" access="rw" required="o" mfcode="0x126a"></attribute>
-          <attribute id="0x800A" name="Time sync flag" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x800A" name="Time sync flag" type="bool" access="rw" required="o" mfcode="0x126a">
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
           <attribute id="0x800B" name="Time sync value" type="u32" access="rw" required="o" mfcode="0x126a"></attribute>
           <attribute id="0x800C" name="Abs min heat setpoin limit f" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
           <attribute id="0x800D" name="Abs max heat setpoin limit f" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
@@ -2698,8 +2722,14 @@
           <attribute id="0x801B" name="Holiday temp set f" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
           <attribute id="0x801C" name="Regulationn mode" type="enum8" access="rw" required="o" mfcode="0x126a"></attribute>
           <attribute id="0x801D" name="Regulationn percentage" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
-          <attribute id="0x801E" name="Summer winter switch" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
-          <attribute id="0x801F" name="Vacation mode" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x801E" name="Summer winter switch" type="bool" access="rw" required="o" mfcode="0x126a">
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
+          <attribute id="0x801F" name="Vacation mode" type="bool" access="rw" required="o" mfcode="0x126a">
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
           <attribute id="0x8020" name="Vacation start date" type="u32" access="rw" required="o" mfcode="0x126a"></attribute>
           <attribute id="0x8021" name="Vacation end date" type="u32" access="rw" required="o" mfcode="0x126a"></attribute>
           <attribute id="0x8022" name="Auto time" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
@@ -2816,14 +2846,14 @@
           <attribute id="0x4061" name="Unknown" type="enum8" access="r" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x4062" name="External sensor connection config" type="enum8" access="rw" required="o" mfcode="0x1209">
             <value name="Not used" value="0x00"></value>
-            <value name="Without regulation " value="0xB0"></value>
+            <value name="Without regulation" value="0xB0"></value>
             <value name="With regulation" value="0xB1"></value>
           </attribute>
           <attribute id="0x4063" name="Heater type" type="enum8" access="rw" required="o" mfcode="0x1209">
             <value name="Underfloor heating" value="0x00"></value>
             <value name="Boiler" value="0x01"></value>
             <value name="Radiator" value="0x02"></value>
-            <value name="Central heating " value="0x03"></value>
+            <value name="Central heating" value="0x03"></value>
           </attribute>
           <attribute id="0x5000" name="Error code" type="bmp8" access="rw" required="o" mfcode="0x1209"></attribute>
           <attribute id="0x5010" name="Unknown" type="enum8" access="rw" required="o" mfcode="0x1209">
