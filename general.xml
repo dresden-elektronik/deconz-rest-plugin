@@ -1026,32 +1026,32 @@
     <cluster id="0x0008" name="Level Control">
       <description>This cluster provides an interface for controlling a characteristic of a device that can be set to a level, for example the brightness of a light, the degree of closure of a door, or the power output of a heater.</description>
       <server>
-        <attribute id = "0x0000" name="Current Level" type="u8" range="0x00,0xff" access="r" required="m" default="0x00">
+        <attribute id="0x0000" name="Current Level" type="u8" range="0x00,0xff" access="r" required="m" default="0x00">
           <description>The CurrentLevel attribute represents the current level of this device. meaning of 'level' is device dependent.</description>
         </attribute>
-        <attribute id = "0x0001" name="Remaining Time" type="u16" range="0x0000,0xffff" access="r" required="o" default="0x0000">
+        <attribute id="0x0001" name="Remaining Time" type="u16" range="0x0000,0xffff" access="r" required="o" default="0x0000">
           <description>The RemainingTime attribute represents the time remaining until the current command is complete - it is specified in 1/10ths of a second.</description>
         </attribute>
-        <attribute id = "0x0003" name="Hue Min Dim Level" type="u16" mfcode="0x100b" access="r" required="o">
+        <attribute id="0x0003" name="Hue Min Dim Level" type="u16" mfcode="0x100b" access="r" required="o">
           <description>Percentage of the maximum lumen the device outputs on minimum brightness (in 0.001%).</description>
         </attribute>
-        <attribute id = "0x000f" name="Options" type="bmp8" access="rw" required="o">
+        <attribute id="0x000f" name="Options" type="bmp8" access="rw" required="o">
           <value name="Execute If Off" value="0"></value>
           <value name="Couple Color Temp To Level" value="1"></value>
         </attribute>
-        <attribute id = "0x0010" name="OnOff Transistion Time" type="u16" range="0x0000,0xffff" access="rw" required="o" default="0x0000">
+        <attribute id="0x0010" name="OnOff Transistion Time" type="u16" range="0x0000,0xffff" access="rw" required="o" default="0x0000">
           <description>The OnOffTransitionTime attribute represents the time taken to move to or from the target level when On of Off commands are received by an On/Off cluster on the same endpoint. It is specified in 1/10ths of a second. The actual time taken should be as close to OnOffTransitionTime as the device is able.</description>
         </attribute>
-        <attribute id = "0x0011" name="On Level" type="u8" range="0x01,0xff" access="rw" required="o" default="0xff">
+        <attribute id="0x0011" name="On Level" type="u8" range="0x01,0xff" access="rw" required="o" default="0xff">
           <description>The OnLevel attribute determines the value that the CurrentLevel attribute is set to when the OnOff attribute of an On/Off cluster on the same endpoint is set to On. If the OnLevel attribute is not implemented, or is set to 0xff, it has no effect.</description>
         </attribute>
-        <attribute id = "0x0012" name="On Transition Time" type="u16" range="0x0000,0xfffe" access="rw" required="o" default="0">
+        <attribute id="0x0012" name="On Transition Time" type="u16" range="0x0000,0xfffe" access="rw" required="o" default="0">
           <description>The OnTransitionTime attribute represents the time taken to move the current level from the minimum level to the maximum level when an On command is received by an On/Off cluster on the same endpoint. It is specified in 10ths of a second. If this command is not implemented, or contains a value of 0xffff, the On/OffTransitionTime will be used instead.</description>
         </attribute>
-        <attribute id = "0x0013" name="Off Transition Time" type="u16" range="0x0000,0xfffe" access="rw" required="o" default="0">
+        <attribute id="0x0013" name="Off Transition Time" type="u16" range="0x0000,0xfffe" access="rw" required="o" default="0">
           <description>The OffTransitionTime attribute represents the time taken to move the current level from the maximum level to the minimum level when an Off command is received by an On/Off cluster on the same endpoint. It is specified in 10ths of a second. If this command is not implemented, or contains a value of 0xffff, the On/OffTransitionTime will be used instead.</description>
         </attribute>
-        <attribute id = "0x0014" name="Default Move Rate" type="u8" range="0x00,0xfe" access="rw" required="o">
+        <attribute id="0x0014" name="Default Move Rate" type="u8" range="0x00,0xfe" access="rw" required="o">
           <description>The DefaultMoveRate attribute determines the movement rate, in units per second, when a Move command is received with a Rate parameter of 0xFF.</description>
         </attribute>
         <attribute id="0x4000" name="StartUp Current Level" type="u8" access="rw" required="o"></attribute>
@@ -2458,7 +2458,7 @@
           <attribute id="0x0021" name="ProportionalShift" type="s8" access="r" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x0022" name="IntegralFactor" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x1000" name="ValveDrivePosition0" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x1001" name="ValveDrivePosition100 " type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x1001" name="ValveDrivePosition100" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
         </attribute-set>
         <!-- Sinope manufacturer specific -->
         <attribute-set id="0x0400" description="Sinope specific" mfcode="0x119c">
@@ -2551,7 +2551,7 @@
           <attribute id="0x4016" name="Radiator Covered" type="bool" access="w" required="o" mfcode="0x1246"></attribute>
           <attribute id="0x4020" name="Control Algorithm Scale Factor" type="u8" default="1" access="rw" required="o" mfcode="0x1246"></attribute>
           <attribute id="0x4030" name="Heat Available" type="bool" default="0x00" access="rw" required="o" mfcode="0x1246"></attribute>
-          <attribute id="0x4031" name="Heat Supply Request " type="bool" default="0x00" access="r" required="o" mfcode="0x1246"></attribute>
+          <attribute id="0x4031" name="Heat Supply Request" type="bool" default="0x00" access="r" required="o" mfcode="0x1246"></attribute>
           <attribute id="0x4032" name="Load Balancing Enabled" type="bool" default="0x01" access="rw" required="o" mfcode="0x1246"></attribute>
           <attribute id="0x4040" name="Load Radiator Room Mean" type="s16" access="rw" required="o" mfcode="0x1246"></attribute>
           <attribute id="0x404A" name="Load Estimate (Radiator)" type="s16" access="r" required="o" mfcode="0x1246"></attribute>
@@ -3219,7 +3219,7 @@
             <value name="Current x and current y" value="0x01"></value>
             <value name="Color temperature" value="0x02"></value>
           </attribute>
-          <attribute id = "0x000f" name="Options" type="bmp8" access="rw" required="o">
+          <attribute id="0x000f" name="Options" type="bmp8" access="rw" required="o">
             <value name="Execute If Off" value="0"></value>
           </attribute>
           <!-- TODO -->
@@ -6171,7 +6171,7 @@
           <attribute id="0x0125" name="Multiclick mode" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0126" name="Buzer manual mute" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0127" name="Self test" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x0129" name="Air Quality" type="u8" mfcode="0x115f" access = "r" required="o">
+          <attribute id="0x0129" name="Air Quality" type="u8" mfcode="0x115f" access="r" required="o">
             <description>Air Quality: 1 - excellent, 2 - good, 3 - moderate, 4 - poor, 5 unhealthy</description>
           </attribute>
           <attribute id="0x0135" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
@@ -6503,7 +6503,7 @@
         <attribute id="0x0011" name="Outdoor Temp on Display Timeout" type="u16" mfcode="0x119c" access="rw" required="m">
           <description>Delay in seconds before reverting to setpoint display if no more outdoor temp is received</description>
         </attribute>
-        <attribute id="0x0012" name="Config 2nd Display " type="enum8" mfcode="0x119c" access="rw" required="m">
+        <attribute id="0x0012" name="Config 2nd Display" type="enum8" mfcode="0x119c" access="rw" required="m">
           <value name="Auto" value="0x00"></value>
           <value name="Setpoint" value="0x01"></value>
           <value name="Outside Temp" value="0x02"></value>
