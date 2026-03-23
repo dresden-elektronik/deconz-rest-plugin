@@ -2675,6 +2675,37 @@
             <value name="Vacation Schedule" value="0x01"></value>
           </attribute>
         </attribute-set>
+        <!-- Namrom manufacturer specific -->
+        <attribute-set id="0x8000" description="Namrom specific" mfcode="0x126a">
+          <attribute id="0x8000" name="Window check" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8001" name="Frost" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8002" name="Window state" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8003" name="Work days" type="enum8" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8004" name="Sensor mode" type="enum8" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8005" name="Backlight" type="u8" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8006" name="Fault" type="enum8" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8007" name="Regulator" type="u8" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x800A" name="Time sync flag" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x800B" name="Time sync value" type="u32" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x800C" name="Abs min heat setpoin limit f" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x800D" name="Abs max heat setpoin limit f" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x800E" name="Abs min cool setpoin limit f" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x800F" name="Abs max cool setpoin limit f" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8010" name="Occupied cooling setpoint f" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8011" name="Occupied heating setpoint f" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8012" name="Local temperature" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8013" name="Holiday temp set" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x801B" name="Holiday temp set f" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x801C" name="Regulationn mode" type="enum8" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x801D" name="Regulationn percentage" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x801E" name="Summer winter switch" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x801F" name="Vacation mode" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8020" name="Vacation start date" type="u32" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8021" name="Vacation end date" type="u32" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8022" name="Auto time" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8023" name="Countdown set" type="enum8" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8024" name="Countdown left" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
+        </attribute-set>
         <!-- Bosch manufacturer specific -->
         <attribute-set id="0x4000" description="Bosch specific" mfcode="0x1209">
           <attribute id="0x4007" name="Operating mode" type="enum8" default="0x00" access="rw" required="o" mfcode="0x1209">
