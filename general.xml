@@ -2675,8 +2675,8 @@
             <value name="Vacation Schedule" value="0x01"></value>
           </attribute>
         </attribute-set>
-        <!-- Namrom manufacturer specific -->
-        <attribute-set id="0x8000" description="Namrom specific" mfcode="0x126a">
+        <!-- Namron manufacturer specific -->
+        <attribute-set id="0x8000" description="Namron specific" mfcode="0x126a">
           <attribute id="0x8000" name="Window check" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
           <attribute id="0x8001" name="Frost" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
           <attribute id="0x8002" name="Window state" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
