@@ -382,8 +382,6 @@
           </attribute>
         </attribute-set>
 
-
-
         <attribute-set id="0x9000" description="Sunricher specific" mfcode="0x1224">
           <attribute id="0x8806" name="Dimming brightness curve" type="u8" default="0x00" access="rw" required="m" mfcode="0x1224">
             <description>Works after reset power of the device.
@@ -2354,8 +2352,8 @@
           <attribute id="0x0025" name="Thermostat Programming Operation Mode" type="bmp8" default="0" access="rw" required="o">
             <value name="Simple/setpoint mode" value="0">
               <description>0 – This mode means the thermostat setpoint is altered only by manual up/down changes at the thermostat or remotely, not by internal schedule programming.
-                           1 – Schedule programming mode. This enables or disables any programmed weekly schedule con-figurations.
-                           Note: It does not clear or delete previous weekly schedule programming configurations.</description>
+                1 – Schedule programming mode. This enables or disables any programmed weekly schedule con-figurations.
+                Note: It does not clear or delete previous weekly schedule programming configurations.</description>
             </value>
             <value name="Auto/recovery mode" value="1"></value>
             <value name="Economy/EnergyStar mode" value="2"></value>
@@ -4959,7 +4957,7 @@
 
     <cluster id="0x0702" name="Simple Metering">
       <description>The Simple Metering Cluster provides a mechanism to retrieve usage information from Electric, Gas, Water, and potentially Thermal metering devices.
-                 These devices can operate on either battery or mains power, and can have a wide variety of sophistication.</description>
+        These devices can operate on either battery or mains power, and can have a wide variety of sophistication.</description>
       <server>
         <attribute-set id="0x0000" description="Reading Information Set">
           <attribute id="0x0000" name="Current Summation Delivered" type="u48" access="r" required="m"></attribute>
@@ -5754,15 +5752,15 @@
     <!-- Legrand -->
     <cluster id="0xfc01" name="Legrand - Specific clusters" mfcode="1021">
       <description>Legrand Classic Specific clusters, used by all devices. But take care they are device specific.
-                 Dimmer switch without neutral : Option 1 = Dimmer on/off.
-                 Cable outlet : Option 1 = Fil pilote on/off.
-                 Contactor : On/off=0003 - HP/HC=0004.</description>
+        Dimmer switch without neutral : Option 1 = Dimmer on/off.
+        Cable outlet : Option 1 = Fil pilote on/off.
+        Contactor : On/off=0003 - HP/HC=0004.</description>
       <server>
         <attribute id="0x0000" type="dat16" name="Option 1" default="0x0101" access="rw" required="m" showas="hex">
           <description>Choose correctly according to your device Dimmer OR fil pilote.
-                     Dimmer - Off=0100 - On=0101
-                     Fil pilote - Off=0001 - On=0002
-                     Contactor - On/off=0003 - HP/HC=0004</description>
+            Dimmer - Off=0100 - On=0101
+            Fil pilote - Off=0001 - On=0002
+            Contactor - On/off=0003 - HP/HC=0004</description>
         </attribute>
         <attribute id="0x0001" type="bool" name="Option 2" required="m" access="rw" default="0">
           <description>Option 1</description>
@@ -6098,8 +6096,8 @@
         </attribute>
         <attribute id="0x0007" type="u8" name="Initial On Level" required="o" access="rw" range="0x00,0xFF" default="0x00">
           <description>Initial On Level represents the desired level to be applied to a dimmer when an “On” button is pressed.
-		  0x00 : Go to the last level set.
-		  0x01-0xFF : Go to a specific level</description>
+		       0x00 : Go to the last level set.
+		       0x01-0xFF : Go to a specific level</description>
         </attribute>
         <attribute id="0x0008" type="bool" name="Power Restore" default="1" access="rw" required="o">
           <description>Power Restore represents the option to turn the switch/dimmer back to its previous level when powered up, or remain off.</description>
@@ -6918,19 +6916,19 @@
         </attribute>
         <attribute id="0x0011" name="Up Group ID" type="u16" mfcode="0x105e" access="rw" required="m">
           <description>The Up Group ID attribute represents the Group Id field value of any Scene command cluster transmitted by the
-          device when user activates is rocker up side according to the rocker configuration. Value greater than 0xFFF7 means, no
-          command is sent. See Switch Actions attribute.
+            device when user activates is rocker up side according to the rocker configuration. Value greater than 0xFFF7 means, no
+            command is sent. See Switch Actions attribute.
           </description>
         </attribute>
         <attribute id="0x0020" name="Down Scene ID" type="u8" mfcode="0x105e" access="rw" required="m">
           <description>The Down Scene ID attribute represents the Scene Id field value of any Scene command cluster transmitted by the
-          device when user activates is rocker down side according to the rocker configuration. See Switch Actions attribute.
+            device when user activates is rocker down side according to the rocker configuration. See Switch Actions attribute.
           </description>
         </attribute>
         <attribute id="0x0021" name="Down Group ID" type="u16" mfcode="0x105e" access="rw" required="m">
           <description>The Down Group ID attribute represents the Group Id field value of any Scene command cluster transmitted by the
-          device when user activates is rocker down side according to the rocker configuration. Value greater than 0xFFF7 means, no
-          command is sent. See Switch Actions attribute.
+            device when user activates is rocker down side according to the rocker configuration. Value greater than 0xFFF7 means, no
+            command is sent. See Switch Actions attribute.
           </description>
         </attribute>
         <attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x105e" access="r" required="m"></attribute>
