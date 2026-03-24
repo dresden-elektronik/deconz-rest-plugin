@@ -2730,7 +2730,10 @@
           </attribute>
           <attribute id="0x8020" name="Vacation start date" type="u32" access="rw" required="o" mfcode="0x126a"></attribute>
           <attribute id="0x8021" name="Vacation end date" type="u32" access="rw" required="o" mfcode="0x126a"></attribute>
-          <attribute id="0x8022" name="Auto time" type="bool" access="rw" required="o" mfcode="0x126a"></attribute>
+          <attribute id="0x8022" name="Auto time" type="bool" access="rw" required="o" mfcode="0x126a">
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
           <attribute id="0x8023" name="Countdown set" type="enum8" access="rw" required="o" mfcode="0x126a"></attribute>
           <attribute id="0x8024" name="Countdown left" type="s16" access="rw" required="o" mfcode="0x126a"></attribute>
         </attribute-set>
