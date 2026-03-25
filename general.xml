@@ -6049,7 +6049,7 @@
       </client>
     </cluster>
 
-    <cluster id="0xfc7f" name="IKEA shortcut cluster" mfcode="0x117c">
+    <cluster id="0xfc7f" name="Shortcut switch" mfcode="0x117c">
       <description>Cluster to control the IKEA shortcut switches.</description>
       <server>
       </server>
@@ -6057,7 +6057,7 @@
       </client>
     </cluster>
 
-    <cluster id="0xfc80" name="IKEA matter switch cluster" mfcode="0x117c">
+    <cluster id="0xfc80" name="Matter switch" mfcode="0x117c">
       <description>Cluster to control the IKEA matter switches.</description>
       <server>
       </server>
@@ -6065,7 +6065,7 @@
       </client>
     </cluster>
 
-    <cluster id="0xfc81" name="IKEA wireless motion sensor cluster" mfcode="0x117c">
+    <cluster id="0xfc81" name="Motion sensor" mfcode="0x117c">
       <description>Cluster to control the IKEA Vallhorn.</description>
       <server>
         <attribute id="0x0000" name="On only when dark" type="bool" access="rw" required="m" mfcode="0x117c">
@@ -6076,7 +6076,7 @@
       </server>
     </cluster>
 
-    <cluster id="0xfc85" name="IKEA smart plug cluster" mfcode="0x117c">
+    <cluster id="0xfc85" name="Smart plug" mfcode="0x117c">
       <description>Cluster to control the IKEA INSPELNING and TRETAKT plug.</description>
       <server>
         <attribute id="0x0000" name="Child lock" type="bool" access="rw" required="m" mfcode="0x117c">
