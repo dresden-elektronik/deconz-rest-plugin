@@ -6014,15 +6014,25 @@
     <cluster id="0xfc7d" name="Air Purifier Control" mfcode="0x117c">
       <description>Cluster to control the IKEA Starkvind Air Purifier.</description>
       <server>
-        <attribute id="0x0000" name="Filter Run Time" type="u32" access="r" required="m" mfcode="0x117c"></attribute>
-        <attribute id="0x0001" name="Replace Filter" type="u8" access="r" required="m" mfcode="0x117c"></attribute>
-        <attribute id="0x0002" name="Filter Life Time" type="u32" access="rw" required="m" mfcode="0x117c"></attribute>
-        <attribute id="0x0003" name="Disable LEDs" type="bool" access="rw" required="m" mfcode="0x117c"></attribute>
-        <attribute id="0x0004" name="Air Quality" type="u16" access="r" required="m" mfcode="0x117c"></attribute>
-        <attribute id="0x0005" name="Lock Controls" type="bool" access="rw" required="m" mfcode="0x117c"></attribute>
-        <attribute id="0x0006" name="Target Mode" type="u8" access="rw" required="m" mfcode="0x117c"></attribute>
-        <attribute id="0x0007" name="Current Mode" type="u8" access="r" required="m" mfcode="0x117c"></attribute>
-        <attribute id="0x0008" name="Device Run Time" type="u32" access="r" required="m" mfcode="0x117c"></attribute>
+        <attribute id="0x0000" name="Filter run time" type="u32" access="r" required="m" mfcode="0x117c"></attribute>
+        <attribute id="0x0001" name="Replace filter" type="u8" access="r" required="m" mfcode="0x117c"></attribute>
+        <attribute id="0x0002" name="Filter life time" type="u32" access="rw" required="m" mfcode="0x117c"></attribute>
+        <attribute id="0x0003" name="Disable LEDs" type="bool" access="rw" required="m" mfcode="0x117c">
+          <value name="Off" value="0x00"></value>
+          <value name="On" value="0x01"></value>
+        </attribute>
+        <attribute id="0x0004" name="Air quality" type="u16" access="r" required="m" mfcode="0x117c"></attribute>
+        <attribute id="0x0005" name="Lock controls" type="bool" access="rw" required="m" mfcode="0x117c">
+          <value name="Off" value="0x00"></value>
+          <value name="On" value="0x01"></value>
+        </attribute>
+        <attribute id="0x0006" name="Fan mode" type="u8" access="rw" required="m" mfcode="0x117c">
+          <value name="Off" value="0x00"></value>
+          <value name="Auto" value="0x01"></value>
+          <value name="Fanspeed 10 - 50" value="0x01"></value>
+        </attribute>
+        <attribute id="0x0007" name="Current fan speed" type="u8" access="r" required="m" mfcode="0x117c"></attribute>
+        <attribute id="0x0008" name="Device run time" type="u32" access="r" required="m" mfcode="0x117c"></attribute>
       </server>
     </cluster>
 
@@ -6030,20 +6040,64 @@
       <description>Cluster to report tVOC on the IKEA Vindstyrka Air Quality Sensor.</description>
       <server>
         <attribute-set id="0x0000" description="tVOC Information">
-          <attribute id="0x0000" name="Measured Value" type="float" access="r" default="0" required="m" mfcode="0x117c"></attribute>
-          <attribute id="0x0001" name="Min Measured Value" type="float" access="r" required="m" mfcode="0x117c"></attribute>
-          <attribute id="0x0002" name="Max Measured Value" type="float" access="r" required="m" mfcode="0x117c"></attribute>
+          <attribute id="0x0000" name="Measured value" type="float" access="r" default="0" required="m" mfcode="0x117c"></attribute>
+          <attribute id="0x0001" name="Min. measured value" type="float" access="r" required="m" mfcode="0x117c"></attribute>
+          <attribute id="0x0002" name="Max. measured value" type="float" access="r" required="m" mfcode="0x117c"></attribute>
         </attribute-set>
       </server>
       <client>
       </client>
     </cluster>
 
+    <cluster id="0xfc7f" name="IKEA shortcut cluster" mfcode="0x117c">
+      <description>Cluster to control the IKEA shortcut switches.</description>
+      <server>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
+    <cluster id="0xfc80" name="IKEA matter switch cluster" mfcode="0x117c">
+      <description>Cluster to control the IKEA matter switches.</description>
+      <server>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
+    <cluster id="0xfc81" name="IKEA wireless motion sensor cluster" mfcode="0x117c">
+      <description>Cluster to control the IKEA Vallhorn.</description>
+      <server>
+        <attribute id="0x0000" name="On only when dark" type="bool" access="rw" required="m" mfcode="0x117c">
+          <value name="Off" value="0x00"></value>
+          <value name="On" value="0x01"></value>
+        </attribute>
+        <attribute id="0x0001" name="On time" type="u16" access="rw" required="m" mfcode="0x117c"></attribute>
+      </server>
+    </cluster>
+
+    <cluster id="0xfc85" name="IKEA smart plug cluster" mfcode="0x117c">
+      <description>Cluster to control the IKEA INSPELNING and TRETAKT plug.</description>
+      <server>
+        <attribute id="0x0000" name="Child lock" type="bool" access="rw" required="m" mfcode="0x117c">
+          <value name="Off" value="0x00"></value>
+          <value name="On" value="0x01"></value>
+        </attribute>
+        <attribute id="0x0001" name="Disable LED" type="bool" access="rw" required="m" mfcode="0x117c">
+          <value name="On" value="0x00"></value>
+          <value name="Off" value="0x01"></value>
+        </attribute>
+      </server>
+    </cluster>
+
     <!-- SONOFF -->
     <cluster id="0xfc11" name="Sonoff specific" mfcode="0x1286">
       <description>Cluster for light sensor and thermostat</description>
       <server>
-        <attribute id="0x0000" name="Child lock" type="bool" access="rw" required="m"></attribute>
+        <attribute id="0x0000" name="Child lock" type="bool" access="rw" required="m">
+          <value name="Off" value="0x00"></value>
+          <value name="On" value="0x01"></value>
+        </attribute>
         <attribute id="0x0003" name="Comfort temperature min" type="s16" access="rw" required="m"></attribute>
         <attribute id="0x0004" name="Comfort temperature max" type="s16" access="rw" required="m"></attribute>
         <attribute id="0x0005" name="Comfort humidity min" type="u16" access="rw" required="m"></attribute>
@@ -6065,7 +6119,10 @@
           <value name="Water shortage and leakage" value="3"></value>
         </attribute>
         <attribute id="0x5011" name="Auto close water shortage" type="u16" access="rw" required="m"></attribute>
-        <attribute id="0x6000" name="Window open detection" type="bool" access="rw" required="m"></attribute>
+        <attribute id="0x6000" name="Window open detection" type="bool" access="rw" required="m">
+          <value name="Closed" value="0"></value>
+          <value name="Open" value="1"></value>
+        </attribute>
         <attribute id="0x6002" name="Frost protection temperature" type="s16" access="rw" required="m"></attribute>
         <attribute id="0x6003" name="Idle steps" type="u16" access="r" required="m"></attribute>
         <attribute id="0x6005" name="Valve opening limit voltage" type="u16" access="r" required="m"></attribute>
