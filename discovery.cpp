@@ -41,7 +41,7 @@ void DeRestPluginPrivate::initInternetDicovery()
     inetDiscoveryTimer = new QTimer(this);
     inetDiscoveryTimer->setSingleShot(false);
 
-    {
+    { // TODO(mpi): query proxy settings via apsCtrl->getParameter()
         QList<QNetworkProxy> proxies = QNetworkProxyFactory::systemProxyForQuery(QNetworkProxyQuery(gwAnnounceUrl));
 
         if (!proxies.isEmpty())
@@ -49,8 +49,6 @@ void DeRestPluginPrivate::initInternetDicovery()
             const QNetworkProxy &proxy = proxies.first();
             if (proxy.type() == QNetworkProxy::HttpProxy || proxy.type() == QNetworkProxy::HttpCachingProxy)
             {
-                gwProxyPort = proxy.port();
-                gwProxyAddress = proxy.hostName();
                 inetDiscoveryManager->setProxy(proxy);
                 QHostInfo::lookupHost(proxy.hostName(),
                                       this, SLOT(inetProxyHostLookupDone(QHostInfo)));
