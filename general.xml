@@ -6682,6 +6682,41 @@
       </client>
     </cluster>
 
+    <!-- HEIMAN -->
+    <cluster id="0xfc90" name="Heiman specific" mfcode="0x120B">
+      <description>Heiman specific attributes.</description>
+      <server>
+        <attribute id="0x0001" name="Self-test" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0002" name="Fault" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0008" name="Buzzer manual mute" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0009" name="Muted" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0012" name="Siren for automation" type="enum8" mfcode="0x120B" access="r" required="m">
+          <value name="Stop" value="0x00"></value>
+          <value name="Smoke siren" value="0x01"></value>
+          <value name="CO siren" value="0x02"></value>
+        </attribute>
+        <attribute id="0x0016" name="Smoke level" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0017" name="Chamber contamination" type="enum8" mfcode="0x120B" access="rw" required="m">
+          <value name="Normal" value="0x00"></value>
+          <value name="Light contamination" value="0x01"></value>
+          <value name="Medium contamination" value="0x02"></value>
+          <value name="Critical contamination" value="0x03"></value>
+        </attribute>
+        <attribute id="0x0018" name="Smoke unit" type="enum8" mfcode="0x120B" access="rw" required="m">
+          <value name="dbm" value="0x00"></value>
+          <value name="pct ft obs" value="0x01"></value>
+        </attribute>
+        <attribute id="0x0019" name="Rebooted count" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x001A" name="Rejoined count" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x001B" name="Reported packages" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1004" name="Heartbeat indicator" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1007" name="Interconnectabler" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1009" name="Remote test" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>  
+      </server>
+      <client>
+      </client>
+    </cluster>
+
     <!-- IMMAX -->
     <cluster id="0xfc82" name="Immax specific" mfcode="0x1037">
       <description>Immax specific attributes.</description>
