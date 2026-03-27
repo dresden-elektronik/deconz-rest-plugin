@@ -1977,6 +1977,30 @@ bool writeZclCommand(const Resource *r, const ResourceItem *item, deCONZ::ApsCon
     return result.isEnqueued;
 }
 
+/*! A function to force the correct ZCL commands for the window covering cluster to set the states open (0x00) and closed (0x01), depending on the respective resource item.
+ *  This is relevant as only one command can be passed to a write function, but 2 are required to set the bool state correctly.
+ *  */
+bool writeCoverCommand(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl, const QVariant &cmdParameters)
+{
+    auto map = cmdParameters.toMap();
+    QString command = map[QLatin1String("cmd")].toString();
+
+    if (!command.isEmpty())
+    {
+        if (item->toBool() && command != "0x00")
+        {
+            map[QLatin1String("cmd")] = "0x00";
+        }
+        else if (!item->toBool() && command != "0x01")
+        {
+            map[QLatin1String("cmd")] = "0x01";
+        }
+    }
+
+    const auto result = sendZclCommand(r, item, apsCtrl, QVariant::fromValue(map));
+    return result.isEnqueued;
+}
+
 ParseFunction_t DA_GetParseFunction(const QVariant &params)
 {
     ParseFunction_t result = nullptr;
@@ -2067,12 +2091,13 @@ WriteFunction_t DA_GetWriteFunction(const QVariant &params)
 {
     WriteFunction_t result = nullptr;
 
-    const std::array<WriteFunction, 4> functions =
+    const std::array<WriteFunction, 5> functions =
     {
         WriteFunction(QLatin1String("zcl"), 1, writeZclAttribute), // Deprecated
         WriteFunction(QLatin1String("zcl:attr"), 1, writeZclAttribute),
         WriteFunction(QLatin1String("zcl:cmd"), 1, writeZclCommand),
-        WriteFunction(QLatin1String("tuya"), 1, writeTuyaData)
+        WriteFunction(QLatin1String("tuya"), 1, writeTuyaData),
+        WriteFunction(QLatin1String("cover:openclose"), 1, writeCoverCommand)
     };
 
     QString fnName;
