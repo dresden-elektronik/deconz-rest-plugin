@@ -6428,7 +6428,6 @@
           </attribute>
           <attribute id="0x0409" name="Charging" type="u8" mfcode="0x115f" access="r" required="o">
             <description>Battery charging state: 1: charging, 2: not charging.</description>
-            <value name="Battery charging state" value="0x00"></value>
             <value name="Charging" value="0x01"></value>
             <value name="Not charging" value="0x02"></value>
           </attribute>
