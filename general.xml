@@ -6682,7 +6682,7 @@
       </client>
     </cluster>
 
-    <!-- HEINMAN -->
+    <!-- HEIMAN -->
     <cluster id="0xfc90" name="Heiman specific" mfcode="0x120B">
       <description>Heiman specific attributes.</description>
       <server>
