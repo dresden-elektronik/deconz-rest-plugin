@@ -2451,8 +2451,8 @@
             <value name="Winter" value="0x00"></value>
             <value name="Summer" value="0x01"></value>
           </attribute>
-          <attribute id="0x001d" name="Winter backup heating demand" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x001e" name="Summer backup heating demand" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001D" name="Winter backup heating demand" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001E" name="Summer backup heating demand" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x0020" name="Proportional gain (Kp)" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x0021" name="Proportional shift (N)" type="s8" access="r" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x0022" name="Integral factor" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
