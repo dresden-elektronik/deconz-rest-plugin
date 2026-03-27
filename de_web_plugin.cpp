@@ -3064,13 +3064,43 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         }
 
         // add light node to default group
-        GroupInfo *groupInfo = getGroupInfo(&lightNode, gwGroup0);
-        if (!groupInfo)
+        switch (i->deviceId())
         {
-            groupInfo = createGroupInfo(&lightNode, gwGroup0);
-            lightNode.setNeedSaveDatabase(true);
-            groupInfo->actions &= ~GroupInfo::ActionRemoveFromGroup; // sanity
-            groupInfo->actions |= GroupInfo::ActionAddToGroup;
+            // HA lighting devices
+            case DEV_ID_HA_ONOFF_LIGHT:
+            case DEV_ID_HA_DIMMABLE_LIGHT:
+            case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:
+            case DEV_ID_HA_ONOFF_LIGHT_SWITCH:
+            // ZLL lighting devices
+            case DEV_ID_ZLL_ONOFF_LIGHT:
+            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
+            //case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
+            case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
+            case DEV_ID_ZLL_COLOR_LIGHT:
+            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
+            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
+            // ZigBee 3.0 lighting devices
+            case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
+            case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
+            case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
+            case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:
+            {
+                if (hasServerOnOff)
+                {
+                    GroupInfo *groupInfo = getGroupInfo(&lightNode, gwGroup0);
+                    if (!groupInfo)
+                    {
+                        groupInfo = createGroupInfo(&lightNode, gwGroup0);
+                        lightNode.setNeedSaveDatabase(true);
+                        groupInfo->actions &= ~GroupInfo::ActionRemoveFromGroup; // sanity
+                        groupInfo->actions |= GroupInfo::ActionAddToGroup;
+                    }
+                }
+            }
+            break;
+
+        default:
+            break;
         }
 
         // force reading attributes
