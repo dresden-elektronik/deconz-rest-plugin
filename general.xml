@@ -6189,7 +6189,8 @@
             <value name="3" value="0x03"></value>
             <value name="4" value="0x04"></value>
           </attribute>
-          <attribute id="0x0004" name="Dimmer switch mode" type="u16" mfcode="0x115f" access="r" required="m">
+          <attribute id="0x0004" name="Switch mode" type="u16" mfcode="0x115f" access="r" required="m">
+            <description>Anti flicker mode can be used to solve blinking issues of some lights. Quick mode makes the device respond faster.</description>
             <value name="Quick" value="0x00"></value>
             <value name="Anti flicker" value="0x01"></value>
           </attribute>
@@ -6197,7 +6198,7 @@
           <attribute id="0x0007" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0008" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"></attribute>
           <attribute id="0x0009" name="Device operation mode" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x000A" name="Switch mode" type="u8" mfcode="0x115f" access="rw" required="m">
+          <attribute id="0x000A" name="Switch type" type="u8" mfcode="0x115f" access="rw" required="m">
             <value name="Toggle" value="0x00"></value>
             <value name="Momentary" value="0x01"></value>
             <value name="No switch" value="0x02"></value>
@@ -6243,8 +6244,11 @@
             <value name="ppb + °F" value="0x11"></value>
           </attribute>
           <attribute id="0x0125" name="Click mode" type="u8" mfcode="0x115f" access="rw" required="m">
-            <value name="Single" value="0x01"></value>
-            <value name="Multiple" value="0x02"></value>
+            <description>Click mode for wireless button. 
+              fast: only supports single click but allows faster response time.
+              multi: supports multiple types of clicks but is slower, because it awaits multiple clicks.</description>
+            <value name="Fast" value="0x01"></value>
+            <value name="Multi" value="0x02"></value>
           </attribute>
           <attribute id="0x0126" name="Buzer manual mute" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0127" name="Self test" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
@@ -6287,13 +6291,13 @@
           <attribute id="0x014C" name="Linkage alarm state" type="bool" mfcode="0x115f" access="r" required="m"></attribute>
           <attribute id="0x014D" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x014F" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x0152" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0152" name="Trigger indicator" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0157" name="Spatial learning" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x015B" name="Approach distance" type="u32" mfcode="0x115f" access="rw" required="m">
             <description>The configurable maximum detection distance in millimeters (default 600 = 6 meters).</description>
           </attribute>
-          <attribute id="0x015F" name="Motion distance" type="u32" mfcode="0x115f" access="rw" required="m">
-            <description>Distance to the detected motion in millimeters</description>
+          <attribute id="0x015F" name="Target distance" type="u32" mfcode="0x115f" access="rw" required="m">
+            <description>Distance to detected person, in cm.</description>
           </attribute>
           <attribute id="0x0160" name="Motion" type="u8" mfcode="0x115f" access="rw" required="m">
             <value name="Idle" value="0x02"></value>
@@ -6322,6 +6326,7 @@
             <value name="Control relay" value="0x01"></value>
           </attribute>
           <attribute id="0x0201" name="Restore power on outage" type="bool" mfcode="0x115f" access="rw" required="m">
+            <description>Controls the behavior when the device is powered on after power loss</description>
             <value name="Off" value="0x00"></value>
             <value name="On" value="0x01"></value>
           </attribute>
@@ -6355,7 +6360,7 @@
           <attribute id="0x0270" name="Calibrate" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Write 1 to calibrate</description>
           </attribute>
-          <attribute id="0x0271" name="Mode" type="u8" mfcode="0x115f" access="rw" required="m">
+          <attribute id="0x0271" name="System mode" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Heating state: 0 - off, 1 - on</description>
             <value name="off" value="0x00"></value>
             <value name="Heat" value="0x01"></value>
@@ -6420,18 +6425,19 @@
           <attribute id="0x0407" name="Store position" type="u8" mfcode="0x115f" access="rw" required="o">
             <description>Position setting: write 1 to store the up/open position, 2 to store the down/close position.</description>
           </attribute>
-          <attribute id="0x0408" name="Speed" type="u8" mfcode="0x115f" access="rw" required="o">
+          <attribute id="0x0408" name="Motor speed" type="u8" mfcode="0x115f" access="rw" required="o">
             <description>Motor speed: 2: high, 1: medium, 0: low.</description>
             <value name="Low" value="0x00"></value>
             <value name="Medium" value="0x01"></value>
             <value name="High" value="0x02"></value>
           </attribute>
-          <attribute id="0x0409" name="Charging" type="u8" mfcode="0x115f" access="r" required="o">
+          <attribute id="0x0409" name="Charging status" type="u8" mfcode="0x115f" access="r" required="o">
             <description>Battery charging state: 1: charging, 2: not charging.</description>
             <value name="Charging" value="0x01"></value>
             <value name="Not charging" value="0x02"></value>
           </attribute>
           <attribute id="0x040A" name="Battery" type="u8" mfcode="0x115f" access="r" required="m"></attribute>
+          <attribute id="0x040B" name="Voltage" type="u8" mfcode="0x115f" access="r" required="m"></attribute>
           <attribute id="0x0427" name="Hooks lock" type="u8" mfcode="0x115f" access="rw" required="o"></attribute>
           <attribute id="0x0428" name="Hooks state" type="u8" mfcode="0x115f" access="rw" required="o"></attribute>
           <attribute id="0x0429" name="Light level" type="u8" mfcode="0x115f" access="rw" required="o"></attribute>
@@ -6575,7 +6581,13 @@
             <value name="µg/m³ + °F" value="0x10"></value>
             <value name="ppb + °F" value="0x11"></value>
           </attribute>
-          <attribute id="0x0125" name="Click mode" type="u8" access="rw" required="m"></attribute>
+          <attribute id="0x0125" name="Click mode" type="u8" access="rw" required="m">
+            <description>Click mode for wireless button. 
+              fast: only supports single click but allows faster response time.
+              multi: supports multiple types of clicks but is slower, because it awaits multiple clicks.</description>
+            <value name="Fast" value="0x01"></value>
+            <value name="Multi" value="0x02"></value>
+          </attribute>
           <attribute id="0x0133" name="Unknown" type="u8" access="rw" required="m"></attribute>
           <attribute id="0x0134" name="Unknown" type="ostring" access="rw" required="m"></attribute>
           <attribute id="0x0135" name="Unknown" type="u8" access="rw" required="m"></attribute>
@@ -6625,7 +6637,7 @@
           <attribute id="0x015C" name="Unknown" type="u8" access="rw" required="m"></attribute>
           <attribute id="0x015D" name="Unknown" type="u8" access="rw" required="m"></attribute>
           <attribute id="0x015E" name="Unknown" type="u8" access="rw" required="m"></attribute>
-          <attribute id="0x015F" name="Position" type="u32" access="r" required="m">
+          <attribute id="0x015F" name="Target distance" type="u32" access="r" required="m">
             <description>Distance to detected person, in cm.</description>
           </attribute>
           <attribute id="0x0160" name="Occupancy" type="u8" access="r" required="m">
@@ -6638,6 +6650,7 @@
             <value name="On" value="0x01"></value>
           </attribute>
           <attribute id="0x0201" name="Restore power on outage" type="bool" access="rw" required="m">
+            <description>Controls the behavior when the device is powered on after power loss</description>
             <value name="Off" value="0x00"></value>
             <value name="On" value="0x01"></value>
           </attribute>
@@ -6664,7 +6677,7 @@
           <attribute id="0x0270" name="Calibrate" type="u8" access="rw" required="m">
             <description>Write 1 to calibrate</description>
           </attribute>
-          <attribute id="0x0271" name="Mode" type="u8" access="rw" required="m">
+          <attribute id="0x0271" name="System mode" type="u8" access="rw" required="m">
             <description>Heating state: 0 - off, 1 - on</description>
             <value name="Off" value="0x00"></value>
             <value name="Heat" value="0x01"></value>
@@ -6710,6 +6723,7 @@
             <description>Position clearing: write false to clear the stored up/open and down/close positions.</description>
           </attribute>
           <attribute id="0x040A" name="Battery" type="u8" access="r" required="m"></attribute>
+          <attribute id="0x040B" name="Voltage" type="u8" mfcode="0x115f" access="r" required="m"></attribute>
           <attribute id="0xFFF2" name="External temperature" type="ostring" access="r" required="m">
             <description>Could used to write external temperature values to TRV</description>
           </attribute>
