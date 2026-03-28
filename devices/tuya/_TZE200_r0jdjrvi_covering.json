@@ -1,0 +1,80 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "_TZE200_r0jdjrvi",
+  "modelid": "TS0601",
+  "vendor": "Tuya",
+  "product": "Smart Curtain Controller",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_WINDOW_COVERING_DEVICE",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xef00"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/open",
+          "write": { "fn": "tuya", "dpid": 1, "dt": "0x30", "eval": "if (Item.val) { 0 } else { 2 };" },
+          "parse": { "fn": "tuya", "dpid": 5, "eval": "if (Attr.val == 0) { true } else { false };" } 
+        },
+        {
+          "name": "state/lift",
+	  "range": [0,100],
+          "write": { "fn": "tuya", "dpid": 2, "dt": "0x2b", "eval": "Item.val;" },
+	  "parse": { "fn": "tuya", "dpid": 3, "eval": "Item.val = Attr.val;" },
+          "read": { "fn": "tuya" },
+          "refresh.interval": 300
+        },
+        {
+          "name": "config/motor_direction",
+          "write": { "fn": "tuya", "dpid": 4, "dt": "0x30", "eval": "Item.val;" }
+        },
+        {
+          "name": "config/lift_direction",
+          "write": { "fn": "tuya", "dpid": 6, "dt": "0x30", "eval": "Item.val;" }
+        },
+        {
+          "name": "state/error",
+          "parse": { "fn": "tuya", "dpid": 7, "eval": "Item.val;" }
+        }
+      ]
+    }
+  ]
+}
