@@ -67,6 +67,40 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/bri/max",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 5,
+            "eval": "Item.val = (Attr.val / 1000.0) * 254.0;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 5,
+            "dt": "0x2b",
+            "eval": "(Item.val / 254.0) * 1000.0;"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/bri/min",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 3,
+            "eval": "Item.val = (Attr.val / 1000.0) * 254.0;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 3,
+            "dt": "0x2b",
+            "eval": "(Item.val / 254.0) * 1000.0;"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
           "name": "state/alert",
           "default": "none",
           "public": false
