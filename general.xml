@@ -6382,8 +6382,6 @@
           </attribute>
           <attribute id="0x0275" name="Valve fault alarm" type="u8" mfcode="0x115f" access="r" required="m">
             <description>Valve fault alarm: 0 - false, 1 - true</description>
-            <value name="Alarm off" value="0x00"></value>
-            <value name="Alarm on" value="0x01"></value>
           </attribute>
           <attribute id="0x0276" name="Schedule setting" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0277" name="Child lock" type="u8" mfcode="0x115f" access="rw" required="m">
@@ -6699,8 +6697,6 @@
           </attribute>
           <attribute id="0x0275" name="Valve fault alarm" type="u8" access="r" required="m">
             <description>Valve fault alarm: 0 - false, 1 - true</description>
-            <value name="Alarm off" value="0x00"></value>
-            <value name="Alarm on" value="0x01"></value>
           </attribute>
           <attribute id="0x0277" name="Child lock" type="u8" access="rw" required="m">
             <value name="Off" value="0x00"></value>
