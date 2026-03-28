@@ -132,6 +132,43 @@
           }
         },
         {
+          "name": "config/duration",
+          "description": "The duration to turn device off after a certain time.",
+          "parse": {
+            "dpid": 6,
+            "eval": "Item.val = Attr.val",
+            "fn": "tuya"
+          },
+          "write": {
+            "dpid": 6,
+            "dt": "0x2b",
+            "eval": "Item.val",
+            "fn": "tuya"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/ledindication",
+          "description": "Turn the backlight on or off",
+          "parse": {
+            "dpid": 21,
+            "eval": "Item.val = Attr.val",
+            "fn": "tuya"
+          },
+          "write": {
+            "dpid": 21,
+            "dt": "0x10",
+            "eval": "Item.val == 1 ? 1 : 0;",
+            "fn": "tuya"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        },
+        {
           "name": "config/on/startup",
           "values": [
             [
