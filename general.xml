@@ -6688,7 +6688,7 @@
     <cluster id="0x042E" name="Third Reality specific 10" mfcode="0x130d">
       <description>Third Reality 60G radar devices</description>
       <server>
-        <attribute id="0x0000" name="Volatile organic compounds" mfcode="0x130d" type="u8" access="rw" required="m"></attribute>
+        <attribute id="0x0000" name="Volatile organic compounds" mfcode="0x130d" type="float" access="rw" required="m"></attribute>
         <attribute id="0xF001" name="Calibrate TVOC sensor" mfcode="0x130d" type="u8" access="rw" required="m"></attribute>
         <attribute id="0xF002" name="Presence sensor sensitivity" mfcode="0x130d" type="u8" access="rw" required="m"></attribute>
         <attribute id="0xF003" name="Air threshold" mfcode="0x130d" type="u8" access="rw" required="m"></attribute>
