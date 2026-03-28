@@ -101,6 +101,23 @@
           }
         },
         {
+          "name": "config/on/startup",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 14,
+            "eval": "Item.val = Attr.val"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 14,
+            "dt": "0x30",
+            "eval": "Item.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
           "name": "state/alert",
           "default": "none",
           "public": false
