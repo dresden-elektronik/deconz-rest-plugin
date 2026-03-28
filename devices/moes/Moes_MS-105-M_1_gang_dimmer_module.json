@@ -101,6 +101,37 @@
           }
         },
         {
+          "name": "config/devicemode",
+          "values": [
+            [
+              "led",
+              0
+            ],
+            [
+              "incandescent",
+              1
+            ],
+            [
+              "halogen",
+              2
+            ]
+          ],
+          "parse": {
+            "fn": "tuya",
+            "dpid": 4,
+            "eval": "if (Attr.val == 0) { Item.val = 'led' } else if (Attr.val == 1) { Item.val = 'incandescent' } else { Item.val = 'halogen' }"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 4,
+            "dt": "0x30",
+            "eval": "if (Item.val == 'led') { 0 } else if (Item.val == 'incandescent') { 1 } else { halogen }"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
           "name": "config/on/startup",
           "values": [
             [
