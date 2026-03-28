@@ -102,16 +102,30 @@
         },
         {
           "name": "config/on/startup",
+          "values": [
+            [
+              "off",
+              0
+            ],
+            [
+              "on",
+              1
+            ],
+            [
+              "previous",
+              2
+            ]
+          ],
           "parse": {
             "fn": "tuya",
             "dpid": 14,
-            "eval": "Item.val = Attr.val"
+            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 1) { Item.val = 'on' } else { Item.val = 'previous' }"
           },
           "write": {
             "fn": "tuya",
             "dpid": 14,
             "dt": "0x30",
-            "eval": "Item.val"
+            "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'on') { 1 } else { previous }"
           },
           "read": {
             "fn": "none"
