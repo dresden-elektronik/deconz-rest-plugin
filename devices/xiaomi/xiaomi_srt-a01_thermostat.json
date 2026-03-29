@@ -231,7 +231,7 @@
           "write": {
             "at": "0x0274",
             "cl": "0xFCC0",
-            "dt": "0x10",
+            "dt": "0x20",
             "ep": 1,
             "eval": "Item.val",
             "fn": "zcl:attr",
@@ -258,7 +258,7 @@
           "write": {
             "at": "0x0273",
             "cl": "0xFCC0",
-            "dt": "0x10",
+            "dt": "0x20",
             "ep": 1,
             "eval": "Item.val",
             "fn": "zcl:attr",
