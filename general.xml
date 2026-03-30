@@ -2223,6 +2223,7 @@
             <value name="Lift: Encoder Controlled" value="5"></value>
             <value name="Tilt: Encoder Controlled" value="6"></value>
           </attribute>
+          <attribute id="0x000A" name="Operational status" type="bmp8" access="rw" required="m" mfcode="0x10f2"></attribute>
           <attribute id="0x0010" name="Installed Open Limit – Lift" type="u16" default="0x0000" access="rw" required="m" mfcode="0x10f2"></attribute>
           <attribute id="0x0011" name="Installed Closed Limit – Lift" type="u16" default="0xffff" access="rw" required="m" mfcode="0x10f2"></attribute>
           <attribute id="0x0012" name="Installed Open Limit – Tilt" type="u16" default="0x0000" access="rw" required="m" mfcode="0x10f2"></attribute>
@@ -2428,35 +2429,35 @@
           <attribute id="0x0002" name="Unknown" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x0004" name="Unknown" type="s16" access="rw" required="o" mfcode="0x10f2"></attribute>
           <attribute id="0x0009" name="Unknown" type="u16" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x000a" name="Unknown" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x000b" name="Unknown" type="s8" access="r" required="m" mfcode="0x10f2"></attribute>
-          <attribute id="0x000c" name="Unknown" type="s8" access="r" required="m" mfcode="0x10f2"></attribute>
-          <attribute id="0x000d" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x000e" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x000f" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0010" name="TemperatureOffset" type="s8" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0011" name="DefaultOccupiedHeatingSetpoint" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0012" name="VacationMode" type="bool" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0013" name="RemoteTemperature" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0014" name="RemoteTemperatureValidDuration" type="88" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0015" name="DetectOpenWindow" type="bmp8" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0016" name="OpenWindowState" type="bmp8" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0017" name="OpenWindowSensitivity" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0018" name="OpenWindowDetectionPeriod" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0019" name="OpenWindowTimeout" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x001a" name="HeatingDemandLowerBound" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x001b" name="HeatingDemandUpperBound" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x001c" name="Season" type="enum8" access="rw" required="m" mfcode="0x10f2">
-            <value name="winter" value="0x00"></value>
-            <value name="summer" value="0x01"></value>
+          <attribute id="0x000A" name="Unknown" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x000B" name="Unknown" type="s8" access="r" required="m" mfcode="0x10f2"></attribute>
+          <attribute id="0x000C" name="Unknown" type="s8" access="r" required="m" mfcode="0x10f2"></attribute>
+          <attribute id="0x000D" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x000E" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x000F" name="Unknown" type="u8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0010" name="Temperature offset" type="s8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0011" name="Default occupied heating setpoint" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0012" name="Vacation mode" type="bool" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0013" name="Remote temperature" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0014" name="Remote temperature valid duration" type="88" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0015" name="Open window detection" type="bmp8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0016" name="Open window detection status" type="bmp8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0017" name="Open window detection threshold" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0018" name="Open window event duration" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0019" name="Open window detection guard period" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001A" name="Heating demand lower bound" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001B" name="Heating demand upper bound" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001C" name="Summer mode" type="enum8" access="rw" required="m" mfcode="0x10f2">
+            <value name="Winter" value="0x00"></value>
+            <value name="Summer" value="0x01"></value>
           </attribute>
-          <attribute id="0x001d" name="BackupHeatingDemand" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x001e" name="AlternateBackupHeatingDemand" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0020" name="ProportionalGain" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0021" name="ProportionalShift" type="s8" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x0022" name="IntegralFactor" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x1000" name="ValveDrivePosition0" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
-          <attribute id="0x1001" name="ValveDrivePosition100" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001D" name="Winter backup heating demand" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x001E" name="Summer backup heating demand" type="u8" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0020" name="Proportional gain (Kp)" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0021" name="Proportional shift (N)" type="s8" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x0022" name="Integral factor" type="s16" access="r" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x1000" name="Valve drive position 0" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
+          <attribute id="0x1001" name="Valve drive position 100" type="u16" access="rw" required="o" mfcode="0x10f2"></attribute>
         </attribute-set>
         <!-- Sinope manufacturer specific -->
         <attribute-set id="0x0400" description="Sinope specific" mfcode="0x119c">
@@ -5523,9 +5524,13 @@
       </client>
     </cluster>
 
-    <cluster id="0xfc06" name="Hue Unknown" mfcode="0x100b">
+    <cluster id="0xfc06" name="Hue Contact" mfcode="0x100b">
       <description>Hue-specific cluster.</description>
       <server>
+        <attribute id="0x0100" name="Contact" type="enum8" mfcode="0x100b" access="r" required="m"></attribute>
+        <attribute id="0x0101" name="Last contact change" type="u32" mfcode="0x100b" access="r" required="m"></attribute>
+        <attribute id="0x0102" name="Tamper" type="u8" mfcode="0x100b" access="r" required="m"></attribute>
+        <attribute id="0x0103" name="Last tamper change" type="u32" mfcode="0x100b" access="r" required="m"></attribute>
       </server>
       <client>
       </client>
@@ -5756,30 +5761,39 @@
     </cluster>
 
     <!-- Legrand -->
-    <cluster id="0xfc01" name="Legrand - Specific clusters" mfcode="1021">
+    <cluster id="0xfc01" name="Legrand - Specific clusters" mfcode="0x1021">
       <description>Legrand Classic Specific clusters, used by all devices. But take care they are device specific.
         Dimmer switch without neutral : Option 1 = Dimmer on/off.
         Cable outlet : Option 1 = Fil pilote on/off.
         Contactor : On/off=0003 - HP/HC=0004.</description>
       <server>
-        <attribute id="0x0000" type="dat16" name="Option 1" default="0x0101" access="rw" required="m" showas="hex">
+        <attribute id="0x0000" type="dat16" name="Device mode" default="0x0101" access="rw" required="m" showas="hex">
           <description>Choose correctly according to your device Dimmer OR fil pilote.
             Dimmer - Off=0100 - On=0101
             Fil pilote - Off=0001 - On=0002
             Contactor - On/off=0003 - HP/HC=0004</description>
         </attribute>
-        <attribute id="0x0001" type="bool" name="Option 2" required="m" access="rw" default="0">
-          <description>Option 1</description>
+        <attribute id="0x0001" type="bool" name="LED dark" required="m" access="rw" default="0x00">
+          <value name="Off" value="0x00"></value>
+          <value name="On" value="0x01"></value>
         </attribute>
-        <attribute id="0x0002" type="bool" name="Option 3" required="m" access="rw" default="0">
-          <description>Option 2</description>
+        <attribute id="0x0002" type="bool" name="LED on" required="m" access="rw" default="0x00">
+          <value name="Off" value="0x00"></value>
+          <value name="On" value="0x01"></value>
+        </attribute>
+        <attribute id="0xF002" type="enum8" name="Calibration mode" required="m" access="rw" default="0x00">
+          <value name="Classic" value="0x00"></value>
+          <value name="Specific" value="0x01"></value>
+          <value name="Up/down/stop" value="0x02"></value>
+          <value name="Temporal" value="0x03"></value>
+          <value name="Venetian" value="0x04"></value>
         </attribute>
       </server>
       <client>
       </client>
     </cluster>
 
-    <cluster id="0xfc40" name="Legrand - Specific clusters 2" mfcode="1021">
+    <cluster id="0xfc40" name="Legrand - Specific clusters 2" mfcode="0x1021">
       <description>Legrand Specific clusters, Used by cable outlet.</description>
       <server>
         <command id="00" dir="recv" name="Unknow" required="m">
@@ -5790,7 +5804,7 @@
               <value name="Comfort -1" value="0x01"></value>
               <value name="Comfort -2" value="0x02"></value>
               <value name="Eco" value="0x03"></value>
-              <value name="Hors-Gel" value="0x04"></value>
+              <value name="Frost protection" value="0x04"></value>
               <value name="Off" value="0x05"></value>
             </attribute>
           </payload>
@@ -5801,7 +5815,7 @@
           <value name="Comfort -1" value="0x01"></value>
           <value name="Comfort -2" value="0x02"></value>
           <value name="Eco" value="0x03"></value>
-          <value name="Hors-Gel" value="0x04"></value>
+          <value name="Frost protection" value="0x04"></value>
           <value name="Off" value="0x05"></value>
         </attribute>
       </server>
@@ -5813,8 +5827,9 @@
     <cluster id="0xfc00" name="Device Setup" mfcode="0x10f2">
       <description>Attributes and commands.</description>
       <server>
-        <attribute id="0x0000" name="Input Configurations" type="array" default="0" access="r" required="m"></attribute>
-        <attribute id="0x0001" name="Input Actions" type="array" default="0" access="r" required="m"></attribute>
+        <attribute id="0x0000" name="Input configurations" type="array" default="0" access="r" required="m"></attribute>
+        <attribute id="0x0001" name="Input actions" type="array" default="0" access="r" required="m"></attribute>
+        <attribute id="0xFFFD" name="Cluster revision" type="u16" access="r" required="m"></attribute>
       </server>
       <client>
       </client>
