@@ -6745,6 +6745,156 @@
       </client>
     </cluster>
 
+
+    <!-- THIRD REALITY -->
+    <cluster id="0xfc00" name="Third Reality specific" mfcode="0x130d">
+      <description>Third Reality night light devices (Z2M/zigpy)</description>
+      <server>
+        <attribute id="0x0003" name="Cooldown time" type="u16" mfcode="0x130d" access="rw" required="m"></attribute>
+        <attribute id="0x0004" name="Local routine time" type="u16" mfcode="0x130d" access="rw" required="m"></attribute>
+        <attribute id="0x0005" name="Lux threshold" type="u16" mfcode="0x130d" access="rw" required="m"></attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    <cluster id="0xff01" name="Third Reality specific 2" mfcode="0x130d">
+      <description>Third Reality specific attributes (only zigpy)</description>
+      <server>
+        <attribute id="0x0000" name="Disable double click" mfcode="0x130d" type="u8" access="rw" required="m">
+          <description>Button devices</description>
+        </attribute>
+        <attribute id="0x0003" name="Calibrate sensor" mfcode="0x130d" type="u8" access="rw" required="m">
+          <description>24G radar sensors</description>
+        </attribute>
+        <attribute id="0x0060" name="Sensor sensitivity" mfcode="0x130d" type="u8" access="rw" required="m">
+          <description>24G radar sensors</description>
+        </attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    <cluster id="0xff01" name="Third Reality specific 3" mfcode="0x1233">
+      <description>Third Reality specific attributes (Z2M/zigpy)</description>
+      <server>
+        <attribute id="0x0000" name="Open delay time" mfcode="0x1233" type="u16" access="rw" required="m">
+          <description>Door sensors</description>
+        </attribute>
+        <attribute id="0x0001" name="Cooldown time" mfcode="0x1233" type="u16" access="rw" required="m">
+          <description>Motion sensors</description>
+        </attribute>
+        <attribute id="0x0010" name="Enable siren" mfcode="0x1233" type="u8" access="rw" required="m">
+          <description>Water leak devices</description>
+        </attribute>
+        <attribute id="0x0011" name="Siren time" mfcode="0x1233" type="u8" access="rw" required="m">
+          <description>Water leak devices</description>
+        </attribute>
+        <attribute id="0x0031" name="Temperature offset" mfcode="0x1233" type="s16" access="rw" required="m">
+          <description>Temperature and humidity sensors</description>
+        </attribute>
+        <attribute id="0x0032" name="Humidity offset" mfcode="0x1233" type="u16" access="rw" required="m">
+          <description>Temperature and humidity sensors</description>
+        </attribute>
+        <attribute id="0x0033" name="Temperature offset (fahrenheit)" mfcode="0x1233" type="u16" access="rw" required="m">
+          <description>Temperature and humidity sensors</description>
+        </attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    <cluster id="0xff01" name="Third Reality specific 4" mfcode="0x1407">
+      <description>Third Reality specific attributes (Z2M/zigpy)</description>
+      <server>
+        <attribute id="0x0000" name="Open delay time" mfcode="0x1407" type="u16" access="rw" required="m">
+          <description>Garage door sensors</description>
+        </attribute>
+        <attribute id="0x0001" name="Cooldown time" mfcode="0x1407" type="u16" access="rw" required="m">
+          <description>Motion sensors</description>
+        </attribute>
+        <attribute id="0x0003" name="Calibrate Z axis" mfcode="0x1407" type="u16" access="rw" required="m">
+          <description>Garage door sensors</description>
+        </attribute>
+        <attribute id="0x0031" name="Temperature offset" mfcode="0x1407" type="u16" access="rw" required="m"></attribute>
+        <attribute id="0x0032" name="Humidity offset" mfcode="0x1407" type="u16" access="rw" required="m"></attribute>
+        <attribute id="0x0033" name="Temperature offset (fahrenheit)" mfcode="0x1407" type="u16" access="rw" required="m"></attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    <cluster id="0xff02" name="Third Reality specific 5" mfcode="0x1233">
+      <description>Third Reality switch Gen2 devices (Z2M/zigpy)</description>
+      <server>
+        <attribute id="0x0000" name="Turn off delay" mfcode="0x1233" type="u16" access="rw" required="m"></attribute>
+        <attribute id="0x0001" name="Turn on delay" mfcode="0x1233" type="u16" access="rw" required="m"></attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    <cluster id="0xff03" name="Third Reality specific 6" mfcode="0x1233">
+      <description>Third Reality plug devices (Z2M/zigpy)</description>
+      <server>
+        <attribute id="0x0000" name="Reset summation delivered" mfcode="0x1233" type="u8" access="rw" required="m"></attribute>
+        <attribute id="0x0001" name="Turn off delay" mfcode="0x1233" type="u16" access="rw" required="m"></attribute>
+        <attribute id="0x0002" name="Turn on delay" mfcode="0x1233" type="u16" access="rw" required="m"></attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    <cluster id="0xff03" name="Third Reality specific 7" mfcode="0x1407">
+      <description>Third Reality plug devices (only Z2M)</description>
+      <server>
+        <attribute id="0x0000" name="Reset summation delivered" mfcode="0x1407" type="u8" access="rw" required="m"></attribute>
+        <attribute id="0x0001" name="Turn off delay" mfcode="0x1407" type="u16" access="rw" required="m"></attribute>
+        <attribute id="0x0002" name="Turn on delay" mfcode="0x1407" type="u16" access="rw" required="m"></attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    <cluster id="0xfff1" name="Third Reality specific 8" mfcode="0x1233">
+      <description>Third Reality specific attributes (Z2M/zigpy)</description>
+      <server>
+        <attribute id="0x0000" name="Infrared enable" mfcode="0x1233" type="u8" access="rw" required="m">
+          <description>Roller shade devices</description>
+        </attribute>
+        <attribute id="0x0001" name="Calibration distance" mfcode="0x1233" type="u8" access="rw" required="m">
+          <description>Blind Gen2 devices</description>
+        </attribute>
+        <attribute id="0x0002" name="Limit position" mfcode="0x1233" type="u8" access="rw" required="m">
+          <description>Blind Gen2 devices</description>
+        </attribute>
+        <attribute id="0x0003" name="Total cycle times" mfcode="0x1233" type="u16" access="rw" required="m">
+          <description>Blind Gen2 devices</description>
+        </attribute>
+        <attribute id="0x0004" name="Last remaining battery percentage" mfcode="0x1233" type="u8" access="rw" required="m">
+          <description>Blind Gen2 devices</description>
+        </attribute>
+        <attribute id="0x0020" name="Allow remote binding" mfcode="0x1233" type="u8" access="rw" required="m">
+          <description>Curtain devices</description>
+        </attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    <cluster id="0xfff2" name="Third Reality specific 9" mfcode="0x1407">
+      <description>Third Reality watering kit devices (Z2M/zigpy)</description>
+      <server>
+        <attribute id="0x0000" name="Water duration" mfcode="0x1407" type="u16" access="rw" required="m"></attribute>
+        <attribute id="0x0001" name="Water interval" mfcode="0x1407" type="u8" access="rw" required="m"></attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+    <cluster id="0x042E" name="Third Reality specific 10" mfcode="0x130d">
+      <description>Third Reality 60G radar devices</description>
+      <server>
+        <attribute id="0x0000" name="Volatile organic compounds" mfcode="0x130d" type="float" access="rw" required="m"></attribute>
+        <attribute id="0xF001" name="Calibrate TVOC sensor" mfcode="0x130d" type="u8" access="rw" required="m"></attribute>
+        <attribute id="0xF002" name="Presence sensor sensitivity" mfcode="0x130d" type="u8" access="rw" required="m"></attribute>
+        <attribute id="0xF003" name="Air threshold" mfcode="0x130d" type="u8" access="rw" required="m"></attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
     <!-- SINOPE -->
     <cluster id="0xff01" name="Sinope specific" mfcode="0x119c">
       <description>Sinope specific cluster attributes</description>
@@ -6909,7 +7059,7 @@
         <attribute id="0x001B" name="Reported packages" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
         <attribute id="0x1004" name="Heartbeat indicator" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
         <attribute id="0x1007" name="Interconnectabler" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x1009" name="Remote test" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>  
+        <attribute id="0x1009" name="Remote test" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
       </server>
       <client>
       </client>
