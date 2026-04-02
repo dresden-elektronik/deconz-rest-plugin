@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "6ca6f276-330f-4455-a3d8-754dbdd787e0",
-  "manufacturername": "HOBEIAN",
-  "modelid": "ZG-227Z",
+  "manufacturername": [
+    "HOBEIAN",
+    "HOBEIAN"
+  ],
+  "modelid": [
+    "ZG-227Z",
+    "ZG-227ZL"
+  ],
   "vendor": "HOBEIAN",
   "product": "Temperature and humidity sensor (ZG-227Z)",
   "sleeper": true,
@@ -46,7 +52,7 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
+          "refresh.interval": 43260,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -126,7 +132,7 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
+          "refresh.interval": 43260,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -178,8 +184,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
-          "max": 14400,
+          "min": 7200,
+          "max": 43200,
           "change": "0x00000001"
         }
       ]
@@ -206,7 +212,7 @@
         {
           "at": "0x0000",
           "dt": "0x21",
-          "min": 10,
+          "min": 60,
           "max": 600,
           "change": "0x00000032"
         }
