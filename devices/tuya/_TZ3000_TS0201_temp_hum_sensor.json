@@ -18,7 +18,8 @@
     "_TZ3000_dowj6gyi",
     "Wing",
     "Zbeacon",
-    "Zbeacon"
+    "Zbeacon",
+    "NTCHT01"
   ],
   "modelid": [
     "TS0201",
@@ -37,7 +38,8 @@
     "TS0201",
     "TS0201",
     "TS0201",
-    "TH01"
+    "TH01",
+    "Excellux"
   ],
   "vendor": "Tuya",
   "product": "Temperature and humidity sensor (TS0201)",
@@ -95,7 +97,8 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
+          "refresh.interval": 43260,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -179,7 +182,8 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
+          "refresh.interval": 43260,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -222,8 +226,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
-          "max": 84600,
+          "min": 7200,
+          "max": 43200,
           "change": "0x00000002"
         }
       ]
