@@ -1,9 +1,17 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "47d82bcb-9308-41bb-b3d3-94dcc6d67501",
-  "manufacturername": "HEIMAN",
-  "modelid": "COSensor-EM",
-  "product": "COSensor-EM",
+  "manufacturername": [
+    "HEIMAN",
+    "HEIMAN",
+    "HEIMAN"
+  ],
+  "modelid": [
+    "COSensor-EM",
+    "COSensor-N",
+    "COSensor-EF-3.0"
+  ],
+  "product": "Smart carbon monoxide sensor (HS1CA-E)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -20,6 +28,7 @@
         "device": "0x0402",
         "endpoint": "0x01",
         "in": [
+          "0x0000",
           "0x0001",
           "0x0500"
         ]
@@ -67,7 +76,8 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 7300,
+          "refresh.interval": 43260,
+          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -97,6 +107,7 @@
         },
         {
           "name": "state/carbonmonoxide",
+          "awake": true,
           "default": false
         },
         {
@@ -104,9 +115,6 @@
         },
         {
           "name": "state/lowbattery"
-        },
-        {
-          "name": "state/tampered"
         }
       ]
     }
@@ -121,8 +129,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 300,
-          "max": 7200,
+          "min": 7200,
+          "max": 43200,
           "change": "0x00000002"
         }
       ]
