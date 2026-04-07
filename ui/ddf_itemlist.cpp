@@ -96,7 +96,7 @@ public:
 
         QList<QUrl> urls;
 
-        DBG_Printf(DBG_INFO, "mime data, indexes.size %d\n", indexes.size());
+        DBG_Printf(DBG_INFO, "mime data, indexes.size %d\n", (int)indexes.size());
 
         for (const QModelIndex &idx : indexes)
         {

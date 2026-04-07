@@ -341,7 +341,7 @@ std::vector<ButtonMap> loadButtonMapsJson(const QJsonDocument &buttonMaps, const
                             if (buttonMapItemArr.size() != 8)
                             {
                                 DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d for '%s' has an incorrect size. Expected 8, got %d\n",
-                                            mapItem, qPrintable(buttonMapName), buttonMapItemArr.size());
+                                            mapItem, qPrintable(buttonMapName), (int)buttonMapItemArr.size());
                                 continue;
                             }
                             else
