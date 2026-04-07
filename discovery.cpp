@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2025 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2026 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -14,6 +14,7 @@
 #include <QNetworkReply>
 #include <QNetworkProxy>
 #include <QSysInfo>
+#include "deconz/u_platform.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
 #ifdef Q_OS_LINUX
@@ -121,13 +122,13 @@ void DeRestPluginPrivate::initInternetDicovery()
 
     if (osPrettyName.isEmpty())
     {
-#ifdef Q_OS_WIN
+#ifdef PL_WINDOWS
         osPrettyName = "Win";
 #endif
-#ifdef Q_OS_OSX
+#ifdef PL_MACOS
         osPrettyName = "Mac";
 #endif
-#ifdef Q_OS_LINUX
+#ifdef PL_LINUX
         osPrettyName = "Linux";
 #endif
     }
