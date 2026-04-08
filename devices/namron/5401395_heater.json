@@ -90,7 +90,7 @@
         },
         {
           "name": "config/mode",
-          "refresh.interval": 3600,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x001C",
             "cl": "0x0201",
@@ -147,6 +147,7 @@
         },
         {
           "name": "config/windowopen_set",
+          "deprecated": "2026-03-10",
           "refresh.interval": 3660,
           "read": {
             "at": "0x1009",
