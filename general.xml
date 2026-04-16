@@ -7235,35 +7235,75 @@
     </cluster>
 
     <!-- HEIMAN -->
+    <cluster id="0xfc8b" name="Heiman specific" mfcode="0x120B">
+      <description>Heiman specific attributes.</description>
+      <server>
+        <attribute id="0xF001" name="Enable indicator" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0xF002" name="Sensitivity" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0xF006" name="Enable subregion isolation" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0xF007" name="Installation method" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0xF008" name="Cell mounted table" type="ostring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0xF009" name="Wall mounted table" type="ostring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0xF00A" name="Subregion isolation table" type="ostring" mfcode="0x120B" access="rw" required="m"></attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
     <cluster id="0xfc90" name="Heiman specific" mfcode="0x120B">
       <description>Heiman specific attributes.</description>
       <server>
+        <attribute id="0x0000" name="Preheating" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
         <attribute id="0x0001" name="Self-test" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
         <attribute id="0x0002" name="Fault" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x0008" name="Buzzer manual mute" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x0009" name="Muted" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x0012" name="Siren for automation" type="enum8" mfcode="0x120B" access="r" required="m">
+        <attribute id="0x0003" name="Pollution level" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0004" name="Sensitivity level" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0005" name="Prealarm threshold" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0006" name="Life state" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0007" name="Life time" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0008" name="Device mute control" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0009" name="Device mute state" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x000A" name="Cascade control enable" type="bmp8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x000B" name="Sound tone type" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x000C" name="Sound control" type="array" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x000D" name="Blink control" type="array" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x000E" name="Smoke ad value" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x000F" name="Smoke alarm type" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0010" name="Smoke water mist state" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0011" name="Smoke sensor data" type="array" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0012" name="Device cascade state" type="enum8" mfcode="0x120B" access="rw" required="m">
           <value name="Stop" value="0x00"></value>
           <value name="Smoke siren" value="0x01"></value>
           <value name="CO siren" value="0x02"></value>
         </attribute>
-        <attribute id="0x0016" name="Smoke level" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x0017" name="Chamber contamination" type="enum8" mfcode="0x120B" access="rw" required="m">
+        <attribute id="0x0013" name="Prealarm state" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0016" name="Smoke concentration level" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0017" name="Smoke chamber contamination level" type="u8" mfcode="0x120B" access="rw" required="m">
           <value name="Normal" value="0x00"></value>
           <value name="Light contamination" value="0x01"></value>
           <value name="Medium contamination" value="0x02"></value>
           <value name="Critical contamination" value="0x03"></value>
         </attribute>
-        <attribute id="0x0018" name="Smoke unit" type="enum8" mfcode="0x120B" access="rw" required="m">
+        <attribute id="0x0018" name="Smoke concentration unit" type="u8" mfcode="0x120B" access="rw" required="m">
           <value name="dbm" value="0x00"></value>
           <value name="pct ft obs" value="0x01"></value>
         </attribute>
         <attribute id="0x0019" name="Rebooted count" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
         <attribute id="0x001A" name="Rejoined count" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
         <attribute id="0x001B" name="Reported packages" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x1004" name="Heartbeat indicator" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x1007" name="Interconnectabler" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x1009" name="Remote test" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1000" name="Indicator light control" type="bmp8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1001" name="Indicator light not disturb start time" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1002" name="Indicator light not disturb end time" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1003" name="Indicator light not disturb enable" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1004" name="Indicator light level control of 1" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1005" name="Indicator light level control of 2" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1006" name="Indicator light level control of 3" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1007" name="Interconnectable" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1008" name="Smoke unit" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1009" name="Rebooted count" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1009" name="Rebooted count" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x100A" name="Rejoined count" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x100B" name="Reported packages" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
       </server>
       <client>
       </client>
