@@ -144,8 +144,7 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/windowopen_set",
-          "deprecated": "2026-03-10",
+          "name": "config/windowopendetectionenabled",
           "refresh.interval": 3660,
           "read": {
             "at": "0x1009",
