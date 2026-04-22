@@ -88,7 +88,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -124,7 +124,7 @@ jobs:
           upload-store-token: ${{ secrets.STORE_TOKEN }}
 
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Run DDF Push Action
         if: github.event_name == 'push'
@@ -146,7 +146,7 @@ jobs:
           upload-store-url: 'https://ddf.cryonet.io'
           upload-store-token: ${{ secrets.STORE_TOKEN }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Run DDF Pull Request Interaction
         if: github.event_name == 'pull_request'
@@ -168,4 +168,4 @@ jobs:
           bundler-validation-enforce-uuid: 'false'
 
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
