@@ -7304,6 +7304,26 @@
         <attribute id="0x1009" name="Rebooted count" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
         <attribute id="0x100A" name="Rejoined count" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
         <attribute id="0x100B" name="Reported packages" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2000" name="WiFi SSID" type="cstring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2001" name="WiFi password" type="cstring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2002" name="WiFi SSID candidate" type="cstring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2003" name="WiFi password candidate" type="cstring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2004" name="Picture quantity" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2005" name="Picture quality" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2006" name="Server address" type="cstring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2007" name="Server address candidate" type="cstring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2008" name="Server port" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2009" name="Auth token" type="cstring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x200A" name="Zone capture mode" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x200B" name="Sensor armed" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x200C" name="WiFi status" type="u8" mfcode="0x120B" access="r" required="m"></attribute>
+        <attribute id="0x200D" name="WiFi candidate status" type="u8" mfcode="0x120B" access="r" required="m"></attribute>
+        <attribute id="0x200E" name="WiFi RSSI" type="s8" mfcode="0x120B" access="r" required="m"></attribute>
+        <attribute id="0x200F" name="Server status" type="s8" mfcode="0x120B" access="r" required="m"></attribute>
+        <attribute id="0x2010" name="Server candidate status" type="s8" mfcode="0x120B" access="r" required="m"></attribute>
+        <attribute id="0x2012" name="Flash light brightness" type="s8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2013" name="Camera ready" type="s8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2014" name="Camera mode" type="s8" mfcode="0x120B" access="rw" required="m"></attribute>
       </server>
       <client>
       </client>
