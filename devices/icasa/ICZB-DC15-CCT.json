@@ -2,7 +2,7 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "icasa",
   "modelid": "CCT Lighting",
-  "vendor": "iCasa",
+  "vendor": "icasa",
   "product": "4 in 1 Zigbee LED controller in CCT Mode",
   "sleeper": false,
   "status": "Gold",
