@@ -1,6 +1,5 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "eca7ddd3-922c-4de6-b0f9-b50e67b7c7f9",
   "manufacturername": "icasa",
   "modelid": "CCT Lighting",
   "vendor": "iCasa",
@@ -54,10 +53,16 @@
           "static": 16
         },
         {
-          "name": "cap/color/ct/max"
+          "name": "cap/color/ct/max",
+          "read": {
+            "fn": "none"
+          }
         },
         {
-          "name": "cap/color/ct/min"
+          "name": "cap/color/ct/min",
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "cap/on/off_with_effect"
@@ -78,16 +83,59 @@
           "name": "config/bri/execute_if_off"
         },
         {
-          "name": "config/bri/options"
+          "name": "config/bri/options",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0008",
+            "at": [
+              "0x000F",
+              "0x0010",
+              "0x0011",
+              "0x4000"
+            ]
+          },
+          "refresh.interval": 3600
         },
         {
-          "name": "config/bri/startup"
+          "name": "config/bri/on_level",
+          "read": {
+            "fn": "none"
+          }
         },
         {
-          "name": "config/color/ct/startup"
+          "name": "config/bri/onoff_transitiontime",
+          "read": {
+            "fn": "none"
+          }
         },
         {
-          "name": "config/color/execute_if_off"
+          "name": "config/bri/startup",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/color/ct/startup",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/color/execute_if_off",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0300",
+            "at": [
+              "0x000F",
+              "0x400B",
+              "0x400C",
+              "0x4010"
+            ]
+          },
+          "refresh.interval": 3600
+
         },
         {
           "name": "config/on/startup"
@@ -155,6 +203,12 @@
           "min": 1,
           "max": 300,
           "change": "0x0001"
+        },
+        {
+          "at": "0x0008",
+          "dt": "0x30",
+          "min": 1,
+          "max": 300
         }
       ]
     }
