@@ -2,8 +2,8 @@
   "schema": "devcap1.schema.json",
   "manufacturername": "icasa",
   "modelid": "DIM Lighting",
-  "vendor": "iCasa",
-  "product": "4 in 1 Zigbee LED controller in CCT Mode",
+  "vendor": "icasa",
+  "product": "4 in 1 Zigbee LED controller in DIM Mode",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
