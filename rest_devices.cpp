@@ -114,6 +114,11 @@ int RestDevices::handleApi(const ApiRequest &req, ApiResponse &rsp)
     {
         return putDeviceInstallCode(req, rsp);
     }
+    // PUT /api/<apikey>/devices/<uniqueid>/aps
+    else if (req.hdr.pathComponentsCount() == 5 && req.hdr.httpMethod() == HttpPut && req.hdr.pathAt(4) == QLatin1String("aps"))
+    {
+        return putDeviceApsRequest(req, rsp);
+    }
 
     return REQ_NOT_HANDLED;
 }
@@ -1196,6 +1201,147 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
         rsp.httpStatus = HttpStatusBadRequest;
     }
 
+    return REQ_READY_SEND;
+}
+
+/*! PUT /api/<apikey>/devices/<uniqueid>/aps
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+
+    Sends an APS request to the device. Note this is for debug purpose only!
+    Don't use this for regular user facing clients. Bug reports on this API will be ignored.
+
+    {
+      "dst_ep": 0..255,
+      "profile_id": "hex string"
+      "cluster_id": "hex string"
+      "payload": "hex string",
+    }
+
+ */
+int RestDevices::putDeviceApsRequest(const ApiRequest &req, ApiResponse &rsp)
+{
+    DBG_Assert(req.path.size() == 5);
+
+    bool ok;
+    U_SStream ss;
+    const QString &uniqueid = req.path[3];
+
+    const auto deviceKey = extAddressFromUniqueId(req.hdr.pathAt(3));
+
+    Device *device = DEV_GetDevice(plugin->m_devices, deviceKey);
+
+    rsp.httpStatus = device ? HttpStatusOk : HttpStatusNotFound;
+
+    if (!device)
+    {
+        return REQ_READY_SEND;
+    }
+
+    QVariant var = Json::parse(req.content, ok);
+    QVariantMap map = var.toMap();
+
+    if (!ok || map.isEmpty())
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/devices/%1/aps").arg(uniqueid), QString("body contains invalid JSON")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    if (!map.contains("dst_ep") || !map.contains("cluster_id") || !map.contains("profile_id") || !map.contains("payload"))
+    {
+        rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/devices/%1/aps").arg(uniqueid), QString("missing parameters in body")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    int dstEndpoint = map.value("dst_ep").toString().toInt(&ok, 0);
+    if (!ok || dstEndpoint < 0 || dstEndpoint > 255)
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/devices"), QString("invalid value, %1, for parameter, dst_ep").arg(map.value("dst_ep").toString())));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    int clusterId = map.value("cluster_id").toString().toInt(&ok, 0);
+    if (!ok || clusterId < 0 || clusterId > 0xFFFF)
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/devices"), QString("invalid value, %1, for parameter, cluster_id").arg(map.value("cluster_id").toString())));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    int profileId = map.value("profile_id").toString().toInt(&ok, 0);
+    if (!ok || profileId < 0 || profileId > 0xFFFF)
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/devices"), QString("invalid value, %1, for parameter, profile_id").arg(map.value("profile_id").toString())));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    QString payloadStr = map.value("payload").toString();
+    QByteArray payload;
+
+    if (payloadStr.size() >= 2)
+    {
+        ok = true;
+        for (int i = 0; i < payloadStr.length(); i++)
+        {
+            QChar ch = payloadStr[i];
+            if      (ch.isDigit())           {}
+            else if (ch >= 'a' && ch <= 'f') {}
+            else if (ch >= 'A' && ch <= 'F') {}
+            else
+            {
+                ok = false;
+                break;
+            }
+
+            payload.append(ch.toLatin1());
+        }
+    }
+
+    if (!ok || (payload.size() & 1)) // must be even number of hex digits
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/devices"), QString("invalid value, %1, for parameter, payload").arg(payloadStr)));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    payload = QByteArray::fromHex(payload);
+
+    if (payload.size())
+    {
+        deCONZ::Address dstAddr;
+        dstAddr.setExt(deviceKey);
+
+        deCONZ::ApsDataRequest req;
+        req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+        req.setAsdu(payload);
+        req.setProfileId((uint16_t)profileId);
+        req.setClusterId((uint16_t)clusterId);
+        req.setDstEndpoint((uint8_t)dstEndpoint);
+        req.setDstAddressMode(deCONZ::ApsExtAddress);
+        req.setSrcEndpoint(plugin->endpoint());
+        req.dstAddress() = dstAddr;
+
+        QVariantMap m;
+
+        int ret = deCONZ::ApsController::instance()->apsdeDataRequest(req);
+        if (ret == deCONZ::Success)
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState["aps.id"] = (int)req.id();
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            rsp.httpStatus = HttpStatusOk;
+            return REQ_READY_SEND;
+        }
+    }
+
+    rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/devices"), "internal error, sending APS request"));
+    rsp.httpStatus = HttpStatusBadRequest;
     return REQ_READY_SEND;
 }
 

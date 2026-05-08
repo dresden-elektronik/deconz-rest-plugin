@@ -14,13 +14,23 @@
 #include "deconz/dbg_trace.h"
 #include "deconz/util.h"
 #include "websocket_server.h"
+#include "json.h"
+
+class WebSocketServerPrivate
+{
+public:
+    QWebSocketServer *srv;
+    std::vector<QWebSocket*> clients;
+};
 
 /*! Constructor.
  */
 WebSocketServer::WebSocketServer(QObject *parent, uint16_t wsPort) :
-    QObject(parent)
+    QObject(parent),
+    d_ptr(new WebSocketServerPrivate)
 {
-    srv = new QWebSocketServer("deconz", QWebSocketServer::NonSecureMode, this);
+    d_ptr->srv = new QWebSocketServer("deconz", QWebSocketServer::NonSecureMode, this);
+    QWebSocketServer *srv = d_ptr->srv;
 
     QHostAddress address;
     QString addrArg = deCONZ::appArgumentString("--http-listen", QString());
@@ -60,9 +70,9 @@ WebSocketServer::WebSocketServer(QObject *parent, uint16_t wsPort) :
 void WebSocketServer::handleExternalTcpSocket(const QHttpRequestHeader &hdr, QTcpSocket *sock)
 {
     U_ASSERT(sock);
-    if (srv)
+    if (d_ptr && d_ptr->srv)
     {
-        srv->handleConnection(sock);
+        d_ptr->srv->handleConnection(sock);
     }
     else
     {
@@ -75,21 +85,27 @@ void WebSocketServer::handleExternalTcpSocket(const QHttpRequestHeader &hdr, QTc
  */
 quint16 WebSocketServer::port() const
 {
-    return srv && srv->isListening() ? srv->serverPort() : 0;
+    if (!d_ptr || !d_ptr->srv)
+        return 0;
+
+    return d_ptr->srv->isListening() ? d_ptr->srv->serverPort() : 0;
 }
 
 /*! Handler for new client connections.
  */
 void WebSocketServer::onNewConnection()
 {
-    while (srv->hasPendingConnections())
+    if (!d_ptr || !d_ptr->srv)
+        return;
+
+    while (d_ptr->srv->hasPendingConnections())
     {
-        QWebSocket *sock = srv->nextPendingConnection();
+        QWebSocket *sock = d_ptr->srv->nextPendingConnection();
         DBG_Printf(DBG_INFO, "New websocket %s:%u\n", qPrintable(sock->peerAddress().toString()), sock->peerPort());
         connect(sock, &QWebSocket::disconnected, this, &WebSocketServer::onSocketDisconnected);
         connect(sock, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onSocketError(QAbstractSocket::SocketError)));
         connect(sock, &QWebSocket::textMessageReceived, this, &WebSocketServer::onTextMessageReceived);
-        clients.push_back(sock);
+        d_ptr->clients.push_back(sock);
     }
 }
 
@@ -97,6 +113,10 @@ void WebSocketServer::onNewConnection()
  */
 void WebSocketServer::onSocketDisconnected()
 {
+    if (!d_ptr)
+        return;
+
+    auto &clients = d_ptr->clients;
     for (size_t i = 0; i < clients.size(); i++)
     {
         QWebSocket *sock = qobject_cast<QWebSocket*>(sender());
@@ -116,6 +136,10 @@ void WebSocketServer::onSocketDisconnected()
 void WebSocketServer::onSocketError(QAbstractSocket::SocketError err)
 {
     Q_UNUSED(err);
+    if (!d_ptr)
+        return;
+
+    auto &clients = d_ptr->clients;
     for (size_t i = 0; i < clients.size(); i++)
     {
         QWebSocket *sock = qobject_cast<QWebSocket*>(sender());
@@ -131,8 +155,47 @@ void WebSocketServer::onSocketError(QAbstractSocket::SocketError err)
 
 void WebSocketServer::onTextMessageReceived(const QString &message)
 {
-    Q_UNUSED(message);
     // DBG_Printf(DBG_INFO, "Websocket received: %s\n", qPrintable(message));
+
+    QWebSocket *sock = qobject_cast<QWebSocket*>(sender());
+    if (!sock)
+        return;
+
+    auto map = Json::parse(message).toMap();
+
+    if (map.isEmpty())
+        return;
+
+    // {"enable_aps":true}
+    if (map.contains("enable_aps"))
+    {
+        auto val = map["enable_aps"];
+        if (val.type() == QVariant::Bool)
+        {
+            sock->setProperty("enable_aps", val);
+        }
+    }
+
+}
+
+/*! Broadcasts a APS indication message to all connected clients which have 'enable_aps' set to true.
+    \param msg the message as JSON string
+ */
+void WebSocketServer::broadcastApsIndication(const QString &msg)
+{
+    if (!d_ptr)
+        return;
+
+    auto &clients = d_ptr->clients;
+    for (size_t i = 0; i < clients.size(); i++)
+    {
+        QWebSocket *sock = clients[i];
+        if (sock->property("enable_aps").toBool())
+        {
+            sock->sendTextMessage(msg);
+            sock->flush();
+        }
+    }
 }
 
 /*! Broadcasts a message to all connected clients.
@@ -140,11 +203,15 @@ void WebSocketServer::onTextMessageReceived(const QString &message)
  */
 void WebSocketServer::broadcastTextMessage(const QString &msg)
 {
+    if (!d_ptr)
+        return;
+
+    auto &clients = d_ptr->clients;
     for (size_t i = 0; i < clients.size(); i++)
     {
         QWebSocket *sock = clients[i];
         qint64 ret = sock->sendTextMessage(msg);
-        DBG_Printf(DBG_INFO_L2, "Websocket %s:%u send message: %s (ret = %d)\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(msg), (int)ret);
+        // DBG_Printf(DBG_INFO_L2, "Websocket %s:%u send message: %s (ret = %d)\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(msg), (int)ret);
         sock->flush();
     }
 }
@@ -153,6 +220,10 @@ void WebSocketServer::broadcastTextMessage(const QString &msg)
  */
 void WebSocketServer::flush()
 {
+    if (!d_ptr)
+        return;
+
+    auto &clients = d_ptr->clients;
     for (size_t i = 0; i < clients.size(); i++)
     {
         QWebSocket *sock = clients[i];
