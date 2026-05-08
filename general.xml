@@ -6102,8 +6102,8 @@
           <value name="On" value="0x01"></value>
         </attribute>
         <attribute id="0x0001" name="Disable LED" type="bool" access="rw" required="m" mfcode="0x117c">
-          <value name="On" value="0x00"></value>
-          <value name="Off" value="0x01"></value>
+          <value name="Off" value="0x00"></value>
+          <value name="On" value="0x01"></value>
         </attribute>
       </server>
     </cluster>
@@ -6190,7 +6190,7 @@
       </client>
     </cluster>
 
-    <!-- LUMI -->
+    <!-- AQARA/LUMI -->
     <cluster id="0xfcc0" name="Lumi specific" mfcode="0x115f">
       <description>Lumi specific attributes.</description>
       <server>
@@ -6220,13 +6220,24 @@
           </attribute>
           <attribute id="0x000C" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x000D" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0012" name="Off/on duration" type="u16" mfcode="0x115f" access="rw" required="m">
+            <description>Min. value is 0, max. value is 10, step is 0.5s</description>
+          </attribute>
+          <attribute id="0x0013" name="On/off duration" type="u16" mfcode="0x115f" access="rw" required="m">
+            <description>Min. value is 0, max. value is 10, step is 0.5s</description>
+          </attribute>
           <attribute id="0x00E8" name="Restart device" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00E9" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00EA" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x00EB" name="Pulse length" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x00EB" name="Pulse length" type="u16" mfcode="0x115f" access="rw" required="m">
+            <description>Impulse length in Dry mode with impulse.</description>
+          </attribute>
           <attribute id="0x00ED" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x00EE" name="Firmware" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x00F0" name="Reverse indicator light" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x00EE" name="Firmware" type="u32" mfcode="0x115f" access="r" required="m"></attribute>
+          <attribute id="0x00F0" name="Reverse indicator light" type="u8" mfcode="0x115f" access="rw" required="m">
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
           <attribute id="0x00F1" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00F3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00F4" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
@@ -6238,11 +6249,11 @@
           <attribute id="0x00FA" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00FB" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x00FC" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x00FE" name="Serial number" type="cstring" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x00FE" name="Serial number" type="cstring" mfcode="0x115f" access="r" required="m"></attribute>
           <attribute id="0x00FF" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"></attribute>
           <attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="r" required="m"></attribute>
           <attribute id="0x0102" name="Motion cool off time" type="u8" mfcode="0x115f" access="rw" required="m">
-            <description>Time in seconds when RTCGQ13LM sets motion to false if no further motion has been detected</description>
+            <description>Time in seconds when RTCGQ13LM sets motion to false if no further motion has been detected.</description>
           </attribute>
           <attribute id="0x010C" name="Detection sensitivity" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Motion sensitivity: 1 - low, 2 - medium, 3 - high</description>
@@ -6250,7 +6261,17 @@
             <value name="Medium" value="0x02"></value>
             <value name="High" value="0x03"></value>
           </attribute>
-          <attribute id="0x0112" name="Unknown" type="u32" mfcode="0x115f" access="r" required="m"></attribute>
+          <attribute id="0x010E" name="Sensitivity adjustment" type="u8" mfcode="0x115f" access="rw" required="m">
+            <value name="Low" value="0x01"></value>
+            <value name="Medium" value="0x02"></value>
+            <value name="High" value="0x03"></value>
+          </attribute>
+          <attribute id="0x0110" name="Report interval" type="u8" mfcode="0x115f" access="rw" required="m">
+            <value name="1s" value="0x01"></value>
+            <value name="5s" value="0x02"></value>
+            <value name="10s" value="0x03"></value>
+          </attribute>
+          <attribute id="0x0112" name="Illuminance" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0114" name="TVOC unit config" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>0 - µg/m³ + °C, 1 - ppb + °C, 16 - µg/m³ + °F, 17 - ppb + °F</description>
             <value name="µg/m³ + °C" value="0x00"></value>
@@ -6258,6 +6279,7 @@
             <value name="µg/m³ + °F" value="0x10"></value>
             <value name="ppb + °F" value="0x11"></value>
           </attribute>
+          <attribute id="0x0118" name="Movement" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0125" name="Click mode" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Click mode for wireless button. 
               fast: only supports single click but allows faster response time.
@@ -6304,38 +6326,130 @@
           <attribute id="0x0146" name="Approach distance" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x014B" name="Linkage alarm" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x014C" name="Linkage alarm state" type="bool" mfcode="0x115f" access="r" required="m"></attribute>
-          <attribute id="0x014D" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x014F" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x014D" name="PIR detection" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x014F" name="PIR detection interval" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Higher detection frequency results in higher accuracy but lower battery life.
+              Min. value is 2, max. value is 300, step is 1s</description>
+          </attribute>
           <attribute id="0x0152" name="Trigger indicator" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0157" name="Spatial learning" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x015B" name="Approach distance" type="u32" mfcode="0x115f" access="rw" required="m">
             <description>The configurable maximum detection distance in millimeters (default 600 = 6 meters).</description>
           </attribute>
+          <attribute id="0x015D" name="Adaptive sensitivity" type="u8" mfcode="0x115f" access="rw" required="m">
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
+          <attribute id="0x015E" name="AI interference source self-identification" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>AI interference source self-identification switch, when enabled can identify fans, air conditioners and other interference sources.</description>
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
           <attribute id="0x015F" name="Target distance" type="u32" mfcode="0x115f" access="rw" required="m">
             <description>Distance to detected person, in cm.</description>
           </attribute>
           <attribute id="0x0160" name="Motion" type="u8" mfcode="0x115f" access="rw" required="m">
+            <value name="Unknown1" value="0x00"></value>
+            <value name="Unknown2" value="0x01"></value>
             <value name="Idle" value="0x02"></value>
             <value name="Moving" value="0x03"></value>
             <value name="Still" value="0x04"></value>
           </attribute>
-          <attribute id="0x0162" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x0163" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x0164" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x0165" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x016A" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x016B" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x016C" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x0170" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x0192" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x0193" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x0194" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x0195" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x0196" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x0197" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x0198" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x0199" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x019A" name="Unknown" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0162" name="Temperature and humidity sampling period" type="u32" mfcode="0x115f" access="rw" required="m">
+            <description>Custom time interval for sampling data.</description>
+          </attribute>
+          <attribute id="0x0163" name="Temperature reporting interval" type="u32" mfcode="0x115f" access="rw" required="m">
+            <description>Custom time interval for temperature data reporting.</description>
+          </attribute>
+          <attribute id="0x0164" name="Temperature reporting threshold" type="u16" mfcode="0x115f" access="rw" required="m">
+            <description>Reporting will trigger as temperature change reaches this value when in custom mode.
+              Min. value is 0.2, max. value is 3, step is 0.1°C (value * 100)</description>
+          </attribute>
+          <attribute id="0x0165" name="Temperature reporting mode" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Temperature reporting type when in custom mode.</description>
+            <value name="No" value="0x00"></value>
+            <value name="Threshold" value="0x01"></value>
+            <value name="Reporting interval" value="0x02"></value>
+            <value name="Threshold and interval" value="0x03"></value>
+          </attribute>
+          <attribute id="0x0166" name="Low temperature alert" type="s16" mfcode="0x115f" access="rw" required="m">
+            <description>Min. value is -20, max. value is 20, step is 0.5°C (value * 100)</description>
+          </attribute>
+          <attribute id="0x0167" name="High temperature alert" type="s16" mfcode="0x115f" access="rw" required="m">
+            <description>Min. value is 26, max. value is 60, step is 0.5°C (value * 100)</description>
+          </attribute>
+          <attribute id="0x016A" name="Humidity reporting interval" type="u32" mfcode="0x115f" access="rw" required="m">
+            <description>Custom time interval for humidity data reporting.</description>
+          </attribute>
+          <attribute id="0x016B" name="Humidity reporting threshold" type="u16" mfcode="0x115f" access="rw" required="m">
+            <description>Reporting will trigger as humidity change reaches this value when in custom mode.
+              Min. value is 2, max. value is 15, step is 0.5%</description>
+          </attribute>
+          <attribute id="0x016C" name="Humidity reporting mode" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Humidity reporting type when in custom mode.</description>
+            <value name="No" value="0x00"></value>
+            <value name="Threshold" value="0x01"></value>
+            <value name="Reporting interval" value="0x02"></value>
+            <value name="Threshold and interval" value="0x03"></value>
+          </attribute>
+          <attribute id="0x016D" name="Low humidity alert" type="s16" mfcode="0x115f" access="rw" required="m">
+            <description>Min. value is 0, max. value is 30, step is 1%</description>
+          </attribute>
+          <attribute id="0x016E" name="High humidity alert" type="s16" mfcode="0x115f" access="rw" required="m">
+            <description>Min. value is 65, max. value is 100, step is 1%</description>
+          </attribute>
+          <attribute id="0x0170" name="Temperature and humidity sampling settings" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>"Sampling time frequency, increasing affects battery life. 
+              Setting to custom allows specifying period, interval and threshold.</description>
+            <value name="Off" value="0x00"></value>
+            <value name="Low" value="0x01"></value>
+            <value name="Medium" value="0x02"></value>
+            <value name="High" value="0x03"></value>
+            <value name="Custom" value="0x04"></value>
+          </attribute>
+          <attribute id="0x0173" name="Auto hide middle line" type="bool" mfcode="0x115f" access="rw" required="m">
+            <description>Applies only when thermostat mode is enabled. 
+             True: Hides the middle line after 30 seconds of inactivity. 
+             False: Always displays the middle line.</description>
+          </attribute>
+          <attribute id="0x0192" name="Light sampling" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Sampling time frequency, increasing affects battery life. 
+              Setting to custom allows specifying period, interval and threshold.</description>
+            <value name="Off" value="0x00"></value>
+            <value name="Low" value="0x01"></value>
+            <value name="Medium" value="0x02"></value>
+            <value name="High" value="0x03"></value>
+            <value name="Custom" value="0x04"></value>
+          </attribute>
+          <attribute id="0x0193" name="Light sampling period" type="u32" mfcode="0x115f" access="rw" required="m">
+            <description>How often illumination readings are taken on the device when in custom mode.
+              Min. value is 0.5, max. value is 3600, step is 0.5s</description>
+          </attribute>
+          <attribute id="0x0194" name="Light reporting interval" type="u32" mfcode="0x115f" access="rw" required="m">
+            <description>Custom interval for illumination data reporting.
+              Min. value is 20, max. value is 3600, step is 20s</description>
+          </attribute>
+          <attribute id="0x0195" name="Light reporting threshold" type="u16" mfcode="0x115f" access="rw" required="m">
+            <description>Reporting will trigger as illumination percentage change reaches this value when in custom mode.
+              Min. value is 3, max. value is 20, step is 0.5%</description>
+          </attribute>
+          <attribute id="0x0196" name="Light report mode" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Illumination reporting type when in custom mode.</description>
+            <value name="Threshold" value="0x01"></value>
+            <value name="Reporting interval" value="0x02"></value>
+            <value name="Threshold and interval" value="0x03"></value>
+          </attribute>
+          <attribute id="0x0197" name="Absence delay timer" type="u32" mfcode="0x115f" access="rw" required="m">
+            <description>Value for delay before the device reports absence when no presence is detected.
+              Min. value is 10, max. value is 300, step is 5s</description>
+          </attribute>
+          <attribute id="0x0198" name="Track target distance" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0199" name="Presence detection options" type="u8" mfcode="0x115f" access="rw" required="m">
+            <value name="Both" value="0x00"></value>
+            <value name="mmWave" value="0x01"></value>
+            <value name="PIR" value="0x02"></value>
+          </attribute>
+          <attribute id="0x019A" name="Read detection range" type="ostring" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0200" name="Decoupled mode" type="u8" mfcode="0x115f" access="rw" required="m">
             <value name="Decoupled" value="0x00"></value>
             <value name="Control relay" value="0x01"></value>
@@ -6371,8 +6485,8 @@
             <value name="On" value="0x01"></value>
           </attribute>
         </attribute-set>
-        <attribute-set id="0x0270" description="Smart Radiator Thermostat E1">
-          <attribute id="0x0270" name="Calibrate" type="u8" mfcode="0x115f" access="rw" required="m">
+        <attribute-set id="0x0270" description="Floor/radiator thermostat">
+          <attribute id="0x0270" name="Calibrates the valve" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Write 1 to calibrate</description>
           </attribute>
           <attribute id="0x0271" name="System mode" type="u8" mfcode="0x115f" access="rw" required="m">
@@ -6403,21 +6517,44 @@
             <value name="Off" value="0x00"></value>
             <value name="On" value="0x01"></value>
           </attribute>
-          <attribute id="0x0279" name="Away preset temperature" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0279" name="Away preset temperature" type="u32" mfcode="0x115f" access="rw" required="m">
+            <description>Min. value is 0, max. value is 30, step is 0.5°C (value * 100)</description>
+          </attribute>
           <attribute id="0x027A" name="Window open" type="u8" mfcode="0x115f" access="r" required="m">
             <value name="Closed" value="0x00"></value>
             <value name="Open" value="0x01"></value>
           </attribute>
-          <attribute id="0x027B" name="Calibrated" type="u8" mfcode="0x115f" access="r" required="m">
-            <description>Calibrated: 0 - false, 1 - true</description>
+          <attribute id="0x027B" name="State of calibrate" type="u8" mfcode="0x115f" access="r" required="m">
+            <value name="Not ready" value="0x00"></value>
+            <value name="Ready" value="0x01"></value>
+            <value name="Error" value="0x02"></value>
+            <value name="In progress" value="0x03"></value>
           </attribute>
-          <attribute id="0x027D" name="Schedule" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0x027E" name="External sensor" type="u8" mfcode="0x115f" access="r" required="m">
+          <attribute id="0x027D" name="Schedule helper" type="u8" mfcode="0x115f" access="rw" required="m">
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
+          <attribute id="0x027E" name="External sensor" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Temperature sensor: 0 - internal, 1 - external</description>
             <value name="Internal" value="0x00"></value>
             <value name="External" value="0x01"></value>
           </attribute>
-          <attribute id="0x0289" name="Switch mode" type="u8" mfcode="0x115f" access="r" required="m">
+          <attribute id="0x0280" name="Temperature sensor source" type="u8" mfcode="0x115f" access="rw" required="m">
+            <value name="Internal" value="0x00"></value>
+            <value name="External" value="0x01"></value>
+            <value name="NTC" value="0x02"></value>
+          </attribute>
+          <attribute id="0x0285" name="Lock relay" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Locks relay and prevents it from operating.</description>
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
+          <attribute id="0x0286" name="Multi click" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Enable multi-click mode for the switch, otherwise single click.</description>
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
+          <attribute id="0x0289" name="Switch mode" type="u8" mfcode="0x115f" access="rw" required="m">
             <value name="Power" value="0x00"></value>
             <value name="Pulse" value="0x01"></value>
             <value name="Dry" value="0x03"></value>
@@ -6426,36 +6563,103 @@
             <value name="Leading" value="0x00"></value>
             <value name="Trailing" value="0x01"></value>
           </attribute>
+          <attribute id="0x030C" name="Hysteresis" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Min. value is 0, max. value is 3, step is 0.5°C (value * 100)</description>
+          </attribute>
+          <attribute id="0x0310" name="State" type="u8" mfcode="0x115f" access="r" required="m">
+            <value name="Working" value="0x00"></value>
+            <value name="Idle" value="0x02"></value>
+          </attribute>
+          <attribute id="0x0311" name="Preset" type="u8" mfcode="0x115f" access="rw" required="m">
+            <value name="Home" value="0x01"></value>
+            <value name="Away" value="0x02"></value>
+            <value name="Sleep" value="0x03"></value>
+            <value name="Vacation" value="0x05"></value>
+            <value name="Evening" value="0x06"></value>
+            <value name="Manual" value="0x08"></value>
+          </attribute>
+          <attribute id="0x0315" name="NTC sensor type (k - KOhm)" type="u32" mfcode="0x115f" access="rw" required="m">
+            <description>ntc_10k: 10, ntc_50k: 50, ntc_100k: 100, unknown: 10000</description>
+          </attribute>
+          <attribute id="0x0330" name="Display flip" type="u8" mfcode="0x115f" access="rw" required="m">
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
+          <attribute id="0x0360" name="Valve position" type="float" mfcode="0x115f" access="r" required="m">
+            <description>Min. value is 0, max. value is 100, step is 1%</description>
+          </attribute>
         </attribute-set>
-        <attribute-set id="0x0400" description="Aqara Roller Shade Driver E1">
-          <attribute id="0x0400" name="Reverse direction" type="bool" mfcode="0x115f" access="rw" required="o">
+        <attribute-set id="0x0400" description="Roller Shade Driver E1">
+          <attribute id="0x0400" name="Reverse direction" type="bool" mfcode="0x115f" access="rw" required="m">
             <description>Reverse the direction of up/open and down/close.</description>
           </attribute>
-          <attribute id="0x0401" name="Hand open" type="bool" mfcode="0x115f" access="rw" required="o"></attribute>
-          <attribute id="0x0402" name="Positions stored" type="bool" mfcode="0x115f" access="rw" required="o">
+          <attribute id="0x0401" name="Hand open" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0402" name="Positions stored" type="bool" mfcode="0x115f" access="rw" required="m">
             <description>Position clearing: write false to clear the stored up/open and down/close positions.</description>
           </attribute>
-          <attribute id="0x0407" name="Store position" type="u8" mfcode="0x115f" access="rw" required="o">
+          <attribute id="0x0403" name="Traverse time" type="u8" mfcode="0x115f" access="r" required="m">
+            <description>Time in seconds to get from one end to another.</description>
+          </attribute>
+          <attribute id="0x0404" name="Identify beep" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>Device will beep for chosen time duration.</description>
+            <value name="Short" value="0x00"></value>
+            <value name="1s" value="0x01"></value>
+            <value name="2s" value="0x02"></value>
+          </attribute>
+          <attribute id="0x0407" name="Store position" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Position setting: write 1 to store the up/open position, 2 to store the down/close position.</description>
           </attribute>
-          <attribute id="0x0408" name="Motor speed" type="u8" mfcode="0x115f" access="rw" required="o">
+          <attribute id="0x0408" name="Motor speed" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Motor speed: 2: high, 1: medium, 0: low.</description>
             <value name="Low" value="0x00"></value>
             <value name="Medium" value="0x01"></value>
             <value name="High" value="0x02"></value>
           </attribute>
-          <attribute id="0x0409" name="Charging status" type="u8" mfcode="0x115f" access="r" required="o">
+          <attribute id="0x0409" name="Charging status" type="u8" mfcode="0x115f" access="r" required="m">
             <description>Battery charging state: 1: charging, 2: not charging.</description>
             <value name="Charging" value="0x01"></value>
             <value name="Not charging" value="0x02"></value>
           </attribute>
           <attribute id="0x040A" name="Battery" type="u8" mfcode="0x115f" access="r" required="m"></attribute>
           <attribute id="0x040B" name="Voltage" type="u8" mfcode="0x115f" access="r" required="m"></attribute>
-          <attribute id="0x0427" name="Hooks lock" type="u8" mfcode="0x115f" access="rw" required="o"></attribute>
-          <attribute id="0x0428" name="Hooks state" type="u8" mfcode="0x115f" access="rw" required="o"></attribute>
-          <attribute id="0x0429" name="Light level" type="u8" mfcode="0x115f" access="rw" required="o"></attribute>
+          <attribute id="0x041F" name="Curtain position" type="u8" mfcode="0x115f" access="r" required="m"></attribute>
+          <attribute id="0x0421" name="Status" type="u8" mfcode="0x115f" access="r" required="m">
+            <description>Current status of the curtain (Opening, Closing, Stopped, Blocked)</description>
+            <value name="Closing" value="0x00"></value>
+            <value name="Opening" value="0x01"></value>
+            <value name="Stopped" value="0x02"></value>
+            <value name="Blocked" value="0x03"></value>
+          </attribute>
+          <attribute id="0x0425" name="Last manual operation" type="u8" mfcode="0x115f" access="r" required="m">
+            <description>Last triggered manual operation</description>
+            <value name="Open" value="0x01"></value>
+            <value name="Closed" value="0x02"></value>
+            <value name="Stop" value="0x03"></value>
+          </attribute>
+          <attribute id="0x0426" name="Calibration status" type="u8" mfcode="0x115f" access="r" required="m">
+            <description>Calibration status of the curtain (Not calibrated, Half calibrated, Fully calibrated)</description>
+            <value name="Not calibrated" value="0x00"></value>
+            <value name="Half calibrated" value="0x01"></value>
+            <value name="Fully calibrated" value="0x02"></value>
+          </attribute>
+          <attribute id="0x0427" name="Hooks lock" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0428" name="Hooks state" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0429" name="Light level" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x043A" name="Manual stop" type="bool" mfcode="0x115f" access="rw" required="m">
+            <description>Manually pulling the curtain during operation stops the motor.</description>
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
+          <attribute id="0x043B" name="Curtain speed" type="u8" mfcode="0x115f" access="r" required="m">
+            <description>Min. value is 0, max. value is 100, step is 1%</description>
+          </attribute>
+          <attribute id="0x0442" name="Adaptive pulling speed" type="u8" mfcode="0x115f" access="rw" required="m">
+            <description>The faster/slower the curtain is pulled manually, the faster/slower the curtain will move.</description>
+            <value name="Off" value="0x00"></value>
+            <value name="On" value="0x01"></value>
+          </attribute>
         </attribute-set>
-        <attribute-set id="0x0500" description="Aqara LED Strip T1">
+        <attribute-set id="0x0500" description="LED Strip T1">
           <attribute id="0x0515" name="Min. dim level (%)" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0516" name="Max. dim level (%)" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0x0517" name="Power on state" type="u8" mfcode="0x115f" access="rw" required="m">
@@ -6496,6 +6700,7 @@
             <value name="Scan" value="0x07"></value>
           </attribute>
           <attribute id="0x0520" name="Speed" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
+          <attribute id="0x0528" name="Transition curve curvature" type="float" mfcode="0x115f" access="rw" required="m"></attribute>
         </attribute-set>
         <attribute-set id="0x0700" description="Unknown">
           <attribute id="0x0700" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"></attribute>
@@ -6512,12 +6717,12 @@
           <attribute id="0x07C0" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0xF000" name="Report consumer connected" type="u8" mfcode="0x115f" access="rw" required="m">
             <description>Report Consumer Connected: 1 - false, 0 - true</description>
-            <value name="On" value="0"></value>
-            <value name="Off" value="1"></value>
+            <value name="On" value="0x00"></value>
+            <value name="Off" value="0x01"></value>
           </attribute>
           <attribute id="0xF001" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
           <attribute id="0xF002" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"></attribute>
-          <attribute id="0xFFF2" name="External temperature" type="ostring" mfcode="0x115f" access="r" required="m">
+          <attribute id="0xFFF2" name="External temperature" type="ostring" mfcode="0x115f" access="rw" required="m">
             <description>Could used to write external temperature values to TRV</description>
           </attribute>
           <attribute id="0xFFFD" name="Cluster Revision" type="u16" mfcode="0x115f" access="rw" required="m"></attribute>
@@ -6527,9 +6732,9 @@
       </client>
     </cluster>
 
-    <!-- AQARA -->
+    <!-- Mija -->
     <cluster id="0xfcc0" name="Mija specific" mfcode="0x1234">
-      <description>Aqara specific attributes.</description>
+      <description>Mija specific attributes.</description>
       <server>
         <attribute-set id="0x0000" description="Unknown">
           <attribute id="0x0001" name="Unknown" type="u16" access="rw" required="m"></attribute>
@@ -6744,7 +6949,6 @@
       <client>
       </client>
     </cluster>
-
 
     <!-- THIRD REALITY -->
     <cluster id="0xfc00" name="Third Reality specific" mfcode="0x130d">
@@ -7031,35 +7235,95 @@
     </cluster>
 
     <!-- HEIMAN -->
+    <cluster id="0xfc8b" name="Heiman specific" mfcode="0x120B">
+      <description>Heiman specific attributes.</description>
+      <server>
+        <attribute id="0xF001" name="Enable indicator" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0xF002" name="Sensitivity" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0xF006" name="Enable subregion isolation" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0xF007" name="Installation method" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0xF008" name="Cell mounted table" type="ostring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0xF009" name="Wall mounted table" type="ostring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0xF00A" name="Subregion isolation table" type="ostring" mfcode="0x120B" access="rw" required="m"></attribute>
+      </server>
+      <client>
+      </client>
+    </cluster>
+
     <cluster id="0xfc90" name="Heiman specific" mfcode="0x120B">
       <description>Heiman specific attributes.</description>
       <server>
+        <attribute id="0x0000" name="Preheating" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
         <attribute id="0x0001" name="Self-test" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
         <attribute id="0x0002" name="Fault" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x0008" name="Buzzer manual mute" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x0009" name="Muted" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x0012" name="Siren for automation" type="enum8" mfcode="0x120B" access="r" required="m">
+        <attribute id="0x0003" name="Pollution level" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0004" name="Sensitivity level" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0005" name="Prealarm threshold" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0006" name="Life state" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0007" name="Life time" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0008" name="Device mute control" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0009" name="Device mute state" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x000A" name="Cascade control enable" type="bmp8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x000B" name="Sound tone type" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x000C" name="Sound control" type="array" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x000D" name="Blink control" type="array" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x000E" name="Smoke ad value" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x000F" name="Smoke alarm type" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0010" name="Smoke water mist state" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0011" name="Smoke sensor data" type="array" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0012" name="Device cascade state" type="enum8" mfcode="0x120B" access="rw" required="m">
           <value name="Stop" value="0x00"></value>
           <value name="Smoke siren" value="0x01"></value>
           <value name="CO siren" value="0x02"></value>
         </attribute>
-        <attribute id="0x0016" name="Smoke level" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x0017" name="Chamber contamination" type="enum8" mfcode="0x120B" access="rw" required="m">
+        <attribute id="0x0013" name="Prealarm state" type="enum8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0016" name="Smoke concentration level" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x0017" name="Smoke chamber contamination level" type="u8" mfcode="0x120B" access="rw" required="m">
           <value name="Normal" value="0x00"></value>
           <value name="Light contamination" value="0x01"></value>
           <value name="Medium contamination" value="0x02"></value>
           <value name="Critical contamination" value="0x03"></value>
         </attribute>
-        <attribute id="0x0018" name="Smoke unit" type="enum8" mfcode="0x120B" access="rw" required="m">
+        <attribute id="0x0018" name="Smoke concentration unit" type="u8" mfcode="0x120B" access="rw" required="m">
           <value name="dbm" value="0x00"></value>
           <value name="pct ft obs" value="0x01"></value>
         </attribute>
         <attribute id="0x0019" name="Rebooted count" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
         <attribute id="0x001A" name="Rejoined count" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
         <attribute id="0x001B" name="Reported packages" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x1004" name="Heartbeat indicator" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x1007" name="Interconnectabler" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
-        <attribute id="0x1009" name="Remote test" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1000" name="Indicator light control" type="bmp8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1001" name="Indicator light not disturb start time" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1002" name="Indicator light not disturb end time" type="u16" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1003" name="Indicator light not disturb enable" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1004" name="Indicator light level control of 1" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1005" name="Indicator light level control of 2" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1006" name="Indicator light level control of 3" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1007" name="Interconnectable" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1008" name="Smoke unit" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1009" name="Rebooted count" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x1009" name="Rebooted count" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x100A" name="Rejoined count" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x100B" name="Reported packages" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2000" name="WiFi SSID" type="cstring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2001" name="WiFi password" type="cstring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2002" name="WiFi SSID candidate" type="cstring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2003" name="WiFi password candidate" type="cstring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2004" name="Picture quantity" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2005" name="Picture quality" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2006" name="Server address" type="cstring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2007" name="Server address candidate" type="cstring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2008" name="Server port" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2009" name="Auth token" type="cstring" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x200A" name="Zone capture mode" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x200B" name="Sensor armed" type="u8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x200C" name="WiFi status" type="u8" mfcode="0x120B" access="r" required="m"></attribute>
+        <attribute id="0x200D" name="WiFi candidate status" type="u8" mfcode="0x120B" access="r" required="m"></attribute>
+        <attribute id="0x200E" name="WiFi RSSI" type="s8" mfcode="0x120B" access="r" required="m"></attribute>
+        <attribute id="0x200F" name="Server status" type="s8" mfcode="0x120B" access="r" required="m"></attribute>
+        <attribute id="0x2010" name="Server candidate status" type="s8" mfcode="0x120B" access="r" required="m"></attribute>
+        <attribute id="0x2012" name="Flash light brightness" type="s8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2013" name="Camera ready" type="s8" mfcode="0x120B" access="rw" required="m"></attribute>
+        <attribute id="0x2014" name="Camera mode" type="s8" mfcode="0x120B" access="rw" required="m"></attribute>
       </server>
       <client>
       </client>
@@ -7110,17 +7374,43 @@
         </attribute>
         <attribute id="0x0002" name="Calibration opening time" type="u32" mfcode="0x1209" access="rw" required="m"></attribute>
         <attribute id="0x0003" name="Calibration closing time" type="u32" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0004" name="Unknown" type="bmp8" mfcode="0x1209" access="rw" required="m"></attribute>
         <attribute id="0x0005" name="Calibration button hold time" type="u8" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0006" name="Auto off enabled" type="bool" mfcode="0x1209" access="rw" required="m">
+          <value name="Off" value="0x00"></value>
+          <value name="On" value="0x01"></value>
+        </attribute>
+        <attribute id="0x0007" name="Auto off time" type="u16" mfcode="0x1209" access="rw" required="m"></attribute>
         <attribute id="0x0008" name="Child lock" type="bool" mfcode="0x1209" access="rw" required="m">
           <value name="Off" value="0x00"></value>
           <value name="On" value="0x01"></value>
         </attribute>
+        <attribute id="0x0010" name="Slat rotation duration one" type="u32" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0011" name="Slat rotation duration two" type="u32" mfcode="0x1209" access="rw" required="m"></attribute>
         <attribute id="0x000F" name="Calibration motor start delay" type="u8" mfcode="0x1209" access="rw" required="m"></attribute>
         <attribute id="0x0013" name="Motor state" type="enum8" mfcode="0x1209" access="r" required="m">
           <value name="Idle" value="0x00"></value>
           <value name="Opening" value="0x01"></value>
           <value name="Closing" value="0x02"></value>
         </attribute>
+        <attribute id="0x0021" name="Calibration motor end position" type="u8" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0022" name="Dimmer type" type="enum8" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0024" name="Pulse length" type="u16" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0025" name="Minimum brightness" type="u8" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0026" name="Maximum brightness" type="u8" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x002A" name="Unknown" type="bool" mfcode="0x1209" access="rw" required="m">
+          <value name="Off" value="0x00"></value>
+          <value name="On" value="0x01"></value>
+        </attribute>
+        <attribute id="0x0031" name="Switch mode" type="enum8" mfcode="0x1209" access="rw" required="m">
+          <value name="Coupled" value="0x00"></value>
+          <value name="Decoupled" value="0x01"></value>
+          <value name="Only short press decoupled" value="0x02"></value>
+          <value name="Only long press decoupled" value="0x03"></value>
+        </attribute>
+        <attribute id="0x0032" name="Calibration motor reverse direction" type="bool" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0033" name="Calibration new motor start delay" type="u16" mfcode="0x1209" access="rw" required="m"></attribute>
+        <attribute id="0x0034" name="Actuator type" type="enum8" mfcode="0x1209" access="rw" required="m"></attribute>
         <attribute id="0xfffd" name="Cluster Revision" type="u16" mfcode="0x1209" access="r" required="m"></attribute>
       </server>
       <client>
@@ -7128,7 +7418,7 @@
     </cluster>
 
     <cluster id="0xfdee" name="AIR Measurement Config" mfcode="0x1155">
-      <description>BOSCH Thermotechnik indoor air quality configuration</description>
+      <description>BOSCH Thermotechnik indoor air quality configuration.</description>
       <server>
         <attribute id="0x4001" name="Unknown" type="enum8" required="m" access="r" default="0">
           <description></description>
@@ -7154,7 +7444,7 @@
     </cluster>
 
     <cluster id="0xfdef" name="AIR Measurement" mfcode="0x1155">
-      <description>BOSCH Thermotechnik indoor air quality</description>
+      <description>BOSCH Thermotechnik indoor air quality.</description>
       <server>
         <attribute id="0x4001" name="Air pressure" type="u16" required="m" access="r" default="0">
           <description>Air pressure (mBar)</description>
