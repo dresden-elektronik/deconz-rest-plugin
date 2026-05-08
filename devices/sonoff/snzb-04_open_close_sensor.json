@@ -6,14 +6,16 @@
     "eWeLink",
     "zbeacon",
     "eWeLink",
-    "eWeLink"
+    "eWeLink",
+    "SONOFF"
   ],
   "modelid": [
     "CK-TLSR8656-SS5-01(7003)",
     "DS01",
     "DS01",
+    "SNZB-04",
     "SNZB-04P",
-    "SNZB-04"
+    "SNZB-04PR2"
   ],
   "vendor": "Sonoff/eWeLink",
   "product": "Open/close sensor (DS01)",
@@ -119,8 +121,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
-          "max": 7200,
+          "min": 7200,
+          "max": 43200,
           "change": "0x00000002"
         }
       ]
