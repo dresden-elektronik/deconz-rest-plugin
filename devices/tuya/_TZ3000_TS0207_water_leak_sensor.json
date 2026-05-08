@@ -21,9 +21,11 @@
     "_TZ3000_arw23zcs",
     "_TZ3000_amis43tj",
     "_TZ3000_wuep9zng",
+    "_TZ3000_abaplimj",
     "_TZ3000_upgcbody"
   ],
   "modelid": [
+    "TS0207",
     "TS0207",
     "TS0207",
     "TS0207",
@@ -115,6 +117,7 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 43260,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -162,8 +165,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
-          "max": 14400,
+          "min": 7200,
+          "max": 43200,
           "change": "0x00000001"
         }
       ]
