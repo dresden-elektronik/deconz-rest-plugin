@@ -22,7 +22,10 @@
         "endpoint": "0x01",
         "in": [
           "0x0000",
-          "0x0201"
+          "0x0001",
+          "0x0201",
+          "0x0204",
+          "0xFC11"
         ]
       },
       "meta": {
@@ -64,7 +67,7 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
+          "refresh.interval": 43260,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -111,6 +114,7 @@
         },
         {
           "name": "config/locked",
+          "refresh.interval": 3660,
           "read": {
             "at": "0x0000",
             "cl": "0xFC11",
@@ -197,7 +201,8 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/windowopen_set",
+          "name": "config/windowopendetectionenabled",
+          "refresh.interval": 3660,
           "read": {
             "at": "0x6000",
             "cl": "0xFC11",
@@ -271,7 +276,7 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
+          "min": 7200,
           "max": 43200,
           "change": "0x00000002"
         }
