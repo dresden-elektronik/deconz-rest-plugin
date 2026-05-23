@@ -21,9 +21,9 @@
         "device": "0x0301",
         "endpoint": "0x01",
         "in": [
+          "0x0000",
           "0x0201",
-          "0x0204",
-          "0x0B05"
+          "0x0204"
         ]
       },
       "meta": {
@@ -149,7 +149,7 @@
         },
         {
           "name": "config/mode",
-          "refresh.interval": 3600,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x001C",
             "cl": "0x0201",
@@ -203,7 +203,7 @@
         },
         {
           "name": "config/preset",
-          "refresh.interval": 3600,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x4007",
             "cl": "0x0201",
