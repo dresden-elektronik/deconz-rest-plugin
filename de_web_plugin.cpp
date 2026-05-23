@@ -3305,6 +3305,20 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
                     updateLightEtag(&*i);
                     Event e(RLights, RStateReachable, i->id(), item);
                     enqueueEvent(e);
+                    
+                    if(!item->toBool())
+                    {
+                        item = i->item(RStateOn);
+
+                        if(item && item->toBool() && i->type().contains("light"))
+                        {
+                            i->setNeedSaveDatabase(true);
+                            item->setValue(false);
+                            updateLightEtag(&*i);
+                            Event e(RLights, RStateOn, i->id(), item);
+                            enqueueEvent(e);
+                        }
+                    }
                 }
             }
         }
