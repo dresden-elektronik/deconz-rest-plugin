@@ -35,7 +35,7 @@
           "name": "Wheel"
         }
       },
-      "xbuttonevents": {
+      "buttonevents": {
         "1002": {
           "action": "SHORT_RELEASE",
           "button": 1
