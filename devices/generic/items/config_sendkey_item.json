@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/sendkey",
+  "datatype": "String",
+  "access": "RW",
+  "public": true,
+  "description": "Send a code."
+}
