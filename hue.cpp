@@ -9,12 +9,35 @@
 
 #define HUE_EFFECTS_CLUSTER_ID 0xFC03
 
+// Constants for 'timed_effect duration'
+#define RESOLUTION_01s_BASE 0xFC
+#define RESOLUTION_05s_BASE 0xCC
+#define RESOLUTION_15s_BASE 0xA5
+#define RESOLUTION_01m_BASE 0x79
+#define RESOLUTION_05m_BASE 0x4A
+
+#define RESOLUTION_01s (1 * 10)         // 01s.
+#define RESOLUTION_05s (5 * 10)         // 05s.
+#define RESOLUTION_15s (15 * 10)        // 15s.
+#define RESOLUTION_01m (1 * 60 * 10)    // 01min.
+#define RESOLUTION_05m (5 * 60 * 100)   // 05min.
+
+#define RESOLUTION_01s_LIMIT (60 * 10)          // 01min.
+#define RESOLUTION_05s_LIMIT (5 * 60 * 10)      // 05min.
+#define RESOLUTION_15s_LIMIT (15 * 60 * 10)     // 15min.
+#define RESOLUTION_01m_LIMIT (60 * 60 * 10)     // 60min.
+#define RESOLUTION_05m_LIMIT (6 * 60 * 60 * 10) // 06hrs.
+
+// List of 'state' keys that can be mapped into the '0xfc03' cluster's '0x00' command.
+QList<QString> supportedStateKeys = {"on", "bri", "ct", "xy", "transitiontime", "effect", "effect_duration", "effect_speed"};
+
 struct code {
     quint8 value;
     QString name;
 };
 
 code effects[] = {
+    { 0x00, QLatin1String("none") },
     { 0x01, QLatin1String("candle") },
     { 0x02, QLatin1String("fire") },
     { 0x03, QLatin1String("prism") },
@@ -39,6 +62,39 @@ quint8 effectNameToValue(QString &effectName)
         }
     }
     return 0xFF;
+}
+
+/*! Test if a LightNode is a Philips Hue light that supports effects.
+    \param lightNode - the light node to test
+ */
+bool DeRestPluginPrivate::isHueEffectLight(const LightNode *lightNode)
+{
+    return lightNode != nullptr &&
+           lightNode->manufacturerCode() == VENDOR_PHILIPS &&
+           lightNode->item(RCapColorEffects);
+}
+
+/*! Test whether all the items in a request can be mapped into an '0xfc03' cluster command.
+    \param map - the map to test
+ */
+bool DeRestPluginPrivate::isMappableToManufacturerSpecific(const QVariantMap &map)
+{
+    const QList<QString> keyList = map.keys();
+    for (const QString &key : keyList)
+    {
+        // Ensure 'effect' is not 'colorloop' - that's handled through the ZCL
+        if ((key == "effect") && (map[key].toString() == "colorloop"))
+        {
+            return false;
+        }
+
+        if (!supportedStateKeys.contains(key))
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /*! Return a list of effect names corresponding to the bitmap of supported effects.
@@ -333,4 +389,330 @@ bool DeRestPluginPrivate::addTaskHueGradient(TaskItem &task, QVariantMap &gradie
         task.zclFrame.writeToStream(stream);
     }
     return addTask(task);
+}
+
+/*! Add a Hue Manufacturer Specific '0xfc03' '0x00' task to the queue.
+
+   \param task - the task item
+   \param items - the list of items in the payload
+   \return true - on success
+           false - on error
+ */
+bool DeRestPluginPrivate::addTaskHueManufacturerSpecific(TaskItem &task, HueManufacturerSpecificPayloads &payloadItems, QVariantMap &items)
+{
+    task.taskType = TaskHueManufacturerSpecific;
+    task.req.setClusterId(HUE_EFFECTS_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(0x00);
+    task.zclFrame.setManufacturerCode(VENDOR_PHILIPS);
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                                  deCONZ::ZclFCManufacturerSpecific |
+                                  deCONZ::ZclFCDirectionClientToServer |
+                                  deCONZ::ZclFCDisableDefaultResponse);
+
+    { // Payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        // Set payload contents
+        stream << (quint16)payloadItems;
+
+        // !!!: The order the items are processed in is important
+
+        if (payloadItems.testFlag(HueManufacturerSpecificPayload::On))
+        {
+            stream << (quint8)(items["on"].toUInt());
+        }
+
+        if (payloadItems.testFlag(HueManufacturerSpecificPayload::Brightness))
+        {
+            stream << (quint8)(items["bri"].toUInt());
+        }
+
+        if (payloadItems.testFlag(HueManufacturerSpecificPayload::ColorTemperature))
+        {
+            stream << (quint16)(items["ct"].toUInt());
+        }
+
+        if (payloadItems.testFlag(HueManufacturerSpecificPayload::Color))
+        {
+            stream << (quint32)(items["xy"].toUInt());
+        }
+
+        if (payloadItems.testFlag(HueManufacturerSpecificPayload::TransitionTime))
+        {
+            stream << (quint16)(items["transitiontime"].toUInt());
+        }
+
+        if (payloadItems.testFlag(HueManufacturerSpecificPayload::Effect))
+        {
+            stream << (quint8)(items["effect"].toUInt());
+        }
+
+        if (payloadItems.testFlag(HueManufacturerSpecificPayload::EffectDuration))
+        {
+            stream << (quint8)(items["effect_duration"].toUInt());
+        }
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
+int DeRestPluginPrivate::setHueLightState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
+{
+    bool ok;
+    QVariantMap itemList;
+    QString id = req.path[3];
+    HueManufacturerSpecificPayloads payloadItems(HueManufacturerSpecificPayload::None);
+
+    QMap<QString, QVariant> rspItemStates;
+    QMap<const char *, QVariant> stateValues;
+
+    for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
+    {
+        bool paramOk = false;
+        bool valueOk = false;
+        QString param = p.key();
+
+        if (param == "on" && taskRef.lightNode->item(RStateOn))
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Bool)
+            {
+                valueOk = true;
+                payloadItems.setFlag(HueManufacturerSpecificPayload::On);
+                bool targetOn = map[param].toBool();
+
+                itemList["on"] = QVariant(targetOn ? 0x01 : 0x00);
+                rspItemStates[param] = targetOn;
+
+                stateValues[RStateOn] = QVariant(targetOn);
+            }
+        }
+        else if (param == "bri" && taskRef.lightNode->item(RStateBri))
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const uint bri = map[param].toUInt(&ok);
+                if (ok && bri <= 0xFF)
+                {
+                    valueOk = true;
+                    payloadItems.setFlag(HueManufacturerSpecificPayload::Brightness);
+                    quint8 targetBri = bri > 0xFE ? 0xFE : bri;
+
+                    itemList["bri"] = QVariant(targetBri);
+                    rspItemStates[param] = targetBri;
+
+                    stateValues[RStateBri] = QVariant(targetBri);
+                }
+            }
+        }
+        else if (param == "ct"  && taskRef.lightNode->item(RStateCt))
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const quint16 ctMin = taskRef.lightNode->toNumber(RCapColorCtMin);
+                const quint16 ctMax = taskRef.lightNode->toNumber(RCapColorCtMax);
+                const uint ct = map[param].toUInt(&ok);
+                if (ok && ct <= 0xFFFF)
+                {
+                    valueOk = true;
+                    payloadItems.setFlag(HueManufacturerSpecificPayload::ColorTemperature);
+                    quint16 targetCt = (ctMin < 500 && ct < ctMin) ? ctMin : (ctMax > ctMin && ct > ctMax) ? ctMax : ct;
+
+                    itemList["ct"] = QVariant(targetCt);
+                    rspItemStates[param] = targetCt;
+
+                    stateValues[RStateCt] = QVariant(targetCt);
+                    stateValues[RStateColorMode] = QVariant(QString("ct"));
+                }
+            }
+        }
+        else if (param == "xy" && taskRef.lightNode->item(RStateX) && taskRef.lightNode->item(RStateY))
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::List)
+            {
+                QVariantList xy = map["xy"].toList();
+                if (xy[0].type() == QVariant::Double && xy[1].type() == QVariant::Double)
+                {
+                    const double x = xy[0].toDouble(&ok);
+                    const double y = ok ? xy[1].toDouble(&ok) : 0;
+                    if (ok && x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0)
+                    {
+                        valueOk = true;
+                        quint16 colorX = static_cast<quint16>((x > 0.9961 ? 0.9961 : x) * 65535.0);
+                        quint16 colorY = static_cast<quint16>((y > 0.9961 ? 0.9961 : y) * 65535.0);
+
+                        if (colorX > 65279) { colorX = 65279; }
+                        else if (colorX == 0) { colorX = 1; }
+
+                        if (colorY > 65279) { colorY = 65279; }
+                        else if (colorY == 0) { colorY = 1; }
+
+                        payloadItems.setFlag(HueManufacturerSpecificPayload::Color);
+                        itemList["xy"] = QVariant((colorY << 16) + colorX);
+
+                        QVariantList xy;
+                        xy.append(colorX);
+                        xy.append(colorY);
+                        rspItemStates[param] = xy;
+
+                        stateValues[RStateX] = QVariant(colorX);
+                        stateValues[RStateY] = QVariant(colorY);
+                        stateValues[RStateColorMode] = QVariant(QString("xy"));
+                    }
+                    else
+                    {
+                        valueOk = true;
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/xy").arg(id), QString("invalid value, [%1,%2], for parameter, xy").arg(xy[0].toString()).arg(xy[1].toString())));
+                    }
+                }
+            }
+        }
+        else if (param == "transitiontime")
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const uint tt = map[param].toUInt(&ok);
+                if (ok && tt <= 0xFFFF)
+                {
+                    valueOk = true;
+                    payloadItems.setFlag(HueManufacturerSpecificPayload::TransitionTime);
+                    quint16 transitionTime = tt > 0xFFFE ? 0xFFFE : tt;
+
+                    itemList["transitiontime"] = QVariant(transitionTime);
+                    rspItemStates[param] = transitionTime;
+                }
+            }
+        }
+        else if (param == "effect" && taskRef.lightNode->item(RStateEffect))
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::String)
+            {
+                QString e = map[param].toString();
+                QStringList effectList = getHueEffectNames(taskRef.lightNode->item(RCapColorEffects)->toNumber(), false);
+                if (effectList.indexOf(e) >= 0)
+                {
+                    valueOk = true;
+                    payloadItems.setFlag(HueManufacturerSpecificPayload::Effect);
+
+                    itemList["effect"] = QVariant(effectNameToValue(e));
+                    rspItemStates[param] = e;
+
+                    stateValues[RStateEffect] = QVariant(e);
+                    stateValues[RStateColorMode] = QVariant(QString("effect"));
+                }
+            }
+        }
+        else if (param == "effect_duration")
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const uint ed = map[param].toUInt(&ok);
+                if (ok && ed <= 216000)
+                {
+                    valueOk = true;
+
+                    uint resolutionBase = (ed == 0) ? 0 :
+                                        (ed < RESOLUTION_01s_LIMIT) ? RESOLUTION_01s_BASE :
+                                        (ed < RESOLUTION_05s_LIMIT) ? RESOLUTION_05s_BASE :
+                                        (ed < RESOLUTION_15s_LIMIT) ? RESOLUTION_15s_BASE :
+                                        (ed < RESOLUTION_01m_LIMIT) ? RESOLUTION_01m_BASE :
+                                        (ed < RESOLUTION_05m_LIMIT) ? RESOLUTION_05m_BASE : 0;
+
+                    uint resolution = (ed == 0) ? 1 :
+                                    (ed < RESOLUTION_01s_LIMIT) ? RESOLUTION_01s :
+                                    (ed < RESOLUTION_05s_LIMIT) ? RESOLUTION_05s :
+                                    (ed < RESOLUTION_15s_LIMIT) ? RESOLUTION_15s :
+                                    (ed < RESOLUTION_01m_LIMIT) ? RESOLUTION_01m :
+                                    (ed < RESOLUTION_05m_LIMIT) ? RESOLUTION_05m : 1;
+
+                    payloadItems.setFlag(HueManufacturerSpecificPayload::EffectDuration);
+                    quint8 effectDuration = resolutionBase - (ed / resolution);
+
+                    itemList["effect_duration"] = QVariant(effectDuration);
+                    rspItemStates[param] = effectDuration;
+                }
+            }
+        }
+        else if (param == "effect_speed")
+        {
+            paramOk = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const double es = map[param].toDouble(&ok);
+                if (ok && es >= 0.0 && es <= 1.0)
+                {
+                    valueOk = true;
+                    quint8 effectSpeed = static_cast<quint8>(es * 254.0);
+
+                    // 'effect_speed' and 'effect_duration' share the same byte in the
+                    // manufacturer-specific command's payload.
+                    payloadItems.setFlag(HueManufacturerSpecificPayload::EffectDuration);
+
+                    itemList["effect_duration"] = QVariant(effectSpeed);
+                    rspItemStates[param] = effectSpeed;
+                }
+            }
+        }
+
+        if (!paramOk)
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, not available").arg(param)));
+        }
+        else if (!valueOk)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state").arg(id), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
+        }
+    }
+
+    ok = addTaskHueManufacturerSpecific(taskRef, payloadItems, itemList);
+
+    if (ok)
+    {
+        for (QMap<QString, QVariant>::const_iterator s = rspItemStates.begin(); s != rspItemStates.end(); s++)
+        {
+            QString param = s.key();
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = rspItemStates[param];
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+        }
+
+        for (QMap<const char *, QVariant>::const_iterator v = stateValues.begin(); v != stateValues.end(); v++)
+        {
+            const char *resource = v.key();
+            QVariant value = stateValues[resource];
+
+            if (value.userType() == QMetaType::QString)
+            {
+                taskRef.lightNode->setValue(resource, value.toString());
+            }
+            else if (value.canConvert<qint64>()) // Treat as qint64
+            {
+                taskRef.lightNode->setValue(resource, value.value<qint64>());
+            }
+        }
+
+        rsp.etag = taskRef.lightNode->etag;
+    }
+
+    return REQ_READY_SEND;
 }

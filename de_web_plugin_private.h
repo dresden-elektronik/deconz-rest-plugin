@@ -810,8 +810,25 @@ enum TaskType
     TaskTuyaRequest = 41,
     TaskXmasLightStrip = 42,
     TaskSimpleMetering = 43,
-    TaskHueEffect = 44
+    TaskHueEffect = 44,
+    TaskHueManufacturerSpecific = 45
 };
+
+// Option set to represent the payload items in a '0xfc03' cluster's '0x00' command.
+enum HueManufacturerSpecificPayload : quint16
+{
+    None = 0x0,                // 0x0000
+    On = 1 << 0,               // 0x0001
+    Brightness = 1 << 1,       // 0x0002
+    ColorTemperature = 1 << 2, // 0x0004
+    Color = 1 << 3,            // 0x0008
+    TransitionTime = 1 << 4,   // 0x0010
+    Effect = 1 << 5,           // 0x0020
+    UNKNOWN = 1 << 6,          // 0x0040
+    EffectDuration = 1 << 7    // 0x0080
+};
+Q_DECLARE_FLAGS(HueManufacturerSpecificPayloads, HueManufacturerSpecificPayload)
+Q_DECLARE_OPERATORS_FOR_FLAGS(HueManufacturerSpecificPayloads)
 
 enum XmasLightStripMode
 {
@@ -1437,9 +1454,13 @@ public:
     // Advanced features of Hue lights.
     QStringList getHueEffectNames(quint64 effectBitmap, bool colorloop);
     QStringList getHueGradientStyleNames(quint16 styleBitmap);
+    bool isHueEffectLight(const LightNode *lightNode);
+    bool isMappableToManufacturerSpecific(const QVariantMap &map);
     bool addTaskHueEffect(TaskItem &task, QString &effect);
     bool validateHueGradient(const ApiRequest &req, ApiResponse &rsp, QVariantMap &gradient, quint16 styleBitmap);
     bool addTaskHueGradient(TaskItem &task, QVariantMap &gradient);
+    bool addTaskHueManufacturerSpecific(TaskItem &task, HueManufacturerSpecificPayloads &payloadItems, QVariantMap &items);
+    int setHueLightState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
 
     // Merry Christmas!
     bool isXmasLightStrip(const LightNode *lightNode);
