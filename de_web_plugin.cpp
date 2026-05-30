@@ -859,12 +859,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     connect(lockGatewayTimer, SIGNAL(timeout()),
             this, SLOT(lockGatewayTimerFired()));
 
-    openClientTimer = new QTimer(this);
-    openClientTimer->setSingleShot(false);
-    connect(openClientTimer, SIGNAL(timeout()),
-            this, SLOT(openClientTimerFired()));
-    openClientTimer->start(1000);
-
     uint16_t wsPort = deCONZ::appArgumentNumeric(QLatin1String("--ws-port"), 0);
     if (wsPort == apsCtrl->getParameter(deCONZ::ParamHttpPort) || wsPort == apsCtrl->getParameter(deCONZ::ParamHttpsPort))
     {
@@ -11425,39 +11419,6 @@ void DeRestPluginPrivate::storeRecoverOnOffBri(LightNode *lightNode)
     recoverOnOff.push_back(rc);
 }
 
-/*! Queues a client for closing the connection.
-    \param sock the client socket
-    \param closeTimeout timeout in seconds then the socket should be closed
- */
-void DeRestPluginPrivate::pushClientForClose(QTcpSocket *sock, int closeTimeout)
-{
-    auto i = openClients.begin();
-    auto end = openClients.end();
-
-    for ( ;i != end; ++i)
-    {
-        if (i->sock == sock)
-        {
-            // update
-            if (i->closeTimeout > 0)
-            {
-                if (i->closeTimeout < closeTimeout)
-                {
-                    i->closeTimeout = closeTimeout;
-                }
-            }
-            return;
-        }
-    }
-
-    TcpClient client;
-    client.sock = sock;
-    client.closeTimeout = closeTimeout;
-
-    connect(sock, &QTcpSocket::destroyed, this, &DeRestPluginPrivate::clientSocketDestroyed);
-    openClients.push_back(client);
-}
-
 /*! Adds a task to the queue.
     \return true - on success
  */
@@ -15719,8 +15680,6 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     stream.setEncoding(QStringConverter::Utf8);
 #endif
 
-    d->pushClientForClose(sock, 60);
-
     if (DBG_IsEnabled(DBG_HTTP))
     {
         DBG_Printf(DBG_HTTP, "HTTP API %s %s - %s\n", qPrintable(hdr.method()), qPrintable(hdr.url()), qPrintable(sock->peerAddress().toString()));
@@ -15774,6 +15733,8 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         stream << "HTTP/1.1 200 OK\r\n";
         stream << "Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0\r\n";
         stream << "Pragma: no-cache\r\n";
+        // TODO(mpi): Connection: close is likely not what we want since a new connection needs to be
+        //            established after the preflight request. Needs to be verified.
         stream << "Connection: close\r\n";
         stream << "Access-Control-Max-Age: 0\r\n";
         stream << "Access-Control-Allow-Origin: " << origin << " \r\n";
@@ -16076,17 +16037,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
  */
 void DeRestPlugin::clientGone(QTcpSocket *sock)
 {
-    auto i = d->openClients.begin();
-    auto end = d->openClients.end();
-
-    for (; i != end; ++i)
-    {
-        if (i->sock == sock)
-        {
-            d->openClients.erase(i);
-            return;
-        }
-    }
+    (void)sock;
 }
 
 bool DeRestPlugin::pluginActive() const
@@ -16101,56 +16052,6 @@ bool DeRestPlugin::pluginActive() const
 bool DeRestPlugin::dbSaveAllowed() const
 {
     return (d->saveDatabaseItems & DB_NOSAVE) == 0;
-}
-
-/*! Checks if some tcp connections could be closed.
- */
-void DeRestPluginPrivate::openClientTimerFired()
-{
-    auto i = openClients.begin();
-    auto end = openClients.end();
-
-    for ( ; i != end; ++i)
-    {
-        i->closeTimeout--;
-
-        if (i->closeTimeout == 0)
-        {
-            i->closeTimeout = -1;
-
-            DBG_Assert(i->sock != nullptr);
-
-            if (i->sock)
-            {
-                QTcpSocket *sock = i->sock;
-
-                if (sock->state() == QTcpSocket::ConnectedState)
-                {
-                    sock->close();
-                }
-                sock->deleteLater();
-                openClients.erase(i);
-                return;
-            }
-        }
-        else if (i->closeTimeout < -120)
-        {
-            // cleanup here if not already deleted by socket destroyed slot
-            *i = openClients.back();
-            openClients.pop_back();
-            return;
-        }
-    }
-}
-
-/*! Is called before the client socket will be deleted.
- */
-void DeRestPluginPrivate::clientSocketDestroyed(QObject *obj)
-{
-    if (q_ptr)
-    {
-        q_ptr->clientGone(static_cast<QTcpSocket*>(obj));
-    }
 }
 
 /*! Returns the endpoint number of the HA endpoint.

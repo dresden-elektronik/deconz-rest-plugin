@@ -171,18 +171,6 @@ void DeRestPluginPrivate::authorise(ApiRequest &req, ApiResponse &rsp)
                 }
             }
 
-            if (req.sock)
-            {
-                for (TcpClient &cl : openClients)
-                {
-                    if (cl.sock == req.sock && cl.closeTimeout > 0)
-                    {
-                        cl.closeTimeout = AUTH_KEEP_ALIVE;
-                        break;
-                    }
-                }
-            }
-
             if ((!(i->useragent.isEmpty()) && i->useragent.startsWith(QLatin1String("iConnect"))) || i->devicetype.startsWith(QLatin1String("iConnectHue")))
             {
                 req.mode = ApiModeStrict;
