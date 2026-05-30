@@ -30,18 +30,24 @@ QJsonDocument readButtonMapJson(const QString &path)
 
         QJsonParseError error;
 
-        file.open(QIODevice::ReadOnly | QIODevice::Text);
-        QJsonDocument buttonMaps = QJsonDocument::fromJson(file.readAll(), &error);
-        file.close();
-
-        if (buttonMaps.isNull() || buttonMaps.isEmpty())
+        if (file.open(QIODevice::ReadOnly | QIODevice::Text))
         {
-            DBG_Printf(DBG_INFO, "[ERROR] - Error: %s at offset: %d (in characters)\n", qPrintable(error.errorString()), error.offset);
-            return QJsonDocument();
+            QJsonDocument buttonMaps = QJsonDocument::fromJson(file.readAll(), &error);
+            file.close();
+
+            if (buttonMaps.isNull() || buttonMaps.isEmpty())
+            {
+                DBG_Printf(DBG_INFO, "[ERROR] - Error: %s at offset: %d (in characters)\n", qPrintable(error.errorString()), error.offset);
+                return QJsonDocument();
+            }
+            else
+            {
+                return buttonMaps;
+            }
         }
         else
         {
-            return buttonMaps;
+            return QJsonDocument();
         }
     }
     else
