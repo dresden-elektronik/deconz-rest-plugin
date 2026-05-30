@@ -1195,8 +1195,6 @@ public Q_SLOTS:
     void permitJoinTimerFired();
     void otauTimerFired();
     void lockGatewayTimerFired();
-    void openClientTimerFired();
-    void clientSocketDestroyed(QObject *obj);
     void saveDatabaseTimerFired();
     void userActivity();
     bool sendBindRequest(BindingTask &bt);
@@ -1388,8 +1386,6 @@ public:
     bool writeIasCieAddress(Sensor*);
     void checkIasEnrollmentStatus(Sensor*);
     void processIasZoneStatus(Sensor *sensor, quint16 zoneStatus, NodeValue::UpdateType updateType);
-
-    void pushClientForClose(QTcpSocket *sock, int closeTimeout);
 
     uint8_t endpoint();
 
@@ -2015,10 +2011,6 @@ public:
     // IAS
     std::unique_ptr<AS_DeviceTable> alarmSystemDeviceTable;
     std::unique_ptr<AlarmSystems> alarmSystems;
-
-    // TCP connection watcher
-    QTimer *openClientTimer;
-    std::vector<TcpClient> openClients;
 
     WebSocketServer *webSocketServer;
 
