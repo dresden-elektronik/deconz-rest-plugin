@@ -16,39 +16,17 @@
         "0x01"
       ],
       "items": [
-        {
-          "name": "attr/id"
-        },
-        {
-          "name": "attr/lastannounced"
-        },
-        {
-          "name": "attr/lastseen"
-        },
-        {
-          "name": "attr/manufacturername"
-        },
-        {
-          "name": "attr/modelid"
-        },
-        {
-          "name": "attr/name"
-        },
-        {
-          "name": "attr/swversion"
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
-        },
-        {
-          "name": "state/reachable"
-        },
-        {
-          "name": "state/on"
-        }
+        { "name": "attr/id" },
+        { "name": "attr/lastannounced" },
+        { "name": "attr/lastseen" },
+        { "name": "attr/manufacturername" },
+        { "name": "attr/modelid" },
+        { "name": "attr/name" },
+        { "name": "attr/swversion" },
+        { "name": "attr/type" },
+        { "name": "attr/uniqueid" },
+        { "name": "state/reachable" },
+        { "name": "state/on" }
       ]
     },
     {
@@ -60,33 +38,15 @@
         "0x0001"
       ],
       "items": [
-        {
-          "name": "attr/id"
-        },
-        {
-          "name": "attr/lastannounced"
-        },
-        {
-          "name": "attr/lastseen"
-        },
-        {
-          "name": "attr/manufacturername"
-        },
-        {
-          "name": "attr/modelid"
-        },
-        {
-          "name": "attr/name"
-        },
-        {
-          "name": "attr/swversion"
-        },
-        {
-          "name": "attr/type"
-        },
-        {
-          "name": "attr/uniqueid"
-        },
+        { "name": "attr/id" },
+        { "name": "attr/lastannounced" },
+        { "name": "attr/lastseen" },
+        { "name": "attr/manufacturername" },
+        { "name": "attr/modelid" },
+        { "name": "attr/name" },
+        { "name": "attr/swversion" },
+        { "name": "attr/type" },
+        { "name": "attr/uniqueid" },
         {
           "name": "config/battery",
           "parse": {
@@ -102,18 +62,12 @@
             "cl": "0x0001",
             "at": "0x0021"
           },
-          "refresh.interval": 600,
           "awake": true
         },
-        {
-          "name": "config/on"
-        },
-        {
-          "name": "config/reachable"
-        },
-        {
-          "name": "state/lastupdated"
-        }
+        { "name": "config/on" },
+        { "name": "config/reachable" },
+        { "name": "state/battery" },
+        { "name": "state/lastupdated" }
       ]
     }
   ],
@@ -126,8 +80,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 60,
-          "max": 3600,
+          "min": 3600,
+          "max": 86400,
           "change": "0x02"
         }
       ]
