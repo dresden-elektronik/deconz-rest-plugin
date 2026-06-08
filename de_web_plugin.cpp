@@ -15701,6 +15701,8 @@ bool DeRestPlugin::isHttpTarget(const QHttpRequestHeader &hdr)
  */
 int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *sock)
 {
+    d->pushClientForClose(sock, 240);   // Timeout after 240 secs
+
     if (hdr.hasKey(QLatin1String("Upgrade")) && hdr.value(QLatin1String("Upgrade")) == QLatin1String("websocket"))
     {
         d->webSocketServer->handleExternalTcpSocket(hdr, sock);
@@ -15718,8 +15720,6 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 #else
     stream.setEncoding(QStringConverter::Utf8);
 #endif
-
-    d->pushClientForClose(sock, 60);
 
     if (DBG_IsEnabled(DBG_HTTP))
     {
@@ -16107,7 +16107,7 @@ bool DeRestPlugin::dbSaveAllowed() const
  */
 void DeRestPluginPrivate::openClientTimerFired()
 {
-    auto i = openClients.begin();
+    /*auto i = openClients.begin();
     auto end = openClients.end();
 
     for ( ; i != end; ++i)
@@ -16139,6 +16139,32 @@ void DeRestPluginPrivate::openClientTimerFired()
             *i = openClients.back();
             openClients.pop_back();
             return;
+        }
+    }*/
+
+    for (auto i = openClients.rbegin(); i != openClients.rend(); ++i)
+    {
+        i->closeTimeout--;
+
+        if (i->closeTimeout <= 0)
+        {
+            i->closeTimeout = -1;
+
+            DBG_Assert(i->sock != nullptr);
+
+            if (i->sock)
+            {
+                QTcpSocket *sock = i->sock;
+
+                if (sock->state() == QTcpSocket::ConnectedState)
+                {
+                    sock->close();
+                }
+                sock->deleteLater();
+            }
+
+            *i = openClients.back();
+            openClients.pop_back();
         }
     }
 }
