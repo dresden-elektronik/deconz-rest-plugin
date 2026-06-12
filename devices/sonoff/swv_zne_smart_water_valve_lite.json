@@ -25,8 +25,15 @@
         { "name": "attr/swversion" },
         { "name": "attr/type" },
         { "name": "attr/uniqueid" },
-        { "name": "state/reachable" },
-        { "name": "state/on" }
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        { "name": "state/reachable" }
       ]
     },
     {
@@ -47,26 +54,116 @@
         { "name": "attr/swversion" },
         { "name": "attr/type" },
         { "name": "attr/uniqueid" },
+        { "name": "config/on" },
+        { "name": "config/reachable" },
         {
-          "name": "config/battery",
+          "name": "config/locked",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC11",
+            "at": "0x0000"
+          },
           "parse": {
             "fn": "zcl:attr",
             "ep": 1,
-            "cl": "0x0001",
-            "at": "0x0021",
-            "eval": "var bat = Attr.val; if (bat == 255) { bat = 0; } else { bat = Math.round(bat / 2); if (bat > 100) { bat = 100; } else if (bat < 0) { bat = 0; } } Item.val = bat;"
+            "cl": "0xFC11",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val == 1"
           },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC11",
+            "at": "0x0000",
+            "dt": "0x10",
+            "eval": "Item.val ? 1 : 0"
+          },
+          "default": false
+        },
+        {
+          "name": "config/duration",
+          "description": "Manual irrigation duration in minutes.",
+          "awake": true,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC11",
+            "at": "0x501D"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC11",
+            "at": "0x501D",
+            "eval": "var off = -1; for (var i = 0; i < ZclFrame.payloadSize - 6; i++) { if (ZclFrame.at(i) == 0x1d && ZclFrame.at(i + 1) == 0x50) { if (ZclFrame.at(i + 2) == 0x48) { off = i + 3; } else if (ZclFrame.at(i + 2) == 0 && ZclFrame.at(i + 3) == 0x48) { off = i + 4; } } } if (off >= 0 && ZclFrame.at(off) == 0x20) { Item.val = (ZclFrame.at(off + 4) << 8) | ZclFrame.at(off + 5); } else { Item.val = 0; }"
+          },
+          "refresh.interval": 300,
+          "write": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0xFC11",
+            "cmd": "0x02",
+            "fc": "0x10",
+            "eval": "var v = Math.max(1, Math.min(719, Item.val)); var h = ('0' + ((v >> 8) & 255).toString(16)).slice(-2); var l = ('0' + (v & 255).toString(16)).slice(-2); '1d5048200c0000' + h + l + h + l + '000a01000a000a';"
+          },
+          "default": 60
+        },
+        {
+          "name": "state/battery",
+          "refresh.interval": 43260,
+          "awake": true,
           "read": {
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0001",
             "at": "0x0021"
           },
-          "awake": true
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "default": 0
         },
-        { "name": "config/on" },
-        { "name": "config/reachable" },
-        { "name": "state/battery" },
+        {
+          "name": "state/real_time_irrigation_duration",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC11",
+            "at": "0x5006",
+            "eval": "var raw = Attr.val >>> 0; var swapped = (((raw & 0xff) << 24) | ((raw & 0xff00) << 8) | ((raw >> 8) & 0xff00) | ((raw >> 24) & 0xff)) >>> 0; Item.val = swapped <= 719 ? swapped : raw;"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC11",
+            "at": "0x5006"
+          },
+          "refresh.interval": 60,
+          "default": 0
+        },
+        {
+          "name": "state/hour_irrigation_duration",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC11",
+            "at": "0x501C",
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC11",
+            "at": "0x501C"
+          },
+          "refresh.interval": 300,
+          "default": 0
+        },
         { "name": "state/lastupdated" }
       ]
     }
@@ -80,8 +177,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
-          "max": 86400,
+          "min": 7200,
+          "max": 43200,
           "change": "0x02"
         }
       ]
