@@ -1,11 +1,10 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "d3d5f8d8-8c3c-4e4c-9f1f-9c6d6c3f2a11",
   "manufacturername": "SONOFF",
   "modelid": "SWV-ZNE",
   "vendor": "Sonoff",
   "product": "Hydro ONE Lite smart water valve",
-  "sleeper": true,
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
@@ -33,29 +32,6 @@
           "name": "state/on",
           "refresh.interval": 360
         },
-        { "name": "state/reachable" }
-      ]
-    },
-    {
-      "type": "$TYPE_BATTERY_SENSOR",
-      "restapi": "/sensors",
-      "uuid": [
-        "$address.ext",
-        "0x01",
-        "0x0001"
-      ],
-      "items": [
-        { "name": "attr/id" },
-        { "name": "attr/lastannounced" },
-        { "name": "attr/lastseen" },
-        { "name": "attr/manufacturername" },
-        { "name": "attr/modelid" },
-        { "name": "attr/name" },
-        { "name": "attr/swversion" },
-        { "name": "attr/type" },
-        { "name": "attr/uniqueid" },
-        { "name": "config/on" },
-        { "name": "config/reachable" },
         {
           "name": "config/locked",
           "read": {
@@ -81,10 +57,32 @@
           },
           "default": false
         },
+        { "name": "state/reachable" }
+      ]
+    },
+    {
+      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "items": [
+        { "name": "attr/id" },
+        { "name": "attr/lastannounced" },
+        { "name": "attr/lastseen" },
+        { "name": "attr/manufacturername" },
+        { "name": "attr/modelid" },
+        { "name": "attr/name" },
+        { "name": "attr/swversion" },
+        { "name": "attr/type" },
+        { "name": "attr/uniqueid" },
+        { "name": "config/on" },
+        { "name": "config/reachable" },
         {
           "name": "config/duration",
           "description": "Manual irrigation duration in minutes.",
-          "awake": true,
           "read": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -98,7 +96,6 @@
             "at": "0x501D",
             "eval": "var off = ZclFrame.at(2) == 0 ? 4 : 3; if (ZclFrame.at(off) == 0x20) { Item.val = (ZclFrame.at(off + 4) << 8) | ZclFrame.at(off + 5); } else { Item.val = 0; }"
           },
-          "refresh.interval": 300,
           "write": {
             "fn": "zcl:cmd",
             "ep": 1,
@@ -110,9 +107,45 @@
           "default": 60
         },
         {
+          "name": "state/open",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0006",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val == 1"
+          },
+          "default": false
+        },
+        { "name": "state/lastupdated" }
+      ]
+    },
+    {
+      "type": "$TYPE_BATTERY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0001"
+      ],
+      "items": [
+        { "name": "attr/id" },
+        { "name": "attr/lastannounced" },
+        { "name": "attr/lastseen" },
+        { "name": "attr/manufacturername" },
+        { "name": "attr/modelid" },
+        { "name": "attr/name" },
+        { "name": "attr/swversion" },
+        { "name": "attr/type" },
+        { "name": "attr/uniqueid" },
+        { "name": "config/on" },
+        { "name": "config/reachable" },
+        {
           "name": "state/battery",
           "refresh.interval": 43260,
-          "awake": true,
           "read": {
             "fn": "zcl:attr",
             "ep": 1,
@@ -126,42 +159,6 @@
             "at": "0x0021",
             "eval": "Item.val = Attr.val / 2"
           },
-          "default": 0
-        },
-        {
-          "name": "state/real_time_irrigation_duration",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0xFC11",
-            "at": "0x5006",
-            "eval": "var raw = Attr.val >>> 0; var swapped = (((raw & 0xff) << 24) | ((raw & 0xff00) << 8) | ((raw >> 8) & 0xff00) | ((raw >> 24) & 0xff)) >>> 0; Item.val = swapped <= 719 ? swapped : raw;"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0xFC11",
-            "at": "0x5006"
-          },
-          "refresh.interval": 60,
-          "default": 0
-        },
-        {
-          "name": "state/hour_irrigation_duration",
-          "parse": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0xFC11",
-            "at": "0x501C",
-            "eval": "Item.val = Attr.val;"
-          },
-          "read": {
-            "fn": "zcl:attr",
-            "ep": 1,
-            "cl": "0xFC11",
-            "at": "0x501C"
-          },
-          "refresh.interval": 300,
           "default": 0
         },
         { "name": "state/lastupdated" }
