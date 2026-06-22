@@ -13,8 +13,6 @@
 #include "crypto/password.h"
 #include "de_web_plugin_private.h"
 
-#define AUTH_KEEP_ALIVE 240
-
 ApiAuth::ApiAuth() :
     needSaveDatabase(false),
     state(StateNormal)
@@ -168,18 +166,6 @@ void DeRestPluginPrivate::authorise(ApiRequest &req, ApiResponse &rsp)
                 {
                     i->useragent = req.hdr.value(QLatin1String("User-Agent"));
                     DBG_Printf(DBG_HTTP, "set useragent '%s' for apikey '%s'\n", qPrintable(i->useragent), qPrintable(i->apikey));
-                }
-            }
-
-            if (req.sock)
-            {
-                for (TcpClient &cl : openClients)
-                {
-                    if (cl.sock == req.sock && cl.closeTimeout > 0)
-                    {
-                        cl.closeTimeout = AUTH_KEEP_ALIVE;
-                        break;
-                    }
                 }
             }
 
