@@ -22,7 +22,8 @@
         "endpoint": "0x01",
         "in": [
           "0x0000",
-          "0x0201"
+          "0x0201",
+          "0x0204"
         ]
       },
       "meta": {
@@ -85,7 +86,7 @@
         },
         {
           "name": "config/mode",
-          "refresh.interval": 3600,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x001C",
             "cl": "0x0201",
@@ -149,7 +150,6 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 3600,
           "parse": {
             "at": "0x0008",
             "cl": "0x0201",
@@ -381,7 +381,7 @@
         },
         {
           "name": "state/consumption",
-          "refresh.interval": 500
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
