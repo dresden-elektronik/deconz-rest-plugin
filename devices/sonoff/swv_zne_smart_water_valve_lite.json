@@ -1,0 +1,198 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "SONOFF",
+  "modelid": "SWV-ZNE",
+  "vendor": "Sonoff",
+  "product": "Hydro ONE Lite smart water valve",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_OUTPUT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        { "name": "attr/id" },
+        { "name": "attr/lastannounced" },
+        { "name": "attr/lastseen" },
+        { "name": "attr/manufacturername" },
+        { "name": "attr/modelid" },
+        { "name": "attr/name" },
+        { "name": "attr/swversion" },
+        { "name": "attr/type" },
+        { "name": "attr/uniqueid" },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 360
+        },
+        {
+          "name": "config/locked",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC11",
+            "at": "0x0000"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC11",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val == 1"
+          },
+          "write": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC11",
+            "at": "0x0000",
+            "dt": "0x10",
+            "eval": "Item.val ? 1 : 0"
+          },
+          "default": false
+        },
+        { "name": "state/reachable" }
+      ]
+    },
+    {
+      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "items": [
+        { "name": "attr/id" },
+        { "name": "attr/lastannounced" },
+        { "name": "attr/lastseen" },
+        { "name": "attr/manufacturername" },
+        { "name": "attr/modelid" },
+        { "name": "attr/name" },
+        { "name": "attr/swversion" },
+        { "name": "attr/type" },
+        { "name": "attr/uniqueid" },
+        { "name": "config/on" },
+        { "name": "config/reachable" },
+        {
+          "name": "config/duration",
+          "description": "Manual irrigation duration in minutes.",
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC11",
+            "at": "0x501D"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xFC11",
+            "at": "0x501D",
+            "eval": "var off = ZclFrame.at(2) == 0 ? 4 : 3; if (ZclFrame.at(off) == 0x20) { Item.val = (ZclFrame.at(off + 4) << 8) | ZclFrame.at(off + 5); } else { Item.val = 0; }"
+          },
+          "write": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0xFC11",
+            "cmd": "0x02",
+            "fc": "0x10",
+            "eval": "var v = Math.max(1, Math.min(719, Item.val)); var h = ('0' + ((v >> 8) & 255).toString(16)).slice(-2); var l = ('0' + (v & 255).toString(16)).slice(-2); '1d5048200c0000' + h + l + h + l + '000a01000a000a';"
+          },
+          "default": 60
+        },
+        {
+          "name": "state/open",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0006",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val == 1"
+          },
+          "default": false
+        },
+        { "name": "state/lastupdated" }
+      ]
+    },
+    {
+      "type": "$TYPE_BATTERY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0001"
+      ],
+      "items": [
+        { "name": "attr/id" },
+        { "name": "attr/lastannounced" },
+        { "name": "attr/lastseen" },
+        { "name": "attr/manufacturername" },
+        { "name": "attr/modelid" },
+        { "name": "attr/name" },
+        { "name": "attr/swversion" },
+        { "name": "attr/type" },
+        { "name": "attr/uniqueid" },
+        { "name": "config/on" },
+        { "name": "config/reachable" },
+        {
+          "name": "state/battery",
+          "refresh.interval": 43260,
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "default": 0
+        },
+        { "name": "state/lastupdated" }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 7200,
+          "max": 43200,
+          "change": "0x02"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    }
+  ]
+}
