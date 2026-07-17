@@ -6274,7 +6274,15 @@ bool DB_StoreSecret(const DB_Secret &secret)
 
     std::vector<char> sql(512);
 
-    int rc = snprintf(sql.data(), sql.size(), "REPLACE INTO secrets (uniqueid,secret,state) VALUES ('%s','%s',%d)", secret.uniqueId.data(), secret.secret.data(), secret.state);
+    int rc;
+    if (secret.secret.empty())
+    {
+        rc = snprintf(sql.data(), sql.size(), "DELETE FROM secrets WHERE uniqueid = '%s'", secret.uniqueId.data());
+    }
+    else
+    {
+        rc = snprintf(sql.data(), sql.size(), "REPLACE INTO secrets (uniqueid,secret,state) VALUES ('%s','%s',%d)", secret.uniqueId.data(), secret.secret.data(), secret.state);
+    }
 
     if (rc >= int(sql.size()))
     {
