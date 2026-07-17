@@ -11,7 +11,7 @@
 class QWebSocket;
 class QWebSocketServer;
 class QHttpRequestHeader;
-
+class WebSocketServerPrivate;
 /*! \class WebSocketServer
 
     Basic websocket server to broadcast messages to clients.
@@ -27,6 +27,7 @@ public:
 signals:
 
 public slots:
+    void broadcastApsIndication(const QString &msg);
     void broadcastTextMessage(const QString &msg);
     void flush();
 
@@ -37,8 +38,7 @@ private slots:
     void onTextMessageReceived(const QString &message);
 
 private:
-    QWebSocketServer *srv;
-    std::vector<QWebSocket*> clients;
+    WebSocketServerPrivate *d_ptr = nullptr;
 };
 
 #endif // WEBSOCKET_SERVER_H
