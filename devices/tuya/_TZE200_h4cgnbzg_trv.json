@@ -73,7 +73,7 @@
           "parse": {
             "fn": "tuya",
             "dpid": 105,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val"
           },
           "read": {
             "fn": "none"
@@ -101,13 +101,13 @@
           "parse": {
             "fn": "tuya",
             "dpid": 40,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val"
           },
           "write": {
             "fn": "tuya",
             "dpid": 40,
             "dt": "0x10",
-            "eval": "Item.val;"
+            "eval": "Item.val"
           },
           "read": {
             "fn": "none"
@@ -120,17 +120,17 @@
           "name": "config/reachable"
         },
         {
-          "name": "config/windowopen_set",
+          "name": "config/windowopendetectionenabled",
           "parse": {
             "fn": "tuya",
             "dpid": 8,
-            "eval": "Item.val = Attr.val;"
+            "eval": "Item.val = Attr.val"
           },
           "write": {
             "fn": "tuya",
             "dpid": 8,
             "dt": "0x10",
-            "eval": "Item.val;"
+            "eval": "Item.val"
           },
           "read": {
             "fn": "none"
