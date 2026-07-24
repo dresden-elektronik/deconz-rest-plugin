@@ -173,8 +173,8 @@ void DeRestPluginPrivate::permitJoin(int seconds)
     {
         int tmp = gwNetworkOpenDuration; // preserve configured duration
         gwNetworkOpenDuration = seconds;
-        startSearchSensors();
-        startSearchLights();
+        startSearchSensors(gwNetworkOpenDuration);
+        startSearchLights(gwNetworkOpenDuration);
         gwNetworkOpenDuration = tmp;
     }
     else
