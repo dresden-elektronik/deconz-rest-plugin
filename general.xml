@@ -2190,7 +2190,7 @@
           </attribute>
           <attribute id="0xe016" name="Tilt Open Close And Step Time" type="u16" default="100" required="o" access="rw" mfcode="0x105e">
             <description>Time from fully open to fully close tilt position in 1/100 seconds. This time is also taken as base for calculation of
-              step size in Schneider manufacture specific command Stop Or Step Lift Percentage. If set to 0, WindosCoveringType attribute is automatically set to 0 (lift only)</description>
+              step size in Schneider manufacture specific command Stop Or Step Lift Percentage. If set to 0, WindowsCoveringType attribute is automatically set to 0 (lift only)</description>
           </attribute>
           <attribute id="0xe017" name="Tilt Position Percentage After Move To Level" type="u8" default="0xFF" required="o" access="rw" mfcode="0x105e">
             <description>Tilt position in percent adopted by tilt after receiving go to lift percentage command. Values 0-100 are absolute position of
