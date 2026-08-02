@@ -41,7 +41,8 @@
             "fn": "zcl:attr",
             "ep": 1,
             "cl": "0x0000",
-            "at": "0x0001"
+            "at": "0x0001",
+            "eval": "Item.val = Attr.val"
           },
           "read": {
             "fn": "zcl:attr",
@@ -101,7 +102,8 @@
             "fn": "zcl:attr",
             "ep": 2,
             "cl": "0x0000",
-            "at": "0x0001"
+            "at": "0x0001",
+            "eval": "Item.val = Attr.val"
           },
           "read": {
             "fn": "zcl:attr",
