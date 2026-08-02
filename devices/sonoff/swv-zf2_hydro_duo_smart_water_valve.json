@@ -5,7 +5,7 @@
   "modelid": "SWV-ZF2",
   "vendor": "Sonoff",
   "product": "Hydro DUO Smart Water Valve (SWV-ZF2)",
-  "sleeper": true,
+  "sleeper": false,
   "status": "Gold",
   "subdevices": [
     {
