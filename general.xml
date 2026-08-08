@@ -844,6 +844,7 @@
             <attribute id="0x0001" type="u8" name="Capacity" required="m" showas="dec" default="0x00"></attribute>
             <attribute id="0x0002" type="u16" name="Group ID" required="m" showas="hex" default="0x0000"></attribute>
             <attribute id="0x0003" type="u8" name="Scene count" required="m" showas="dec" default="0x00"></attribute>
+            <attribute id="0x0004" type="u8" name="Scene list" showas="hex" listSize="0x01" required="o"></attribute>
           </payload>
         </command>
         <command id="0x41" dir="recv" name="Enhanced view scene response" required="m">
