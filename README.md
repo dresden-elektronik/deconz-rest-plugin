@@ -13,7 +13,7 @@ To communicate with Zigbee devices the [RaspBee](https://phoscon.de/raspbee?ref=
 * [deCONZ C++ Plugin API Documentation](https://phoscon.de/deconz-cpp).
 * [DDF and C++ Device API Documentation](https://dresden-elektronik.github.io/deconz-dev-doc)
 
-For community based support with deCONZ or Phoscon, please visit the [deCONZ Discord server](https://discord.gg/QFhTxqN). 
+For community based support with deCONZ or Phoscon, please visit the [deCONZ Discord server](https://discord.gg/f2xBg2CaNz). 
 
 ### Phoscon App
 The Phoscon App is a browser based web application and supports lights, sensors and switches. For more information and screenshots visit the [Phoscon App Documentation](https://phoscon.de/app/doc?ref=gh).
