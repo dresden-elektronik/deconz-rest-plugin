@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2026 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -126,36 +126,36 @@ enum DA_Constants
 
 struct ParseFunction
 {
-    ParseFunction(const QString &_name, const int _arity, ParseFunction_t _fn) :
+    ParseFunction(const std::string &_name, const int _arity, ParseFunction_t _fn) :
         name(_name),
         arity(_arity),
         fn(_fn)
     { }
-    QString name;
+    std::string name;
     int arity = 0; // number of parameters given by the device description file
     ParseFunction_t fn = nullptr;
 };
 
 struct ReadFunction
 {
-    ReadFunction(const QString &_name, const int _arity, ReadFunction_t _fn) :
+    ReadFunction(const std::string &_name, const int _arity, ReadFunction_t _fn) :
         name(_name),
         arity(_arity),
         fn(_fn)
     { }
-    QString name;
+    std::string name;
     int arity = 0; // number of parameters given by the device description file
     ReadFunction_t fn = nullptr;
 };
 
 struct WriteFunction
 {
-    WriteFunction(const QString &_name, const int _arity, WriteFunction_t _fn) :
+    WriteFunction(const std::string &_name, const int _arity, WriteFunction_t _fn) :
         name(_name),
         arity(_arity),
         fn(_fn)
     { }
-    QString name;
+    std::string name;
     int arity = 0; // number of parameters given by the device description file
     WriteFunction_t fn = nullptr;
 };
@@ -199,7 +199,32 @@ static ZCL_Param getZclParam(const QVariantMap &param)
     bool ok = true;
 
     result.endpoint = param.contains("ep") ? variantToUint(param["ep"], UINT8_MAX, &ok) : quint8(AutoEndpoint);
-    result.clusterId = ok ? variantToUint(param["cl"], UINT16_MAX, &ok) : 0;
+
+    const auto cl = param[QLatin1String("cl")];
+    if (cl.type() == QVariant::List)
+    {
+        for (const auto &c : cl.toList())
+        {
+            if (result.clusterCount >= ZCL_Param::MaxClusters)
+                break;
+            bool ok2 = false;
+            const uint16_t val = variantToUint(c, UINT16_MAX, &ok2);
+            if (ok2)
+            {
+                result.clusterIds[result.clusterCount++] = val;
+            }
+        }
+        if (result.clusterCount == 0)
+        {
+            ok = false;
+        }
+    }
+    else
+    {
+        result.clusterIds[0] = ok ? variantToUint(cl, UINT16_MAX, &ok) : 0;
+        result.clusterCount = ok ? 1 : 0;
+    }
+
     result.manufacturerCode = ok && param.contains("mf") ? variantToUint(param["mf"], UINT16_MAX, &ok) : 0;
 
     if (param.contains(QLatin1String("cmd"))) // optional
@@ -590,7 +615,7 @@ bool parseZclAttribute(Resource *r, ResourceItem *item, const deCONZ::ApsDataInd
 
     const auto &zclParam = item->zclParam();
 
-    if (ind.clusterId() != zclParam.clusterId)
+    if (ind.clusterId() != zclParam.clusterIds[0])
     {
         return result;
     }
@@ -723,7 +748,8 @@ bool parseTuyaData(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndicat
         }
         param.valid = 1;
         param.endpoint = ind.srcEndpoint();
-        param.clusterId = ind.clusterId();
+        param.clusterIds[0] = ind.clusterId();
+        param.clusterCount = 1;
         param.attributeCount = 1;
 
         item->setParseFunction(parseTuyaData);
@@ -1222,11 +1248,13 @@ bool parseXiaomiSpecial(Resource *r, ResourceItem *item, const deCONZ::ApsDataIn
         ZCL_Param param;
 
         param.endpoint = BroadcastEndpoint; // default
-        param.clusterId = 0x0000;
+        param.clusterIds[0] = 0x0000;
+        param.clusterCount = 1;
         
         if (ind.clusterId() == 0xfcc0)
         {
-            param.clusterId = 0xfcc0;
+            param.clusterIds[0] = 0xfcc0;
+            param.clusterCount = 1;
             param.manufacturerCode = 0x115f;
         }
 
@@ -1748,7 +1776,7 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
     if (param.endpoint == AutoEndpoint)
     {
         param.endpoint = resolveAutoEndpoint(r);
-        param.endpoint = DEV_ResolveDestinationEndpoint(extAddr->toNumber(), param.endpoint, param.clusterId, param.frameControl);
+        param.endpoint = DEV_ResolveDestinationEndpoint(extAddr->toNumber(), param.endpoint, param.clusterIds[0], param.frameControl);
 
         if (param.endpoint == AutoEndpoint)
         {
@@ -1761,7 +1789,7 @@ static DA_ReadResult readZclAttribute(const Resource *r, const ResourceItem *ite
     result.isEnqueued = zclResult.isEnqueued;
     result.apsReqId = zclResult.apsReqId;
     result.sequenceNumber = zclResult.sequenceNumber;
-    result.clusterId = param.clusterId;
+    result.clusterId = param.clusterIds[0];
     result.ignoreResponseSequenceNumber = param.ignoreResponseSeq == 1;
 
     return result;
@@ -1814,7 +1842,7 @@ bool writeZclAttribute(const Resource *r, const ResourceItem *item, deCONZ::ApsC
     if (param.endpoint == AutoEndpoint)
     {
         param.endpoint = resolveAutoEndpoint(r);
-        param.endpoint = DEV_ResolveDestinationEndpoint(extAddr->toNumber(), param.endpoint, param.clusterId, param.frameControl);
+        param.endpoint = DEV_ResolveDestinationEndpoint(extAddr->toNumber(), param.endpoint, param.clusterIds[0], param.frameControl);
 
         if (param.endpoint == AutoEndpoint)
         {
@@ -1939,7 +1967,7 @@ static DA_ReadResult sendZclCommand(const Resource *r, const ResourceItem *item,
     if (param.endpoint == BroadcastEndpoint || param.endpoint == AutoEndpoint)
     {
         param.endpoint = resolveAutoEndpoint(r);
-        param.endpoint = DEV_ResolveDestinationEndpoint(extAddr->toNumber(), param.endpoint, param.clusterId, param.frameControl);
+        param.endpoint = DEV_ResolveDestinationEndpoint(extAddr->toNumber(), param.endpoint, param.clusterIds[0], param.frameControl);
 
         if (param.endpoint == BroadcastEndpoint || param.endpoint == AutoEndpoint)
         {
@@ -1952,7 +1980,7 @@ static DA_ReadResult sendZclCommand(const Resource *r, const ResourceItem *item,
     result.isEnqueued = zclResult.isEnqueued;
     result.apsReqId = zclResult.apsReqId;
     result.sequenceNumber = zclResult.sequenceNumber;
-    result.clusterId = param.clusterId;
+    result.clusterId = param.clusterIds[0];
     result.ignoreResponseSequenceNumber = param.ignoreResponseSeq == 1;
 
     return result;
@@ -1977,36 +2005,127 @@ bool writeZclCommand(const Resource *r, const ResourceItem *item, deCONZ::ApsCon
     return result.isEnqueued;
 }
 
+/*! A minimal parse function that filters only by cluster ID and delegates all
+    ZCL parsing to the JavaScript handler.
+
+    {"fn": "zcl:cluster", "cl": "0xFC00", "eval": "..."}
+    {"fn": "zcl:cluster", "cl": ["0xFC00", "0xFC01"], "script": "handler.js"}
+
+    Available JS globals: ZclFrame (cmd, payloadSize, isClCmd, at), SrcEp, ClusterId, R, Item
+ */
+bool parseZclCluster(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame, const QVariant &parseParameters)
+{
+    bool result = false;
+
+    if (!item->parseFunction())
+    {
+        const auto map = parseParameters.toMap();
+        const auto cl = map["cl"];
+
+        ZCL_Param param{};
+        param.valid = 1;
+
+        if (cl.type() == QVariant::List)
+        {
+            for (const auto &c : cl.toList())
+            {
+                if (param.clusterCount >= ZCL_Param::MaxClusters)
+                    break;
+                bool ok = false;
+                const uint16_t val = variantToUint(c, UINT16_MAX, &ok);
+                if (ok)
+                {
+                    param.clusterIds[param.clusterCount++] = val;
+                }
+            }
+        }
+        else
+        {
+            bool ok = false;
+            const uint16_t val = variantToUint(cl, UINT16_MAX, &ok);
+            if (ok)
+            {
+                param.clusterIds[0] = val;
+                param.clusterCount = 1;
+            }
+        }
+
+        if (param.clusterCount == 0)
+            return result;
+
+        param.endpoint = BroadcastEndpoint;
+        if (map.contains("ep"))
+        {
+            bool ok = false;
+            const auto ep = variantToUint(map["ep"], UINT8_MAX, &ok);
+            if (ok)
+                param.endpoint = ep;
+        }
+
+        item->setParseFunction(parseZclCluster);
+        item->setZclProperties(param);
+    }
+
+    const auto &zp = item->zclParam();
+
+    if (zp.endpoint < BroadcastEndpoint && zp.endpoint != ind.srcEndpoint())
+    {
+        return result;
+    }
+
+    bool clusterMatch = (ind.clusterId() == zp.clusterIds[0]);
+    if (!clusterMatch && zp.clusterCount > 0)
+    {
+        for (size_t i = 0; i < zp.clusterCount && i < ZCL_Param::MaxClusters; i++)
+        {
+            if (ind.clusterId() == zp.clusterIds[i])
+            {
+                clusterMatch = true;
+                break;
+            }
+        }
+    }
+
+    if (!clusterMatch)
+        return result;
+
+    if (evalZclFrame(r, item, ind, zclFrame, parseParameters))
+        result = true;
+
+    return result;
+}
+
 ParseFunction_t DA_GetParseFunction(const QVariant &params)
 {
     ParseFunction_t result = nullptr;
 
-    const std::array<ParseFunction, 8> functions =
+    const std::array<ParseFunction, 9> functions =
     {
-        ParseFunction(QLatin1String("zcl"), 1, parseZclAttribute), // Deprecated
-        ParseFunction(QLatin1String("zcl:attr"), 1, parseZclAttribute),
-        ParseFunction(QLatin1String("zcl:cmd"), 1, parseZclAttribute),
-        ParseFunction(QLatin1String("xiaomi:special"), 1, parseXiaomiSpecial),
-        ParseFunction(QLatin1String("ias:zonestatus"), 1, parseIasZoneNotificationAndStatus),
-        ParseFunction(QLatin1String("tuya"), 1, parseTuyaData),
-        ParseFunction(QLatin1String("numtostr"), 1, parseNumericToString),
-        ParseFunction(QLatin1String("time"), 1, parseAndSyncTime)
+        ParseFunction("zcl", 1, parseZclAttribute), // Deprecated
+        ParseFunction("zcl:attr", 1, parseZclAttribute),
+        ParseFunction("zcl:cmd", 1, parseZclAttribute),
+        ParseFunction("zcl:cluster", 1, parseZclCluster),
+        ParseFunction("xiaomi:special", 1, parseXiaomiSpecial),
+        ParseFunction("ias:zonestatus", 1, parseIasZoneNotificationAndStatus),
+        ParseFunction("tuya", 1, parseTuyaData),
+        ParseFunction("numtostr", 1, parseNumericToString),
+        ParseFunction("time", 1, parseAndSyncTime)
     };
 
-    QString fnName;
+    std::string fnName;
 
     if (params.type() == QVariant::Map)
     {
         const auto params1 = params.toMap();
         if (params1.isEmpty())
         {  }
-        else if (params1.contains(QLatin1String("fn")))
+        else if (params1.contains("fn"))
         {
-            fnName = params1["fn"].toString();
+            fnName = params1["fn"].toString().toStdString();
         }
         else
         {
-            fnName = QLatin1String("zcl:attr"); // default
+            fnName = "zcl:attr"; // default
         }
     }
 
@@ -2028,26 +2147,26 @@ ReadFunction_t DA_GetReadFunction(const QVariant &params)
 
     const std::array<ReadFunction, 4> functions =
     {
-        ReadFunction(QLatin1String("zcl"), 1, readZclAttribute), // Deprecated
-        ReadFunction(QLatin1String("zcl:attr"), 1, readZclAttribute),
-        ReadFunction(QLatin1String("zcl:cmd"), 1, sendZclCommand),
-        ReadFunction(QLatin1String("tuya"), 1, readTuyaAllData)
+        ReadFunction("zcl", 1, readZclAttribute), // Deprecated
+        ReadFunction("zcl:attr", 1, readZclAttribute),
+        ReadFunction("zcl:cmd", 1, sendZclCommand),
+        ReadFunction("tuya", 1, readTuyaAllData)
     };
 
-    QString fnName;
+    std::string fnName;
 
     if (params.type() == QVariant::Map)
     {
         const auto params1 = params.toMap();
         if (params1.isEmpty())
         {  }
-        else if (params1.contains(QLatin1String("fn")))
+        else if (params1.contains("fn"))
         {
-            fnName = params1["fn"].toString();
+            fnName = params1["fn"].toString().toStdString();
         }
         else
         {
-            fnName = QLatin1String("zcl:attr"); // default
+            fnName = "zcl:attr"; // default
         }
     }
 
@@ -2069,26 +2188,26 @@ WriteFunction_t DA_GetWriteFunction(const QVariant &params)
 
     const std::array<WriteFunction, 4> functions =
     {
-        WriteFunction(QLatin1String("zcl"), 1, writeZclAttribute), // Deprecated
-        WriteFunction(QLatin1String("zcl:attr"), 1, writeZclAttribute),
-        WriteFunction(QLatin1String("zcl:cmd"), 1, writeZclCommand),
-        WriteFunction(QLatin1String("tuya"), 1, writeTuyaData)
+        WriteFunction("zcl", 1, writeZclAttribute), // Deprecated
+        WriteFunction("zcl:attr", 1, writeZclAttribute),
+        WriteFunction("zcl:cmd", 1, writeZclCommand),
+        WriteFunction("tuya", 1, writeTuyaData)
     };
 
-    QString fnName;
+    std::string fnName;
 
     if (params.type() == QVariant::Map)
     {
         const auto params1 = params.toMap();
         if (params1.isEmpty())
         {  }
-        else if (params1.contains(QLatin1String("fn")))
+        else if (params1.contains("fn"))
         {
-            fnName = params1["fn"].toString();
+            fnName = params1["fn"].toString().toStdString();
         }
         else
         {
-            fnName = QLatin1String("zcl:attr"); // default
+            fnName = "zcl:attr"; // default
         }
     }
 

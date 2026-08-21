@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2026 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -23,12 +23,13 @@ namespace deCONZ
 
 struct ZCL_Param
 {
-    enum Constants { MaxAttributes = 8 };
+    enum Constants { MaxAttributes = 8, MaxClusters = 4 };
     std::array<uint16_t, MaxAttributes> attributes;
-    uint16_t clusterId = 0;
+    uint16_t clusterIds[MaxClusters] = {};
     uint16_t manufacturerCode = 0;
     uint16_t commandId = 0;
     uint8_t endpoint = 0;
+    uint8_t clusterCount = 0;
     struct {
         uint8_t valid : 1;
         uint8_t hasCommandId : 1;
