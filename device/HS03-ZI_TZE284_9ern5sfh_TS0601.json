@@ -1,0 +1,350 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "705ade07-8a9d-4d69-a48e-e26687324b6a",
+  "manufacturername": "_TZE284_9ern5sfh",
+  "modelid": "TS0601",
+  "vendor": "Tuya",
+  "product": "HS03-ZI Temperature and humidity sensor",
+  "sleeper": true,
+  "status": "Gold",
+
+  "subdevices": [
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "items": [
+        {
+          "name": "attr/id",
+          "datatype": "String",
+          "access": "R",
+          "public": false,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "attr/lastannounced",
+          "datatype": "ISO 8601 timestamp",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "attr/lastseen",
+          "datatype": "ISO 8601 timestamp",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "attr/manufacturername",
+          "datatype": "String",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 255,
+            "cl": "0x0000",
+            "at": "0x0004",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "attr/modelid",
+          "datatype": "String",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 255,
+            "cl": "0x0000",
+            "at": "0x0005",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "attr/name",
+          "datatype": "String",
+          "access": "RW",
+          "public": true,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "attr/swversion",
+          "datatype": "String",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 255,
+            "cl": "0x0000",
+            "at": "0x4000",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "attr/type",
+          "datatype": "String",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "attr/uniqueid",
+          "datatype": "String",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "config/battery",
+          "datatype": "UInt8",
+          "access": "R",
+          "public": true,
+          "range": [
+            0,
+            100
+          ],
+          "default": 0,
+          "parse": {
+            "fn": "tuya",
+            "dpid": 4,
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/offset",
+          "datatype": "Int16",
+          "access": "RW",
+          "public": true,
+          "default": 0
+        },
+        {
+          "name": "config/on",
+          "datatype": "Bool",
+          "access": "RW",
+          "public": true,
+          "default": true,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "config/reachable",
+          "datatype": "Bool",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "managed": true,
+          "default": false
+        },
+        {
+          "name": "state/lastupdated",
+          "datatype": "ISO 8601 timestamp",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "state/temperature",
+          "datatype": "Int16",
+          "access": "R",
+          "public": true,
+          "default": 0,
+          "parse": {
+            "fn": "tuya",
+            "dpid": 1,
+            "eval": "Item.val = (Attr.val * 10) + R.item('config/offset').val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        }
+      ]
+    },
+
+    {
+      "type": "$TYPE_HUMIDITY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x02",
+        "0x0405"
+      ],
+      "items": [
+        {
+          "name": "attr/id",
+          "datatype": "String",
+          "access": "R",
+          "public": false,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "attr/lastannounced",
+          "datatype": "ISO 8601 timestamp",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "attr/lastseen",
+          "datatype": "ISO 8601 timestamp",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "attr/manufacturername",
+          "datatype": "String",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 255,
+            "cl": "0x0000",
+            "at": "0x0004",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "attr/modelid",
+          "datatype": "String",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 255,
+            "cl": "0x0000",
+            "at": "0x0005",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "attr/name",
+          "datatype": "String",
+          "access": "RW",
+          "public": true,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "attr/swversion",
+          "datatype": "String",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 255,
+            "cl": "0x0000",
+            "at": "0x4000",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "attr/type",
+          "datatype": "String",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "attr/uniqueid",
+          "datatype": "String",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "config/battery",
+          "datatype": "UInt8",
+          "access": "R",
+          "public": true,
+          "range": [
+            0,
+            100
+          ],
+          "default": 0,
+          "parse": {
+            "fn": "tuya",
+            "dpid": 4,
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/offset",
+          "datatype": "Int16",
+          "access": "RW",
+          "public": true,
+          "default": 0
+        },
+        {
+          "name": "config/on",
+          "datatype": "Bool",
+          "access": "RW",
+          "public": true,
+          "default": true,
+          "implicit": true,
+          "managed": true
+        },
+        {
+          "name": "config/reachable",
+          "datatype": "Bool",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "managed": true,
+          "default": false
+        },
+        {
+          "name": "state/humidity",
+          "datatype": "UInt16",
+          "access": "R",
+          "public": true,
+          "default": 0,
+          "parse": {
+            "fn": "tuya",
+            "dpid": 2,
+            "eval": "Item.val = (Attr.val * 10) + R.item('config/offset').val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/lastupdated",
+          "datatype": "ISO 8601 timestamp",
+          "access": "R",
+          "public": true,
+          "implicit": true,
+          "managed": true
+        }
+      ]
+    }
+  ]
+}
