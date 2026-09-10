@@ -1,104 +1,145 @@
 {
-    "schema": "devcap1.schema.json",
-    "uuid": "524fadcb-a83c-4f33-acfa-81eb41e22978",
-    "manufacturername": "$MF_LUTRON",
-    "modelid": "Z3-1BRL",
-    "vendor": "Lutron",
-    "product": "Aurora smart bulb dimmer (Z3-1BRL)",
-    "status": "Gold",
-    "md:known_issues": [ "lutron_known_issues.md" ],
-    "subdevices": [
-        {
-            "type": "$TYPE_SWITCH",
-            "restapi": "/sensors",
-            "uuid": [ "$address.ext", "0x01", "0x1000"],
-            "buttons": {
-                "1": {"name": "Button"},
-                "2": {"name": "Rotate Clockwise"},
-                "3": {"name": "Rotate Counter Clockwise"}
-            },
-            "buttonevents": {
-                "1002": {"action": "SHORT_RELEASE", "button": 1},
-                "2002": {"action": "SHORT_RELEASE", "button": 2},
-                "3002": {"action": "SHORT_RELEASE", "button": 3}
-            },
-            "items": [
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/allowtouchlink",
-                    "read": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0031"
-                    },
-                    "parse": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0031",
-                        "eval": "Item.val = Attr.val != 0x000b"
-                    },
-                    "write": {
-                        "ep": 2, "cl": "0x0000", "mf": "0x100b", "at": "0x0031", "dt": "0x19",
-                        "eval": "Item.val ? 0x0000 : 0x000b"
-                    },
-                    "default": false,
-                    "refresh.interval": 84000
-                },
-                {
-                    "name": "config/battery",
-                    "parse": {
-                        "ep": 1, "cl": "0x0001", "at": "0x0021",
-                        "eval": "Item.val = Attr.val / 2"
-                    },
-                    "awake": true
-                },
-                {
-                    "name": "config/group",
-                    "default": "auto"
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/buttonevent"
-                },
-                {
-                    "name": "state/lastupdated"
-                }
-            ]
+  "schema": "devcap1.schema.json",
+  "uuid": "524fadcb-a83c-4f33-acfa-81eb41e22978",
+  "manufacturername": "$MF_LUTRON",
+  "modelid": "Z3-1BRL",
+  "vendor": "Lutron",
+  "product": "Aurora smart bulb dimmer (Z3-1BRL)",
+  "status": "Gold",
+  "md:known_issues": [
+    "lutron_known_issues.md"
+  ],
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x1000"
+      ],
+      "buttons": {
+        "1": {
+          "name": "Button"
+        },
+        "2": {
+          "name": "Rotate Clockwise"
+        },
+        "3": {
+          "name": "Rotate Counter Clockwise"
         }
-    ],
-    "bindings": [
+      },
+      "buttonevents": {
+        "1002": {
+          "action": "SHORT_RELEASE",
+          "button": 1
+        },
+        "2002": {
+          "action": "SHORT_RELEASE",
+          "button": 2
+        },
+        "3002": {
+          "action": "SHORT_RELEASE",
+          "button": 3
+        }
+      },
+      "items": [
         {
-            "bind": "unicast",
-            "src.ep": 1,
-            "cl": "0x0001",
-            "report": [ {"at": "0x0021", "dt": "0x20", "min": 300, "max": 300, "change": "0x01" } ]
+          "name": "attr/lastseen"
         },
         {
-            "bind": "groupcast",
-            "src.ep": 1,
-            "cl": "0x0008",
-            "config.group": 0
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/allowtouchlink",
+          "read": {
+            "ep": 2,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0031"
+          },
+          "parse": {
+            "ep": 2,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0031",
+            "eval": "Item.val = Attr.val != 0x000b"
+          },
+          "write": {
+            "ep": 2,
+            "cl": "0x0000",
+            "mf": "0x100b",
+            "at": "0x0031",
+            "dt": "0x19",
+            "eval": "Item.val ? 0x0000 : 0x000b"
+          },
+          "default": false,
+          "refresh.interval": 84000
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "awake": true
+        },
+        {
+          "name": "config/group",
+          "default": "auto"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent"
+        },
+        {
+          "name": "state/lastupdated"
         }
-    ]
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0021",
+          "dt": "0x20",
+          "min": 300,
+          "max": 300,
+          "change": "0x01"
+        }
+      ]
+    },
+    {
+      "bind": "groupcast",
+      "src.ep": 1,
+      "cl": "0x0008",
+      "config.group": 0
+    }
+  ]
 }

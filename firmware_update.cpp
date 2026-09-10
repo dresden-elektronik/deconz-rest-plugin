@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2026 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -15,7 +15,8 @@
 #include <QDir>
 #include <QString>
 #include <QProcess>
-#ifdef Q_OS_LINUX
+#include "deconz/u_platform.h"
+#ifdef PL_LINUX
 #include <unistd.h>
 #endif
 #include "de_web_plugin.h"
@@ -78,10 +79,10 @@ void DeRestPluginPrivate::updateFirmware()
 
     QString bin;
     QString gcfFlasherBin = qApp->applicationDirPath() + "/GCFFlasher";
-#ifdef Q_OS_WIN
+#ifdef PL_WINDOWS
     gcfFlasherBin.append(".exe");
     bin = gcfFlasherBin;
-#elif defined(Q_OS_LINUX) && !defined(ARCH_ARM) // on desktop linux
+#elif defined(PL_LINUX) && !defined(ARCH_ARM) // on desktop linux
 
     if (!needSudo || geteuid() == 0)
     {
@@ -93,7 +94,7 @@ void DeRestPluginPrivate::updateFirmware()
         gcfFlasherBin = QLatin1String("/usr/bin/GCFFlasher_internal");
         fwProcessArgs.prepend(gcfFlasherBin);
     }
-#elif defined(Q_OS_OSX)
+#elif defined(PL_MACOS)
     // TODO
     // /usr/bin/osascript -e 'do shell script "make install" with administrator privileges'
     bin = "sudo";
@@ -320,11 +321,11 @@ void DeRestPluginPrivate::queryFirmwareVersion()
 
     { // check for GCFFlasher binary
         QString gcfFlasherBin = qApp->applicationDirPath() + "/GCFFlasher";
-#ifdef Q_OS_WIN
+#ifdef PL_WINDOWS
         gcfFlasherBin.append(".exe");
-#elif defined(Q_OS_LINUX) && !defined(ARCH_ARM)
+#elif defined(PL_LINUX) && !defined(ARCH_ARM)
         gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
-#elif defined(Q_OS_OSX)
+#elif defined(PL_MACOS)
         // TODO
 #else
         gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
@@ -366,12 +367,12 @@ void DeRestPluginPrivate::queryFirmwareVersion()
 
         // search in different locations
         std::vector<QString> paths;
-#ifdef Q_OS_LINUX
+#ifdef PL_LINUX
         paths.push_back(QLatin1String("/usr/share/deCONZ/firmware/"));
 #endif
         paths.push_back(deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/firmware/"));
         paths.push_back(deCONZ::getStorageLocation(deCONZ::HomeLocation) + QLatin1String("/raspbee_firmware/"));
-#ifdef Q_OS_OSX
+#ifdef PL_MACOS
         QDir dir(qApp->applicationDirPath());
         dir.cdUp();
         dir.cd("Resources");
@@ -611,7 +612,7 @@ void DeRestPluginPrivate::checkFirmwareDevices()
     else if (usbDongleCount == 1)
     {
         DBG_Printf(DBG_INFO_L2, "GW firmware update select USB device\n");
-#ifndef Q_OS_WIN // windows does append characters  to the serial number for some reason 'A' (TODO)
+#ifndef PL_WINDOWS // windows does append characters  to the serial number for some reason 'A' (TODO)
         if (!serialNumber.isEmpty())
         {
             fwProcessArgs << "-s" << serialNumber;

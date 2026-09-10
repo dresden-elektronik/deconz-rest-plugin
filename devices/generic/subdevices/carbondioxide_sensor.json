@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_CARBONDIOXIDE_SENSOR",
   "name": "ZHACarbonDioxide",
+  "ui_name": "Carbon dioxide sensor",
   "restapi": "/sensors",
   "order": 20,
   "uuid": [

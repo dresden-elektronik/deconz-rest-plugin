@@ -1,8 +1,12 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "77ce001f-0fa9-4da8-973f-9d5d8e7c7fdc",
-  "manufacturername": ["$MF_LUMI"],
-  "modelid": ["lumi.remote.cagl01"],
+  "manufacturername": [
+    "$MF_LUMI"
+  ],
+  "modelid": [
+    "lumi.remote.cagl01"
+  ],
   "vendor": "Xiaomi Aqara",
   "product": "T1 cube (MFKZQ11LM)",
   "sleeper": true,

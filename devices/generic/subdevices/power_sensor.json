@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_POWER_SENSOR",
   "name": "ZHAPower",
+  "ui_name": "Power sensor",
   "restapi": "/sensors",
   "order": 21,
   "uuid": [

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2023-2026 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -124,7 +124,7 @@ cj_token_ref cj_value_ref(cj_ctx *ctx, cj_token_ref obj, const char *key);
  * \return 1 on success
  *         0 on failure
  */
-int cj_copy_value(cj_ctx *ctx, char *buf, unsigned size, cj_token_ref obj, const char *key);
+int cj_copy_value(cj_ctx *ctx, char *buf, cj_size size, cj_token_ref obj, const char *key);
 
 /** Copy the value of a token as string into a buffer.
  *
@@ -136,7 +136,18 @@ int cj_copy_value(cj_ctx *ctx, char *buf, unsigned size, cj_token_ref obj, const
  * \return 1 on success
  *         0 on failure
  */
-int cj_copy_ref(cj_ctx *ctx, char *buf, unsigned size, cj_token_ref ref);
+int cj_copy_ref(cj_ctx *ctx, char *buf, cj_size size, cj_token_ref ref);
+
+/** Convert UTF-8 byte sequence to Unicode code point.
+ *
+ * \param str pointer to UTF-8 encoded string.
+ * \param len length of the string in bytes.
+ * \param codepoint pointer to store the resulting code point.
+ *
+ * \return number of bytes consumed on success
+ *         0 on invalid UTF-8
+ */
+int cj_utf8_to_codepoint(const unsigned char *str, unsigned long len, unsigned long *codepoint);
 
 #ifdef __cplusplus
 }

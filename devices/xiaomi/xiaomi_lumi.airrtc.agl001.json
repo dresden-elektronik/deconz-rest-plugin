@@ -28,7 +28,10 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"off": 0, "heat": 1}
+          "config/mode": {
+            "off": 0,
+            "heat": 1
+          }
         }
       },
       "items": [

@@ -62,6 +62,7 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event);
 void DEV_PollNextStateHandler(Device *device, const Event &event);
 void DEV_PollBusyStateHandler(Device *device, const Event &event);
 void DEV_DeadStateHandler(Device *device, const Event &event);
+void DEV_ZgpStateHandler(Device *device, const Event &event);
 
 // enable domain specific string literals
 using namespace deCONZ::literals;
@@ -139,6 +140,7 @@ public:
     std::vector<Resource*> subResources;
     const deCONZ::Node *node = nullptr; //! a reference to the deCONZ core node
     int deviceId = DEV_INVALID_DEVICE_ID;
+    int64_t creationTime = -1; //! time when the device was created in database
     DeviceKey deviceKey = 0; //! for physical devices this is the MAC address
 
     /*! The currently active state handler function(s).
@@ -229,14 +231,10 @@ void DEV_InitStateHandler(Device *device, const Event &event)
     if (event.what() == REventStateEnter)
     {
         d->zdpResult = { };
+        d->node = DEV_GetCoreNode(device->key()); // always get fresh pointer
 
         if ((event.deviceKey() & 0x00212E0000000000LLU) == 0x00212E0000000000LLU)
         {
-            if (!d->node)
-            {
-                d->node = DEV_GetCoreNode(device->key());
-            }
-
             if (d->node && d->node->isCoordinator())
             {
                 d->setState(DEV_DeadStateHandler);
@@ -294,7 +292,7 @@ void DEV_InitStateHandler(Device *device, const Event &event)
 
             if ((device->key() & 0xffffffff00000000LLU) == 0)
             {
-                d->setState(DEV_DeadStateHandler);
+                d->setState(DEV_ZgpStateHandler);
                 return; // ignore ZGP for now
             }
         }
@@ -332,7 +330,7 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
                     change.verifyItemChange(item);
                 }
 
-                if (apsEnqueued == 0 && change.tick(d->deviceKey, sub, d->apsCtrl) == 1)
+                if (device->reachable() && apsEnqueued == 0 && change.tick(d->deviceKey, sub, d->apsCtrl) == 1)
                 {
                     apsEnqueued++;
                 }
@@ -842,7 +840,9 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
         // if there is a IAS Zone Cluster add the RAttrZoneType
         if (DEV_GetSimpleDescriptorForServerCluster(device, 0x0500_clid))
         {
-            device->addItem(DataTypeUInt16, RAttrZoneType);
+            ResourceItem *item = device->addItem(DataTypeUInt16, RAttrZoneType);
+            if (item)
+                item->setIsPublic(false);
         }
         DEV_EnqueueEvent(device, REventDDFInitRequest);
     }
@@ -890,6 +890,7 @@ void DEV_CheckReachable(Device *device)
         if (item && ((item->toBool() != devReachable) || !item->lastSet().isValid()))
         {
             r->setValue(item->descriptor().suffix, devReachable);
+            item->setNeedStore();
         }
     }
 }
@@ -976,7 +977,11 @@ void DEV_BindingHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventPoll || event.what() == REventAwake || event.what() == REventBindingTick)
     {
-        if (DA_ApsUnconfirmedRequests() > 4)
+        if (d->binding.bindings.empty())
+        {
+            // nothing todo
+        }
+        else if (DA_ApsUnconfirmedRequests() > 4)
         {
             // wait
         }
@@ -1361,6 +1366,15 @@ void DEV_BindingRemoveHandler(Device *device, const Event &event)
                 if (hasDdfBinding && !hasDdfGroup)
                 {
                     break;
+                }
+            }
+            else if (i->dstAddressMode() == deCONZ::ApsExtAddress)
+            {
+                const deCONZ::Node *dstNode = DEV_GetCoreNode(i->dstAddress().ext());
+                if (!dstNode)
+                {
+                    DBG_Printf(DBG_DEV, "DEV ZDP remove binding to non existing node: " FMT_MAC "\n", FMT_MAC_CAST(i->dstAddress().ext()));
+                    break; // remove
                 }
             }
         }
@@ -1862,7 +1876,7 @@ std::vector<DEV_PollItem> DEV_GetPollItems(Device *device)
                     }
                 }
 
-                if (item->lastSet().isValid() && item->valueSource() == ResourceItem::SourceDevice)
+                if (item->lastSet().isValid() && (item->valueSource() == ResourceItem::SourceDevice || item->valueSource() == ResourceItem::SourceUnknown))
                 {
                     const auto dt2 = item->lastSet().secsTo(now);
                     if (dt2  < item->refreshInterval().val)
@@ -1951,6 +1965,15 @@ void DEV_PollIdleStateHandler(Device *device, const Event &event)
             d->setState(DEV_PollNextStateHandler, STATE_LEVEL_POLL);
             return;
         }
+        else
+        {
+            if (event.what() == REventPoll)
+            {
+                DBG_Printf(DBG_DEV, "DEV Poll Idle nothing to poll %s/" FMT_MAC "\n", event.resource(), FMT_MAC_CAST(event.deviceKey()));
+                // notify DeviceTick to proceed
+                DEV_EnqueueEvent(device, REventPollDone);
+            }
+        }
     }
 }
 
@@ -1972,6 +1995,8 @@ void DEV_PollNextStateHandler(Device *device, const Event &event)
         if (d->pollItems.empty())
         {
             d->setState(DEV_PollIdleStateHandler, STATE_LEVEL_POLL);
+            // notify DeviceTick to proceed
+            DEV_EnqueueEvent(device, REventPollDone);
             return;
         }
 
@@ -2124,6 +2149,34 @@ void DEV_DeadStateHandler(Device *device, const Event &event)
 
             if (event.what() == REventPoll || event.what() == REventAwake)
             {
+                if (device->node())
+                {
+                    // update address info, a bit convoluted
+                    const deCONZ::Address &a = device->node()->address();
+                    if (a.hasExt())
+                    {
+                        ResourceItem *ext = device->item(RAttrExtAddress);
+                        if (!ext->lastSet().isValid() || ext->toNumber() != a.ext())
+                        {
+                            ext->setValue(a.ext());
+                        }
+                    }
+                    ResourceItem *nwk = device->item(RAttrNwkAddress);
+
+                    if (a.hasNwk())
+                    {
+                        nwk->setIsPublic(true);
+                        if (!nwk->lastSet().isValid() || nwk->toNumber() != a.nwk())
+                        {
+                            nwk->setValue(a.nwk());
+                        }
+                    }
+                    else if (!nwk->lastSet().isValid())
+                    {
+                        nwk->setIsPublic(false); // prevent null invalid address being exposed
+                    }
+                }
+
                 extern void DEV_PollLegacy(Device *device); // defined in de_web_plugin.cpp
 
                 if (d->node && d->node->isCoordinator())
@@ -2134,6 +2187,26 @@ void DEV_DeadStateHandler(Device *device, const Event &event)
                 DEV_PollLegacy(device);
             }
         }
+    }
+}
+
+void DEV_ZgpStateHandler(Device *device, const Event &event)
+{
+    if (event.what() == REventStateEnter)
+    {
+        DBG_Printf(DBG_DEV, "DEV enter ZGP passive state " FMT_MAC "\n", FMT_MAC_CAST(event.deviceKey()));
+        ResourceItem *item;
+        item = device->item(RAttrNwkAddress);
+        if (item) // only hide in API for now
+            item->setIsPublic(false);
+
+        item = device->item(RCapSleeper);
+        if (item)
+            item->setValue(true);
+    }
+    else if (event.what() == REventStateLeave)
+    {
+
     }
 }
 
@@ -2154,14 +2227,14 @@ Device::Device(DeviceKey key, deCONZ::ApsController *apsCtrl, QObject *parent) :
 
     addItem(DataTypeBool, RStateReachable);
     addItem(DataTypeBool, RCapSleeper);
-    addItem(DataTypeUInt64, RAttrExtAddress);
+    addItem(DataTypeUInt64, RAttrExtAddress)->setIsPublic(false);
     addItem(DataTypeUInt16, RAttrNwkAddress);
     addItem(DataTypeString, RAttrUniqueId)->setValue(generateUniqueId(key, 0, 0));
     addItem(DataTypeString, RAttrManufacturerName);
     addItem(DataTypeString, RAttrModelId);
     addItem(DataTypeString, RAttrDdfPolicy);
     addItem(DataTypeString, RAttrDdfHash);
-    addItem(DataTypeUInt32, RAttrOtaVersion);
+    addItem(DataTypeUInt32, RAttrOtaVersion)->setIsPublic(false);
 
     // lazy init since the event handler is connected after the constructor
     QTimer::singleShot(0, this, [this]()
@@ -2188,6 +2261,19 @@ void Device::setDeviceId(int id)
     {
         d->deviceId = id;
     }
+}
+
+void Device::setCreationTime(int64_t creationTime)
+{
+    if (0 < creationTime)
+    {
+        d->creationTime = creationTime;
+    }
+}
+
+int64_t Device::creationTime() const
+{
+    return d->creationTime;
 }
 
 int Device::deviceId() const
@@ -2229,7 +2315,6 @@ void Device::addSubDevice(Resource *sub)
             return;
         }
     }
-
 
     Q_ASSERT(0); // too many sub resources, todo raise limit
 }

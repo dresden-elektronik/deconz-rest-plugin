@@ -4,5 +4,6 @@
   "datatype": "Bool",
   "access": "R",
   "public": true,
+  "default": false,
   "description": "The current mounting mode state."
 }

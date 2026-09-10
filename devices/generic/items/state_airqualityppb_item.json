@@ -4,5 +4,6 @@
   "datatype": "UInt16",
   "access": "R",
   "public": true,
+  "default": 0,
   "description": "Measured tVOC level in ppb."
 }

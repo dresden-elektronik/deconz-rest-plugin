@@ -4,12 +4,12 @@
   "datatype": "Int16",
   "access": "R",
   "public": true,
-  "description": "The current relative flow in m3/h.",
+  "description": "The current relative flow in dm3/h.",
   "parse": {
     "at": "0x0000",
     "cl": "0x0404",
     "ep": 0,
-    "eval": "Item.val = Attr.val / 10 + R.item('config/offset').val",
+    "eval": "Item.val = Attr.val * 100 + R.item('config/offset').val",
     "fn": "zcl:attr"
   },
   "default": 0

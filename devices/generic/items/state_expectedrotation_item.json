@@ -4,5 +4,6 @@
   "datatype": "Int16",
   "access": "R",
   "public": true,
+  "default": 0,
   "description": "The expected rotation of the last received rotary event."
 }

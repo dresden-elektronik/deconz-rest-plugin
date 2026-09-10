@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -17,6 +17,7 @@
 #include "database.h"
 #include "device_descriptions.h"
 #include "device_ddf_bundle.h"
+#include "deconz/atom_table.h"
 #include "deconz/u_assert.h"
 #include "deconz/u_sstream_ex.h"
 #include "deconz/u_memory.h"
@@ -362,7 +363,7 @@ int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
 
                     itemMap[QLatin1String("value")] = item->toVariant();
 
-                    QDateTime dt = item->lastChanged().isValid() ? item->lastChanged() : item->lastSet();
+                    QDateTime dt = item->lastChanged().isValid() ? item->lastChanged().toUTC() : item->lastSet().toUTC();
                     // UTC in msec resolution
                     dt.setOffsetFromUtc(0);
                     itemMap[QLatin1String("lastupdated")] = dt.toString(QLatin1String("yyyy-MM-ddTHH:mm:ssZ"));
@@ -573,16 +574,6 @@ bool ddfSerializeV1(JsonDoc &doc, const DeviceDescription &ddf, char *buf, size_
     if (!ddf.matchExpr.isEmpty())
     {
         doc["matchexpr"] = ddf.matchExpr.toStdString();
-    }
-
-    if (!ddf.path.isEmpty())
-    {
-        int idx = ddf.path.indexOf(QLatin1String("/devices/"));
-
-        if (idx >= 0)
-        {
-            doc["path"] = ddf.path.mid(idx).toStdString();
-        }
     }
 
     {
@@ -872,6 +863,8 @@ QLatin1String RIS_ButtonEventActionToString(int buttonevent)
 {
     const uint action = buttonevent % 1000;
 
+    // TODO(mpi): this list is incomplete
+
     static std::array<QLatin1String, 11> map = {
          QLatin1String("INITIAL_PRESS"),
          QLatin1String("HOLD"),
@@ -925,6 +918,48 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
     {
         return result;
     }
+
+    {  // 1) if the DDF provides buttons and button event descriptions take it from there
+        const DeviceDescription &ddf = DeviceDescriptions::instance()->get(r);
+        if (ddf.isValid())
+        {
+            for (const DeviceDescription::SubDevice &subd : ddf.subDevices)
+            {
+                if (!subd.buttonEvents.empty())
+                {
+                    QVariantMap buttons;
+                    QVariantMap values;
+
+                    for (unsigned btn: subd.buttonEvents)
+                    {
+                        {
+                            QVariantMap m;
+                            m[QLatin1String("button")] = int(btn / 1000);
+                            m[QLatin1String("action")] = RIS_ButtonEventActionToString(btn);
+                            values[QString::number(btn)] = m;
+                        }
+
+                        QString btnNum = QString::number(btn/1000);
+
+                        if (!buttons.contains(btnNum))
+                        {
+                            QVariantMap m;
+                            m[QLatin1String("name")] = QString("Button %1").arg(btn/1000);
+                            buttons[btnNum] = m;
+                        }
+
+                    }
+
+                    result[QLatin1String("buttons")] = buttons;
+                    result[QLatin1String("values")] = values;
+
+                    return result;
+                }
+            }
+        }
+    }
+
+    // 2) try getting button and button event description from button maps
 
     const deCONZ::Node *node = getCoreNode(sensor->address().ext(), deCONZ::ApsController::instance());
 
@@ -983,8 +1018,13 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
             if (buttonBits & (1 << button.button))
             {
                 QVariantMap m;
-                m[QLatin1String("name")] = button.name;
-                buttons[QString::number(button.button)] = m;
+                AT_Atom nameAtom = AT_GetAtomByIndex({button.nameAtomeIndex});
+
+                if (nameAtom.data)
+                {
+                    m[QLatin1String("name")] = QString::fromUtf8((const char*)nameAtom.data, nameAtom.len);
+                    buttons[QString::number(button.button)] = m;
+                }
             }
         }
     }
@@ -1129,7 +1169,7 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
             {
                 DBG_HexToAscii(&mmoHash[0], mmoHash.size(), reinterpret_cast<unsigned char*>(&mmoHashHex[0]));
             }
-            m["key"] = &mmoHashHex[0];
+            m["key"] = QString::fromLatin1(&mmoHashHex[0]);
             if (ok && strlen(mmoHashHex) == 32)
             {
                 ok = deCONZ::ApsController::instance()->setParameter(deCONZ::ParamLinkKey, m);
@@ -1137,8 +1177,8 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
 #endif
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState["installcode"] = installCode.data();
-            rspItemState["mmohash"] = &mmoHashHex[0];
+            rspItemState["installcode"] = QString::fromLatin1(installCode.data());
+            rspItemState["mmohash"] = QString::fromLatin1(&mmoHashHex[0]);
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
             rsp.httpStatus = HttpStatusOk;
@@ -1338,7 +1378,7 @@ int RestDevices::putDeviceSetDDFPolicy(const ApiRequest &req, ApiResponse &rsp)
         QVariantMap result;
         QVariantMap item;
 
-        item[QString("/devices/%1/ddf/policy").arg(uniqueId)] = policyBuf;
+        item[QString("/devices/%1/ddf/policy").arg(uniqueId)] = QString::fromLatin1(policyBuf);
         result["success"] = item;
         rsp.list.append(result);
     }
@@ -1347,7 +1387,7 @@ int RestDevices::putDeviceSetDDFPolicy(const ApiRequest &req, ApiResponse &rsp)
     {
         QVariantMap result;
         QVariantMap item;
-        item[QString("/devices/%1/ddf/hash").arg(uniqueId)] = bundleHashBuf;
+        item[QString("/devices/%1/ddf/hash").arg(uniqueId)] = QString::fromLatin1(bundleHashBuf);
         result["success"] = item;
         rsp.list.append(result);
     }

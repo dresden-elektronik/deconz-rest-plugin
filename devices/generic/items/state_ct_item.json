@@ -4,6 +4,7 @@
   "datatype": "UInt16",
   "access": "RW",
   "public": true,
+  "default": 0,
   "description": "The current Mired color temperature of the light. Where Mired is 1000000 / color temperature (in kelvins).",
   "parse": {
     "fn": "zcl:attr",

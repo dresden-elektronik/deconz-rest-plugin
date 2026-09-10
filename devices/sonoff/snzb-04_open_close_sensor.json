@@ -1,9 +1,23 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "cd25fbd8-9b9b-4051-9c01-1c08a9d65203",
-  "manufacturername": ["eWeLink", "zbeacon", "eWeLink", "eWeLink"],
-  "modelid": ["DS01", "DS01", "SNZB-04P", "SNZB-04"],
-  "vendor": "eWeLink",
+  "manufacturername": [
+    "eWeLink",
+    "eWeLink",
+    "zbeacon",
+    "eWeLink",
+    "eWeLink",
+    "SONOFF"
+  ],
+  "modelid": [
+    "CK-TLSR8656-SS5-01(7003)",
+    "DS01",
+    "DS01",
+    "SNZB-04",
+    "SNZB-04P",
+    "SNZB-04PR2"
+  ],
+  "vendor": "Sonoff/eWeLink",
   "product": "Open/close sensor (DS01)",
   "sleeper": true,
   "status": "Gold",
@@ -62,7 +76,7 @@
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
           "read": {
@@ -107,8 +121,8 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
-          "max": 7200,
+          "min": 7200,
+          "max": 43200,
           "change": "0x00000002"
         }
       ]

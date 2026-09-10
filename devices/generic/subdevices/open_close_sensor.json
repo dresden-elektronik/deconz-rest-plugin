@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_OPEN_CLOSE_SENSOR",
   "name": "ZHAOpenClose",
+  "ui_name": "Open/close sensor",
   "restapi": "/sensors",
   "order": 20,
   "uuid": [

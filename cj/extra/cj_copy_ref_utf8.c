@@ -85,10 +85,10 @@ int cj_unicode_to_utf8(unsigned long codepoint, unsigned char *buf, cj_size size
  * \return 1 on success
  *         0 on failure
  */
-int cj_copy_ref_utf8(cj_ctx *ctx, char *buf, unsigned size, cj_token_ref ref)
+int cj_copy_ref_utf8(cj_ctx *ctx, char *buf, cj_size size, cj_token_ref ref)
 {
     int n;
-    unsigned i;
+    cj_size i;
     cj_token *tok;
     const unsigned char *ch;
     unsigned char *wr;
@@ -99,15 +99,23 @@ int cj_copy_ref_utf8(cj_ctx *ctx, char *buf, unsigned size, cj_token_ref ref)
     unsigned long num0;
     unsigned long high_surrogate;
 
-    if (size)
-        buf[0] = '\0';
+    if (!ctx || !buf || size == 0)
+        return 0;
 
-    if (size > 1 && ref >= 0 && ref < (cj_token_ref)ctx->tokens_pos)
+    buf[0] = '\0';
+
+    if (ref < ctx->tokens_pos)
     {
         tok = &ctx->tokens[ref];
 
         if (tok->type != CJ_TOKEN_STRING)
             return cj_copy_ref(ctx, buf, size, ref);
+
+        if (ctx->size < tok->len)
+            return 0;
+
+        if ((ctx->size - tok->len) < tok->pos)
+            return 0;
 
         num0 = 0;
         high_surrogate = 0;
@@ -133,7 +141,12 @@ int cj_copy_ref_utf8(cj_ctx *ctx, char *buf, unsigned size, cj_token_ref ref)
 
             case CJ_UC_STATE_ESC:
                 if (c == 'u')
+                {
+                    if (tok->len - i < 5) /* \uXXXX */
+                        goto err;
+
                     state = CJ_UC_STATE_NUM0;
+                }
                 else /* not an unicode escape */
                 {
                     switch (c)
@@ -164,7 +177,7 @@ int cj_copy_ref_utf8(cj_ctx *ctx, char *buf, unsigned size, cj_token_ref ref)
 
                 num0 <<= 4;
                 num0 |= c;
-                state = (enum cj_unicode_state)((int)state + 1);
+                state++;
                 /* if we are the last char in sequence fall through! */
                 if (state != CJ_UC_STATE_CHK_NUM)
                     break;
@@ -227,7 +240,6 @@ int cj_copy_ref_utf8(cj_ctx *ctx, char *buf, unsigned size, cj_token_ref ref)
     return 1;
 
 err:
-    if (size)
-        buf[0] = '\0';
+    buf[0] = '\0';
     return 0;
 }

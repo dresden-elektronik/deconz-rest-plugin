@@ -1,154 +1,179 @@
 {
-    "schema": "devcap1.schema.json",
-    "uuid": "23740b64-7f71-4edb-9141-69307741fe75",
-    "doc:path": "samsung/samjin_button_switch.md",
-    "doc:hdr": "Samsung Button",
-    "manufacturername": "$MF_SAMJIN",
-    "modelid": "button",
-    "vendor": "Samsung",
-    "product": "Button (IM6001-BTP01)",
-    "status": "Silver",
-    "md:known_issues": [ ],
-    "subdevices": [
+  "schema": "devcap1.schema.json",
+  "uuid": "23740b64-7f71-4edb-9141-69307741fe75",
+  "doc:path": "samsung/samjin_button_switch.md",
+  "doc:hdr": "Samsung Button",
+  "manufacturername": "$MF_SAMJIN",
+  "modelid": "button",
+  "vendor": "Samsung",
+  "product": "Button (IM6001-BTP01)",
+  "status": "Silver",
+  "md:known_issues": [],
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0500"
+        ]
+      },
+      "items": [
         {
-            "type": "$TYPE_SWITCH",
-            "restapi": "/sensors",
-            "uuid": [ "$address.ext", "0x01", "0x0500"],
-            "fingerprint": { "profile": "0x0104", "device": "0x0402", "endpoint": "0x01", "in": ["0x0000", "0x0001", "0x0500"] },
-            "items": [
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/mode"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/battery",
-                    "awake": true
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/pending"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/lastupdated"
-                },
-                {
-                    "name": "state/buttonevent"
-                }
-            ],
-            "example": {
-                "config": {
-                    "battery": 67,
-                    "on": true,
-                    "pending": [],
-                    "reachable": true
-                },
-                "ep": 1,
-                "etag": "d1e74f93f14c016ab59e33df99c9656c",
-                "lastseen": "2021-01-12T17:59Z",
-                "manufacturername": "Samjin",
-                "mode": 1,
-                "modelid": "button",
-                "name": "Button",
-                "state": {
-                    "buttonevent": 1001,
-                    "lastupdated": "2021-01-11T19:30:44.544"
-                },
-                "type": "ZHASwitch",
-                "uniqueid": "28:6d:97:00:01:06:41:79-01-0500"
-            }
+          "name": "attr/lastseen"
         },
         {
-            "type": "$TYPE_TEMPERATURE_SENSOR",
-            "restapi": "/sensors",
-            "uuid": [ "$address.ext", "0x01", "0x0402"],
-            "fingerprint": { "profile": "0x0104", "device": "0x0402", "endpoint": "0x01", "in": ["0x0001", "0x0402"] },
-            "items": [
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/battery",
-                    "awake": true
-                },
-                {
-                    "name": "config/offset"
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/lastupdated"
-                },
-                {
-                    "name": "state/temperature"
-                }
-            ],
-            "example": {
-                "config": {
-                    "battery": 67,
-                    "offset": 0,
-                    "on": true,
-                    "reachable": true
-                },
-                "ep": 1,
-                "etag": "d1e74f93f14c016ab59e33df99c9656c",
-                "lastseen": "2021-01-12T17:59Z",
-                "manufacturername": "Samjin",
-                "modelid": "button",
-                "name": "Temperature 118",
-                "state": {
-                    "lastupdated": "2021-01-11T19:29:33.399",
-                    "temperature": 2771
-                },
-                "type": "ZHATemperature",
-                "uniqueid": "28:6d:97:00:01:06:41:79-01-0402"
-            }
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/mode"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/buttonevent"
         }
-    ]
+      ],
+      "example": {
+        "config": {
+          "battery": 67,
+          "on": true,
+          "pending": [],
+          "reachable": true
+        },
+        "ep": 1,
+        "etag": "d1e74f93f14c016ab59e33df99c9656c",
+        "lastseen": "2021-01-12T17:59Z",
+        "manufacturername": "Samjin",
+        "mode": 1,
+        "modelid": "button",
+        "name": "Button",
+        "state": {
+          "buttonevent": 1001,
+          "lastupdated": "2021-01-11T19:30:44.544"
+        },
+        "type": "ZHASwitch",
+        "uniqueid": "28:6d:97:00:01:06:41:79-01-0500"
+      }
+    },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x01",
+        "in": [
+          "0x0001",
+          "0x0402"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true
+        },
+        {
+          "name": "config/offset"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature"
+        }
+      ],
+      "example": {
+        "config": {
+          "battery": 67,
+          "offset": 0,
+          "on": true,
+          "reachable": true
+        },
+        "ep": 1,
+        "etag": "d1e74f93f14c016ab59e33df99c9656c",
+        "lastseen": "2021-01-12T17:59Z",
+        "manufacturername": "Samjin",
+        "modelid": "button",
+        "name": "Temperature 118",
+        "state": {
+          "lastupdated": "2021-01-11T19:29:33.399",
+          "temperature": 2771
+        },
+        "type": "ZHATemperature",
+        "uniqueid": "28:6d:97:00:01:06:41:79-01-0402"
+      }
+    }
+  ]
 }

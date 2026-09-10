@@ -5,7 +5,9 @@
   "modelid": "TERNCY-DC01",
   "vendor": "Terncy",
   "product": "Door sensor (TERNCY-DC01)",
-  "md:info": ["terncy_dc01_contact_sensor_pairing.md"],
+  "md:info": [
+    "terncy_dc01_contact_sensor_pairing.md"
+  ],
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -47,7 +49,8 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 3665,
+          "refresh.interval": 86400,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",

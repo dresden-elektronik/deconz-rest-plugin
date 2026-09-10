@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_TEMPERATURE_SENSOR",
   "name": "ZHATemperature",
+  "ui_name": "Temperature sensor",
   "restapi": "/sensors",
   "order": 23,
   "uuid": [

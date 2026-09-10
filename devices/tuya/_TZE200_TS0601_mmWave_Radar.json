@@ -1,8 +1,16 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "eadb2b6f-aeb8-4695-923d-ba0eb42fd003",
-  "manufacturername": ["_TZE200_v6ossqfy","_TZE200_mx6u6l4y","_TZE200_0u3bj3rc"],
-  "modelid": ["TS0601","TS0601","TS0601"],
+  "manufacturername": [
+    "_TZE200_v6ossqfy",
+    "_TZE200_mx6u6l4y",
+    "_TZE200_0u3bj3rc"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601",
+    "TS0601"
+  ],
   "vendor": "Tuya",
   "product": "2.4GHz mmWave radar with LED (TS0601)",
   "sleeper": false,
@@ -66,7 +74,7 @@
           },
           "parse": {
             "dpid": 101,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 1
@@ -79,7 +87,7 @@
           },
           "parse": {
             "dpid": 102,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           }
         },
@@ -103,7 +111,7 @@
           },
           "parse": {
             "dpid": 103,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": 0
@@ -136,19 +144,12 @@
           },
           "parse": {
             "dpid": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": false
         }
       ]
-    }
-  ],
-  "bindings": [
-    {
-      "bind": "unicast",
-      "src.ep": 1,
-      "cl": "0xEF00"
     }
   ]
 }

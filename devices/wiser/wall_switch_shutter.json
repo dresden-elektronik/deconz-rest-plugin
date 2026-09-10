@@ -1,273 +1,273 @@
 {
-    "schema": "devcap1.schema.json",
-    "uuid": "1d90bd73-6292-4387-bf0f-a4a87ad4701b",
-    "manufacturername": "Schneider Electric",
-    "modelid": "NHPB/SHUTTER/1",
-    "vendor": "Schneider Electric",
-    "product": "Wiser Odace roller shutter switch (S520567W)",
-    "sleeper": false,
-    "status": "Gold",
-    "subdevices": [
+  "schema": "devcap1.schema.json",
+  "uuid": "1d90bd73-6292-4387-bf0f-a4a87ad4701b",
+  "manufacturername": "Schneider Electric",
+  "modelid": "NHPB/SHUTTER/1",
+  "vendor": "Schneider Electric",
+  "product": "Wiser Odace roller shutter switch (S520567W)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_WINDOW_COVERING_DEVICE",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
         {
-            "type": "$TYPE_WINDOW_COVERING_DEVICE",
-            "restapi": "/lights",
-            "uuid": [
-                "$address.ext",
-                "0x01"
-            ],
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "state/lift",
-                    "parse": {
-                        "at": "0x0008",
-                        "cl": "0x0102",
-                        "ep": 5,
-                        "eval": "Item.val = Attr.val == 255 ? 50 : (100 - Attr.val)",
-                        "fn": "zcl:attr"
-                    },
-                    "awake": true,
-                    "refresh.interval": 84000
-                },
-                {
-                    "name": "state/open",
-                    "parse": {
-                        "at": "0x0008",
-                        "cl": "0x0102",
-                        "ep": 5,
-                        "eval": "Item.val = Attr.val < 100",
-                        "fn": "zcl:attr"
-                    },
-                    "awake": true,
-                    "refresh.interval": 84000
-                },
-                {
-                    "name": "state/reachable"
-                }
-            ]
+          "name": "attr/id"
         },
         {
-            "type": "$TYPE_SWITCH",
-            "restapi": "/sensors",
-            "uuid": [
-                "$address.ext",
-                "0x15",
-                "0x0102"
-            ],
-            "meta": {
-                "values": {
-                    "config/mode": {
-                        "lift": "Lift",
-                        "lift&tilt": "Lift and tilt"
-                    }
-                }
-            },
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/duration",
-                    "description": "The duration in second to open or close the shutter.",
-                    "read": {
-                        "at": "0xE000",
-                        "cl": "0x0102",
-                        "ep": 5,
-                        "fn": "zcl:attr",
-                        "mf": "0x105e"
-                    },
-                    "write": {
-                        "at": "0xE000",
-                        "cl": "0x0102",
-                        "dt": "0x21",
-                        "ep": 5,
-                        "eval": "Item.val",
-                        "fn": "zcl:attr",
-                        "mf": "0x105e"
-                    },
-                    "parse": {
-                        "at": "0xE000",
-                        "cl": "0x0102",
-                        "ep": 5,
-                        "eval": "Item.val = Attr.val",
-                        "fn": "zcl:attr",
-                        "mf": "0x105e"
-                    },
-                    "default": 120,
-                    "refresh.interval": 84000
-                },
-                {
-                    "name": "config/ledindication",
-                    "read": {
-                        "at": "0x0000",
-                        "cl": "0xff17",
-                        "ep": 21,
-                        "fn": "zcl:attr",
-                        "mf": "0x105e"
-                    },
-                    "write": {
-                        "at": "0x0000",
-                        "cl": "0xff17",
-                        "dt": "0x30",
-                        "ep": 21,
-                        "eval": "Item.val ? 1 : 0",
-                        "fn": "zcl:attr",
-                        "mf": "0x105e"
-                    },
-                    "parse": {
-                        "at": "0x0000",
-                        "cl": "0xff17",
-                        "ep": 21,
-                        "eval": "Attr.val == 0 ? Item.val = false : Item.val = true",
-                        "fn": "zcl:attr",
-                        "mf": "0x105e"
-                    },
-                    "default": false,
-                    "refresh.interval": 84000
-                },
-                {
-                    "name": "config/mode",
-                    "description": "The mode of the device, can be 'lift', 'lift&tilt' or null.",
-                    "read": {
-                        "at": "0x0001",
-                        "cl": "0xff17",
-                        "ep": 21,
-                        "fn": "zcl:attr",
-                        "mf": "0x105e"
-                    },
-                    "write": {
-                        "at": "0x0001",
-                        "cl": "0xff17",
-                        "dt": "0x30",
-                        "ep": 21,
-                        "eval": "({ 'lift': 0, 'lift&tilt' : 1 }[Item.val]) + (R.item('config/locked').val === true ? 0 : 2)",
-                        "fn": "zcl:attr",
-                        "mf": "0x105e"
-                    },
-                    "parse": {
-                        "at": "0x0001",
-                        "cl": "0xff17",
-                        "ep": 21,
-                        "eval": "Item.val = Attr.val < 4 ? ({ 0: 'lift', 1: 'lift&tilt' }[Attr.val % 2]) : null;",
-                        "fn": "zcl:attr",
-                        "mf": "0x105e"
-                    },
-                    "default": "lift&tilt",
-                    "refresh.interval": 84000
-                },
-                {
-                    "name": "config/locked",
-                    "read": {
-                        "at": "0x0001",
-                        "cl": "0xff17",
-                        "ep": 21,
-                        "fn": "zcl:attr",
-                        "mf": "0x105e"
-                    },
-                    "write": {
-                        "at": "0x0001",
-                        "cl": "0xff17",
-                        "dt": "0x30",
-                        "ep": 21,
-                        "eval": "({ true: 0, false : 2 }[Item.val]) + ({ 'lift': 0, 'lift&tilt' : 1 }[R.item('config/mode').val])",
-                        "fn": "zcl:attr",
-                        "mf": "0x105e"
-                    },
-                    "parse": {
-                        "at": "0x0001",
-                        "cl": "0xff17",
-                        "ep": 21,
-                        "eval": "Item.val = Attr.val == 0 || Attr.val == 1",
-                        "fn": "zcl:attr",
-                        "mf": "0x105e"
-                    },
-                    "default": false,
-                    "refresh.interval": 84000
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/buttonevent"
-                },
-                {
-                    "name": "state/lastupdated"
-                }
-            ]
-        }
-    ],
-    "bindings": [
-        {
-            "bind": "unicast",
-            "src.ep": 21,
-            "cl": "0x0102"
+          "name": "attr/lastannounced"
         },
         {
-            "bind": "unicast",
-            "src.ep": 5,
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/lift",
+          "parse": {
+            "at": "0x0008",
             "cl": "0x0102",
-            "report": [
-                {
-                    "at": "0x0008",
-                    "dt": "0x20",
-                    "min": 1,
-                    "max": 300,
-                    "change": "0x00000001"
-                }
-            ]
+            "ep": 5,
+            "eval": "Item.val = Attr.val == 255 ? 50 : (100 - Attr.val)",
+            "fn": "zcl:attr"
+          },
+          "awake": true,
+          "refresh.interval": 84000
+        },
+        {
+          "name": "state/open",
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0102",
+            "ep": 5,
+            "eval": "Item.val = Attr.val < 100",
+            "fn": "zcl:attr"
+          },
+          "awake": true,
+          "refresh.interval": 84000
+        },
+        {
+          "name": "state/reachable"
         }
-    ]
+      ]
+    },
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x15",
+        "0x0102"
+      ],
+      "meta": {
+        "values": {
+          "config/mode": {
+            "lift": "Lift",
+            "lift&tilt": "Lift and tilt"
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/duration",
+          "description": "The duration in second to open or close the shutter.",
+          "read": {
+            "at": "0xE000",
+            "cl": "0x0102",
+            "ep": 5,
+            "fn": "zcl:attr",
+            "mf": "0x105e"
+          },
+          "write": {
+            "at": "0xE000",
+            "cl": "0x0102",
+            "dt": "0x21",
+            "ep": 5,
+            "eval": "Item.val",
+            "fn": "zcl:attr",
+            "mf": "0x105e"
+          },
+          "parse": {
+            "at": "0xE000",
+            "cl": "0x0102",
+            "ep": 5,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x105e"
+          },
+          "default": 120,
+          "refresh.interval": 84000
+        },
+        {
+          "name": "config/ledindication",
+          "read": {
+            "at": "0x0000",
+            "cl": "0xff17",
+            "ep": 21,
+            "fn": "zcl:attr",
+            "mf": "0x105e"
+          },
+          "write": {
+            "at": "0x0000",
+            "cl": "0xff17",
+            "dt": "0x30",
+            "ep": 21,
+            "eval": "Item.val ? 1 : 0",
+            "fn": "zcl:attr",
+            "mf": "0x105e"
+          },
+          "parse": {
+            "at": "0x0000",
+            "cl": "0xff17",
+            "ep": 21,
+            "eval": "Attr.val == 0 ? Item.val = false : Item.val = true",
+            "fn": "zcl:attr",
+            "mf": "0x105e"
+          },
+          "default": false,
+          "refresh.interval": 84000
+        },
+        {
+          "name": "config/mode",
+          "description": "The mode of the device, can be 'lift', 'lift&tilt' or null.",
+          "read": {
+            "at": "0x0001",
+            "cl": "0xff17",
+            "ep": 21,
+            "fn": "zcl:attr",
+            "mf": "0x105e"
+          },
+          "write": {
+            "at": "0x0001",
+            "cl": "0xff17",
+            "dt": "0x30",
+            "ep": 21,
+            "eval": "({ 'lift': 0, 'lift&tilt' : 1 }[Item.val]) + (R.item('config/locked').val === true ? 0 : 2)",
+            "fn": "zcl:attr",
+            "mf": "0x105e"
+          },
+          "parse": {
+            "at": "0x0001",
+            "cl": "0xff17",
+            "ep": 21,
+            "eval": "Item.val = Attr.val < 4 ? ({ 0: 'lift', 1: 'lift&tilt' }[Attr.val % 2]) : null;",
+            "fn": "zcl:attr",
+            "mf": "0x105e"
+          },
+          "default": "lift&tilt",
+          "refresh.interval": 84000
+        },
+        {
+          "name": "config/locked",
+          "read": {
+            "at": "0x0001",
+            "cl": "0xff17",
+            "ep": 21,
+            "fn": "zcl:attr",
+            "mf": "0x105e"
+          },
+          "write": {
+            "at": "0x0001",
+            "cl": "0xff17",
+            "dt": "0x30",
+            "ep": 21,
+            "eval": "({ true: 0, false : 2 }[Item.val]) + ({ 'lift': 0, 'lift&tilt' : 1 }[R.item('config/mode').val])",
+            "fn": "zcl:attr",
+            "mf": "0x105e"
+          },
+          "parse": {
+            "at": "0x0001",
+            "cl": "0xff17",
+            "ep": 21,
+            "eval": "Item.val = Attr.val == 0 || Attr.val == 1",
+            "fn": "zcl:attr",
+            "mf": "0x105e"
+          },
+          "default": false,
+          "refresh.interval": 84000
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent"
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 21,
+      "cl": "0x0102"
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 5,
+      "cl": "0x0102",
+      "report": [
+        {
+          "at": "0x0008",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2026 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -10,23 +10,17 @@
 
 #ifdef USE_WEBSOCKETS
 
+#include "deconz/u_assert.h"
 #include "deconz/dbg_trace.h"
 #include "deconz/util.h"
 #include "websocket_server.h"
 
 /*! Constructor.
  */
-WebSocketServer::WebSocketServer(QObject *parent, quint16 port) :
+WebSocketServer::WebSocketServer(QObject *parent, uint16_t wsPort) :
     QObject(parent)
 {
     srv = new QWebSocketServer("deconz", QWebSocketServer::NonSecureMode, this);
-
-    quint16 p = 0;
-    quint16 ports[] = { 443, 443, 8080, 8088, 20877, 0 }; // start with proxy frinedly ports first, use random port as fallback
-    if (port > 0)
-    {
-        ports[0] = port;
-    }
 
     QHostAddress address;
     QString addrArg = deCONZ::appArgumentString("--http-listen", QString());
@@ -40,31 +34,48 @@ WebSocketServer::WebSocketServer(QObject *parent, quint16 port) :
         address = QHostAddress(addrArg);
     }
 
-    while (!srv->listen(address, ports[p]))
+    if (wsPort != 0)
     {
-        if (ports[p] == 0)
+        if (srv->listen(address, wsPort))
         {
-            DBG_Printf(DBG_ERROR, "Giveup starting websocket server on %s, port: %u. error: %s\n", qPrintable(address.toString()), ports[p], qPrintable(srv->errorString()));
-            break;
+            DBG_Printf(DBG_INFO, "Started websocket server on %s, port: %u\n", qPrintable(address.toString()), srv->serverPort());
         }
-
-        DBG_Printf(DBG_ERROR, "Failed to start websocket server on %s, port: %u. error: %s\n", qPrintable(address.toString()), ports[p], qPrintable(srv->errorString()));
-        p++;
+        else
+        {
+            DBG_Printf(DBG_ERROR, "Failed starting websocket server on %s, port: %u. error: %s\n", qPrintable(address.toString()), wsPort, qPrintable(srv->errorString()));
+        }
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "Started websocket server on REST-API HTTP(S) ports\n");
     }
 
-    if (srv->isListening())
+    connect(srv, &QWebSocketServer::newConnection, this, &WebSocketServer::onNewConnection);
+}
+
+/*! Adds a socket to the internal WebSocket server which handles the handshake.
+
+    The ownership is transferred to \c srv instance.
+ */
+void WebSocketServer::handleExternalTcpSocket(const QHttpRequestHeader &hdr, QTcpSocket *sock)
+{
+    U_ASSERT(sock);
+    if (srv)
     {
-        DBG_Printf(DBG_INFO, "Started websocket server on %s, port: %u\n", qPrintable(address.toString()), srv->serverPort());
-        connect(srv, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
+        srv->handleConnection(sock);
+    }
+    else
+    {
+        sock->deleteLater(); // shouldn't happen but don't leak anyway
     }
 }
 
 /*! Returns the websocket server port.
-    \return the active server port, or 0 if not active
+    \return the active server port, or 0 if not listening on extra port
  */
 quint16 WebSocketServer::port() const
 {
-    return srv->isListening() ? srv->serverPort() : 0;
+    return srv && srv->isListening() ? srv->serverPort() : 0;
 }
 
 /*! Handler for new client connections.
@@ -74,9 +85,10 @@ void WebSocketServer::onNewConnection()
     while (srv->hasPendingConnections())
     {
         QWebSocket *sock = srv->nextPendingConnection();
-        DBG_Printf(DBG_INFO, "New websocket %s:%u (state: %d) \n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), sock->state());
-        connect(sock, SIGNAL(disconnected()), this, SLOT(onSocketDisconnected()));
+        DBG_Printf(DBG_INFO, "New websocket %s:%u\n", qPrintable(sock->peerAddress().toString()), sock->peerPort());
+        connect(sock, &QWebSocket::disconnected, this, &WebSocketServer::onSocketDisconnected);
         connect(sock, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onSocketError(QAbstractSocket::SocketError)));
+        connect(sock, &QWebSocket::textMessageReceived, this, &WebSocketServer::onTextMessageReceived);
         clients.push_back(sock);
     }
 }
@@ -91,7 +103,6 @@ void WebSocketServer::onSocketDisconnected()
         DBG_Assert(sock);
         if (sock && clients[i] == sock)
         {
-            DBG_Printf(DBG_INFO, "Websocket disconnected %s:%u, state: %d, close-code: %d, reason: %s\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), sock->state(), sock->closeCode(), qPrintable(sock->closeReason()));
             sock->deleteLater();
             clients[i] = clients.back();
             clients.pop_back();
@@ -111,13 +122,17 @@ void WebSocketServer::onSocketError(QAbstractSocket::SocketError err)
         DBG_Assert(sock);
         if (sock && clients[i] == sock)
         {
-            DBG_Printf(DBG_INFO, "Remove websocket %s:%u after error %s, close-code: %d, reason: %s\n",
-                       qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(sock->errorString()), sock->closeCode(), qPrintable(sock->closeReason()));
             sock->deleteLater();
             clients[i] = clients.back();
             clients.pop_back();
         }
     }
+}
+
+void WebSocketServer::onTextMessageReceived(const QString &message)
+{
+    Q_UNUSED(message);
+    // DBG_Printf(DBG_INFO, "Websocket received: %s\n", qPrintable(message));
 }
 
 /*! Broadcasts a message to all connected clients.
@@ -128,14 +143,8 @@ void WebSocketServer::broadcastTextMessage(const QString &msg)
     for (size_t i = 0; i < clients.size(); i++)
     {
         QWebSocket *sock = clients[i];
-
-        if (sock->state() != QAbstractSocket::ConnectedState)
-        {
-            DBG_Printf(DBG_INFO, "Websocket %s:%u unexpected state: %d\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), sock->state());
-        }
-
         qint64 ret = sock->sendTextMessage(msg);
-        DBG_Printf(DBG_INFO_L2, "Websocket %s:%u send message: %s (ret = %d)\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(msg), ret);
+        DBG_Printf(DBG_INFO_L2, "Websocket %s:%u send message: %s (ret = %d)\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(msg), (int)ret);
         sock->flush();
     }
 }

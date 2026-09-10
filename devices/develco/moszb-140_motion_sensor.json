@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "25076a0e-dc89-4730-ad98-fd06fb303e76",
-  "manufacturername": ["Develco Products A/S", "Develco Products A/S"],
-  "modelid": ["MOSZB-130", "MOSZB-140"],
+  "manufacturername": [
+    "Develco Products A/S",
+    "Develco Products A/S"
+  ],
+  "modelid": [
+    "MOSZB-130",
+    "MOSZB-140"
+  ],
   "vendor": "Develco Products",
   "product": "Motion sensor (MOSZB-130/MOSZB-140)",
   "sleeper": true,
@@ -358,7 +364,10 @@
             "fn": "zcl:attr",
             "mf": "0x1015"
           },
-          "range": [20, 65535],
+          "range": [
+            20,
+            65535
+          ],
           "default": 20
         },
         {

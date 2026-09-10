@@ -1,0 +1,349 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "69487219-61d8-49e8-b0d8-e00b5c814fd8",
+  "manufacturername": ["_TZE200_8ygsuhe1", "_TZE200_yvx5lh6k", "_TZE200_ryfmq5rl", "_TZE200_c2fmom5z", "_TZE200_mja3fuja", "_TZE204_c2fmom5z", "_TZE204_yvx5lh6k"],
+  "modelid": ["TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601", "TS0601"],
+  "vendor": "Tuya",
+  "product": "Smart Air House keeper (TS0601)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_HUMIDITY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0511"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/offset"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/humidity",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 19,
+            "eval": "Item.val = (10 * Attr.val);",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_AIR_QUALITY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0512"
+      ],
+      "items": [
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/measured_value/max",
+          "static": 65535
+        },
+        {
+          "name": "cap/measured_value/min",
+          "static": 0
+        },
+        {
+          "name": "cap/measured_value/quantity",
+          "static": "level"
+        },
+        {
+          "name": "cap/measured_value/substance",
+          "static": "tVOC"
+        },
+        {
+          "name": "cap/measured_value/unit",
+          "static": "ppb"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/measured_value",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 21,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0514"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/offset"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 18,
+            "eval": "Item.val = (10 * Attr.val);",
+            "fn": "tuya"
+          },
+          "default": 0
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_FORMALDEHYDE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x042B"
+      ],
+      "items": [
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/measured_value/max",
+          "static": 65535
+        },
+        {
+          "name": "cap/measured_value/min",
+          "static": 0
+        },
+        {
+          "name": "cap/measured_value/quantity",
+          "static": "level"
+        },
+        {
+          "name": "cap/measured_value/substance",
+          "static": "Formaldehyde"
+        },
+        {
+          "name": "cap/measured_value/unit",
+          "static": "ppm"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/measured_value",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 20,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_CARBONDIOXIDE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x040D"
+      ],
+      "items": [
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/measured_value/max",
+          "static": 65535
+        },
+        {
+          "name": "cap/measured_value/min",
+          "static": 0
+        },
+        {
+          "name": "cap/measured_value/quantity",
+          "static": "level"
+        },
+        {
+          "name": "cap/measured_value/substance",
+          "static": "CO"
+        },
+        {
+          "name": "cap/measured_value/unit",
+          "static": "ppb"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/measured_value",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 22,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ]
+}

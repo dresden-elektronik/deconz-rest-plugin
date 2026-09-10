@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_DOOR_LOCK_SENSOR",
   "name": "ZHADoorLock",
+  "ui_name": "Door lock sensor",
   "restapi": "/sensors",
   "order": 11,
   "uuid": [

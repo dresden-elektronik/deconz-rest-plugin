@@ -4,5 +4,6 @@
   "datatype": "UInt32",
   "access": "R",
   "public": true,
+  "default": 0,
   "description": "The last received gesture."
 }

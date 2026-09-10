@@ -206,7 +206,12 @@
       },
       "meta": {
         "values": {
-          "config/mode": {"momentary": 1, "momentaryswitched": 2, "rocker": 3, "rockerswitched": 4}
+          "config/mode": {
+            "momentary": 1,
+            "momentaryswitched": 2,
+            "rocker": 3,
+            "rockerswitched": 4
+          }
         }
       },
       "items": [
@@ -265,9 +270,18 @@
             "mf": "0x1209"
           },
           "values": [
-            ["\"disabled\"", "Device is not configured"],
-            ["\"shutter\"", "Device controls a shutter"],
-            ["\"light\"", "Device controls lights"]
+            [
+              "\"disabled\"",
+              "Device is not configured"
+            ],
+            [
+              "\"shutter\"",
+              "Device controls a shutter"
+            ],
+            [
+              "\"light\"",
+              "Device controls lights"
+            ]
           ],
           "default": "disabled"
         },
@@ -300,10 +314,22 @@
           },
           "default": "momentary",
           "values": [
-            ["\"momentary\"", "All inputs in momentary mode"],
-            ["\"momentaryswitched\"", "All inputs in momentary mode (sides switched)"],
-            ["\"rocker\"", "All inputs in rocker mode"],
-            ["\"rockerswitched\"", "All inputs in rocker mode (sides switched)"]
+            [
+              "\"momentary\"",
+              "All inputs in momentary mode"
+            ],
+            [
+              "\"momentaryswitched\"",
+              "All inputs in momentary mode (sides switched)"
+            ],
+            [
+              "\"rocker\"",
+              "All inputs in rocker mode"
+            ],
+            [
+              "\"rockerswitched\"",
+              "All inputs in rocker mode (sides switched)"
+            ]
           ]
         },
         {

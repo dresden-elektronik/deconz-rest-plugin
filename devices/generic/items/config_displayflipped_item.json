@@ -4,5 +4,6 @@
   "datatype": "Bool",
   "access": "RW",
   "public": true,
+  "default": false,
   "description": "Displayed content is normal or upside down."
 }

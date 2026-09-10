@@ -1,0 +1,52 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "de5b52be-b0d9-4b05-bf11-efbd26544b2f",
+  "manufacturername": "TexasInstruments",
+  "modelid": "ti.router",
+  "vendor": "SMLight",
+  "product": "Router (SLZB-06U)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_RANGE_EXTENDER",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
+}

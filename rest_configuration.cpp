@@ -102,7 +102,7 @@ void DeRestPluginPrivate::initConfig()
     gwLANBridgeId = (deCONZ::appArgumentNumeric("--lan-bridgeid", 0) == 1) || gwHueMode;
     gwBridgeId = "0000000000000000";
     gwAllowLocal = (deCONZ::appArgumentNumeric("--allow-local", 1) == 1);
-    gwConfig["websocketport"] = 443;
+    gwConfig["websocketport"] = 0;
     fwUpdateState = FW_Idle;
 
     wifiPageActiveTimer = new QTimer(this);
@@ -522,7 +522,7 @@ void DeRestPluginPrivate::initWiFi()
     if (gwWifiLastUpdated == 0)
     {
         QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
-        gwWifiLastUpdated = currentDateTime.toTime_t();
+        gwWifiLastUpdated = currentDateTime.currentMSecsSinceEpoch() / 1000;
         queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
     }
 
@@ -1124,7 +1124,21 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["lightlastseeninterval"] = gwLightLastSeenInterval;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
-    map["websocketport"] = static_cast<double>(gwConfig["websocketport"].toUInt());
+
+    if (webSocketServer && apsCtrl)
+    {
+        auto wsPort = webSocketServer->port();
+        if (wsPort == 0)
+            wsPort = apsCtrl->getParameter(deCONZ::ParamHttpPort);
+        gwConfig["websocketport"] = wsPort;
+        map["websocketport"] = static_cast<double>(gwConfig["websocketport"].toUInt());
+
+#if DECONZ_LIB_VERSION >= 0x011204
+        wsPort = apsCtrl->getParameter(deCONZ::ParamHttpsPort);
+        if (wsPort != 0)
+            map["websocketport_wss"] = (double)wsPort;
+#endif
+    }
     map["websocketnotifyall"] = gwWebSocketNotifyAll;
     map["disablePermitJoinAutoOff"] = gwdisablePermitJoinAutoOff;
 
@@ -1207,8 +1221,8 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
 
     // lights
     {
-        std::vector<LightNode>::const_iterator i = nodes.begin();
-        std::vector<LightNode>::const_iterator end = nodes.end();
+        std::vector<LightNode>::iterator i = nodes.begin();
+        std::vector<LightNode>::iterator end = nodes.end();
 
         for (; i != end; ++i)
         {
@@ -1266,8 +1280,8 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
 
     // sensors
     {
-        std::vector<Sensor>::const_iterator i = sensors.begin();
-        std::vector<Sensor>::const_iterator end = sensors.end();
+        std::vector<Sensor>::iterator i = sensors.begin();
+        std::vector<Sensor>::iterator end = sensors.end();
 
         for (; i != end; ++i)
         {
@@ -1394,6 +1408,7 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+#ifdef USE_GATEWAY_API
     // add more details if this was requested from discover page
     // this should speedup multi-gateway discovery
     if (!gateways.empty())
@@ -1421,6 +1436,7 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
             }
         }
     }
+#endif // USE_GATEWAY_API
 
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = gwConfigEtag;
@@ -2400,10 +2416,6 @@ int DeRestPluginPrivate::restartApp(const ApiRequest &req, ApiResponse &rsp)
     rspItem["success"] = rspItemState;
     rsp.list.append(rspItem);
 
-    openDb();
-    saveDb();
-    closeDb();
-
     QTimer *restartTimer = new QTimer(this);
     restartTimer->setSingleShot(true);
     connect(restartTimer, SIGNAL(timeout()),
@@ -2990,7 +3002,7 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
     if (changed)
     {
         QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
-        gwWifiLastUpdated = currentDateTime.toTime_t();
+        gwWifiLastUpdated = currentDateTime.currentMSecsSinceEpoch() / 1000;
 
         updateEtag(gwConfigEtag);
         queSaveDb(DB_CONFIG | DB_SYNC, DB_FAST_SAVE_DELAY);

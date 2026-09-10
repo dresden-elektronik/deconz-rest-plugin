@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_ON_OFF_LIGHT",
   "name": "On/Off light",
+  "ui_name": "On/off light",
   "restapi": "/lights",
   "order": 11,
   "uuid": [

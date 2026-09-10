@@ -1,0 +1,121 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "7a66015b-448c-422a-8b00-cc6eed60447b",
+  "manufacturername": [
+    "Sunricher",
+    "Sunricher"
+  ],
+  "modelid": [
+    "Motor Controller",
+    "HK-ZCC-ZLL-A"
+  ],
+  "vendor": "Sunricher",
+  "product": "Curtain motor controller (SR-ZG9080A)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_WINDOW_COVERING_DEVICE",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/lift",
+          "refresh.interval": 360,
+          "default": 0
+        },
+        {
+          "name": "state/open",
+          "parse": {
+            "at": "0x0008",
+            "cl": "0x0102",
+            "ep": 0,
+            "eval": "Item.val = Attr.val < 100",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "state/reachable"
+        },
+        {
+          "name": "state/tilt",
+          "refresh.interval": 305,
+          "default": 0
+        },
+        {
+          "name": "config/windowcoveringtype",
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0102",
+            "ep": 0,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          },
+          "default": 0,
+          "refresh.interval": 7400
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0102",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x30",
+          "min": 1,
+          "max": 7200,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0008",
+          "dt": "0x20",
+          "min": 1,
+          "max": 290,
+          "change": "0x00000001"
+        },
+        {
+          "at": "0x0009",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
+}

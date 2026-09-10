@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2024 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2020-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8,6 +8,7 @@
  *
  */
 
+#include <QIODevice>
 #include <QDataStream>
 
 #ifdef HAS_OPENSSL
@@ -103,11 +104,11 @@ GpKey_t GP_DecryptSecurityKey(quint32 sourceID, const GpKey_t &securityKey)
             _EVP_CIPHER_CTX_free &&
             _EVP_aes_128_ccm)
     {
-        DBG_Printf(DBG_ZGP, "[ZGP] OpenSSl version 0x%08X loaded\n", openSslVersion);
+        DBG_Printf(DBG_ZGP, "[ZGP] OpenSSl version 0x%08lX loaded\n", openSslVersion);
     }
     else
     {
-        DBG_Printf(DBG_ZGP, "[ZGP] OpenSSl library version 0x%08X for ZGP encryption resolve symbols failed\n", openSslVersion);
+        DBG_Printf(DBG_ZGP, "[ZGP] OpenSSl library version 0x%08lX for ZGP encryption resolve symbols failed\n", openSslVersion);
         return result;
     }
 

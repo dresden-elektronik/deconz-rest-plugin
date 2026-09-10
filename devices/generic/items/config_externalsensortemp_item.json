@@ -4,5 +4,6 @@
   "datatype": "Int16",
   "access": "RW",
   "public": true,
+  "default": 0,
   "description": "The temperature measured by an external sensor, can be used for regulation or displayed on screen."
 }

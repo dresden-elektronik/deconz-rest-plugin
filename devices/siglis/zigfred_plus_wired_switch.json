@@ -376,101 +376,143 @@
     {
       "type": "$TYPE_WINDOW_COVERING_DEVICE",
       "restapi": "/lights",
-      "uuid": ["$address.ext", "0xa1"],
+      "uuid": [
+        "$address.ext",
+        "0xa1"
+      ],
       "items": [
-          {
-              "name": "attr/manufacturername"
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "state/lift",
+          "parse": {
+            "cl": "0x0102",
+            "at": "0x0008",
+            "eval": "Item.val = Attr.val"
           },
-          {
-              "name": "attr/modelid"
+          "read": {
+            "cl": "0x0102",
+            "at": "0x0008"
           },
-          {
-              "name": "attr/name"
+          "refresh.interval": 600
+        },
+        {
+          "name": "state/tilt",
+          "parse": {
+            "cl": "0x0102",
+            "at": "0x0009",
+            "eval": "Item.val = Attr.val"
           },
-          {
-              "name": "attr/swversion"
+          "read": {
+            "cl": "0x0102",
+            "at": "0x0009"
           },
-          {
-              "name": "attr/type"
-          },
-          {
-              "name": "attr/uniqueid"
-          },
-          {
-              "name": "attr/lastannounced"
-          },
-          {
-              "name": "attr/lastseen"
-          },
-          {
-              "name": "state/lift",
-              "parse": {"cl": "0x0102", "at": "0x0008", "eval": "Item.val = Attr.val"},
-              "read": {"cl": "0x0102", "at": "0x0008"},
-              "refresh.interval": 600
-          },
-          {
-            "name": "state/tilt",
-            "parse": {"cl": "0x0102", "at": "0x0009", "eval": "Item.val = Attr.val"},
-            "read": {"cl": "0x0102", "at": "0x0009"},
-            "refresh.interval": 600
-          },
-          {
-              "name": "state/open",
-              "parse": {"cl": "0x0102", "at": "0x0008", "eval": "Item.val = Attr.val < 100"}
-          },
-          {
-              "name": "state/reachable"
+          "refresh.interval": 600
+        },
+        {
+          "name": "state/open",
+          "parse": {
+            "cl": "0x0102",
+            "at": "0x0008",
+            "eval": "Item.val = Attr.val < 100"
           }
+        },
+        {
+          "name": "state/reachable"
+        }
       ]
     },
     {
       "type": "$TYPE_WINDOW_COVERING_DEVICE",
       "restapi": "/lights",
-      "uuid": ["$address.ext", "0xa2"],
+      "uuid": [
+        "$address.ext",
+        "0xa2"
+      ],
       "items": [
-          {
-              "name": "attr/manufacturername"
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "state/lift",
+          "parse": {
+            "cl": "0x0102",
+            "at": "0x0008",
+            "eval": "Item.val = Attr.val"
           },
-          {
-              "name": "attr/modelid"
+          "read": {
+            "cl": "0x0102",
+            "at": "0x0008"
           },
-          {
-              "name": "attr/name"
+          "refresh.interval": 600
+        },
+        {
+          "name": "state/tilt",
+          "parse": {
+            "cl": "0x0102",
+            "at": "0x0009",
+            "eval": "Item.val = Attr.val"
           },
-          {
-              "name": "attr/swversion"
+          "read": {
+            "cl": "0x0102",
+            "at": "0x0009"
           },
-          {
-              "name": "attr/type"
-          },
-          {
-              "name": "attr/uniqueid"
-          },
-          {
-              "name": "attr/lastannounced"
-          },
-          {
-              "name": "attr/lastseen"
-          },
-          {
-              "name": "state/lift",
-              "parse": {"cl": "0x0102", "at": "0x0008", "eval": "Item.val = Attr.val"},
-              "read": {"cl": "0x0102", "at": "0x0008"},
-              "refresh.interval": 600
-          },
-          {
-            "name": "state/tilt",
-            "parse": {"cl": "0x0102", "at": "0x0009", "eval": "Item.val = Attr.val"},
-            "read": {"cl": "0x0102", "at": "0x0009"},
-            "refresh.interval": 600
-          },
-          {
-              "name": "state/open",
-              "parse": {"cl": "0x0102", "at": "0x0008", "eval": "Item.val = Attr.val < 100"}
-          },
-          {
-              "name": "state/reachable"
+          "refresh.interval": 600
+        },
+        {
+          "name": "state/open",
+          "parse": {
+            "cl": "0x0102",
+            "at": "0x0008",
+            "eval": "Item.val = Attr.val < 100"
           }
+        },
+        {
+          "name": "state/reachable"
+        }
       ]
     }
   ],

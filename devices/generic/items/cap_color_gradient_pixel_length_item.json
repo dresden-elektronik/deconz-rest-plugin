@@ -4,6 +4,7 @@
   "datatype": "UInt16",
   "access": "R",
   "public": true,
+  "default": 0,
   "description": "Length (in 0.1 mm) of a pixel on Hue gradient light.",
   "parse": {
     "fn": "zcl:attr",

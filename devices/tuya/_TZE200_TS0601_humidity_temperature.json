@@ -1,10 +1,20 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "eafcb72b-f595-4cf0-a4a5-7958798d4253",
-  "manufacturername": "_TZE200_9yapgbuv",
-  "modelid": "TS0601",
+  "manufacturername": [
+    "_TZE200_9yapgbuv",
+    "_TZE200_qrztc3ev",
+    "_TZE204_d7lpruvi",
+    "_TZE284_d7lpruvi"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601"
+  ],
   "vendor": "Tuya",
-  "product": "Temperature humidity sensor (TS0601)",
+  "product": "Temperature and humidity sensor (TS0601)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -37,14 +47,37 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
         },
         {
           "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 3,
+            "eval": "if (Attr.val == 0) { Item.val=25 } else if (Attr.val == 1) { Item.val=50 } else { Item.val=100 }"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
         },
         {
           "name": "config/offset",
@@ -58,14 +91,14 @@
         },
         {
           "name": "state/humidity",
-          "parse": {"fn": "tuya", "dpid": 2, "eval": "Item.val = (100 * Attr.val) + R.item('config/offset').val;" },
-          "read": {"fn": "none"},
-          "default": 0
-        },
-        {
-          "name": "config/battery",
-          "parse": {"fn": "tuya", "dpid": 3, "eval": "if (Attr.val == 0) { Item.val=25 } else if (Attr.val == 1) { Item.val=50 } else { Item.val=100 }" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 2,
+            "eval": "Item.val = (Attr.val * 100) + R.item('config/offset').val;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         },
         {
@@ -102,8 +135,16 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "attr/type"
@@ -112,13 +153,19 @@
           "name": "attr/uniqueid"
         },
         {
-          "name": "config/offset",
+          "name": "config/battery",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 3,
+            "eval": "if (Attr.val == 0) { Item.val=25 } else if (Attr.val == 1) { Item.val=50 } else { Item.val=100 }"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         },
         {
-          "name": "config/battery",
-          "parse": {"fn": "tuya", "dpid": 3, "eval": "if (Attr.val == 0) { Item.val=25 } else if (Attr.val == 1) { Item.val=50 } else { Item.val=100 }" },
-          "read": {"fn": "none"},
+          "name": "config/offset",
           "default": 0
         },
         {
@@ -132,8 +179,14 @@
         },
         {
           "name": "state/temperature",
-          "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = (10 * Attr.val) + R.item('config/offset').val;" },
-          "read": {"fn": "none"},
+          "parse": {
+            "fn": "tuya",
+            "dpid": 1,
+            "eval": "Item.val = (Attr.val * 10) + R.item('config/offset').val;"
+          },
+          "read": {
+            "fn": "none"
+          },
           "default": 0
         }
       ]

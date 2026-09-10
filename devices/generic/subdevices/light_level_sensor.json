@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_LIGHT_LEVEL_SENSOR",
   "name": "ZHALightLevel",
+  "ui_name": "Light level sensor",
   "restapi": "/sensors",
   "order": 22,
   "uuid": [

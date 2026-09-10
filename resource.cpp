@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2025 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -12,6 +12,7 @@
 
 #include <deconz/u_assert.h>
 #include <deconz/dbg_trace.h>
+#include <deconz/u_time.h>
 #include <utils/stringcache.h>
 #include "resource.h"
 
@@ -40,6 +41,7 @@ const char *REventPermitjoinDisabled = "event/permit.join.disabled";
 const char *REventPermitjoinEnabled = "event/permit.join.enabled";
 const char *REventPermitjoinRunning = "event/permit.join.running";
 const char *REventPoll = "event/poll";
+const char *REventPollDone = "event/poll.done";
 const char *REventSimpleDescriptor = "event/simple.descriptor";
 const char *REventStartTimer = "event/start.timer";
 const char *REventStateEnter = "event/state.enter";
@@ -157,6 +159,7 @@ const char *RStateOrientationZ = "state/orientation_z";
 const char *RStatePM2_5 = "state/pm2_5";
 const char *RStatePanel = "state/panel";
 const char *RStatePower = "state/power";
+const char *RStatePowerDivisor = "state/power_divisor";
 const char *RStatePresence = "state/presence";
 const char *RStatePresenceEvent = "state/presenceevent";
 const char *RStatePressure = "state/pressure";
@@ -295,9 +298,9 @@ const char *RConfigHostFlags = "config/hostflags";
 const char *RConfigHumiMaxThreshold = "config/humiditymaxthreshold";
 const char *RConfigHumiMinThreshold = "config/humidityminthreshold";
 const char *RConfigInterfaceMode = "config/interfacemode";
-const char *RConfigLastChangeAmount = "config/lastchange_amount";
-const char *RConfigLastChangeSource = "config/lastchange_source";
-const char *RConfigLastChangeTime = "config/lastchange_time";
+const char *RConfigLastChangeAmount = "config/lastchange/amount";
+const char *RConfigLastChangeSource = "config/lastchange/source";
+const char *RConfigLastChangeTime = "config/lastchange/time";
 const char *RConfigLat = "config/lat";
 const char *RConfigLedIndication = "config/ledindication";
 const char *RConfigLoadBalancing = "config/loadbalancing";
@@ -318,6 +321,7 @@ const char *RConfigRadiatorCovered = "config/radiatorcovered";
 const char *RConfigReachable = "config/reachable";
 const char *RConfigReportGrid = "config/reportgrid";
 const char *RConfigResetPresence = "config/resetpresence";
+const char *RConfigRestartDevice = "config/restart_device";
 const char *RConfigReversed = "config/reversed";
 const char *RConfigSchedule = "config/schedule";
 const char *RConfigScheduleOn = "config/schedule_on";
@@ -326,6 +330,7 @@ const char *RConfigSensitivity = "config/sensitivity";
 const char *RConfigSensitivityBis = "config/sensitivity_bis";
 const char *RConfigSensitivityMax = "config/sensitivitymax";
 const char *RConfigSetValve = "config/setvalve";
+const char *RConfigSpatialLearning = "config/spatial_learning";
 const char *RConfigSpeed = "config/speed";
 const char *RConfigSunriseOffset = "config/sunriseoffset";
 const char *RConfigSunsetOffset = "config/sunsetoffset";
@@ -482,6 +487,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStatePM2_5));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStatePanel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePower));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RStatePowerDivisor));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RStatePresence));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RStatePresenceEvent));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, QVariant::Double, RStatePressure, 0, 32767));
@@ -630,6 +636,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigReportGrid));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigResetPresence));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigRestartDevice));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigReversed));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigSchedule));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigScheduleOn));
@@ -637,6 +644,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigSensitivity));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigSensitivityBis));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigSensitivityMax));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigSpatialLearning));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt8, QVariant::Double, RConfigSpeed));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigSetValve));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt8, QVariant::Double, RConfigSunriseOffset, -120, 120));
@@ -956,7 +964,6 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_parseFunction = other.m_parseFunction;
     m_refreshInterval = other.m_refreshInterval;
     m_zclParam = other.m_zclParam;
-    m_readEndpoint = other.m_readEndpoint;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_lastZclReport = other.m_lastZclReport;
@@ -1008,7 +1015,6 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other) noexcept
     m_lastChanged = std::move(other.m_lastChanged);
     m_rulesInvolved = std::move(other.m_rulesInvolved);
     m_zclParam = other.m_zclParam;
-    m_readEndpoint = other.m_readEndpoint;
     m_parseFunction = other.m_parseFunction;
     m_refreshInterval = other.m_refreshInterval;
     m_ddfItemHandle = other.m_ddfItemHandle;
@@ -1277,20 +1283,34 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
         if (val.type() == QVariant::String)
         {
             const auto str = val.toString();
-            auto fmt = str.contains('.') ? QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz")
-                                         : QLatin1String("yyyy-MM-ddTHH:mm:ss");
-            auto dt = QDateTime::fromString(str, fmt);
-            dt.setTimeSpec(Qt::UTC);
+            if (str.isEmpty())
+            {
+                m_valueSource = SourceUnknown;
+                return false;
+            }
 
-            if (dt.isValid())
+            // historically some items are UTC but stored without Z in database
+            QByteArray tt = str.toLatin1();
+            if (!tt.endsWith('Z') && (
+                    rid->suffix == RStateLastUpdated
+                    || rid->suffix == RStateLastCheckin
+                    || rid->suffix == RStateSunrise
+                    || rid->suffix == RStateSunset))
+            {
+                tt.append('Z');
+            }
+
+            int64_t ms = U_TimeFromISO8601(tt.constData(), tt.size());
+
+            if (0 < ms)
             {
                 m_lastSet = now;
                 m_numPrev = m_num;
                 m_flags |= FlagNeedPushSet;
 
-                if (m_num != dt.toMSecsSinceEpoch())
+                if (m_num != ms)
                 {
-                    m_num = dt.toMSecsSinceEpoch();
+                    m_num = ms;
                     m_lastChanged = m_lastSet;
                     m_flags |= FlagNeedPushChange;
                     m_flags |= FlagNeedStore;
@@ -1462,12 +1482,16 @@ void ResourceItem::setTimeStamps(const QDateTime &t)
 
 QVariant ResourceItem::toVariant() const
 {
+    const ResourceItemDescriptor *rid = &descriptor();
+
     if (!m_lastSet.isValid())
     {
+        if (rid->type == DataTypeString || rid->type == DataTypeTimePattern)
+        {
+            return QString(""); // otherwise the API would return null for strings
+        }
         return QVariant();
     }
-
-    const ResourceItemDescriptor *rid = &descriptor();
 
     if (rid->type == DataTypeString ||
         rid->type == DataTypeTimePattern)
@@ -1496,6 +1520,45 @@ QVariant ResourceItem::toVariant() const
     }
 
     return QVariant();
+}
+
+/*! Return a pointer to the submap and the key where this ResourceItemDescriptor is to be reported. */
+ApiAttribute ResourceItemDescriptor::toApi(QVariantMap &attr, bool event) const
+{
+    QStringList keys = QString(suffix).split(QLatin1String("/"), SKIP_EMPTY_PARTS);
+    DBG_Assert(keys.length() > 1);
+    QString key, top;
+
+    QVariantMap *p = &attr;
+    while (!keys.isEmpty())
+    {
+        key = keys.takeFirst();
+        if (top.isNull())
+        {
+            if (key == QLatin1String("attr") && !event)
+            {
+                continue;
+            }
+            if (key == QLatin1String("cap"))
+            {
+                key = QLatin1String("capabilities");
+            }
+            top = key;
+        }
+        if (!keys.isEmpty())
+        {
+            if ((*p)[key].isNull())
+            {
+                (*p)[key] = QVariantMap();
+                p = (QVariantMap *) &((*p)[key]);
+            }
+            else if ((*p)[key].type() == QVariant::Map)
+            {
+                p = (QVariantMap *) &((*p)[key]);
+            }
+        }
+    }
+    return ApiAttribute(p, key, top);
 }
 
 /*! Marks the resource item as involved in a rule. */
@@ -1840,6 +1903,36 @@ void Resource::cleanupStateChanges()
     }
 }
 
+/*! Removes all StateChange items related to \p suffix.
+ */
+void Resource::removeStateChangesForItem(const char *suffix)
+{
+    bool again = true;
+    while (again)
+    {
+        again = false;
+        auto it = m_stateChanges.cbegin();
+        auto end = m_stateChanges.cend();
+
+        for (; it != end; ++it)
+        {
+            auto it2 = it->items().cbegin();
+            const auto end2 = it->items().cend();
+            for (;it2 != end2; ++it2)
+            {
+                if (it2->suffix == suffix)
+                    break;
+            }
+
+            if (it2 != end2) // found matching item, remove SC and look again
+            {
+                again = true;
+                m_stateChanges.erase(it);
+            }
+        }
+    }
+}
+
 /*! Returns the string presentation of an data type */
 QLatin1String R_DataTypeToString(ApiDataType type)
 {
@@ -1886,4 +1979,19 @@ bool isValidRConfigGroup(const QString &str)
     }
 
     return result == groupList.size();
+}
+
+/*! Helper function to expose \p resource item as a different type through REST API than internally defined. */
+QVariant R_ItemToRestApiVariant(const ResourceItem *item)
+{
+    if (item)
+    {
+        const ResourceItemDescriptor &rid = item->descriptor();
+        if (rid.suffix == RAttrNwkAddress)
+        {
+            return QString("0x") + QString("%1").arg(item->toNumber(), 4, 16, QLatin1Char('0')).toUpper();
+        }
+        return item->toVariant();
+    }
+    return {};
 }

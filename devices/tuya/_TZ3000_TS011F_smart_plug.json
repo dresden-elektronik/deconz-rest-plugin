@@ -1,10 +1,38 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "0b14b62e-ba7e-4b8d-9ede-f9e92497104f",
-  "manufacturername": ["_TZ3000_okaz9tjs", "_TZ3000_dksbtrzs", "_TZ3000_gvn91tmx"],
-  "modelid": ["TS011F", "TS011F", "TS011F"],
+  "manufacturername": [
+    "_TZ3000_okaz9tjs",
+    "_TZ3000_dksbtrzs",
+    "_TZ3000_gvn91tmx",
+    "_TZ3000_wzmuk9ai",
+    "_TZ3000_ksw8qtmt",
+    "_TZ3000_2putqrmw",
+    "_TZ3000_cehuw1lw",
+    "_TZ3000_typdpbpg",
+    "_TZ3210_5ct6e7ye",
+    "_TZ3210_rwmitwj4",
+    "_TZ3210_w0qqde0g",
+    "_TZ3000_266azbg3",
+    "Zbeacon"
+  ],
+  "modelid": [
+    "TS011F",
+    "TS011F",
+    "TS011F",
+    "TS011F",
+    "TS011F",
+    "TS011F",
+    "TS011F",
+    "TS011F",
+    "TS011F",
+    "TS011F",
+    "TS011F",
+    "TS011F",
+    "TS011F"
+  ],
   "vendor": "Tuya",
-  "product": "Smart plug power monitor (TS011F)",
+  "product": "Smart plug with power monitor (TS011F)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -37,8 +65,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -52,7 +91,7 @@
         },
         {
           "name": "state/on",
-          "refresh.interval": 5
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -98,8 +137,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -117,17 +167,17 @@
           "name": "state/current",
           "read": {
             "at": "0x0508",
-            "cl": "0x0b04",
+            "cl": "0x0B04",
             "ep": 1,
             "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0508",
-            "cl": "0x0b04",
+            "cl": "0x0B04",
             "ep": 1,
             "eval": "Item.val = Attr.val"
           },
-          "refresh.interval": 365
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"
@@ -135,34 +185,34 @@
         {
           "name": "state/power",
           "read": {
-            "at": "0x050b",
-            "cl": "0x0b04",
+            "at": "0x050B",
+            "cl": "0x0B04",
             "ep": 1,
             "fn": "zcl:attr"
           },
           "parse": {
-            "at": "0x050b",
-            "cl": "0x0b04",
+            "at": "0x050B",
+            "cl": "0x0B04",
             "ep": 1,
             "eval": "Item.val = Attr.val"
           },
-          "refresh.interval": 365
+          "refresh.interval": 360
         },
         {
           "name": "state/voltage",
           "read": {
             "at": "0x0505",
-            "cl": "0x0b04",
+            "cl": "0x0B04",
             "ep": 1,
             "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0505",
-            "cl": "0x0b04",
+            "cl": "0x0B04",
             "ep": 1,
             "eval": "Item.val = Attr.val"
           },
-          "refresh.interval": 365
+          "refresh.interval": 360
         }
       ]
     },
@@ -205,8 +255,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -225,16 +286,16 @@
           "read": {
             "at": "0x0000",
             "cl": "0x0702",
-            "ep": 0,
+            "ep": 1,
             "fn": "zcl:attr"
           },
           "parse": {
             "at": "0x0000",
             "cl": "0x0702",
-            "ep": 0,
+            "ep": 1,
             "eval": "Item.val = Attr.val * 10"
           },
-          "refresh.interval": 365
+          "refresh.interval": 360
         },
         {
           "name": "state/lastupdated"

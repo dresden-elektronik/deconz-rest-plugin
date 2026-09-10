@@ -1,8 +1,12 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "21d1b07f-3780-4cc6-9151-968f7bb0646d",
-  "manufacturername": ["$MF_LUMI"],
-  "modelid": ["lumi.sen_ill.agl01"],
+  "manufacturername": [
+    "$MF_LUMI"
+  ],
+  "modelid": [
+    "lumi.sen_ill.agl01"
+  ],
   "vendor": "Xiaomi Aqara",
   "product": "T1 light sensor (GZCGQ11LM)",
   "status": "Gold",

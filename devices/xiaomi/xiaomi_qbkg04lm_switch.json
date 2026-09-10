@@ -126,8 +126,14 @@
             "mf": "0x115f"
           },
           "values": [
-            ["\"decoupled\"", "Decoupled Mode"],
-            ["\"coupled\"", "Coupled Mode"]
+            [
+              "\"decoupled\"",
+              "Decoupled Mode"
+            ],
+            [
+              "\"coupled\"",
+              "Coupled Mode"
+            ]
           ],
           "default": "coupled"
         },
@@ -136,9 +142,6 @@
         },
         {
           "name": "config/reachable"
-        },
-        {
-          "name": "config/temperature"
         },
         {
           "name": "state/buttonevent"

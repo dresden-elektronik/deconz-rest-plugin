@@ -7,7 +7,6 @@
   "product": "LK Fuga Wiser wireless double relay (545D6514)",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/wiser/fuga_double_relay_switch.json",
   "subdevices": [
     {
       "type": "$TYPE_ON_OFF_LIGHT",

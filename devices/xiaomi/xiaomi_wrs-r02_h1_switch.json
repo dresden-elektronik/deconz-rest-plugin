@@ -116,8 +116,14 @@
             "state.timeout": 2
           },
           "values": [
-            ["\"highspeed\"", "Buttons emit only single click events, but fast"],
-            ["\"multiclick\"", "Emits single, double and treble presses"]
+            [
+              "\"highspeed\"",
+              "Buttons emit only single click events, but fast"
+            ],
+            [
+              "\"multiclick\"",
+              "Emits single, double and treble presses"
+            ]
           ],
           "default": "multiclick"
         },
@@ -152,8 +158,14 @@
             "state.timeout": 2
           },
           "values": [
-            ["\"compatibility\"", "Default mode for Xiaomi devices"],
-            ["\"zigbee\"", "Closer to zigbee standard"]
+            [
+              "\"compatibility\"",
+              "Default mode for Xiaomi devices"
+            ],
+            [
+              "\"zigbee\"",
+              "Closer to zigbee standard"
+            ]
           ],
           "default": "compatibility"
         },

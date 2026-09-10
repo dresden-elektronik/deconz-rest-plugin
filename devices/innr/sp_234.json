@@ -7,7 +7,6 @@
   "product": "Smart plug (SP 234)",
   "sleeper": false,
   "status": "Gold",
-  "path": "/devices/innr/sp_234.json",
   "subdevices": [
     {
       "type": "$TYPE_ON_OFF_PLUGIN_UNIT",

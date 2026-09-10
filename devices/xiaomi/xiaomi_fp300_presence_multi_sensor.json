@@ -1,0 +1,662 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "3e2e4f8b-1996-428a-a7bd-e95ae02e1dee",
+  "manufacturername": "$MF_AQARA",
+  "modelid": "lumi.sensor_occupy.agl8",
+  "vendor": "Xiaomi Aqara",
+  "product": "Presence Multi Sensor FP300 (PS-S04D)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0107",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0402",
+          "0xFCC0"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid",
+          "awake": true
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00F7",
+            "ep": 1,
+            "eval": "Item.val = '0.0.0_' + Number(String((Attr.val >> 8) & 0xFF) + String((Attr.val) & 0xFF))",
+            "fn": "xiaomi:special",
+            "idx": "0x0D",
+            "mf": "0x115F"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x00F7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x17",
+            "mf": "0x115F",
+            "script": "xiaomi_battery.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/offset"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature",
+          "awake": true
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_HUMIDITY_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0405"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0107",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0405",
+          "0xFCC0"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid",
+          "awake": true
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00F7",
+            "ep": 1,
+            "eval": "Item.val = '0.0.0_' + Number(String((Attr.val >> 8) & 0xFF) + String((Attr.val) & 0xFF))",
+            "fn": "xiaomi:special",
+            "idx": "0x0D",
+            "mf": "0x115F"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x00F7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x17",
+            "mf": "0x115F",
+            "script": "xiaomi_battery.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/offset"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/humidity",
+          "awake": true
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_LIGHT_LEVEL_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0400"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0107",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0400",
+          "0xFCC0"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid",
+          "awake": true
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00F7",
+            "ep": 1,
+            "eval": "Item.val = '0.0.0_' + Number(String((Attr.val >> 8) & 0xFF) + String((Attr.val) & 0xFF))",
+            "fn": "xiaomi:special",
+            "idx": "0x0D",
+            "mf": "0x115F"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x00F7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x17",
+            "mf": "0x115F",
+            "script": "xiaomi_battery.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/tholddark"
+        },
+        {
+          "name": "config/tholdoffset"
+        },
+        {
+          "name": "state/lightlevel",
+          "awake": true,
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0400",
+            "ep": 1,
+            "script": "../generic/illuminance_cluster/sml_light_level.js"
+          }
+        },
+        {
+          "name": "state/dark"
+        },
+        {
+          "name": "state/daylight"
+        },
+        {
+          "name": "state/lux"
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xfcc0"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0107",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0xFCC0"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid",
+          "awake": true
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "awake": true,
+          "parse": {
+            "at": "0x00F7",
+            "ep": 1,
+            "eval": "Item.val = '0.0.0_' + Number(String((Attr.val >> 8) & 0xFF) + String((Attr.val) & 0xFF))",
+            "fn": "xiaomi:special",
+            "idx": "0x0D",
+            "mf": "0x115F"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x00F7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x17",
+            "mf": "0x115F",
+            "script": "xiaomi_battery.js"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/devicemode",
+          "refresh.interval": 3600,
+          "awake": true,
+          "parse": {
+            "at": "0x0199",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "Item.val = ['combined', 'mmwave', 'pir'][Attr.val]",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "at": ["0x0199", "0x019A", "0x010C"],
+            "cl": "0xFCC0",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "write": {
+            "at": "0x0199",
+            "change.timeout": 600,
+            "cl": "0xFCC0",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "['combined', 'mmwave', 'pir'].indexOf(Item.val)",
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
+          },
+          "values": [
+            ["\"pir\"", "Use pir only"],
+            ["\"mmwave\"", "Use mmwave only"],
+            ["\"combined\"", "Use mmwave + pir"]
+          ],
+          "default": "combined"
+        },
+        {
+          "name": "config/delay",
+          "refresh.interval": 3600,
+          "awake": true,
+          "parse": {
+            "at": ["0x0197", "0x014F"],
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "if ((R.item('config/devicemode').val == 'pir' && Attr.id == '0x014F') || Attr.id == '0x0197') { Item.val = Attr.val; }",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "cl": "0xFCC0",
+            "cmd": "0x00",
+            "ep": 1,
+            "eval": "if (R.item('config/devicemode').val == 'pir') { '4F01'; } else { '9701'; }",
+            "fc": "0x04",
+            "fn": "zcl:cmd",
+            "mf": "0x115F"
+          },
+          "write": {
+            "change.timeout": 600,
+            "cl": "0xFCC0",
+            "cmd": "0x02",
+            "ep": 1,
+            "eval": "if (R.item('config/devicemode').val == 'pir') { ('4F1421' + Item.val.toString(16) + '0000').slice(0, 10); } else { ('970123' + Item.val.toString(16) + '00000000').slice(0, 14); }",
+            "fc": "0x04",
+            "fn": "zcl:cmd",
+            "mf": "0x115F",
+            "state.timeout": 2
+          },
+          "range": [1, 300],
+          "default": 30
+        },
+        {
+          "name": "config/detectionrange",
+          "refresh.interval": 3600,
+          "awake": true,
+          "parse": {
+            "at": "0x019A",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "if (R.item('config/devicemode').val != 'pir') { var r = 0; for (var i = 0; i < 3; i++) { var start = (ZclFrame.cmd === 0x0A) ? 6 : 7; var v = ZclFrame.at(start + i) & 0xFF; while (v) { r += v & 1; v >>>= 1; } } Item.val = r * 25; } else { Item.val = 65535; }",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "cl": "0xFCC0",
+            "cmd": "0x00",
+            "ep": 1,
+            "eval": "if (R.item('config/devicemode').val != 'pir') { '9A01'; }",
+            "fc": "0x04",
+            "fn": "zcl:cmd",
+            "mf": "0x115F"
+          },
+          "write": {
+            "at": "0x019A",
+            "change.timeout": 600,
+            "cl": "0xFCC0",
+            "cmd": "0x02",
+            "ep": 1,
+            "eval": "if (R.item('config/devicemode').val != 'pir') { var v = Item.val; if (v < 25) { v = 25 } else if (v > 600) { v = 600 } var steps = Math.floor(v / 25); const u24 = (1 << steps) - 1; const reversed = ((u24 & 0xFF) << 16) | (u24 & 0xFF00) | ((u24 >> 16) & 0xFF);'980120019A0141050003' + reversed.toString(16).padStart(6, '0'); }",
+            "fc": "0x04",
+            "fn": "zcl:cmd",
+            "mf": "0x115F",
+            "state.timeout": 2
+          },
+          "range": [25, 600],
+          "default": 600
+        },
+        {
+          "name": "config/ledindication",
+          "refresh.interval": 3600,
+          "awake": true,
+          "parse": {
+            "at": "0x0203",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "at": "0x0203",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "write": {
+            "at": "0x0203",
+            "change.timeout": 600,
+            "cl": "0xFCC0",
+            "cmd": "0x02",
+            "ep": 1,
+            "eval": "if (Item.val) { '030210013E022301000000' } else { '03021000' }",
+            "fc": "0x04",
+            "fn": "zcl:cmd",
+            "mf": "0x115F",
+            "state.timeout": 2
+          },
+          "values": [
+            [true, "Device flashes on presence"],
+            [false, "Device gives no visual feedback on presence"]
+          ],
+          "default": false
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/restart_device",
+          "refresh.interval": 3600,
+          "awake": true,
+          "parse": {
+            "at": "0x00E8",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "at": "0x00E8",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "write": {
+            "at": "0x00E8",
+            "change.timeout": 600,
+            "cl": "0xFCC0",
+            "dt": "0x10",
+            "ep": 1,
+            "eval": "Item.val ? 1 : 0",
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
+          }
+        },
+        {
+          "name": "config/sensitivity",
+          "refresh.interval": 3600,
+          "awake": true,
+          "parse": {
+            "at": "0x010C",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "if (R.item('config/devicemode').val != 'pir') { Item.val = Attr.val; } else { Item.val = 255; }",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "cl": "0xFCC0",
+            "cmd": "0x00",
+            "ep": 1,
+            "eval": "if (R.item('config/devicemode').val != 'pir') { '0C01'; }",
+            "fc": "0x04",
+            "fn": "zcl:cmd",
+            "mf": "0x115F"
+          },
+          "write": {
+            "change.timeout": 600,
+            "cl": "0xFCC0",
+            "cmd": "0x02",
+            "ep": 1,
+            "eval": "if (R.item('config/devicemode').val != 'pir' && Item.val > 0 && Item.val < 4) { Item.val }",
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
+          },
+          "values": [
+            [1, "Low"],
+            [2, "Medium"],
+            [3, "High"],
+            [255, "Setting not available in PIR mode"]
+          ],
+          "default": 3
+        },
+        {
+          "name": "config/spatial_learning",
+          "refresh.interval": 3600,
+          "awake": true,
+          "parse": {
+            "at": "0x0157",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "at": "0x0157",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "write": {
+            "at": "0x0157",
+            "change.timeout": 600,
+            "cl": "0xFCC0",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "Item.val ? 1 : 0",
+            "fn": "zcl:attr",
+            "mf": "0x115F",
+            "state.timeout": 2
+          }
+        },
+        {
+           "name": "state/lastupdated"
+        },
+        {
+          "name": "state/presenceevent",
+          "public": false,
+          "awake": true,
+          "parse": {
+            "at": "0x014D",
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "Item.val = ['0', '1'][Attr.val];",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/presence",
+          "refresh.interval": 3600,
+          "awake": true,
+          "parse": {
+            "at": ["0x0142", "0x014D"],
+            "cl": "0xFCC0",
+            "ep": 1,
+            "eval": "if (R.item('config/devicemode').val == 'pir' && Attr.id == '0x014D') { Item.val = Number(R.item('state/presenceevent').val); } else if (R.item('config/devicemode').val == 'combined' && Attr.id == '0x014D') { Item.val = Item.val || Attr.val; } else if (R.item('config/devicemode').val == 'combined' && Attr.id == '0x0142') { Item.val = Number(R.item('state/presenceevent').val) || Attr.val; } else { Item.val = Attr.val; }",
+            "fn": "zcl:attr",
+            "mf": "0x115F"
+          },
+          "read": {
+            "fn": "none"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_RELATIVE_ROTARY",
   "name": "ZHARelativeRotary",
+  "ui_name": "Relative rotary sensor",
   "restapi": "/sensors",
   "order": 20,
   "uuid": [

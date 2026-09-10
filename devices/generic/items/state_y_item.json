@@ -4,6 +4,7 @@
   "datatype": "UInt16",
   "access": "RW",
   "public": true,
+  "default": 0,
   "description": "The current color y coordinate.",
   "parse": {
     "fn": "zcl:attr",

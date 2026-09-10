@@ -1,0 +1,108 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "9a46ca4e-7c75-4b88-a500-6aa7973a1348",
+  "manufacturername": "dresden elektronik",
+  "modelid": "FLS-CT",
+  "product": "Wireless electronic ballast color temperature (FLS-CT)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_COLOR_TEMPERATURE_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x0a"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/otau/file_version"
+        },
+        {
+          "name": "cap/otau/image_type"
+        },
+        {
+          "name": "cap/otau/manufacturer_code"
+        },
+        {
+          "name": "cap/color/capabilities",
+          "refresh.interval": 86400,
+          "default": 16
+        },
+        {
+          "name": "cap/color/ct/max",
+          "refresh.interval": 86400,
+          "default": 500
+        },
+        {
+          "name": "cap/color/ct/min",
+          "refresh.interval": 86400,
+          "default": 153
+        },
+        {
+          "name": "cap/bri/move_with_onoff"
+        },
+        {
+          "name": "cap/on/off_with_effect"
+        },
+        {
+          "name": "state/alert",
+          "default": "none"
+        },
+        {
+          "name": "state/bri",
+          "refresh.interval": 5,
+          "default": 0
+        },
+        {
+          "name": "state/colormode",
+          "static": "ct",
+          "read": {
+            "fn": "none"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "state/ct",
+          "refresh.interval": 5,
+          "default": 0
+        },
+        {
+          "name": "state/on",
+          "refresh.interval": 5,
+          "default": false
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
+}

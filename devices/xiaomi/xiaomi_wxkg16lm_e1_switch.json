@@ -1,0 +1,160 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "08eec602-37db-47bc-85de-c0625e8ce875",
+  "manufacturername": "$MF_LUMI",
+  "modelid": "lumi.remote.acn003",
+  "matchexpr": "R.endpoints.length === 1",
+  "vendor": "Xiaomi",
+  "product": "Aqara E1 single rocker wireless switch WXKG16LM",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0006"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0000",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0012",
+          "0xFCC0"
+        ],
+        "out": [
+          "0x0006"
+        ]
+      },
+      "meta": {"group.endpoints": [1] },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid",
+          "awake": true
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0x00f7",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x01",
+            "script": "xiaomi_battery.js"
+          }
+        },
+        {
+          "name": "config/clickmode",
+          "refresh.interval": 3000,
+          "parse": {
+            "at": "0x0125",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "if (Attr.val == 1) { Item.val = 'highspeed' } else if (Attr.val == 2) { Item.val = 'multiclick' } else { Item.val = 'unknown' }",
+            "fn": "zcl:attr",
+            "mf": "0x115f"
+          },
+          "read": {
+            "at": "0x0125",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x115f"
+          },
+          "write": {
+            "at": "0x0125",
+            "cl": "0xfcc0",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "if (Item.val == 'highspeed') { 1 } else if (Item.val == 'multiclick') { 2 }",
+            "fn": "zcl:attr",
+            "mf": "0x115f"
+          },
+          "values": [
+            ["\"highspeed\"", "Buttons emit only single click events, but fast"],
+            ["\"multiclick\"", "Emits single, double and treble presses"] 
+          ],
+          "default": "multiclick"
+        },
+        {
+          "name": "config/devicemode",
+          "refresh.interval": 3000,
+          "parse": {
+            "at": "0x0009",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "eval": "if (Attr.val == 1) { Item.val = 'compatibility' } else if (Attr.val == 2) { Item.val = 'zigbee' } else { Item.val = 'unknown' }",
+            "fn": "zcl:attr",
+            "mf": "0x115f"
+          },
+          "read": {
+            "at": "0x0009",
+            "cl": "0xfcc0",
+            "ep": 1,
+            "fn": "zcl:attr",
+            "mf": "0x115f"
+          },
+          "write": {
+            "at": "0x0009",
+            "cl": "0xfcc0",
+            "dt": "0x20",
+            "ep": 1,
+            "eval": "if (Item.val == 'compatibility') { 1 } else if (Item.val == 'zigbee') { 2 }",
+            "fn": "zcl:attr",
+            "mf": "0x115f"
+          },
+          "values": [
+            ["\"compatibility\"", "Default mode for Xiaomi devices"],
+            ["\"zigbee\"", "Closer to zigbee standard"] 
+          ],
+          "default": "compatibility"
+        },
+        {
+          "name": "config/group",
+          "default": "auto"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent"
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ]
+}

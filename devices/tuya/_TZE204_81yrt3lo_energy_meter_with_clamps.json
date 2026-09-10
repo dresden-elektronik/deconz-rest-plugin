@@ -1,0 +1,364 @@
+{
+    "schema": "devcap1.schema.json",
+    "uuid": "44b0e885-f4d6-4c2a-a6f0-a9efd3522ad2",
+    "manufacturername": [
+        "_TZE204_81yrt3lo",
+        "_TZE284_81yrt3lo"
+    ],
+    "modelid": [
+        "TS0601",
+        "TS0601"
+    ],
+    "vendor": "Tuya",
+    "product": "Bidirectional energy meter with 80A current clamp (PJ-1203A)",
+    "sleeper": false,
+    "status": "Gold",
+    "subdevices": [
+        {
+            "type": "$TYPE_CONSUMPTION_SENSOR",
+            "restapi": "/sensors",
+            "uuid": [
+                "$address.ext",
+                "0x01",
+                "0x0702"
+            ],
+            "items": [
+                {
+                    "name": "attr/id"
+                },
+                {
+                    "name": "attr/lastannounced"
+                },
+                {
+                    "name": "attr/lastseen"
+                },
+                {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/swversion",
+                    "parse": {
+                        "fn": "zcl:attr",
+                        "ep": 1,
+                        "cl": "0x0000",
+                        "at": "0x0001",
+                        "script": "tuya_swversion.js"
+                    },
+                    "read": {
+                        "fn": "zcl:attr",
+                        "ep": 1,
+                        "cl": "0x0000",
+                        "at": "0x0001"
+                    }
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "config/offset",
+                    "default": 0
+                },
+                {
+                    "name": "config/on"
+                },
+                {
+                    "name": "config/reachable"
+                },
+                {
+                    "name": "state/consumption",
+                    "parse": {
+                        "fn": "tuya",
+                        "dpid": 106,
+                        "eval": "Item.val = Attr.val * 10;"
+                    },
+                    "read": {
+                        "fn": "none"
+                    },
+                    "default": 0
+                },
+                {
+                    "name": "state/lastupdated"
+                }
+            ]
+        },
+        {
+            "type": "$TYPE_POWER_SENSOR",
+            "restapi": "/sensors",
+            "uuid": [
+                "$address.ext",
+                "0x01",
+                "0x0b04"
+            ],
+            "items": [
+                {
+                    "name": "attr/id"
+                },
+                {
+                    "name": "attr/lastannounced"
+                },
+                {
+                    "name": "attr/lastseen"
+                },
+                {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/swversion",
+                    "parse": {
+                        "fn": "zcl:attr",
+                        "ep": 1,
+                        "cl": "0x0000",
+                        "at": "0x0001",
+                        "script": "tuya_swversion.js"
+                    },
+                    "read": {
+                        "fn": "none"
+                    }
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "config/offset",
+                    "default": 0
+                },
+                {
+                    "name": "config/on"
+                },
+                {
+                    "name": "config/reachable"
+                },
+                {
+                    "name": "state/lastupdated"
+                },
+                {
+                    "name": "state/current",
+                    "parse": {
+                        "fn": "tuya",
+                        "dpid": 113,
+                        "eval": "Item.val = Attr.val > 0 ? Attr.val / 10 : 0;"
+                    },
+                    "read": {
+                        "fn": "none"
+                    },
+                    "default": 0
+                },
+                {
+                    "name": "state/voltage",
+                    "parse": {
+                        "fn": "tuya",
+                        "dpid": 112,
+                        "eval": "Item.val = Attr.val / 10;"
+                    },
+                    "read": {
+                        "fn": "none"
+                    },
+                    "default": 0
+                },
+                {
+                    "name": "state/power",
+                    "parse": {
+                        "fn": "tuya",
+                        "dpid": 101,
+                        "eval": "Item.val = Attr.val / 10;"
+                    },
+                    "read": {
+                        "fn": "none"
+                    },
+                    "default": 0
+                }
+            ]
+        },
+        {
+            "type": "$TYPE_CONSUMPTION_SENSOR",
+            "restapi": "/sensors",
+            "uuid": [
+                "$address.ext",
+                "0x02",
+                "0x0702"
+            ],
+            "items": [
+                {
+                    "name": "attr/id"
+                },
+                {
+                    "name": "attr/lastannounced"
+                },
+                {
+                    "name": "attr/lastseen"
+                },
+                {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/swversion",
+                    "parse": {
+                        "fn": "zcl:attr",
+                        "ep": 1,
+                        "cl": "0x0000",
+                        "at": "0x0001",
+                        "script": "tuya_swversion.js"
+                    },
+                    "read": {
+                        "fn": "zcl:attr",
+                        "ep": 1,
+                        "cl": "0x0000",
+                        "at": "0x0001"
+                    }
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "config/offset",
+                    "default": 0
+                },
+                {
+                    "name": "config/on"
+                },
+                {
+                    "name": "config/reachable"
+                },
+                {
+                    "name": "state/consumption",
+                    "parse": {
+                        "fn": "tuya",
+                        "dpid": 107,
+                        "eval": "Item.val = Attr.val * 10;"
+                    },
+                    "read": {
+                        "fn": "none"
+                    },
+                    "default": 0
+                },
+                {
+                    "name": "state/lastupdated"
+                }
+            ]
+        },
+        {
+            "type": "$TYPE_POWER_SENSOR",
+            "restapi": "/sensors",
+            "uuid": [
+                "$address.ext",
+                "0x02",
+                "0x0b04"
+            ],
+            "items": [
+                {
+                    "name": "attr/id"
+                },
+                {
+                    "name": "attr/lastannounced"
+                },
+                {
+                    "name": "attr/lastseen"
+                },
+                {
+                    "name": "attr/manufacturername"
+                },
+                {
+                    "name": "attr/modelid"
+                },
+                {
+                    "name": "attr/name"
+                },
+                {
+                    "name": "attr/swversion",
+                    "parse": {
+                        "fn": "zcl:attr",
+                        "ep": 1,
+                        "cl": "0x0000",
+                        "at": "0x0001",
+                        "script": "tuya_swversion.js"
+                    },
+                    "read": {
+                        "fn": "none"
+                    }
+                },
+                {
+                    "name": "attr/type"
+                },
+                {
+                    "name": "attr/uniqueid"
+                },
+                {
+                    "name": "config/offset",
+                    "default": 0
+                },
+                {
+                    "name": "config/on"
+                },
+                {
+                    "name": "config/reachable"
+                },
+                {
+                    "name": "state/lastupdated"
+                },
+                {
+                    "name": "state/current",
+                    "parse": {
+                        "fn": "tuya",
+                        "dpid": 114,
+                        "eval": "Item.val = Attr.val < 0 ? Math.abs(Attr.val) / 10 : 0;"
+                    },
+                    "read": {
+                        "fn": "none"
+                    },
+                    "default": 0
+                },
+                {
+                    "name": "state/voltage",
+                    "parse": {
+                        "fn": "tuya",
+                        "dpid": 112,
+                        "eval": "Item.val = Attr.val / 10;"
+                    },
+                    "read": {
+                        "fn": "none"
+                    },
+                    "default": 0
+                },
+                {
+                    "name": "state/power",
+                    "parse": {
+                        "fn": "tuya",
+                        "dpid": 105,
+                        "eval": "Item.val = Attr.val / 10;"
+                    },
+                    "read": {
+                        "fn": "none"
+                    },
+                    "default": 0
+                }
+            ]
+        }
+    ]
+}

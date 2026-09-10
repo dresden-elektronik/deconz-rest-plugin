@@ -6,9 +6,9 @@
   "public": true,
   "range": [
     0,
-    254
+    100
   ],
-  "description": "The lift state of a roller blind.",
+  "description": "The lift percentage of a roller blind.",
   "parse": {
     "at": "0x0008",
     "cl": "0x0102",

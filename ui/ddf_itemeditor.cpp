@@ -270,7 +270,7 @@ DDF_ItemEditor::DDF_ItemEditor(QWidget *parent) :
     d  = new DDF_ItemEditorPrivate;
     QVBoxLayout *mainLay = new QVBoxLayout;
     setLayout(mainLay);
-    mainLay->setMargin(0);
+    mainLay->setContentsMargins(0,0,0,0);
 
     setAcceptDrops(true);
 

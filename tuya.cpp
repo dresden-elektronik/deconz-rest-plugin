@@ -515,7 +515,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0405: // rotation direction
                     {
-                        DBG_Printf(DBG_INFO, "Tuya debug 3 : Covering motor direction %ld\n", data);
+                        DBG_Printf(DBG_INFO, "Tuya debug 3 : Covering motor direction %d\n", data);
                     }
                     break;
 
@@ -1072,7 +1072,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     break;
                     case 0x0170: // Reporting
                     {
-                        DBG_Printf(DBG_INFO, "Tuya device 0x%016llX reporting status state : %ld\n", ind.srcAddress().ext(), data);
+                        DBG_Printf(DBG_INFO, "Tuya device 0x%016llX reporting status state : %d\n", ind.srcAddress().ext(), data);
                     }
                     break;
                     case 0x0202: // Thermostat heatsetpoint
@@ -1604,8 +1604,8 @@ bool DeRestPluginPrivate::sendTuyaRequestThermostatSetWeeklySchedule(TaskItem &t
         {
             return false;
         }
-        hh = attributes.at(0).midRef(0, 2).toUInt();
-        mm = attributes.at(0).midRef(3, 2).toUInt();
+        hh = attributes.at(0).mid(0, 2).toUInt();
+        mm = attributes.at(0).mid(3, 2).toUInt();
         heatSetpoint = attributes.at(1).toInt();
 
         data.append(QByteArray::number(hh, 16));

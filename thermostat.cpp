@@ -428,8 +428,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0008:  // Pi Heating Demand
             {
-                if (sensor->modelId().startsWith(QLatin1String("SPZB")) || // Eurotronic Spirit
-                    sensor->modelId() == QLatin1String("Thermostat"))      // eCozy
+                if (sensor->modelId() == QLatin1String("Thermostat"))      // eCozy
                 {
                     quint8 valve = attr.numericValue().u8;
                     bool on = valve > 3;
@@ -497,21 +496,15 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0012: // Occupied Heating Setpoint
             {
-                if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
-                {
-                    // Use 0x4003 instead.
-                }
-                else
-                {
-                    qint16 heatSetpoint = attr.numericValue().s16;
-                    item = sensor->item(RConfigHeatSetpoint);
-                    if (item && item->toNumber() != heatSetpoint)
-                    {
-                        item->setValue(heatSetpoint);
-                        enqueueEvent(Event(RSensors, RConfigHeatSetpoint, sensor->id(), item));
-                        configUpdated = true;
-                    }
-                }
+				qint16 heatSetpoint = attr.numericValue().s16;
+				item = sensor->item(RConfigHeatSetpoint);
+				if (item && item->toNumber() != heatSetpoint)
+				{
+					item->setValue(heatSetpoint);
+					enqueueEvent(Event(RSensors, RConfigHeatSetpoint, sensor->id(), item));
+					configUpdated = true;
+				}
+                
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
@@ -810,54 +803,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             }
                 break;
 
-            // manufacturerspecific reported by Eurotronic SPZB0001
-            // https://eurotronic.org/wp-content/uploads/2019/01/Spirit_ZigBee_BAL_web_DE_view_V9.pdf
-            case 0x4000: // enum8 (0x30): value 0x02, TRV mode
-            {
-                if (zclFrame.manufacturerCode() == VENDOR_JENNIC)
-                {
-                }
-                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
-            }
-                break;
-
-            case 0x4001: // U8 (0x20): value 0x00, valve position
-            case 0x4002: // U8 (0x20): value 0x00, errors
-            {
-                if (zclFrame.manufacturerCode() == VENDOR_JENNIC)
-                {
-                }
-            }
-                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
-                break;
-
-            case 0x4003:
-            {   // Current temperature set point - this will be reported when manually changing the temperature
-                if (zclFrame.manufacturerCode() == VENDOR_JENNIC && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
-                {
-                    qint16 heatSetpoint = attr.numericValue().s16;
-                    item = sensor->item(RConfigHeatSetpoint);
-                    
-                    if (item)
-                    {
-                        if (updateType == NodeValue::UpdateByZclReport)
-                        {
-                            stateUpdated = true;
-                        }
-                        if (item->toNumber() != heatSetpoint)
-                        {
-                            item->setValue(heatSetpoint);
-                            enqueueEvent(Event(RSensors, RConfigHeatSetpoint, sensor->id(), item));
-                            stateUpdated = true;
-                        }
-                    }
-                }
-                
-                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
-            }
-                break;
-
-            case 0x4008: // U24 (0x22): 0x000001, host flags
+/*             case 0x4008: // U24 (0x22): 0x000001, host flags
             {
                 if (zclFrame.manufacturerCode() == VENDOR_JENNIC && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
@@ -896,7 +842,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
-                break;
+                break; */
 
             // Manufacturer Specific for Danfoss Icon Floor Heating Controller
             case 0x4110:  // Danfoss Output Status

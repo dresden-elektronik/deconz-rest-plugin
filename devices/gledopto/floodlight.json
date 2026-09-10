@@ -1,215 +1,215 @@
 {
-    "schema": "devcap1.schema.json",
-    "uuid": "fe02db4a-01e9-423e-9e56-b9db67dac193",
-    "manufacturername": [
-        "GLEDOPTO",
-        "GLEDOPTO"
-    ],
-    "modelid": [
-        "GLEDOPTO",
-        "RGBW"
-    ],
-    "matchexpr": "R.endpoints.indexOf(0x0a) !== -1 && R.endpoints.indexOf(0x0b) !== -1",
-    "vendor": "Gledopto",
-    "product": "Floodlight",
-    "sleeper": false,
-    "status": "Gold",
-    "subdevices": [
+  "schema": "devcap1.schema.json",
+  "uuid": "fe02db4a-01e9-423e-9e56-b9db67dac193",
+  "manufacturername": [
+    "GLEDOPTO",
+    "GLEDOPTO"
+  ],
+  "modelid": [
+    "GLEDOPTO",
+    "RGBW"
+  ],
+  "matchexpr": "R.endpoints.indexOf(0x0a) !== -1 && R.endpoints.indexOf(0x0b) !== -1",
+  "vendor": "Gledopto",
+  "product": "Floodlight",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_EXTENDED_COLOR_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x0b"
+      ],
+      "items": [
         {
-            "type": "$TYPE_EXTENDED_COLOR_LIGHT",
-            "restapi": "/lights",
-            "uuid": [
-                "$address.ext",
-                "0x0b"
-            ],
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid",
-                    "static": "RGBW"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "cap/color/capabilities"
-                },
-                {
-                    "name": "cap/color/ct/max",
-                    "static": 500
-                },
-                {
-                    "name": "cap/color/ct/min",
-                    "static": 153
-                },
-                {
-                    "name": "cap/color/xy/blue_x",
-                    "static": 9896
-                },
-                {
-                    "name": "cap/color/xy/blue_y",
-                    "static": 1488
-                },
-                {
-                    "name": "cap/color/xy/green_x",
-                    "static": 9090
-                },
-                {
-                    "name": "cap/color/xy/green_y",
-                    "static": 53398
-                },
-                {
-                    "name": "cap/color/xy/red_x",
-                    "static": 45914
-                },
-                {
-                    "name": "cap/color/xy/red_y",
-                    "static": 19615
-                },
-                {
-                    "name": "state/alert"
-                },
-                {
-                    "name": "state/bri"
-                },
-                {
-                    "name": "state/colormode",
-                    "parse": {
-                        "fn": "zcl:attr",
-                        "ep": "0x0b",
-                        "cl": "0x0300",
-                        "at": "0x4001",
-                        "eval": "if (Attr.val <= 3) Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
-                    },
-                    "read": {
-                        "fn": "zcl:attr",
-                        "ep": "0x0b",
-                        "cl": "0x0300",
-                        "at": [
-                            "0x4001",
-                            "0x0003",
-                            "0x0004",
-                            "0x0007",
-                            "0x4002",
-                            "0x4000",
-                            "0x0001"
-                        ]
-                    },
-                    "refresh.interval": 60
-                },
-                {
-                    "name": "state/ct",
-                    "read": {
-                        "fn": "none"
-                    }
-                },
-                {
-                    "name": "state/effect",
-                    "read": {
-                        "fn": "none"
-                    }
-                },
-                {
-                    "name": "state/hue",
-                    "read": {
-                        "fn": "none"
-                    }
-                },
-                {
-                    "name": "state/on"
-                },
-                {
-                    "name": "state/reachable"
-                },
-                {
-                    "name": "state/sat",
-                    "read": {
-                        "fn": "none"
-                    }
-                },
-                {
-                    "name": "state/x",
-                    "read": {
-                        "fn": "none"
-                    }
-                },
-                {
-                    "name": "state/y",
-                    "read": {
-                        "fn": "none"
-                    }
-                }
-            ]
+          "name": "attr/id"
         },
         {
-            "type": "$TYPE_DIMMABLE_LIGHT",
-            "restapi": "/lights",
-            "uuid": [
-                "$address.ext",
-                "0x0a"
-            ],
-            "items": [
-                {
-                    "name": "attr/id"
-                },
-                {
-                    "name": "attr/lastannounced"
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid",
-                    "static": "RGBW"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion"
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "state/alert"
-                },
-                {
-                    "name": "state/bri"
-                },
-                {
-                    "name": "state/on"
-                },
-                {
-                    "name": "state/reachable"
-                }
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid",
+          "static": "RGBW"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "cap/color/capabilities"
+        },
+        {
+          "name": "cap/color/ct/max",
+          "static": 500
+        },
+        {
+          "name": "cap/color/ct/min",
+          "static": 153
+        },
+        {
+          "name": "cap/color/xy/blue_x",
+          "static": 9896
+        },
+        {
+          "name": "cap/color/xy/blue_y",
+          "static": 1488
+        },
+        {
+          "name": "cap/color/xy/green_x",
+          "static": 9090
+        },
+        {
+          "name": "cap/color/xy/green_y",
+          "static": 53398
+        },
+        {
+          "name": "cap/color/xy/red_x",
+          "static": 45914
+        },
+        {
+          "name": "cap/color/xy/red_y",
+          "static": 19615
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/bri"
+        },
+        {
+          "name": "state/colormode",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0300",
+            "at": "0x4001",
+            "eval": "if (Attr.val <= 3) Item.val = ['hs', 'xy', 'ct', 'xy'][Attr.val]"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x0b",
+            "cl": "0x0300",
+            "at": [
+              "0x4001",
+              "0x0003",
+              "0x0004",
+              "0x0007",
+              "0x4002",
+              "0x4000",
+              "0x0001"
             ]
+          },
+          "refresh.interval": 60
+        },
+        {
+          "name": "state/ct",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/effect",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/hue",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        },
+        {
+          "name": "state/sat",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/x",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/y",
+          "read": {
+            "fn": "none"
+          }
         }
-    ]
+      ]
+    },
+    {
+      "type": "$TYPE_DIMMABLE_LIGHT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x0a"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid",
+          "static": "RGBW"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/alert"
+        },
+        {
+          "name": "state/bri"
+        },
+        {
+          "name": "state/on"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ]
 }

@@ -1,8 +1,16 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "fccf500b-00d4-4bf6-b42d-27784e3803c2",
-  "manufacturername": ["Develco Products A/S", "frient A/S", "Develco"],
-  "modelid": ["ZHEMI101", "ZHEMI101", "ZHEMI101"],
+  "manufacturername": [
+    "Develco Products A/S",
+    "frient A/S",
+    "Develco"
+  ],
+  "modelid": [
+    "ZHEMI101",
+    "ZHEMI101",
+    "ZHEMI101"
+  ],
   "vendor": "Develco Products",
   "product": "Electricity meter interface (ZHEMI101)",
   "sleeper": false,
@@ -96,14 +104,38 @@
             "mf": "0x1015"
           },
           "values": [
-            [1, "Pulse counting electricity - Unit kWh"],
-            [2, "Pulse counting gas - Unit m3"],
-            [3, "Pulse counting water - Unit m3"],
-            [4, "Kamstrup KMP protocol"],
-            [5, "Linky protocol"],
-            [6, "DLMS-COSEM - IEC62056-21 mod A"],
-            [7, "P1 dutch standard – DSMR 2.3 version"],
-            [8, "P1 dutch standard – DSMR 4.0 version"]
+            [
+              1,
+              "Pulse counting electricity - Unit kWh"
+            ],
+            [
+              2,
+              "Pulse counting gas - Unit m3"
+            ],
+            [
+              3,
+              "Pulse counting water - Unit m3"
+            ],
+            [
+              4,
+              "Kamstrup KMP protocol"
+            ],
+            [
+              5,
+              "Linky protocol"
+            ],
+            [
+              6,
+              "DLMS-COSEM - IEC62056-21 mod A"
+            ],
+            [
+              7,
+              "P1 dutch standard – DSMR 2.3 version"
+            ],
+            [
+              8,
+              "P1 dutch standard – DSMR 4.0 version"
+            ]
           ]
         },
         {

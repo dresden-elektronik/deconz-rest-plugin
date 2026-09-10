@@ -1,0 +1,96 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "3ecd96bb-6c10-4bf9-910c-2552d611b576",
+  "manufacturername": [
+    "_TZE200_1ibpyhdc",
+    "_TZE200_bh3n6gk8"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601"
+  ],
+  "vendor": "Tuya",
+  "product": "PIR motion detector (ZG-204ZL)",
+  "status": "Gold",
+  "sleeper": true,
+  "subdevices": [
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0406"
+      ],
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/presence",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 1,
+            "eval": "Item.val = Attr.val == 0;"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 4,
+            "eval": "Item.val = Attr.val;"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ]
+}

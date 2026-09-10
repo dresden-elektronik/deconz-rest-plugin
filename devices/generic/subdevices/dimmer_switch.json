@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_DIMMER_SWITCH",
   "name": "Dimmer switch",
+  "ui_name": "Dimmer switch",
   "restapi": "/lights",
   "order": 11,
   "uuid": [

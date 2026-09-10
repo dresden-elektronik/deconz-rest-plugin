@@ -1,10 +1,16 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "fa44b7d1-6b46-4bae-9264-2dea7c216d9e",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRI bulb GU10 WS 400lm",
+  "manufacturername": [
+    "$MF_IKEA",
+    "$MF_IKEA"
+  ],
+  "modelid": [
+    "TRADFRI bulb GU10 WS 345lm",
+    "TRADFRI bulb GU10 WS 400lm"
+  ],
   "vendor": "IKEA",
-  "product": "Tradfri LED bulb GU10 400lm (LED1737R5)",
+  "product": "Tradfri LED bulb GU10 345/400 lumen, dimmable white spectrum (LED2106R3/LED1737R5/LED1739R5)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -32,6 +38,23 @@
           "name": "attr/name"
         },
         {
+          "name": "attr/productid",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x000A"
+          },
+          "refresh.interval": 86400
+        },
+        {
           "name": "attr/swversion"
         },
         {
@@ -46,7 +69,7 @@
         },
         {
           "name": "cap/color/capabilities",
-          "static": 16
+          "refresh.interval": 86400
         },
         {
           "name": "cap/color/ct/max",
@@ -66,7 +89,7 @@
         },
         {
           "name": "state/bri",
-          "refresh.interval": 1805
+          "refresh.interval": 360
         },
         {
           "name": "state/colormode",
@@ -74,11 +97,11 @@
         },
         {
           "name": "state/ct",
-          "refresh.interval": 1805
+          "refresh.interval": 360
         },
         {
           "name": "state/on",
-          "refresh.interval": 1805
+          "refresh.interval": 360
         },
         {
           "name": "state/reachable"
@@ -90,26 +113,42 @@
     {
       "bind": "unicast",
       "src.ep": 1,
-      "cl": "0x0006",
+      "dst.ep": 1,
+      "cl": "0x0000",
       "report": [
         {
-          "at": "0x0000",
-          "dt": "0x10",
-          "min": 5,
-          "max": 1800
+          "at": "0x4000",
+          "dt": "0x42",
+          "min": 0,
+          "max": 65535
         }
       ]
     },
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0006",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x10",
+          "min": 1,
+          "max": 300
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0008",
       "report": [
         {
           "at": "0x0000",
           "dt": "0x20",
-          "min": 5,
-          "max": 1800,
+          "min": 1,
+          "max": 300,
           "change": "0x00000001"
         }
       ]
@@ -117,13 +156,15 @@
     {
       "bind": "unicast",
       "src.ep": 1,
+      "dst.ep": 1,
       "cl": "0x0300",
       "report": [
         {
-          "at": "0x0008",
-          "dt": "0x30",
-          "min": 1,
-          "max": 1800
+          "at": "0x0007",
+          "dt": "0x21",
+          "min": 5,
+          "max": 1800,
+          "change": "0x00000001"
         },
         {
           "at": "0x0003",
@@ -140,11 +181,10 @@
           "change": "0x0000000A"
         },
         {
-          "at": "0x0007",
-          "dt": "0x21",
-          "min": 5,
-          "max": 1800,
-          "change": "0x00000001"
+          "at": "0x0008",
+          "dt": "0x30",
+          "min": 1,
+          "max": 1800
         }
       ]
     }

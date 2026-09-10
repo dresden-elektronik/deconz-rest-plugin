@@ -94,7 +94,11 @@
           "button": 4
         }
       },
-      "meta": {"group.endpoints": [1] },
+      "meta": {
+        "group.endpoints": [
+          1
+        ]
+      },
       "items": [
         {
           "name": "attr/id"
@@ -223,7 +227,11 @@
           "0x0005"
         ]
       },
-      "meta": {"group.endpoints": [2] },
+      "meta": {
+        "group.endpoints": [
+          2
+        ]
+      },
       "items": [
         {
           "name": "attr/id"
@@ -272,7 +280,7 @@
         {
           "name": "state/lastupdated"
         },
-                {
+        {
           "name": "state/on",
           "public": false,
           "parse": {

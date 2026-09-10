@@ -4,6 +4,7 @@
   "datatype": "UInt8",
   "access": "RW",
   "public": true,
+  "default": 0,
   "description": "The current color saturation.",
   "parse": {
     "fn": "zcl:attr",

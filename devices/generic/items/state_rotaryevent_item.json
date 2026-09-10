@@ -4,5 +4,6 @@
   "datatype": "UInt8",
   "access": "R",
   "public": true,
+  "default": 0,
   "description": "The last received rotary event."
 }

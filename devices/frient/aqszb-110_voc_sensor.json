@@ -105,7 +105,19 @@
           "parse": {
             "fn": "numtostr",
             "srcitem": "state/airqualityppb",
-            "op": "le", "to": [65, "excellent", 220, "good", 660, "moderate", 5000, "unhealthy", 65535, "out of scale"]
+            "op": "le",
+            "to": [
+              65,
+              "excellent",
+              220,
+              "good",
+              660,
+              "moderate",
+              5000,
+              "unhealthy",
+              65535,
+              "out of scale"
+            ]
           }
         },
         {

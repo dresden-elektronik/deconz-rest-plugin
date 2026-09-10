@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2026 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -14,6 +14,7 @@
 #include <QNetworkReply>
 #include <QNetworkProxy>
 #include <QSysInfo>
+#include "deconz/u_platform.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
 #ifdef Q_OS_LINUX
@@ -41,7 +42,7 @@ void DeRestPluginPrivate::initInternetDicovery()
     inetDiscoveryTimer = new QTimer(this);
     inetDiscoveryTimer->setSingleShot(false);
 
-    {
+    { // TODO(mpi): query proxy settings via apsCtrl->getParameter()
         QList<QNetworkProxy> proxies = QNetworkProxyFactory::systemProxyForQuery(QNetworkProxyQuery(gwAnnounceUrl));
 
         if (!proxies.isEmpty())
@@ -49,8 +50,6 @@ void DeRestPluginPrivate::initInternetDicovery()
             const QNetworkProxy &proxy = proxies.first();
             if (proxy.type() == QNetworkProxy::HttpProxy || proxy.type() == QNetworkProxy::HttpCachingProxy)
             {
-                gwProxyPort = proxy.port();
-                gwProxyAddress = proxy.hostName();
                 inetDiscoveryManager->setProxy(proxy);
                 QHostInfo::lookupHost(proxy.hostName(),
                                       this, SLOT(inetProxyHostLookupDone(QHostInfo)));
@@ -123,23 +122,13 @@ void DeRestPluginPrivate::initInternetDicovery()
 
     if (osPrettyName.isEmpty())
     {
-#ifdef Q_OS_WIN
-        switch (QSysInfo::WindowsVersion)
-        {
-        case QSysInfo::WV_XP:         osPrettyName = QLatin1String("WinXP"); break;
-        case QSysInfo::WV_WINDOWS7:   osPrettyName = QLatin1String("Win7"); break;
-        case QSysInfo::WV_WINDOWS8:   osPrettyName = QLatin1String("Win8"); break;
-        case QSysInfo::WV_WINDOWS8_1: osPrettyName = QLatin1String("Win8.1"); break;
-        case QSysInfo::WV_WINDOWS10:  osPrettyName = QLatin1String("Win10"); break;
-        default:
-            osPrettyName = QLatin1String("Win");
-            break;
-        }
+#ifdef PL_WINDOWS
+        osPrettyName = "Win";
 #endif
-#ifdef Q_OS_OSX
+#ifdef PL_MACOS
         osPrettyName = "Mac";
 #endif
-#ifdef Q_OS_LINUX
+#ifdef PL_LINUX
         osPrettyName = "Linux";
 #endif
     }
@@ -192,9 +181,14 @@ void DeRestPluginPrivate::internetDiscoveryTimerFired()
     const deCONZ::Node *node;
     deCONZ::ApsController *ctrl = deCONZ::ApsController::instance();
 
-    while (ctrl && ctrl->getNode(i, &node) == 0)
+    if (!ctrl)
     {
-      i++;
+        return;
+    }
+
+    while (ctrl->getNode(i, &node) == 0)
+    {
+        i++;
     }
 
     QVariantMap map;
@@ -202,6 +196,11 @@ void DeRestPluginPrivate::internetDiscoveryTimerFired()
     map["mac"] = gwBridgeId;
     map["internal_ip"] = gwConfig["ipaddress"].toString();
     map["internal_port"] = gwConfig["port"].toDouble();
+    uint16_t httpsPort = ctrl->getParameter(deCONZ::ParamHttpsPort);
+    if (httpsPort > 0)
+    {
+        map["https_port"] = (double)httpsPort;
+    }
     map["interval"] = gwAnnounceInterval;
     map["swversion"] = gwConfig["swversion"].toString();
     map["fwversion"] = gwConfig["fwversion"].toString();
@@ -366,8 +365,11 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
             {
                 DBG_Printf(DBG_INFO, "\t = %s, diff %d\n", qPrintable(dt.toString()), diff);
                 // lazy adjustment of process time
-                //time_t t = dt.toSecsSinceEpoch(); // Qt 5.8
+#if QT_VERSION < QT_VERSION_CHECK(5,8,0)
                 time_t t = dt.toTime_t();
+#else
+                time_t t = dt.toSecsSinceEpoch();
+#endif
                 struct tm tbrokenDown;
                 if (localtime_r(&t, &tbrokenDown))
                 {

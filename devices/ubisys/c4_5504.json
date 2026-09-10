@@ -50,8 +50,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x4000", "eval": "Item.val = Attr.val"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x4000"},
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x4000",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x4000"
+          },
           "refresh.interval": 180
         },
         {

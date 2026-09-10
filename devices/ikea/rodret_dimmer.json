@@ -1,10 +1,16 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "3d671c73-06da-4adc-99f1-076b3dfb3122",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "RODRET Dimmer",
+  "manufacturername": [
+	  "$MF_IKEA", 
+	  "$MF_IKEA"
+  ],
+  "modelid": [
+	  "RODRET Dimmer",
+	  "RODRET wireless dimmer"
+  ],
   "vendor": "IKEA",
-  "product": "Rodret Wireless Dimmer (E2201)",
+  "product": "Rodret wireless dimmer switch (E2201)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -30,7 +36,11 @@
           "0x0008"
         ]
       },
-      "meta": {"group.endpoints": [1] },
+      "meta": {
+        "group.endpoints": [
+          1
+        ]
+      },
       "items": [
         {
           "name": "attr/id"

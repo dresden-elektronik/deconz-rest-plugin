@@ -26,7 +26,9 @@
     "_TZ3000_bsvqrxru",
     "_TZ3000_mg4dy6z6",
     "_TZ3040_bb6xaihh",
-    "_TZ3000_lf56vpxj"
+    "_TZ3000_bb6xaihh",
+    "_TZ3000_lf56vpxj",
+    "_TZ3000_uw3dadam"
   ],
   "modelid": [
     "TS0202",
@@ -52,6 +54,8 @@
     "TS0202",
     "TS0202",
     "TS0202",
+    "TS0202",
+    "SNZB-03",
     "TS0202",
     "TS0202"
   ],
@@ -99,8 +103,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"

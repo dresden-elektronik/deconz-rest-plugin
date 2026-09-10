@@ -113,7 +113,15 @@ struct DB_IdentifierPair
     unsigned mfnameAtomIndex;
 };
 
-int DB_StoreDevice(const deCONZ::Address &addr);
+struct DB_Device
+{
+    int deviceId;
+    uint16_t nwk;
+    uint64_t mac;
+    int64_t creationTime;
+};
+
+int DB_StoreDevice(DB_Device &dev);
 
 int DB_GetSubDeviceItemCount(QLatin1String uniqueId);
 bool DB_LoadZclValue(DB_ZclValue *val);

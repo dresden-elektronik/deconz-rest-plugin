@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "beb540be-7ed3-4380-be1c-042b7898f74e",
-  "manufacturername": ["SONOFF", "SONOFF"],
-  "modelid": ["ZBMINI-L", "ZBMINIL2"],
+  "manufacturername": [
+    "SONOFF",
+    "SONOFF"
+  ],
+  "modelid": [
+    "ZBMINI-L",
+    "ZBMINIL2"
+  ],
   "vendor": "Sonoff",
   "product": "Mini Relay No Neutral (ZBMINI-L/ZBMINIL2)",
   "sleeper": false,

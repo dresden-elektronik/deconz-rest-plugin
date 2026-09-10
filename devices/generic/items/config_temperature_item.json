@@ -8,5 +8,6 @@
     0,
     255
   ],
+  "default": 0,
   "description": "The current device temperature in °C."
 }

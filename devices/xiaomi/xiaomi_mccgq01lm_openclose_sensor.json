@@ -48,9 +48,16 @@
           "name": "attr/name"
         },
         {
-            "name": "attr/swversion",
-            "read": {"cl": "0x0000", "at": "0x0006"},
-            "parse": {"cl": "0x0000", "at": "0x0006", "eval": "Item.val = Attr.val"}
+          "name": "attr/swversion",
+          "read": {
+            "cl": "0x0000",
+            "at": "0x0006"
+          },
+          "parse": {
+            "cl": "0x0000",
+            "at": "0x0006",
+            "eval": "Item.val = Attr.val"
+          }
         },
         {
           "name": "attr/type"
@@ -60,7 +67,13 @@
         },
         {
           "name": "config/battery",
-          "parse": {"fn": "xiaomi:special", "ep": 1, "at": "0xff02", "idx": "0x01", "script": "xiaomi_battery.js"}
+          "parse": {
+            "fn": "xiaomi:special",
+            "ep": 1,
+            "at": "0xff02",
+            "idx": "0x01",
+            "script": "xiaomi_battery.js"
+          }
         },
         {
           "name": "config/on"
@@ -73,7 +86,13 @@
         },
         {
           "name": "state/open",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0006", "at": "0x0000", "eval": "Item.val = Attr.val != 0"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0006",
+            "at": "0x0000",
+            "eval": "Item.val = Attr.val != 0"
+          }
         }
       ]
     }

@@ -3,6 +3,7 @@
   "id": "state/bri",
   "datatype": "UInt8",
   "access": "RW",
+  "default": 0,
   "public": true,
   "range": [
     0,

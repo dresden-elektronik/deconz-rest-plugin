@@ -4,7 +4,7 @@
   "manufacturername": "_TZ3210_wuhzzfqg",
   "modelid": "TS0202",
   "vendor": "Fantem",
-  "product": "Multi sensor 4 in 1 (ZB003-X)",
+  "product": "Multisensor 4-in-1 (ZB003-X)",
   "sleeper": false,
   "status": "Gold",
   "subdevices": [
@@ -48,8 +48,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -59,8 +70,8 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "refresh.interval": 86400,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -79,7 +90,10 @@
         {
           "name": "config/delay",
           "refresh.interval": 86400,
-          "range": [0, 5],
+          "range": [
+            0,
+            5
+          ],
           "read": {
             "at": "0xf001",
             "cl": "0x0500",
@@ -115,7 +129,10 @@
         },
         {
           "name": "config/sensitivity",
-          "range": [0, 2],
+          "range": [
+            0,
+            2
+          ],
           "refresh.interval": 86400,
           "read": {
             "at": "0x0013",
@@ -144,12 +161,12 @@
           "write": {
             "dpid": 112,
             "dt": "0x10",
-            "eval": "Item.val;",
+            "eval": "Item.val",
             "fn": "tuya"
           },
           "parse": {
             "dpid": 112,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "tuya"
           },
           "default": true
@@ -199,8 +216,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -210,8 +238,8 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "refresh.interval": 86400,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -284,8 +312,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -295,8 +334,8 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "refresh.interval": 86400,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -369,8 +408,19 @@
         {
           "name": "attr/swversion",
           "refresh.interval": 86400,
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -380,8 +430,8 @@
         },
         {
           "name": "config/battery",
-          "awake": true,
           "refresh.interval": 86400,
+          "awake": true,
           "read": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -424,7 +474,7 @@
         },
         {
           "name": "state/lightlevel",
-          "refresh.interval": 84000,
+          "awake": true,
           "read": {
             "at": "0x0000",
             "cl": "0x0400",

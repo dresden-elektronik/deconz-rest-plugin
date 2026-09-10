@@ -201,7 +201,7 @@ void IAS_IasAceClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::Z
         // [2] zone id (uint8, ignore, we don't do anything with it)
         // const quint8 zoneId = static_cast<quint8>(zclFrame.payload().at(zclFrame.payload().size() - 1));
         
-        DBG_Printf(DBG_IAS, "[IAS ACE] 0x%016llX arm command received, arm mode: 0x%02X, code length: %d\n", ind.srcAddress().ext(), armMode, armCode.size());
+        DBG_Printf(DBG_IAS, "[IAS ACE] 0x%016llX arm command received, arm mode: 0x%02X, code length: %d\n", ind.srcAddress().ext(), armMode, (int)armCode.size());
 
         AlarmSystem *alarmSys = AS_GetAlarmSystemForDevice(ind.srcAddress().ext(), *alarmSystems);
 

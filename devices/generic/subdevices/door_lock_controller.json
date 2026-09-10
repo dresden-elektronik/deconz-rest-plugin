@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_DOOR_LOCK_CONTROLLER",
   "name": "Door Lock Controller",
+  "ui_name": "Door lock controller",
   "restapi": "/lights",
   "order": 11,
   "uuid": [

@@ -1,193 +1,317 @@
 {
-    "schema": "devcap1.schema.json",
-    "uuid": "7de168f6-a43d-4692-9013-aecaa33ee7c9",
-    "manufacturername": "$MF_SAMJIN",
-    "modelid": "multi",
-    "vendor": "Samsung",
-    "product": "Multipurpose Sensor (IM6001-OTP01)",
-    "status": "Gold",
-    "subdevices": [
+  "schema": "devcap1.schema.json",
+  "uuid": "7de168f6-a43d-4692-9013-aecaa33ee7c9",
+  "manufacturername": "$MF_SAMJIN",
+  "modelid": "multi",
+  "vendor": "Samsung",
+  "product": "Multipurpose Sensor (IM6001-OTP01)",
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x01",
+        "in": [
+          "0x0001",
+          "0x0500"
+        ]
+      },
+      "items": [
         {
-            "type": "$TYPE_OPEN_CLOSE_SENSOR",
-            "restapi": "/sensors",
-            "uuid": [ "$address.ext", "0x01", "0x0500"],
-            "fingerprint": { "profile": "0x0104", "device": "0x0402", "endpoint": "0x01", "in": ["0x0001", "0x0500"] },
-            "items": [
-                {
-                    "name": "config/checkin",
-                    "default": 480
-                },
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion",
-                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "eval": "Item.val = Attr.val"},
-                    "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"},
-                    "refresh.interval": 84000
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/battery",
-                    "awake": true,
-                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
-                    "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021"},
-                    "refresh.interval": 3660
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/pending",
-                    "public": false
-                },
-                {
-                    "name": "config/enrolled"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/lastupdated"
-                },
-                {
-                    "name": "state/open"
-                }
-            ]
+          "name": "config/checkin",
+          "default": 480
         },
         {
-            "type": "$TYPE_TEMPERATURE_SENSOR",
-            "restapi": "/sensors",
-            "uuid": [ "$address.ext", "0x01", "0x0402"],
-            "fingerprint": { "profile": "0x0104", "device": "0x0402", "endpoint": "0x01", "in": ["0x0001", "0x0402"] },
-            "items": [
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion",
-                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "eval": "Item.val = Attr.val"},
-                    "read": {"fn": "none"}
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/battery",
-                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
-                    "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021"},
-                    "refresh.interval": 3660
-                },
-                {
-                    "name": "config/offset"
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/lastupdated"
-                },
-                {
-                    "name": "state/temperature"
-                }
-            ]
+          "name": "attr/lastseen"
         },
         {
-            "type": "$TYPE_VIBRATION_SENSOR",
-            "restapi": "/sensors",
-            "uuid": [ "$address.ext", "0x01", "0xfc02"],
-            "fingerprint": { "profile": "0x0104", "device": "0x0402", "endpoint": "0x01", "in": ["0x0001", "0xfc02"] },
-            "items": [
-                {
-                    "name": "attr/lastseen"
-                },
-                {
-                    "name": "attr/manufacturername"
-                },
-                {
-                    "name": "attr/modelid"
-                },
-                {
-                    "name": "attr/name"
-                },
-                {
-                    "name": "attr/swversion",
-                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "eval": "Item.val = Attr.val"},
-                    "read": {"fn": "none"}
-                },
-                {
-                    "name": "attr/type"
-                },
-                {
-                    "name": "attr/uniqueid"
-                },
-                {
-                    "name": "config/battery",
-                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021", "eval": "Item.val = Attr.val / 2"},
-                    "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0001", "at": "0x0021"},
-                    "refresh.interval": 3660
-                },
-                {
-                    "name": "config/on"
-                },
-                {
-                    "name": "config/reachable"
-                },
-                {
-                    "name": "state/orientation_x",
-                    "public": true,
-                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0xfc02", "at": "0x0012", "mf": "0x1241", "eval": "Item.val = Attr.val"}
-                },
-                {
-                    "name": "state/orientation_y",
-                    "public": true,
-                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0xfc02", "at": "0x0013", "mf": "0x1241", "eval": "Item.val = Attr.val"}
-                },
-                {
-                    "name": "state/orientation_z",
-                    "public": true,
-                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0xfc02", "at": "0x0014", "mf": "0x1241", "eval": "Item.val = Attr.val"}
-                },
-                {
-                    "name": "state/lastupdated"
-                },
-                {
-                    "name": "state/vibration",
-                    "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0xfc02", "at": "0x0010", "mf": "0x1241", "eval": "Item.val = Attr.val === 1"}
-                }
-            ]
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          },
+          "refresh.interval": 84000
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "refresh.interval": 3660
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/pending",
+          "public": false
+        },
+        {
+          "name": "config/enrolled"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/open"
         }
-    ],
-    "bindings": [
+      ]
+    },
+    {
+      "type": "$TYPE_TEMPERATURE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0402"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x01",
+        "in": [
+          "0x0001",
+          "0x0402"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "refresh.interval": 3660
+        },
+        {
+          "name": "config/offset"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/temperature"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_VIBRATION_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xfc02"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0402",
+        "endpoint": "0x01",
+        "in": [
+          "0x0001",
+          "0xfc02"
+        ]
+      },
+      "items": [
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021",
+            "eval": "Item.val = Attr.val / 2"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0001",
+            "at": "0x0021"
+          },
+          "refresh.interval": 3660
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/orientation_x",
+          "public": true,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc02",
+            "at": "0x0012",
+            "mf": "0x1241",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "state/orientation_y",
+          "public": true,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc02",
+            "at": "0x0013",
+            "mf": "0x1241",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "state/orientation_z",
+          "public": true,
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc02",
+            "at": "0x0014",
+            "mf": "0x1241",
+            "eval": "Item.val = Attr.val"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/vibration",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0xfc02",
+            "at": "0x0010",
+            "mf": "0x1241",
+            "eval": "Item.val = Attr.val === 1"
+          }
+        }
+      ]
+    }
+  ],
+  "bindings": [
     {
       "bind": "unicast",
       "src.ep": 1,

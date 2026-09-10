@@ -4,6 +4,7 @@
   "datatype": "UInt8",
   "access": "R",
   "public": true,
+  "default": 0,
   "description": "Number of pixels on Hue gradient light.",
   "parse": {
     "fn": "zcl:attr",

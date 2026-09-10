@@ -36,7 +36,7 @@ LightNode::LightNode() :
     addItem(DataTypeString, RAttrModelId);
     addItem(DataTypeString, RAttrType);
     addItem(DataTypeString, RAttrSwVersion);
-    addItem(DataTypeString, RAttrId);
+    addItem(DataTypeString, RAttrId)->setIsPublic(false);
     addItem(DataTypeString, RAttrUniqueId);
     addItem(DataTypeTime, RAttrLastAnnounced);
     addItem(DataTypeTime, RAttrLastSeen);
@@ -578,6 +578,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_FAN:                           ltype = QLatin1String("Fan"); break;
             case DEV_ID_CONFIGURATION_TOOL:            removeItem(RStateOn);
                                                        removeItem(RStateAlert);
+                                                       removeItem(RAttrLastAnnounced);
                                                        addItem(DataTypeBool, RCapGroupsNotSupported);
                                                        ltype = QLatin1String("Configuration tool"); break;
             default:

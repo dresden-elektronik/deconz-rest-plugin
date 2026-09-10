@@ -3,7 +3,7 @@
   "id": "cap/bri/move_with_onoff",
   "datatype": "Bool",
   "access": "R",
-  "public": true,
+  "public": false,
   "description": "Device supports the _Move to Level (with On/Off)_ command.",
   "static": true
 }

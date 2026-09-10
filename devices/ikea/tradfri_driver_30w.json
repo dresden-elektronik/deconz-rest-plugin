@@ -1,8 +1,14 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "ff9f8ad1-4527-4004-896b-4ef947eb382b",
-  "manufacturername": "$MF_IKEA",
-  "modelid": "TRADFRI Driver 30W",
+  "manufacturername": [
+    "$MF_IKEA",
+    "$MF_IKEA"
+  ],
+  "modelid": [
+    "TRADFRI Driver 10W",
+    "TRADFRI Driver 30W"
+  ],
   "vendor": "IKEA",
   "product": "Tradfri LED Driver for Wireless Control 30W (ICPSHC24-10EU-IL-1/ICPSHC24-10NA-IL-1)",
   "sleeper": false,

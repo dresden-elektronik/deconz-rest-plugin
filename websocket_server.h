@@ -10,6 +10,7 @@
 
 class QWebSocket;
 class QWebSocketServer;
+class QHttpRequestHeader;
 
 /*! \class WebSocketServer
 
@@ -19,8 +20,9 @@ class WebSocketServer : public QObject
 {
     Q_OBJECT
 public:
-    explicit WebSocketServer(QObject *parent, quint16 port);
+    explicit WebSocketServer(QObject *parent, uint16_t wsPort);
     quint16 port() const;
+    void handleExternalTcpSocket(const QHttpRequestHeader &hdr, QTcpSocket *sock);
 
 signals:
 
@@ -32,6 +34,7 @@ private slots:
     void onNewConnection();
     void onSocketDisconnected();
     void onSocketError(QAbstractSocket::SocketError err);
+    void onTextMessageReceived(const QString &message);
 
 private:
     QWebSocketServer *srv;

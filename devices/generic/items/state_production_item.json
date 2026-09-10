@@ -4,6 +4,7 @@
   "datatype": "UInt64",
   "access": "RW",
   "public": true,
+  "default": 0,
   "description": "The measured production (in Wh).",
   "read": {
     "at": "0x0001",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2023-2026 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -28,27 +28,29 @@
    or 0 for invalid utf8, codepoint set to 0.
 
  */
-static int cj_utf8_to_codepoint(const unsigned char *str, unsigned long len, unsigned long *codepoint)
+int cj_utf8_to_codepoint(const unsigned char *str, unsigned long len, unsigned long *codepoint)
 {
     int result;
     unsigned long cp;
     unsigned bytes;
 
-    if (str && len != 0)
-        cp = (unsigned)*str & 0xFF;
-    else
+    if (!str || len == 0)
         goto invalid;
 
-    for (bytes = 0; cp & 0x80; bytes++)
-        cp = (cp & 0x7F) << 1;
+    cp = (unsigned)*str & 0xFF;
 
-    if (bytes == 0) /* ASCII */
+    if ((cp & 0x80) == 0) /* ASCII */
     {
         *codepoint = cp;
         return 1;
     }
 
-    if (bytes > 4 || bytes > len)
+    for (bytes = 0; (cp & (0x80 >> bytes)); bytes++)
+    {
+        cp &= ~(0x80 >> bytes);
+    }
+
+    if (bytes < 2 || bytes > 4 || bytes > len)
         goto invalid;
 
     result = (int)bytes;
@@ -56,7 +58,6 @@ static int cj_utf8_to_codepoint(const unsigned char *str, unsigned long len, uns
     /* 110xxxxx 10xxxxxx */
     /* 1110xxxx 10xxxxxx 10xxxxxx */
     /* 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
-    cp >>= bytes;
     bytes--;
     str++;
 
@@ -69,9 +70,10 @@ static int cj_utf8_to_codepoint(const unsigned char *str, unsigned long len, uns
         cp |= (unsigned)*str & 0x3F;
     }
 
-    if      (result == 2 &&  cp < 0x80)  goto invalid;
-    else if (result == 3 &&  cp < 0x800) goto invalid;
-    else if (result == 4 && (cp < 0x10000 || cp > 0x10FFFF)) goto invalid;
+    if (result == 2 &&  cp < 0x80)  goto invalid;
+    if (result == 3 &&  cp < 0x800) goto invalid;
+    if (result == 4 && (cp < 0x10000 || cp > 0x10FFFF)) goto invalid;
+    if (cp >= 0xD800 && cp <= 0xDFFF) goto invalid;
 
     *codepoint = cp;
     return result;
@@ -712,22 +714,31 @@ cj_token_ref cj_value_ref(cj_ctx *ctx, cj_token_ref obj, const char *key)
     return result;
 }
 
-int cj_copy_value(cj_ctx *ctx, char *buf, unsigned size, cj_token_ref obj, const char *key)
+int cj_copy_value(cj_ctx *ctx, char *buf, cj_size size, cj_token_ref obj, const char *key)
 {
     cj_size i;
     cj_token_ref ref;
     cj_token *tok;
     unsigned char *out;
 
+    if (!buf || size == 0)
+        return 0;
+
     out = (unsigned char*)buf;
     out[0] = '\0';
     ref = cj_value_ref(ctx, obj, key);
 
-    if (ref >= 0 && ref < (cj_token_ref)ctx->tokens_pos)
+    if (ref < ctx->tokens_pos)
     {
         tok = &ctx->tokens[ref];
         if (tok->len < size)
         {
+            if (ctx->size < tok->len)
+                return 0;
+
+            if ((ctx->size - tok->len) < tok->pos)
+                return 0;
+
             for (i = 0; i < tok->len; i++)
                 out[i] = ctx->buf[tok->pos + i];
             out[tok->len] = '\0';
@@ -738,20 +749,29 @@ int cj_copy_value(cj_ctx *ctx, char *buf, unsigned size, cj_token_ref obj, const
     return 0;
 }
 
-int cj_copy_ref(cj_ctx *ctx, char *buf, unsigned size, cj_token_ref ref)
+int cj_copy_ref(cj_ctx *ctx, char *buf, cj_size size, cj_token_ref ref)
 {
-    unsigned i;
+    cj_size i;
     cj_token *tok;
     unsigned char *out;
+
+    if (!buf || size == 0)
+        return 0;
 
     out = (unsigned char*)buf;
     out[0] = '\0';
 
-    if (ref >= 0 && ref < (cj_token_ref)ctx->tokens_pos)
+    if (ref < ctx->tokens_pos)
     {
         tok = &ctx->tokens[ref];
         if (tok->len < size)
         {
+            if (ctx->size < tok->len)
+                return 0;
+
+            if ((ctx->size - tok->len) < tok->pos)
+                return 0;
+
             for (i = 0; i < tok->len; i++)
                 out[i] = ctx->buf[tok->pos + i];
             out[tok->len] = '\0';

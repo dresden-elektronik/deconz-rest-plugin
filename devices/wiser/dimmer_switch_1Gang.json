@@ -109,7 +109,7 @@
       ]
     }
   ],
-"bindings": [
+  "bindings": [
     {
       "bind": "unicast",
       "src.ep": 21,

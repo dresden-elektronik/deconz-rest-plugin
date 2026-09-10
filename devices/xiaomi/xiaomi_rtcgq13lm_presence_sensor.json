@@ -108,7 +108,10 @@
             "mf": "0x115F",
             "state.timeout": 2
           },
-          "range": [1, 65535],
+          "range": [
+            1,
+            65535
+          ],
           "default": 30
         },
         {
@@ -148,9 +151,18 @@
             "state.timeout": 2
           },
           "values": [
-            [1, "Low"],
-            [2, "Medium"],
-            [3, "High"]
+            [
+              1,
+              "Low"
+            ],
+            [
+              2,
+              "Medium"
+            ],
+            [
+              3,
+              "High"
+            ]
           ],
           "default": 3
         },

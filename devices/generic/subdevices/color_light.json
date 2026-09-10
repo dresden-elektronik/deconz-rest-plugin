@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_COLOR_LIGHT",
   "name": "Color light",
+  "ui_name": "Color light",
   "restapi": "/lights",
   "order": 10,
   "uuid": [

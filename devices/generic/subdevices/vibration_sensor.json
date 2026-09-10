@@ -2,6 +2,7 @@
   "schema": "subdevice1.schema.json",
   "type": "$TYPE_VIBRATION_SENSOR",
   "name": "ZHAVibration",
+  "ui_name": "Vibration sensor",
   "restapi": "/sensors",
   "order": 20,
   "uuid": [

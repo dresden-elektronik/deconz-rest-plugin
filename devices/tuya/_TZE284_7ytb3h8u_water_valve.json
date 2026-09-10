@@ -1,0 +1,209 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "78deeaf7-16fa-44e4-b323-af5fb5e18cc0",
+  "manufacturername": [
+    "_TZE284_7ytb3h8u"
+  ],
+  "modelid": [
+    "TS0601"
+  ],
+  "vendor": "GIEXperience",
+  "product": "Tuya Smart water valve",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_ON_OFF_OUTPUT",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/on",
+		  "read": {
+            "fn": "none"
+          },
+	      "write": {
+			"dpid": 2,
+		    "dt": "0x10",
+			"eval": "Item.val == 1 ? 1 : 0;",
+			"fn": "tuya"
+		  },
+		  "parse": {
+		     "dpid": 2,
+             "eval": "Item.val = Attr.val;",
+             "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/seconds_remaining",
+          "description": "The remaining time the valve is open in seconds.",
+		  "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 110,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          }
+        },
+        {
+		  "name": "config/tuya_unlock"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_OPEN_CLOSE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0500"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "dpid": 108,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 100
+        },
+        {
+          "name": "state/lowbattery",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 108,
+            "eval": "Item.val = (Attr.val <= 20 ? true : false);",
+            "fn": "tuya"
+          },
+          "default": false
+        },		
+        {
+          "name": "config/on"
+        },
+		{
+          "name": "config/duration",
+          "write": {
+            "dpid": 104,
+            "dt": "0x2b",
+            "eval": "Attr.val = Item.val;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 104,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0 
+        },
+		{
+          "name": "state/open",
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 2,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          }
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ]
+}

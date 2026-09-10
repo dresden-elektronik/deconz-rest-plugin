@@ -3,12 +3,18 @@
   "uuid": "a582a579-709e-4480-bf6c-08c639d3cb84",
   "doc:path": "xiaomi/xiaomi_gzcgq01lm_light_sensor.md",
   "doc:hdr": "Light sensor GZCGQ01LM",
-  "manufacturername": ["$MF_XIAOMI", "$MF_LUMI"],
-  "modelid": ["lumi.sen_ill.mgl01", "lumi.sen_ill.mgl01"],
+  "manufacturername": [
+    "$MF_XIAOMI",
+    "$MF_LUMI"
+  ],
+  "modelid": [
+    "lumi.sen_ill.mgl01",
+    "lumi.sen_ill.mgl01"
+  ],
   "vendor": "Xiaomi Mi",
   "product": "Light detection sensor (GZCGQ01LM)",
   "status": "Gold",
-  "md:known_issues": [ ],
+  "md:known_issues": [],
   "sleeper": true,
   "subdevices": [
     {

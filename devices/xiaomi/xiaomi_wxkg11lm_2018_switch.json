@@ -1,0 +1,126 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "eed5e799-bad0-4e30-a102-c143c5d5c99b",
+  "manufacturername": "$MF_LUMI",
+  "modelid": "lumi.remote.b1acn01",
+  "product": "WXKG11LM 2018",
+  "vendor": "Xiaomi Aqara",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_SWITCH",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0012"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0103",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0012"
+        ]
+      },
+      "buttons": {
+        "1": {
+          "name": "On/Off"
+        }
+      },
+      "buttonevents": {
+        "1001": {
+          "action": "HOLD",
+          "button": 1
+        },
+        "1002": {
+          "action": "SHORT_RELEASE",
+          "button": 1
+        },
+        "1003": {
+          "action": "LONG_RELEASE",
+          "button": 1
+        },
+        "1004": {
+          "action": "DOUBLE_PRESS",
+          "button": 1
+        }
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001",
+            "eval": "Item.val = '0.0.0_' + ('0000' + Attr.val.toString()).slice(-4)"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0000",
+            "at": "0x0001"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "at": "0xFF01",
+            "ep": 1,
+            "fn": "xiaomi:special",
+            "idx": "0x01",
+            "script": "xiaomi_battery.js"
+          }
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/buttonevent",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": "0x01",
+            "cl": "0x0012",
+            "at": "0x0055",
+            "eval": "Item.val = 1000 + ((Attr.val < 3) ? [1,2,4][Attr.val] : 3)"
+          }
+        },
+        {
+          "name": "state/lastupdated"
+        }
+      ]
+    }
+  ]
+}

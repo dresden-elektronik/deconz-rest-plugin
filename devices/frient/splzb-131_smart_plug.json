@@ -1,8 +1,16 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "ca5aa4de-3709-4d5f-9cb4-6748d155798f",
-  "manufacturername": ["frient A/S", "frient A/S", "frient A/S"],
-  "modelid": ["SPLZB-131", "SPLZB-134", "SPLZB-141"],
+  "manufacturername": [
+    "frient A/S",
+    "frient A/S",
+    "frient A/S"
+  ],
+  "modelid": [
+    "SPLZB-131",
+    "SPLZB-134",
+    "SPLZB-141"
+  ],
   "vendor": "Frient",
   "product": "Smart plug mini (SPLZB-131/SPLZB-134/SPLZB-141)",
   "sleeper": false,

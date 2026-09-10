@@ -106,8 +106,8 @@
       ]
     }
   ],
-"bindings": [
-   {
+  "bindings": [
+    {
       "bind": "unicast",
       "src.ep": 1,
       "cl": "0x0006",

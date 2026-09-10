@@ -670,7 +670,7 @@ int REST_DDF_PostBundles(const ApiRequest &req, ApiResponse &rsp)
             QVariantMap result;
             QVariantMap item;
 
-            item["id"] = bundleHashStr;
+            item["id"] = QString::fromLatin1(bundleHashStr);
             result["success"] = item;
             rsp.list.append(result);
             return REQ_READY_SEND;

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(de_rest_plugin VERSION 2.29.00 LANGUAGES C;CXX)
+project(de_rest_plugin VERSION 2.33.02 LANGUAGES C;CXX)
+
+option(USE_GATEWAY_API  "Enable legacy gateway api code" OFF)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -11,7 +13,15 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt5 COMPONENTS Core Widgets Network WebSockets REQUIRED)
+set(CMAKE_C_VISIBILITY_PRESET hidden)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+
+if (QT_VERSION_MAJOR EQUAL 6)
+    find_package(Qt6 COMPONENTS Core Widgets Network WebSockets Core5Compat REQUIRED)
+else()
+    find_package(Qt5 COMPONENTS Core Widgets Network WebSockets REQUIRED)
+endif()
+
 find_package(Git REQUIRED)
 
 if (UNIX)
@@ -29,21 +39,16 @@ if (NOT DECONZ_FULL_BUILD)
 
 include(FetchContent)
 
-FetchContent_Declare(
-  deconzlib
-  GIT_REPOSITORY https://github.com/dresden-elektronik/deconz-lib.git
-  GIT_TAG        main
-)
-# FetchContent_MakeAvailable(deconzlib)
-# FetchContent_MakeAvailable requires CMake 3.14, but Debian Buster has only 3.13
 FetchContent_GetProperties(deconzlib)
 if (NOT deconzlib_POPULATED)
-    FetchContent_Populate(deconzlib)
+    FetchContent_Populate(deconzlib
+        GIT_REPOSITORY https://github.com/dresden-elektronik/deconz-lib.git
+        GIT_TAG        main
+    )
     add_subdirectory(${deconzlib_SOURCE_DIR} ${deconzlib_BINARY_DIR})
 endif()
 
-endif()
-
+endif() # NOT DECONZ_FULL_BUILD
 #----------------------------------------------------------------------
 
 set(PLUGIN_INCLUDE_FILES
@@ -76,8 +81,6 @@ set(PLUGIN_INCLUDE_FILES
     event.h
     event_emitter.h
     fan_control.h
-    gateway.h
-    gateway_scanner.h
     green_power.h
     group.h
     group_info.h
@@ -123,6 +126,10 @@ set(PLUGIN_INCLUDE_FILES
     zdp/zdp.h
     zdp/zdp_handlers.h
     )
+
+if (USE_GATEWAY_API)
+    list(APPEND PLUGIN_INCLUDE_FILES gateway.h gateway_scanner.h)
+endif()
 
 add_library(${PROJECT_NAME} SHARED
     ${PLUGIN_INCLUDE_FILES}
@@ -170,8 +177,6 @@ add_library(${PROJECT_NAME} SHARED
     event_queue.cpp
     fan_control.cpp
     firmware_update.cpp
-    gateway.cpp
-    gateway_scanner.cpp
     green_power.cpp
     group.cpp
     group_info.cpp
@@ -184,6 +189,7 @@ add_library(${PROJECT_NAME} SHARED
     light_node.cpp
     occupancy_sensing.cpp
     permitJoin.cpp
+    plugin_am.cpp
     poll_control.cpp
     poll_manager.cpp
     power_configuration.cpp
@@ -198,7 +204,6 @@ add_library(${PROJECT_NAME} SHARED
     rest_configuration.cpp
     rest_ddf.cpp
     rest_devices.cpp
-    rest_gateways.cpp
     rest_groups.cpp
     rest_info.cpp
     rest_lights.cpp
@@ -280,6 +285,11 @@ target_compile_definitions(${PROJECT_NAME}
     GW_DEFAULT_NAME="\"\"Phoscon-GW\"\""
 )
 
+if (USE_GATEWAY_API)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE USE_GATEWAY_API)
+    target_sources(${PROJECT_NAME} PRIVATE  gateway.cpp  gateway_scanner.cpp rest_gateways.cpp)
+endif()
+
 target_include_directories(${PROJECT_NAME} PRIVATE cj)
 
 if (OPENSSL_FOUND)
@@ -291,21 +301,29 @@ if (OPENSSL_FOUND)
     endif()
 endif()
 
-if (Qt5Core_VERSION_STRING VERSION_LESS "5.15.0")
+if (QT_VERSION_MAJOR GREATER 5)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE SKIP_EMPTY_PARTS=Qt::SkipEmptyParts )
+elseif (Qt5Core_VERSION_STRING VERSION_LESS "5.15.0")
     target_compile_definitions(${PROJECT_NAME} PRIVATE SKIP_EMPTY_PARTS=QString::SkipEmptyParts )
 else()
     target_compile_definitions(${PROJECT_NAME} PRIVATE SKIP_EMPTY_PARTS=Qt::SkipEmptyParts )
 endif()
 
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE Qt5::Core
-    PRIVATE Qt5::Gui
-    PRIVATE Qt5::Widgets
-    PRIVATE Qt5::Network
-    PRIVATE Qt5::WebSockets
+    PRIVATE Qt${QT_VERSION_MAJOR}::Core
+    PRIVATE Qt${QT_VERSION_MAJOR}::Gui
+    PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
+    PRIVATE Qt${QT_VERSION_MAJOR}::Network
+    PRIVATE Qt${QT_VERSION_MAJOR}::WebSockets
     PRIVATE SQLite::SQLite3
     PRIVATE deCONZLib
+    PRIVATE am_plugin_hdr
 )
+
+# needed for a few classes like QRegExp
+if (QT_VERSION_MAJOR EQUAL 6)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Core5Compat)
+endif()
 
 #--------------------------------------------------------------
 include(GNUInstallDirs)

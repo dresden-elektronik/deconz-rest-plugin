@@ -4,5 +4,6 @@
   "datatype": "Bool",
   "access": "RW",
   "public": true,
+  "default": false,
   "description": "Determines if the device has entered the mounting state."
 }

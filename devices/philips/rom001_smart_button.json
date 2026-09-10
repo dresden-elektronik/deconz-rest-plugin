@@ -4,14 +4,18 @@
   "manufacturername": [
     "$MF_SIGNIFY",
     "$MF_SIGNIFY",
+    "$MF_SIGNIFY",
+    "$MF_PHILIPS",
     "$MF_PHILIPS",
     "$MF_PHILIPS"
   ],
   "modelid": [
     "ROM001",
     "RDM003",
+    "RDM005",
     "ROM001",
-    "RDM003"
+    "RDM003",
+    "RDM005"
   ],
   "vendor": "Philips",
   "product": "Hue smart button",

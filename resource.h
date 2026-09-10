@@ -31,6 +31,17 @@ enum ApiDataType
     DataTypeTimePattern
 };
 
+class ApiAttribute
+{
+    public:
+        QVariantMap *map;
+        QString key, top;
+        ApiAttribute(QVariantMap *m, QString k, QString t) :
+            map(m),
+            key(k),
+            top(t) { }
+};
+
 struct R_Stats
 {
     size_t toString = 0;
@@ -61,6 +72,7 @@ extern const char *REventPermitjoinEnabled;
 extern const char *REventPermitjoinDisabled;
 extern const char *REventPermitjoinRunning;
 extern const char *REventPoll;
+extern const char *REventPollDone;
 extern const char *REventDDFReload;
 extern const char *REventDDFInitRequest;
 extern const char *REventDDFInitResponse;
@@ -185,6 +197,7 @@ extern const char *RStateOrientationZ;
 extern const char *RStatePM2_5; // Deprecated
 extern const char *RStatePanel;
 extern const char *RStatePower;
+extern const char *RStatePowerDivisor;
 extern const char *RStatePresence;
 extern const char *RStatePresenceEvent;
 extern const char *RStatePressure;
@@ -331,6 +344,7 @@ extern const char *RConfigRadiatorCovered;
 extern const char *RConfigReachable;
 extern const char *RConfigReportGrid;
 extern const char *RConfigResetPresence;
+extern const char *RConfigRestartDevice;
 extern const char *RConfigReversed;
 extern const char *RConfigSchedule;
 extern const char *RConfigScheduleOn;
@@ -339,6 +353,7 @@ extern const char *RConfigSensitivity;
 extern const char *RConfigSensitivityBis;
 extern const char *RConfigSensitivityMax;
 extern const char *RConfigSetValve;
+extern const char *RConfigSpatialLearning;
 extern const char *RConfigSpeed;
 extern const char *RConfigSunriseOffset;
 extern const char *RConfigSunsetOffset;
@@ -429,6 +444,7 @@ public:
     double validMin = 0;
     double validMax = 0;
     quint16 flags = 0;
+    ApiAttribute toApi(QVariantMap &attr, bool event = false) const;
 };
 
 class Resource;
@@ -494,8 +510,6 @@ public:
     deCONZ::TimeSeconds refreshInterval() const { return m_refreshInterval; }
     void setRefreshInterval(deCONZ::TimeSeconds interval) { m_refreshInterval = interval; }
     void setZclProperties(const ZCL_Param &param) { m_zclParam = param; }
-    void setReadEndpoint(uint8_t ep) { m_readEndpoint = ep; }
-    uint8_t readEndpoint() const { return m_readEndpoint; }
     bool setValue(const char *str, int length, ValueSource source = SourceUnknown);
     bool setValue(const QString &val, ValueSource source = SourceUnknown);
     bool setValue(qint64 val, ValueSource source = SourceUnknown);
@@ -561,7 +575,6 @@ private:
     ZCL_Param m_zclParam{}; // for parse function
     ParseFunction_t m_parseFunction = nullptr;
     quint32 m_ddfItemHandle = 0; // invalid item handle
-    uint8_t m_readEndpoint = 0;
 };
 
 class Resource
@@ -604,6 +617,7 @@ public:
     void addStateChange(const StateChange &stateChange);
     std::vector<StateChange> &stateChanges() { return m_stateChanges; }
     void cleanupStateChanges();
+    void removeStateChangesForItem(const char *suffix);
     Resource *parentResource() { return m_parent; }
     const Resource *parentResource() const { return m_parent; }
     void setParentResource(Resource *parent) { m_parent = parent; }
@@ -709,6 +723,7 @@ bool isValidRConfigGroup(const QString &str);
 
 uint8_t DDF_GetSubDeviceOrder(const QString &type);
 QLatin1String R_DataTypeToString(ApiDataType type);
+QVariant R_ItemToRestApiVariant(const ResourceItem *item);
 inline bool isValid(Resource::Handle hnd) { return hnd.hash != 0 && hnd.index < UINT16_MAX && hnd.type != 0; }
 inline bool operator==(Resource::Handle a, Resource::Handle b) { return a.hash == b.hash && a.type == b.type; }
 

@@ -4,5 +4,6 @@
   "datatype": "Int16",
   "access": "R",
   "public": false,
+  "default": 0,
   "description": "The current temperature in °C &times; 100."
 }

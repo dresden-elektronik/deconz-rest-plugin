@@ -1,8 +1,18 @@
 {
   "schema": "devcap1.schema.json",
   "uuid": "09286594-6296-427e-9919-8eb9c31ac189",
-  "manufacturername": ["_TZE200_la2c2uo9", "_TZE204_dcnsggvz"],
-  "modelid": ["TS0601", "TS0601"],
+  "manufacturername": [
+    "_TZE200_la2c2uo9",
+    "_TZE204_dcnsggvz",
+    "_TZE200_4mh6tyyo",
+    "_TZE200_ykgar0ow"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601"
+  ],
   "vendor": "Moes",
   "product": "1-gang dimmer module (ZM-105-M)",
   "sleeper": false,
@@ -36,8 +46,19 @@
         },
         {
           "name": "attr/swversion",
-          "parse": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001", "script": "../tuya/tuya_swversion.js"},
-          "read": {"fn": "zcl:attr", "ep": 1, "cl": "0x0000", "at": "0x0001"}
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
         },
         {
           "name": "attr/type"
@@ -46,21 +67,176 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/bri/max",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 5,
+            "eval": "Item.val = (Attr.val / 1000.0) * 254.0;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 5,
+            "dt": "0x2b",
+            "eval": "(Item.val / 254.0) * 1000.0;"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/bri/min",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 3,
+            "eval": "Item.val = (Attr.val / 1000.0) * 254.0;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 3,
+            "dt": "0x2b",
+            "eval": "(Item.val / 254.0) * 1000.0;"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/devicemode",
+          "values": [
+            [
+              "led",
+              0
+            ],
+            [
+              "incandescent",
+              1
+            ],
+            [
+              "halogen",
+              2
+            ]
+          ],
+          "parse": {
+            "fn": "tuya",
+            "dpid": 4,
+            "eval": "if (Attr.val == 0) { Item.val = 'led' } else if (Attr.val == 1) { Item.val = 'incandescent' } else { Item.val = 'halogen' }"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 4,
+            "dt": "0x30",
+            "eval": "if (Item.val == 'led') { 0 } else if (Item.val == 'incandescent') { 1 } else { halogen }"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/duration",
+          "description": "The duration to turn device off after a certain time.",
+          "parse": {
+            "dpid": 6,
+            "eval": "Item.val = Attr.val",
+            "fn": "tuya"
+          },
+          "write": {
+            "dpid": 6,
+            "dt": "0x2b",
+            "eval": "Item.val",
+            "fn": "tuya"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "config/ledindication",
+          "description": "Turn the backlight on or off",
+          "parse": {
+            "dpid": 21,
+            "eval": "Item.val = Attr.val",
+            "fn": "tuya"
+          },
+          "write": {
+            "dpid": 21,
+            "dt": "0x10",
+            "eval": "Item.val == 1 ? 1 : 0;",
+            "fn": "tuya"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/on/startup",
+          "values": [
+            [
+              "off",
+              0
+            ],
+            [
+              "on",
+              1
+            ],
+            [
+              "previous",
+              2
+            ]
+          ],
+          "parse": {
+            "fn": "tuya",
+            "dpid": 14,
+            "eval": "if (Attr.val == 0) { Item.val = 'off' } else if (Attr.val == 1) { Item.val = 'on' } else { Item.val = 'previous' }"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 14,
+            "dt": "0x30",
+            "eval": "if (Item.val == 'off') { 0 } else if (Item.val == 'on') { 1 } else { previous }"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
           "name": "state/alert",
           "default": "none",
           "public": false
         },
         {
           "name": "state/on",
-          "parse": {"fn": "tuya", "dpid": 1, "eval": "Item.val = Attr.val;" },
-          "write": {"fn": "tuya", "dpid": 1, "dt": "0x10", "eval": "Item.val == 1 ? 1 : 0;"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 1,
+            "eval": "Item.val = Attr.val;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 1,
+            "dt": "0x10",
+            "eval": "Item.val == 1 ? 1 : 0;"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/bri",
-          "parse": {"fn": "tuya", "dpid": 2, "eval": "Item.val = (Attr.val / 1000.0) * 254.0;"},
-          "write": {"fn": "tuya", "dpid": 2, "dt": "0x2b", "eval": "(Item.val / 254.0) * 1000.0;"},
-          "read": {"fn": "none"}
+          "parse": {
+            "fn": "tuya",
+            "dpid": 2,
+            "eval": "Item.val = (Attr.val / 1000.0) * 254.0;"
+          },
+          "write": {
+            "fn": "tuya",
+            "dpid": 2,
+            "dt": "0x2b",
+            "eval": "(Item.val / 254.0) * 1000.0;"
+          },
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "state/reachable"
