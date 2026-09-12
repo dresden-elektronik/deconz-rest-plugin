@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2026 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -690,7 +690,8 @@ bool DEV_ZclRead(Device *device, ResourceItem *item, deCONZ::ZclClusterId_t clus
     ZCL_Param param{};
     param.valid = 1;
     param.endpoint = sd->endpoint();
-    param.clusterId = static_cast<quint16>(clusterId);
+    param.clusterIds[0] = static_cast<quint16>(clusterId);
+    param.clusterCount = 1;
     param.attributes[0] = static_cast<quint16>(attrId);
     param.attributeCount = 1;
 
@@ -1824,7 +1825,7 @@ static void DEV_UpdateReportTracker(Device *device, const ResourceItem *item)
 
     for (size_t i = 0; i < zclParam.attributeCount && i < zclParam.attributes.size(); i++)
     {
-        ReportTracker &tracker = DEV_GetOrCreateReportTracker(device, zclParam.clusterId, zclParam.attributes[i], zclParam.endpoint);
+        ReportTracker &tracker = DEV_GetOrCreateReportTracker(device, zclParam.clusterIds[0], zclParam.attributes[i], zclParam.endpoint);
         tracker.lastReport = item->lastZclReport();
     }
 }

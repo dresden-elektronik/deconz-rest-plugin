@@ -1049,6 +1049,37 @@ void DJS_InitDuktape(DeviceJsPrivate *d)
     }
     duk_pop(ctx);
 
+    // 'button_event' global function for button event handling.
+    // Adapted from https://github.com/dresden-elektronik/deconz-rest-plugin/pull/8631#issuecomment-4902059135
+    // Called with array of arrays, each with 3 elements [clusterId, commandId | commandIds[], button | function]
+    // Note: array functions aren't supported by DucktapeJS hence use function(){ return 1001; }.
+
+    // Example: Ikea on/off switch
+    // move 0x01
+    // move w. onoff 0x05
+    // stop w. onoff 0x07
+    // button_event([
+    //     [6, 1, 1002],
+    //     [6, 0, 2002],
+    //     [8, 5, 1001],
+    //     [8, 7, function(){ return (Item.val === 1001 ? 1003 : 2003); }],
+    //     [8, 1, 2001]
+    // ])
+
+    const char *PF_button_event = "function button_event(list) {"
+                                  "for (var i = 0; i < list.length; i++) { var e = list[i];"
+                                  "if (!Array.isArray(e) || e.length !== 3) return;"
+                                  "if (ClusterId === e[0] && (ZclFrame.cmd === e[1] || (Array.isArray(e[1]) && e[1].indexOf(ZclFrame.cmd) >= 0))) {"
+                                  "Item.val = typeof e[2] === 'function' ? e[2]() : e[2]; return;"
+                                  "}} }";
+
+    if (duk_peval_string(ctx, PF_button_event) != 0)
+    {
+        const char *str = duk_safe_to_string(ctx, -1);
+        DBG_Printf(DBG_JS, "failed to define button_event: %s\n", str);
+    }
+    duk_pop(ctx);
+
     U_ASSERT(d->arena.size > 0);
 
     // snaphot of the memory state to jump back on reset()
