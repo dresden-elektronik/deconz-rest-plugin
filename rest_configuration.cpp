@@ -1113,6 +1113,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
 
     map["dhcp"] = true; // dummy
+    map["exposecoordinatoraslight"] = gwExposeCoordinatorAsLight;
     map["proxyaddress"] = gwProxyAddress;
     map["proxyport"] = static_cast<double>(gwProxyPort);
     map["UTC"] = datetime.toString(QLatin1String("yyyy-MM-ddTHH:mm:ss")); // ISO 8601
@@ -2295,6 +2296,30 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         QVariantMap rspItem;
         QVariantMap rspItemState;
         rspItemState["/config/lightlastseeninterval"] = lightLastSeen;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+    if (map.contains("exposecoordinatoraslight")) // optional
+    {
+        if (map["exposecoordinatoraslight"].type() != QVariant::Bool)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/exposecoordinatoraslight"), QString("invalid value, %1, for parameter, exposecoordinatoraslight").arg(map["exposecoordinatoraslight"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        bool exposeAsLight = map["exposecoordinatoraslight"].toBool();
+
+        if (gwExposeCoordinatorAsLight != exposeAsLight)
+        {
+            gwExposeCoordinatorAsLight = exposeAsLight;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+            changed = true;
+        }
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/exposecoordinatoraslight"] = exposeAsLight;
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }
