@@ -3467,6 +3467,41 @@ static DeviceDescription::SubDevice DDF_ParseSubDevice(DDF_ParseContext *pctx, c
         }
 #endif
 
+        if (obj.value(QLatin1String("buttons")).isObject())
+        {
+            const auto buttons = obj.value(QLatin1String("buttons")).toObject();
+
+
+            for (auto bi = buttons.constBegin(); bi != buttons.constEnd(); bi++)
+            {
+                bool ok = false;
+                const unsigned button = bi.key().toUInt(&ok);
+
+                if (!ok || !bi.value().isObject())
+                {
+                    continue;
+                }
+
+                const auto buttonObj = bi.value().toObject();
+                const auto name = buttonObj.value(QLatin1String("name")).toString().trimmed();
+
+                if (name.isEmpty())
+                {
+                    continue;
+                }
+
+                AT_AtomIndex atiButtonName;
+                const auto nameUtf8 = name.toUtf8();
+
+                if (AT_AddAtom(nameUtf8.constData(), nameUtf8.size(), &atiButtonName))
+                {
+                    result.buttonNameAtomIndices[button] = atiButtonName.index;
+                }
+            }
+        }
+
+
+
         if (obj.value(QLatin1String("buttonevents")).isObject())
         {
             const auto buttonEvents = obj.value(QLatin1String("buttonevents")).toObject();

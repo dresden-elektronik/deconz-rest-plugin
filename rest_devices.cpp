@@ -500,10 +500,8 @@ static void putJsonQVariantValue(JsonObject &obj, std::string key, const QVarian
     }
 }
 
-static void putItemParameter(JsonObject &item, const char *name, const QVariantMap &param)
+static void putItemParameterObject(JsonObject &obj, const QVariantMap &param)
 {
-    JsonObject parse = item.createNestedObject(name);
-
     const auto end = param.constEnd();
     for (auto cur = param.constBegin(); cur != end; cur++)
     {
@@ -512,12 +510,37 @@ static void putItemParameter(JsonObject &item, const char *name, const QVariantM
             // no script cached 'eval' value
             if (!param.contains(QLatin1String("script")))
             {
-                putJsonQVariantValue(parse, "eval", cur.value());
+                putJsonQVariantValue(obj, "eval", cur.value());
             }
         }
         else
         {
-            putJsonQVariantValue(parse, cur.key().toStdString(), cur.value());
+            putJsonQVariantValue(obj, cur.key().toStdString(), cur.value());
+        }
+    }
+}
+
+static void putItemParameter(JsonObject &item, const char *name, const QVariant &param)
+{
+    if (param.type() == QVariant::Map)
+    {
+        JsonObject obj = item.createNestedObject(name);
+        putItemParameterObject(obj, param.toMap());
+    }
+    else if (param.type() == QVariant::List)
+    {
+        JsonArray arr = item.createNestedArray(name);
+        for (const auto &entry : param.toList())
+        {
+            if (entry.type() == QVariant::Map)
+            {
+                JsonObject obj = arr.createNestedObject();
+                putItemParameterObject(obj, entry.toMap());
+            }
+            else
+            {
+                putJsonArrayQVariantValue(arr, entry);
+            }
         }
     }
 }
@@ -665,9 +688,9 @@ bool ddfSerializeV1(JsonDoc &doc, const DeviceDescription &ddf, char *buf, size_
 
                 if (!i.isStatic)
                 {
-                    if (!i.readParameters.isNull()  && (ddfFull || !i.isGenericRead))  { putItemParameter(item, "read", i.readParameters.toMap()); }
-                    if (!i.writeParameters.isNull() && (ddfFull || !i.isGenericWrite)) { putItemParameter(item, "write", i.writeParameters.toMap()); }
-                    if (!i.parseParameters.isNull() && (ddfFull || !i.isGenericParse)) { putItemParameter(item, "parse", i.parseParameters.toMap()); }
+                    if (!i.readParameters.isNull()  && (ddfFull || !i.isGenericRead))  { putItemParameter(item, "read", i.readParameters); }
+                    if (!i.writeParameters.isNull() && (ddfFull || !i.isGenericWrite)) { putItemParameter(item, "write", i.writeParameters); }
+                    if (!i.parseParameters.isNull() && (ddfFull || !i.isGenericParse)) { putItemParameter(item, "parse", i.parseParameters); }
                 }
                 if (!i.defaultValue.isNull())
                 {
@@ -888,6 +911,36 @@ QLatin1String RIS_ButtonEventActionToString(int buttonevent)
     return QLatin1String("UNKNOWN");
 }
 
+static QString RIS_ButtonNameFromAtomIndex(unsigned atomIndex)
+{
+    const AT_Atom nameAtom = AT_GetAtomByIndex({atomIndex});
+
+    if (nameAtom.data)
+    {
+        return QString::fromUtf8((const char*)nameAtom.data, nameAtom.len);
+    }
+
+    return { };
+}
+
+static QString RIS_ButtonNameFromButtonMeta(const ButtonMeta *buttonsMeta, int button)
+{
+    if (!buttonsMeta)
+    {
+        return { };
+    }
+
+    const auto i = std::find_if(buttonsMeta->buttons.cbegin(), buttonsMeta->buttons.cend(),
+                                [button](const auto &x){ return x.button == button; });
+
+    if (i != buttonsMeta->buttons.cend())
+    {
+        return RIS_ButtonNameFromAtomIndex(i->nameAtomeIndex);
+    }
+
+    return { };
+}
+
 /*! Returns generic introspection for a \c ResourceItem.
  */
 QVariantMap RIS_IntrospectGenericItem(const ResourceItemDescriptor &rid)
@@ -919,6 +972,25 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
         return result;
     }
 
+    // TODO dependency on plugin needs to be removed to make this testable
+    const auto &buttonMapButtons = plugin->buttonMeta;
+    const auto &buttonMapData = plugin->buttonMaps;
+    const auto &buttonMapForModelId = plugin->buttonProductMap;
+
+    const auto *buttonData = BM_ButtonMapForProduct(productHash(r), buttonMapData, buttonMapForModelId);
+    const ButtonMeta *buttonsMeta = nullptr;
+
+    if (buttonData)
+    {
+        const auto i = std::find_if(buttonMapButtons.cbegin(), buttonMapButtons.cend(),
+                                    [buttonData](const auto &meta){ return meta.buttonMapRef.hash == buttonData->buttonMapRef.hash; });
+
+        if (i != buttonMapButtons.cend())
+        {
+            buttonsMeta = &*i;
+        }
+    }
+
     {  // 1) if the DDF provides buttons and button event descriptions take it from there
         const DeviceDescription &ddf = DeviceDescriptions::instance()->get(r);
         if (ddf.isValid())
@@ -932,19 +1004,40 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
 
                     for (unsigned btn: subd.buttonEvents)
                     {
+                        const unsigned button = btn / 1000;
+
                         {
                             QVariantMap m;
-                            m[QLatin1String("button")] = int(btn / 1000);
+                            m[QLatin1String("button")] = int(button);
                             m[QLatin1String("action")] = RIS_ButtonEventActionToString(btn);
                             values[QString::number(btn)] = m;
                         }
 
-                        QString btnNum = QString::number(btn/1000);
+                        QString btnNum = QString::number(button);
 
                         if (!buttons.contains(btnNum))
                         {
                             QVariantMap m;
-                            m[QLatin1String("name")] = QString("Button %1").arg(btn/1000);
+
+                            QString name;
+
+                            const auto ddfName = subd.buttonNameAtomIndices.find(button);
+                            if (ddfName != subd.buttonNameAtomIndices.cend())
+                            {
+                                name = RIS_ButtonNameFromAtomIndex(ddfName->second);
+                            }
+
+                            if (name.isEmpty())
+                            {
+                                name = RIS_ButtonNameFromButtonMeta(buttonsMeta, int(button));
+                            }
+
+                            if (name.isEmpty())
+                            {
+                                name = QString("Button %1").arg(button);
+                            }
+
+                            m[QLatin1String("name")] = name;
                             buttons[btnNum] = m;
                         }
 
@@ -967,13 +1060,6 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
     {
         return result;
     }
-
-    // TODO dependency on plugin needs to be removed to make this testable
-    const auto &buttonMapButtons = plugin->buttonMeta;
-    const auto &buttonMapData = plugin->buttonMaps;
-    const auto &buttonMapForModelId = plugin->buttonProductMap;
-
-    const auto *buttonData = BM_ButtonMapForProduct(productHash(r), buttonMapData, buttonMapForModelId);
 
     if (!buttonData)
     {
@@ -1006,23 +1092,20 @@ QVariantMap RIS_IntrospectButtonEventItem(const ResourceItemDescriptor &rid, con
         result[QLatin1String("values")] = values;
     }
 
-    const auto buttonsMeta = std::find_if(buttonMapButtons.cbegin(), buttonMapButtons.cend(),
-                                          [buttonData](const auto &meta){ return meta.buttonMapRef.hash == buttonData->buttonMapRef.hash; });
-
     QVariantMap buttons;
 
-    if (buttonsMeta != buttonMapButtons.cend())
+    if (buttonsMeta)
     {
         for (const auto &button : buttonsMeta->buttons)
         {
             if (buttonBits & (1 << button.button))
             {
                 QVariantMap m;
-                AT_Atom nameAtom = AT_GetAtomByIndex({button.nameAtomeIndex});
+                const QString name = RIS_ButtonNameFromAtomIndex(button.nameAtomeIndex);
 
-                if (nameAtom.data)
+                if (!name.isEmpty())
                 {
-                    m[QLatin1String("name")] = QString::fromUtf8((const char*)nameAtom.data, nameAtom.len);
+                    m[QLatin1String("name")] = name;
                     buttons[QString::number(button.button)] = m;
                 }
             }

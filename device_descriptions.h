@@ -11,6 +11,7 @@
 #ifndef DEVICE_DESCRIPTIONS_H
 #define DEVICE_DESCRIPTIONS_H
 
+#include <map>
 #include <QObject>
 #include <QVariantMap>
 #include "resource.h"
@@ -191,6 +192,7 @@ public:
         std::vector<Item> items;
         SensorFingerprint fingerPrint;
         std::vector<unsigned> buttonEvents;
+        std::map<unsigned, unsigned> buttonNameAtomIndices;
     };
 
     std::vector<SubDevice> subDevices;
