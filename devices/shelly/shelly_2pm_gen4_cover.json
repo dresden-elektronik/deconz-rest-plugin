@@ -1,0 +1,120 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "Shelly",
+  "modelid": "2PM",
+  "vendor": "Shelly",
+  "product": "2PM Gen4 - cover(S4SW-002P16EU)",
+  "matchexpr": "R.hasCluster(0x01,0x0102)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_WINDOW_COVERING_DEVICE",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0004",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0004",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "attr/modelid",
+          "refresh.interval": 86400,
+          "read": {
+            "at": "0x0005",
+            "cl": "0x0000",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "parse": {
+            "at": "0x0005",
+            "cl": "0x0000",
+            "ep": 1,
+            "eval": "Item.val = Attr.val",
+            "fn": "zcl:attr"
+          }
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "static": "N/A",
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/lift"
+        },
+        {
+          "name": "state/open",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0102",
+            "at": "0x0008",
+            "eval": "Item.val = Attr.val < 100"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/tilt"
+        },
+        {
+          "name": "state/reachable"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "dst.ep": 1,
+      "cl": "0x0102",
+      "report": [
+        {
+          "at": "0x0008",
+          "dt": "0x20",
+          "min": 1,
+          "max": 300,
+          "change": "0x00000001"
+        }
+      ]
+    }
+  ]
+}
