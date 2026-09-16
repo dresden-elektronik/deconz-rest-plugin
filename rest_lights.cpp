@@ -763,13 +763,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    Device *device = static_cast<Device*>(taskRef.lightNode->parentResource());
-    Resource *rsub = nullptr;
-    StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, taskRef.lightNode->haEndpoint().endpoint());
-    if (device && device->managed())
-    {
-        rsub = DEV_GetSubDevice(device, nullptr, taskRef.lightNode->uniqueId());
-    }
     rsp.httpStatus = HttpStatusOk;
 
     if (!taskRef.lightNode->isAvailable())
@@ -809,7 +802,25 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         return setXmasLightStripState(req, rsp, taskRef, map);
     }
-    else if (UseTuyaCluster(taskRef.lightNode->manufacturer()))
+
+    Device *device = static_cast<Device*>(taskRef.lightNode->parentResource());
+    Resource *rsub = nullptr;
+    bool devManaged = false;
+
+    if (device)
+    {
+        rsub = DEV_GetSubDevice(device, nullptr, taskRef.lightNode->uniqueId());
+        devManaged = device->managed();
+    }
+
+    StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, taskRef.lightNode->haEndpoint().endpoint());
+
+    if (device && device->managed())
+    {
+        rsub = DEV_GetSubDevice(device, nullptr, taskRef.lightNode->uniqueId());
+    }
+
+    if (UseTuyaCluster(taskRef.lightNode->manufacturer()))
     {
         //tuya window covering
         if (R_GetProductId(taskRef.lightNode).startsWith(QLatin1String("Tuya_COVD")))
@@ -2677,7 +2688,115 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }
+    
+    Device *device = static_cast<Device*>(taskRef.lightNode->parentResource());
+    Resource *rsub = nullptr;
+    bool devManaged = false;
 
+    if (device)
+    {
+        rsub = DEV_GetSubDevice(device, nullptr, taskRef.lightNode->uniqueId());
+        devManaged = device->managed();
+    }
+
+    if (devManaged)
+    {
+        bool hasWriteFunction = false;
+        QString param;
+        QVariant val;
+        StateChange change(StateChange::StateCallFunction, SC_WriteZclAttribute, taskRef.req.dstEndpoint());
+
+        if (hasLift)
+        {
+            ResourceItem *item = taskRef.lightNode->item(RStateLift);
+            const auto ddfItem = DDF_GetItem(item);
+
+            if (!ddfItem.writeParameters.isNull())
+            {
+                change.addTargetValue(RStateLift, targetLiftZigBee);
+                val = targetLiftZigBee;
+                param = "lift";
+                hasWriteFunction = true;
+            }
+        }
+        else if (hasTilt)
+        {
+            ResourceItem *item = taskRef.lightNode->item(RStateTilt);
+            const auto ddfItem = DDF_GetItem(item);
+
+            if (!ddfItem.writeParameters.isNull())
+            {
+                change.addTargetValue(RStateTilt, targetTilt);
+                val = targetTilt;
+                param = "tilt";
+                hasWriteFunction = true;
+            }
+        }
+        else if (hasOpen)
+        {
+            ResourceItem *item = taskRef.lightNode->item(RStateOpen);
+            const auto ddfItem = DDF_GetItem(item);
+
+            if (!ddfItem.writeParameters.isNull())
+            {
+                change.addTargetValue(RStateOpen, targetOpen);
+                val = targetOpen;
+                param = "open";
+                hasWriteFunction = true;
+            }
+        }
+        else if (hasSpeed)
+        {
+            ResourceItem *item = taskRef.lightNode->item(RStateSpeed);
+            const auto ddfItem = DDF_GetItem(item);
+
+            if (!ddfItem.writeParameters.isNull())
+            {
+                change.addTargetValue(RStateSpeed, targetSpeed);
+                val = targetSpeed;
+                param = "speed";
+                hasWriteFunction = true;
+            }
+        }
+        else if (hasStop)
+        {
+            ResourceItem *item = taskRef.lightNode->item(RStateOpen);
+            const auto ddfItem = DDF_GetItem(item);
+
+            if (!ddfItem.writeParameters.isNull())
+            {
+                change.addTargetValue(RStateOpen, "stop");
+                val = "stop";
+                param = "stop";
+                hasWriteFunction = true;
+            }
+        }
+
+        if (hasWriteFunction)
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/%2").arg(id).arg(param)] = val;
+            rspItem[QLatin1String("success")] = rspItemState;
+            rsp.list.append(rspItem);
+
+            if (!taskRef.lightNode->stateChanges().empty())
+            {
+                DBG_Printf(DBG_INFO, "emit event/tick: " FMT_MAC "\n", (unsigned long long)taskRef.lightNode->address().ext());
+                enqueueEvent({taskRef.lightNode->prefix(), REventTick, taskRef.lightNode->uniqueId(), taskRef.lightNode->address().ext()});
+            }
+
+            rsp.etag = taskRef.lightNode->etag;
+
+            if (rsub)
+            {
+                rsub->addStateChange(change);
+            }
+
+            return REQ_READY_SEND;
+        }
+    }
+    
     // Some devices invert LiftPct.
     if (hasLift)
     {
