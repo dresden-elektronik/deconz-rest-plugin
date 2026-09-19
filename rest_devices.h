@@ -50,6 +50,7 @@ private:
     int putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp);
     int putDeviceReloadDDF(const ApiRequest &req, ApiResponse &rsp);
     int putDeviceSetDDFPolicy(const ApiRequest &req, ApiResponse &rsp);
+    int putDeviceApsRequest(const ApiRequest &req, ApiResponse &rsp);
 
     DeRestPluginPrivate *plugin = nullptr;
     RestDevicesPrivate *d = nullptr;
