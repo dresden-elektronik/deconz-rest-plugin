@@ -21,10 +21,10 @@
         "device": "0x0301",
         "endpoint": "0x01",
         "in": [
+          "0x0000",
           "0x0001",
           "0x0201",
-          "0x0204",
-          "0x0B05"
+          "0x0204"
         ]
       },
       "meta": {
@@ -80,7 +80,7 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 43265,
+          "refresh.interval": 43260,
           "parse": {
             "at": "0x0020",
             "cl": "0x0001",
@@ -173,7 +173,7 @@
         },
         {
           "name": "config/mode",
-          "refresh.interval": 3600,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x001C",
             "cl": "0x0201",
@@ -227,7 +227,7 @@
         },
         {
           "name": "config/preset",
-          "refresh.interval": 3600,
+          "refresh.interval": 3660,
           "read": {
             "at": "0x4007",
             "cl": "0x0201",
@@ -415,7 +415,7 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 43265,
+          "refresh.interval": 43260,
           "parse": {
             "at": "0x0020",
             "cl": "0x0001",
@@ -471,7 +471,7 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
+          "min": 7200,
           "max": 43200,
           "change": "0x00000002"
         }
