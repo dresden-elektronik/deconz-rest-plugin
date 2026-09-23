@@ -1,0 +1,9 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/hour_irrigation_duration",
+  "datatype": "UInt32",
+  "access": "R",
+  "public": true,
+  "default": 0,
+  "description": "Hourly irrigation duration in minutes."
+}
