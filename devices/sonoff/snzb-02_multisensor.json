@@ -8,6 +8,7 @@
     "SONOFF",
     "SONOFF",
     "eWeLink",
+    "SONOFF",
     "SONOFF"
   ],
   "modelid": [
@@ -17,7 +18,8 @@
     "SNZB-02DR2",
     "SNZB-02P",
     "SNZB-02P",
-    "SNZB-02WD"
+    "SNZB-02WD",
+    "SNZB-02B"
   ],
   "vendor": "Sonoff/eWeLink",
   "product": "Temperature and humidity sensor",
