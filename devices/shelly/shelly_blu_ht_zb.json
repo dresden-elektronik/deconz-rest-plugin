@@ -58,6 +58,9 @@
           }
         },
         {
+          "name": "config/offset"
+        },
+        {
           "name": "config/on"
         },
         {
@@ -116,6 +119,9 @@
         },
         {
           "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/offset"
         },
         {
           "name": "config/on"
