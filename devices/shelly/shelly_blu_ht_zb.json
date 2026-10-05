@@ -3,7 +3,7 @@
   "manufacturername": "Shelly",
   "modelid": "BLU H&T ZB",
   "vendor": "Shelly",
-  "product": "BLU H&T ZB",
+  "product": "BLU H&T ZB (SBHT-203C)",
   "sleeper": true,
   "status": "Gold",
   "subdevices": [
@@ -42,18 +42,13 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
-          "read": {
-            "at": "0x0021",
-            "cl": "0x0001",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
+          "refresh.interval": 43260,
+          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Math.round(Attr.val / 2)",
+            "eval": "Item.val = Attr.val / 2;",
             "fn": "zcl:attr"
           }
         },
@@ -71,19 +66,7 @@
         },
         {
           "name": "state/temperature",
-          "read": {
-            "at": "0x0000",
-            "cl": "0x0402",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0000",
-            "cl": "0x0402",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "awake": true
         }
       ]
     },
@@ -121,6 +104,18 @@
           "name": "attr/uniqueid"
         },
         {
+          "name": "config/battery",
+          "refresh.interval": 43260,
+          "awake": true,
+          "parse": {
+            "at": "0x0021",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "Item.val = Attr.val / 2;",
+            "fn": "zcl:attr"
+          }
+        },
+        {
           "name": "config/offset"
         },
         {
@@ -131,19 +126,7 @@
         },
         {
           "name": "state/humidity",
-          "read": {
-            "at": "0x0000",
-            "cl": "0x0405",
-            "ep": 1,
-            "fn": "zcl:attr"
-          },
-          "parse": {
-            "at": "0x0000",
-            "cl": "0x0405",
-            "ep": 1,
-            "eval": "Item.val = Attr.val",
-            "fn": "zcl:attr"
-          }
+          "awake": true
         },
         {
           "name": "state/lastupdated"
