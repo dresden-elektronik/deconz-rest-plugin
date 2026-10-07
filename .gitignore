@@ -13,3 +13,7 @@ ui_device_widget.h
 build*
 
 .DS_Store
+
+.local-builds/
+
+.local-backups/

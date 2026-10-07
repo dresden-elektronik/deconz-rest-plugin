@@ -6265,6 +6265,12 @@ void DeRestPluginPrivate::saveDatabaseTimerFired()
     }
 }
 
+sqlite3 *DB_AlarmUserConnection()
+{
+    DeRestPluginPrivate::instance()->openDb();
+    return db;
+}
+
 bool DB_StoreSecret(const DB_Secret &secret)
 {
     if (!db || secret.uniqueId.empty())
