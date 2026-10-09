@@ -1,10 +1,22 @@
 {
   "schema": "devcap1.schema.json",
-  "uuid": "2e93cde2-7329-4c70-bf90-59af162796ff",
+  "uuid": "2c91cde2-7329-4c70-bf90-59af861796ff",
   "manufacturername": [
-    "_TZE284_aao3yzhs"
+    "_TZE200_myd45weu",
+    "_TZE200_9cqcpkgb",
+    "_TZE200_ga1maeof",
+    "_TZE204_myd45weu",
+    "_TZE284_oitavov2",
+    "_TZE284_aao3yzhs",
+    "_TZE284_33bwcga2"
   ],
   "modelid": [
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
     "TS0601"
   ],
   "vendor": "Tuya",
@@ -107,7 +119,7 @@
           },
           "parse": {
             "dpid": 5,
-            "eval": "Item.val = Attr.val * 10;",
+            "eval": "Item.val = Attr.val * 100;",
             "fn": "tuya"
           },
           "default": 0,
