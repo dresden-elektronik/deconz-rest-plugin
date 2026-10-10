@@ -2,9 +2,13 @@
   "schema": "devcap1.schema.json",
   "manufacturername": [
   	"_TZE284_mxujdmxo",
-  	"_TZE284_kyyu8rbj"
+  	"_TZE284_kyyu8rbj",
+    "_TZE200_lvkk0hdg",
+    "_TZE204_7yyuo8sr"
   ],
   "modelid": [
+    "TS0601",
+    "TS0601",
     "TS0601",
     "TS0601"
   ],

@@ -1945,7 +1945,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
-                else if (rid.suffix == RConfigHeightMax) // uint16
+                else if (rid.suffix == RConfigHeightMin) // uint16
                 {
                     if (devManaged && rsub)
                     {
