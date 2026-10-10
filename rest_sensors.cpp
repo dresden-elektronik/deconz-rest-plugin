@@ -1927,6 +1927,42 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         updated = true;
                     }
                 }
+                else if (rid.suffix == RConfigHeight) // uint16
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.uinteger);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigHeightMax) // uint16
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.uinteger);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigHeightMin) // uint16
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.uinteger);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
+                else if (rid.suffix == RConfigLiquidHeight) // uint16
+                {
+                    if (devManaged && rsub)
+                    {
+                        change.addTargetValue(rid.suffix, data.uinteger);
+                        rsub->addStateChange(change);
+                        updated = true;
+                    }
+                }
                 else if (QString(rid.suffix).startsWith("config/ubisys_j1_")) // Unsigned integer
                 {
                     uint16_t mfrCode = VENDOR_UBISYS;

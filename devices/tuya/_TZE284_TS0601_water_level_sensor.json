@@ -1,0 +1,297 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": [
+  	"_TZE284_mxujdmxo",
+  	"_TZE284_kyyu8rbj",
+    "_TZE200_lvkk0hdg",
+    "_TZE204_7yyuo8sr"
+  ],
+  "modelid": [
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601"
+  ],
+  "vendor": "Tuya",
+  "product": "Water level sensor (TS0601)",
+  "sleeper": false,
+  "status": "Bronze",
+  "subdevices": [
+    {
+      "type": "$TYPE_GAUGE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xef00"
+      ],
+      "meta": {
+        "values": {
+          "config/devicemode": {
+            "supply": true,
+            "drainage": false
+          },          
+          "config/mode": {
+            "auto": true,
+            "manual": false
+          },
+          "config/setvalve": {
+            "on": true,
+            "off": false
+          },
+          "state/levelstatus": {
+            "low": 1,
+            "normal": 0,
+            "high": 2
+          }
+        }
+      },
+      "items": [
+        { "name": "attr/id" },
+        { "name": "attr/lastannounced" },
+        { "name": "attr/lastseen" },
+        { "name": "attr/manufacturername" },
+        { "name": "attr/modelid" },
+        { "name": "attr/name" },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        { "name": "attr/type" },
+        { "name": "attr/uniqueid" },
+        { "name": "config/on" },
+        { "name": "config/reachable" },
+        {
+          "name": "config/height",
+          "description": "Installation height (cm)",
+          "range": [10, 1000],
+          "read": { "fn": "none" },
+          "write": {
+            "dpid": 19,
+            "dt": "0x2b",
+            "eval": "Item.val",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 19,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          }
+        },
+        {
+          "name": "config/heightmax",
+          "description": "Liquid maximum percentage threshold",
+          "range": [0, 100],
+          "read": { "fn": "none" },
+          "write": {
+            "dpid": 7,
+            "dt": "0x2b",
+            "eval": "Item.val",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 7,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 80
+        },
+        {
+          "name": "config/heightmin",
+          "description": "Liquid minimum percentage threshold",
+          "range": [0, 100],
+          "read": { "fn": "none" },
+          "write": {
+            "dpid": 8,
+            "dt": "0x2b",
+            "eval": "Item.val",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 8,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 20
+        },
+        {
+          "name": "config/liquidheight",
+          "description": "Liquid maximum depth (cm)",
+          "range": [10, 1000],
+          "read": { "fn": "none" },
+          "write": {
+            "dpid": 21,
+            "dt": "0x2b",
+            "eval": "Item.val",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 21,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 500
+        },
+        {
+          "name": "config/devicemode",
+          "description": "Pump mode",
+          "values": [
+            [
+              "supply",
+              true
+            ],
+            [
+              "drainage",
+              false
+            ]
+          ],
+          "read": { "fn": "none" },
+          "write": {
+            "dpid": 101,
+            "dt": "0x10",
+            "eval": "Item.val == 'supply'",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 101,
+            "eval": "if (Attr.val) { Item.val = 'supply' } else { Item.val = 'drainage' }",
+            "fn": "tuya"
+          }
+        },
+        {
+          "name": "config/mode",
+          "description": "Pump control",
+          "values": [
+            [
+              "auto",
+              true
+            ],
+            [
+              "manual",
+              false
+            ]
+          ],
+          "read": { "fn": "none" },
+          "write": {
+            "dpid": 102,
+            "dt": "0x10",
+            "eval": "Item.val == 'auto'",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 102,
+            "eval": "if (Attr.val) { Item.val = 'auto' } else { Item.val = 'manual' }",
+            "fn": "tuya"
+          }
+        },
+        {
+          "name": "config/setvalve",
+          "description": "Relay switch",
+          "values": [
+            [
+              "on",
+              true
+            ],
+            [
+              "off",
+              false
+            ]
+          ],
+          "read": { "fn": "none" },
+          "write": {
+            "dpid": 24,
+            "dt": "0x10",
+            "eval": "Item.val == 'on'",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 24,
+            "eval": "if (Attr.val) { Item.val = 'on' } else { Item.val = 'off' }",
+            "fn": "tuya"
+          }
+        },
+        {
+          "name": "state/alarm",
+          "description": "Low liquid level alarm",
+          "read": { "fn": "none" },
+          "parse": {
+            "dpid": 1,
+            "eval": "Item.val = (Attr.val == 1);",
+            "fn": "tuya"
+          },
+          "default": false
+        },
+        {
+          "name": "state/levelstatus",
+          "description": "Liquid level status",
+          "values": [
+            [
+              "low",
+              1
+            ],
+            [
+              "normal",
+              0
+            ],
+            [
+              "high",
+              2
+            ]
+          ],
+          "read": { "fn": "none" },
+          "parse": {
+            "dpid": 1,
+            "eval": "if (Attr.val == 0) { Item.val = 'normal' } else if (Attr.val == 1) { Item.val = 'low' } else if (Attr.val == 2) { Item.val = 'high' }",
+            "fn": "tuya"
+          }
+        },
+        {
+          "name": "state/height",
+          "description": "Liquid level depth (cm)",
+          "read": { "fn": "none" },
+          "parse": {
+            "dpid": 2,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        { "name": "state/lastupdated" },
+        {
+          "name": "state/level",
+          "description": "Liquid level ratio (%)",
+          "read": { "fn": "none" },
+          "parse": {
+            "dpid": 22,
+            "eval": "Item.val = Attr.val;",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "state/voltage",
+          "description": "Supply voltage (V)",
+          "read": { "fn": "none" },
+          "parse": {
+            "dpid": 5,
+            "eval": "Item.val = Attr.val / 10;",
+            "fn": "tuya"
+          },
+          "default": 0
+        }
+      ]
+    }
+  ]
+}

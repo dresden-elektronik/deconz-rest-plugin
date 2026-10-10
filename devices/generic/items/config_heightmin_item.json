@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/heightmin",
+  "datatype": "UInt16",
+  "access": "RW",
+  "public": true,
+  "description": "Minimum height for a ZHAGauge device."
+}
