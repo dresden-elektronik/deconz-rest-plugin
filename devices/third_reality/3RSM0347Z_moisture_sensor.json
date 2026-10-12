@@ -101,7 +101,7 @@
             "cl": "0x0001",
             "at": "0x0021"
           },
-          "refresh.interval": 360
+          "refresh.interval": 7260
         },
         {
           "name": "config/offset",
@@ -257,7 +257,9 @@
             "eval": "Item.val = Math.round(Attr.val / 2)"
           },
           "default": 0,
-          "read": "none"
+          "read": {
+            "fn": "none"
+          }
         },
         {
           "name": "config/offset",
@@ -270,7 +272,9 @@
             "eval": "Item.val = Attr.val"
           },
           "default": 0,
-          "read": "none",
+          "read": {
+            "fn": "none"
+          },
           "write": {
             "fn": "zcl:attr",
             "ep": 1,
