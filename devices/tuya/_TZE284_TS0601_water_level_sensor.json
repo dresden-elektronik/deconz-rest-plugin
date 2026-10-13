@@ -15,7 +15,7 @@
   "vendor": "Tuya",
   "product": "Water level sensor (TS0601)",
   "sleeper": false,
-  "status": "Bronze",
+  "status": "Gold",
   "subdevices": [
     {
       "type": "$TYPE_GAUGE_SENSOR",
