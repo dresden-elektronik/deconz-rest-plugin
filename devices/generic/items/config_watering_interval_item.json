@@ -1,0 +1,13 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/watering/interval",
+  "datatype": "UInt8",
+  "access": "RW",
+  "public": true,
+  "range": [
+    0,
+    30
+  ],
+  "default": 0,
+  "description": "The watering interval (in days)."
+}
