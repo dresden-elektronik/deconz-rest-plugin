@@ -213,6 +213,7 @@ add_library(${PROJECT_NAME} SHARED
     rest_scenes.cpp
     rest_schedules.cpp
     rest_sensors.cpp
+    rest_topology.cpp
     rest_touchlink.cpp
     rest_userparameter.cpp
     rule.cpp
