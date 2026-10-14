@@ -15680,9 +15680,14 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     stream.setEncoding(QStringConverter::Utf8);
 #endif
 
+    // Alarm API bodies contain credentials. Redact before any request parsing,
+    // including malformed requests and gateway-wide identity routes.
+    const bool alarmCredentials = hdr.pathComponentsCount() >= 3 && hdr.pathAt(2) == QLatin1String("alarmsystems");
     if (DBG_IsEnabled(DBG_HTTP))
     {
-        DBG_Printf(DBG_HTTP, "HTTP API %s %s - %s\n", qPrintable(hdr.method()), qPrintable(hdr.url()), qPrintable(sock->peerAddress().toString()));
+        DBG_Printf(DBG_HTTP, "HTTP API %s %s - %s\n", qPrintable(hdr.method()),
+            alarmCredentials ? "/api/[redacted]/alarmsystems/[redacted]" : qPrintable(hdr.url()),
+            qPrintable(sock->peerAddress().toString()));
     }
 
     if (hdr.httpMethod() == HttpPost && hdr.hasKey(QLatin1String("Content-Type")) &&
@@ -15694,7 +15699,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     else if (!stream.atEnd())
     {
         content = stream.readAll();
-        if (DBG_IsEnabled(DBG_HTTP))
+        if (DBG_IsEnabled(DBG_HTTP) && !alarmCredentials)
         {
             DBG_Printf(DBG_HTTP, "Text Data: \t%s\n", qPrintable(content));
         }

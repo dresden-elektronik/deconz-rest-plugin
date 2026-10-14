@@ -25,6 +25,10 @@ namespace deCONZ {
     class Address;
 }
 
+struct sqlite3;
+// Main-thread gateway connection, opened on demand. Never retain across calls.
+sqlite3 *DB_AlarmUserConnection();
+
 struct DB_Secret
 {
     std::string uniqueId;
@@ -141,3 +145,4 @@ bool DB_LoadLegacyLightValue(DB_LegacyItem *litem);
 
 
 #endif // DATABASE_H
+
