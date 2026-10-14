@@ -2428,6 +2428,80 @@ int DeRestPluginPrivate::setLightConfig(const ApiRequest &req, ApiResponse &rsp)
                 }
             }
         }
+        else if (key == "watering")
+        {
+            paramOk = true;
+            if (value.type() == QVariant::Map)
+            {
+                valueOk = true;
+                isMap = true;
+                QVariantMap map1 = value.toMap();
+                for (QVariantMap::const_iterator q = map1.begin(); q != map1.end(); q++)
+                {
+                    bool paramOk = false;
+                    bool valueOk = false;
+                    key = q.key();
+                    QString path1 = QString("%1/%2").arg(path).arg(key);
+                    value = map1[key];
+
+                    if (key == "duration")
+                    {
+                        ResourceItem *item = lightNode->item(RConfigWateringDuration);
+                        if (item)
+                        {
+                            paramOk = true;
+                            if (value.type() == QVariant::Double)
+                            {
+                                const quint16 duration = value.toUInt(&ok);
+                                if (ok)
+                                {
+                                    valueOk = true;
+                                    change.addTargetValue(RConfigWateringDuration, duration);
+                                    lightNode->setValue(RConfigWateringDuration, duration);
+                                    DB_StoreSubDeviceItem(lightNode, item);
+                                }
+                            }
+                        }
+                    }
+                    else if (key == "interval")
+                    {
+                        ResourceItem *item = lightNode->item(RConfigWateringInterval);
+                        if (item)
+                        {
+                            paramOk = true;
+                            if (value.type() == QVariant::Double)
+                            {
+                                const quint8 interval = value.toUInt(&ok);
+                                if (ok)
+                                {
+                                    valueOk = true;
+                                    change.addTargetValue(RConfigWateringInterval, interval);
+                                    lightNode->setValue(RConfigWateringInterval, interval);
+                                    DB_StoreSubDeviceItem(lightNode, item);
+                                }
+                            }
+                        }
+                    }
+
+                    if (!paramOk)
+                    {
+                        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, path1, QString("parameter, %1, not available").arg(key)));
+                    }
+                    else if (!valueOk)
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, path1, QString("invalid value, %1, for parameter, %2").arg(value.toString()).arg(key)));
+                    }
+                    else
+                    {
+                        QVariantMap rspItem;
+                        QVariantMap rspItemState;
+                        rspItemState[path1] = value;
+                        rspItem["success"] = rspItemState;
+                        rsp.list.append(rspItem);
+                    }
+                }
+            }
+        }
 
         if (!paramOk)
         {
