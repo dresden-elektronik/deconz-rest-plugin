@@ -1,0 +1,13 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "state/no_water",
+  "datatype": "Bool",
+  "access": "R",
+  "public": true,
+  "default": false,
+  "description": "True when there's no more water.",
+  "parse": {
+    "fn": "ias:zonestatus",
+    "mask": "alarm1"
+  }
+}
