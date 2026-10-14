@@ -1,4 +1,5 @@
 #include "alarm_user_schedule.h"
+#include <chrono>
 /*
  * Copyright (c) 2021 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
@@ -453,6 +454,36 @@ AlarmUsers::Store AS_UserStore()
         [](const std::string &pin) { return CRYPTO_ScryptPassword(pin, CRYPTO_GenerateSalt()); }, AlarmUsers::checkSchedule);
 }
 
+AlarmUsers::LearningSessions &AS_RfidLearning()
+{
+    static AlarmUsers::LearningSessions sessions;
+    return sessions;
+}
+
+int64_t AS_LearningTime()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+bool AlarmSystem::keypadAssigned(quint64 source) const
+{
+    const AS_DeviceEntry &entry = d->devTable->get(source);
+    return isValid(entry) && entry.alarmSystemId == id() && (entry.flags & AS_ENTRY_FLAG_IAS_ACE) != 0;
+}
+
+bool AlarmSystem::learnKeypad(const QString &code, quint64 source, int endpoint, int sequence, int mode, qint64 nowMs)
+{
+    const std::string address = QString::number(source, 16).toStdString();
+    return AS_RfidLearning().intercept(id(), address, endpoint, sequence, mode, code.toStdString(), AS_LearningTime(),
+        [&](const AlarmUsers::LearningSession &session, const std::string &value) {
+            if (!keypadAssigned(source)) {
+                AlarmUsers::RfidCapture denied; denied.ok = true; denied.error = "keypad_not_assigned"; return denied;
+            }
+            return AS_UserStore().captureRfid(id(), session.uid, address, endpoint, sequence, mode,
+                session.name, value, session.userRevision, nowMs);
+        });
+}
+
 AlarmUsers::RestResult AlarmSystem::authorizeRest(const QString &code, int mode)
 {
     return AS_UserStore().authorizeRest(id(), code.toStdString(), -1, mode);
@@ -830,6 +861,7 @@ void AS_InitDefaultAlarmSystem(AlarmSystems &alarmSystems, AS_DeviceTable *devTa
 
     alarmSys->setValue(RAttrName, QString("default"));
 }
+
 
 
 

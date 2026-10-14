@@ -1,7 +1,7 @@
 name: Alarm users
 on:
   push:
-    branches: [master, alarm-users-v1, alarm-users-upstream]
+    branches: [master, alarm-users-v1, alarm-users-upstream, alarm-users-rfid]
   pull_request:
     paths:
       - 'alarm_user*'
@@ -13,6 +13,7 @@ on:
       - 'tests/alarm_system_timing*'
       - 'tests/alarm_schedule*'
       - 'tests/alarm_access_event*'
+      - 'tests/alarm_rfid*'
       - 'CMakeLists.txt'
       - '.github/workflows/alarm-users.yml'
   workflow_dispatch:
@@ -38,6 +39,10 @@ jobs:
           echo "result=$result" >> "$GITHUB_OUTPUT"
       - name: 'Policy result: ${{ steps.policy.outputs.result }}'
         run: 'true'
+      - name: RFID credentials and learning tests
+        run: |
+          g++ -std=c++14 -Wall -Wextra -Werror -I. alarm_user_store.cpp tests/alarm_rfid_test.cpp -lsqlite3 -lcrypto -pthread -o /tmp/alarm_rfid_test
+          /tmp/alarm_rfid_test
       - name: Schedule and timezone tests
         run: |
           g++ -std=c++14 -Wall -Wextra -Werror -fPIC -I. tests/alarm_schedule_test.cpp $(pkg-config --cflags --libs Qt5Core) -o /tmp/alarm_schedule_test
@@ -58,3 +63,4 @@ jobs:
           cmake -S . -B build-alarm-users -G Ninja -DQT_VERSION_MAJOR=5 -DCMAKE_INSTALL_PREFIX=/usr
           cmake --build build-alarm-users --parallel 2
           cmake --install build-alarm-users --prefix "$PWD/stage-alarm-users"
+

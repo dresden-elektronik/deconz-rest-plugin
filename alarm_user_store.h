@@ -10,9 +10,15 @@ struct sqlite3;
 namespace AlarmUsers {
 constexpr int MaxUsers = 256;
 constexpr int64_t DuplicateWindowMs = 10000;
+constexpr int MaxRfidCredentials = 8;
+constexpr int MaxKeypadCredentialBytes = 33; // '+' and up to 32 hexadecimal digits
+struct RfidCredential { std::string id, name, hash; };
+// Keep leading zeroes; only ASCII hex case is canonicalized. No guessed UID conversion.
+bool normalizeRfid(const std::string &value, std::string &canonical);
 struct Keypad { std::string source; int endpoint = 0; };
 struct User {
     std::string id, name, hash;
+    std::vector<RfidCredential> rfid;
     std::string schedule; // canonical JSON; empty = no schedule/expiry
     bool enabled = true;
     int64_t userRevision = 0;
@@ -49,6 +55,12 @@ struct RestResult {
     bool accepted = false;
     User user; // populated only on acceptance; never serialized wholesale
 };
+struct RfidCapture {
+    bool ok = false, duplicate = false;
+    std::string error;
+    RfidCredential credential;
+    int64_t userRevision = 0;
+};
 using Verify = std::function<bool(const std::string &, const std::string &)>;
 using ScheduleCheck = std::function<int(const std::string &, int64_t)>; // -1 error, 0 denied, 1 allowed; now=0 validates
 using Hash = std::function<std::string(const std::string &)>;
@@ -69,6 +81,15 @@ public:
     bool put(int alarm, User &user, const std::string &pin, int64_t expectedRevision,
              std::string &error);
     bool erase(int alarm, const std::string &uid, int64_t expectedRevision, int64_t userRevision);
+    bool addRfid(const std::string &uid, const std::string &name, const std::string &value,
+                 int64_t revision, RfidCredential &credential, int64_t &userRevision, std::string &error);
+    bool eraseRfid(const std::string &uid, const std::string &credentialId, int64_t revision,
+                   int64_t &userRevision, std::string &error);
+    // Learning receipts commit with the credential, so radio retries after a restart
+    // cannot turn enrollment into a normal arm/disarm operation.
+    RfidCapture captureRfid(int alarm, const std::string &uid, const std::string &source,
+                           int endpoint, int sequence, int mode, const std::string &name,
+                           const std::string &value, int64_t revision, int64_t nowMs);
     RestResult authorizeRest(int alarm, const std::string &pin, int64_t nowMs = -1, int mode = 0);
     bool restCode(int alarm, const std::string &pin, int64_t nowMs = -1); // API permission + eligibility; never consumes uses
     Result authorize(int alarm, const std::string &source, int endpoint, int sequence,
@@ -81,8 +102,12 @@ private:
     bool init(int alarm);
     bool read(int alarm, std::vector<User> &users);
     bool activate(int alarm);
+    bool readRfid(const std::string &uid, std::vector<RfidCredential> &credentials);
+    bool addRfidRow(const std::string &uid, const std::string &name, const std::string &value,
+                    int64_t revision, RfidCredential &credential, int64_t &userRevision, std::string &error);
 };
 }
 #endif
+
 
 

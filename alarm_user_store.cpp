@@ -31,6 +31,30 @@ bool validPin(const std::string &pin) {
 }
 
 }
+bool normalizeRfid(const std::string &value, std::string &canonical) {
+    canonical.clear();
+    if (value.size() < 2 || value.size() > MaxKeypadCredentialBytes || value[0] != '+') return false;
+    std::string out = "+";
+    for (size_t i = 1; i < value.size(); ++i) {
+        char c = value[i];
+        if (c >= 'A' && c <= 'F') c = char(c - 'A' + 'a');
+        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) return false;
+        out += c;
+    }
+    canonical = std::move(out);
+    return true;
+}
+
+namespace {
+bool matches(const User &user, const std::string &value, const Verify &verify) {
+    if (validPin(value)) return verify(user.hash, value);
+    std::string canonical;
+    if (!normalizeRfid(value, canonical)) return false;
+    for (const auto &credential : user.rfid)
+        if (verify(credential.hash, "rfid:" + canonical)) return true;
+    return false;
+}
+}
 Store::Store(sqlite3 *d, Verify v, Hash h, ScheduleCheck check)
     : db(d), verify(std::move(v)), hash(std::move(h)), scheduleCheck(std::move(check)) {}
 
@@ -84,7 +108,20 @@ bool Store::init(int alarm) {
         "window INTEGER NOT NULL,d1 INTEGER NOT NULL,d2 INTEGER NOT NULL,d3 INTEGER NOT NULL,reset INTEGER NOT NULL,revision INTEGER NOT NULL);"
         "CREATE TABLE IF NOT EXISTS alarm_lockout_state_v1 (alarm INTEGER NOT NULL,source TEXT NOT NULL,endpoint INTEGER NOT NULL,"
         "level INTEGER NOT NULL,until INTEGER NOT NULL,last_failure INTEGER NOT NULL,PRIMARY KEY(alarm,source,endpoint));"
-        "CREATE TABLE IF NOT EXISTS alarm_lockout_failures_v1 (alarm INTEGER NOT NULL,source TEXT NOT NULL,endpoint INTEGER NOT NULL,created INTEGER NOT NULL);");
+        "CREATE TABLE IF NOT EXISTS alarm_lockout_failures_v1 (alarm INTEGER NOT NULL,source TEXT NOT NULL,endpoint INTEGER NOT NULL,created INTEGER NOT NULL);"
+        "CREATE TABLE IF NOT EXISTS gateway_user_rfid_v1 (cid TEXT PRIMARY KEY,uid TEXT NOT NULL,name TEXT NOT NULL,hash TEXT NOT NULL,"
+        "FOREIGN KEY(uid) REFERENCES gateway_users_v2(uid));"
+        "CREATE TABLE IF NOT EXISTS alarm_rfid_learning_receipts_v1 (alarm INTEGER NOT NULL,source TEXT NOT NULL,endpoint INTEGER NOT NULL,"
+        "sequence INTEGER NOT NULL,mode INTEGER NOT NULL,created INTEGER NOT NULL,PRIMARY KEY(alarm,source,endpoint,sequence));");
+}
+
+bool Store::readRfid(const std::string &uid, std::vector<RfidCredential> &credentials) {
+    credentials.clear();
+    Statement q(db, "SELECT cid,name,hash FROM gateway_user_rfid_v1 WHERE uid=? ORDER BY cid");
+    if (!q.valid()) return false;
+    q.text(1, uid); int rc;
+    while ((rc = q.step()) == SQLITE_ROW) credentials.push_back({q.text(0), q.text(1), q.text(2)});
+    return rc == SQLITE_DONE;
 }
 
 bool Store::read(int alarm, std::vector<User> &users) {
@@ -98,6 +135,7 @@ bool Store::read(int alarm, std::vector<User> &users) {
     int rc;
     while ((rc=s.step())==SQLITE_ROW) {
         User u;u.id=s.text(0);u.name=s.text(1);u.hash=s.text(2);u.enabled=s.number(3)==1;u.userRevision=s.number(4);
+        if (!readRfid(u.id, u.rfid)) return false;
         if (alarm) {
             u.grantEnabled=s.number(5)==1;u.owner=s.number(6)==1;u.arm=s.number(7)==1;u.disarm=s.number(8)==1;
             u.apiArmDisarm=s.number(9)==1;u.allKeypads=s.number(10)==1;u.remaining=s.number(11);u.schedule=s.text(12);u.revision=s.number(13);
@@ -182,7 +220,9 @@ bool Store::put(int alarm,User &u,const std::string &pin,int64_t revision,std::s
         Statement id(db,"SELECT lower(hex(randomblob(16)))");if(id.step()!=SQLITE_ROW)return false;u.id=id.text(0);
     }
     if(identityChanged) {
-        Statement save(db,"INSERT OR REPLACE INTO gateway_users_v2 VALUES(?,?,?,?,?)");
+        // REPLACE deletes the old identity, which would break its RFID foreign keys.
+        Statement save(db,creating ? "INSERT INTO gateway_users_v2 VALUES(?,?,?,?,?)" :
+            "UPDATE gateway_users_v2 SET name=?2,hash=?3,enabled=?4,revision=?5 WHERE uid=?1");
         if(!save.valid())return false;
         save.text(1,u.id);save.text(2,u.name);save.text(3,u.hash);save.number(4,u.enabled);save.number(5,u.userRevision+1);
         if(save.step()!=SQLITE_DONE)return false;
@@ -212,6 +252,12 @@ bool Store::put(int alarm,User &u,const std::string &pin,int64_t revision,std::s
 bool Store::erase(int alarm,const std::string &uid,int64_t revision,int64_t userRevision) {
     if(!validId(uid)||revision<1||userRevision<1)return false;
     Transaction t(db);if(!t.active||!init(alarm))return false;
+    if (!alarm) {
+        // This is rolled back if the identity is still granted or the revision is stale.
+        Statement tags(db, "DELETE FROM gateway_user_rfid_v1 WHERE uid=?");
+        if (!tags.valid()) return false;
+        tags.text(1, uid); if (tags.step() != SQLITE_DONE) return false;
+    }
     Statement s(db,alarm?"DELETE FROM alarm_user_grants_v2 WHERE alarm=? AND uid=? AND revision=? AND EXISTS(SELECT 1 FROM gateway_users_v2 WHERE uid=? AND revision=?)":
         "DELETE FROM gateway_users_v2 WHERE ?=0 AND uid=? AND revision=? AND uid=? AND revision=? AND NOT EXISTS(SELECT 1 FROM alarm_user_grants_v2 WHERE uid=gateway_users_v2.uid)");
     if(!s.valid())return false;
@@ -221,6 +267,121 @@ bool Store::erase(int alarm,const std::string &uid,int64_t revision,int64_t user
     if(!clear.valid())return false;
     clear.number(1,alarm);clear.text(2,uid);return clear.step()==SQLITE_DONE&&t.commit();
 }
+
+// Called only within a transaction. RFID credentials are gateway-wide and unique,
+// including those belonging to disabled users or users without any current grants.
+bool Store::addRfidRow(const std::string &uid, const std::string &name, const std::string &value,
+                       int64_t revision, RfidCredential &credential, int64_t &userRevision, std::string &error) {
+    credential = {}; userRevision = 0; error = "invalid_rfid";
+    std::string canonical;
+    if (!validId(uid) || !validName(name) || revision < 1 || !normalizeRfid(value, canonical)) return false;
+    error = "storage_error";
+    Statement user(db, "SELECT revision FROM gateway_users_v2 WHERE uid=?");
+    if (!user.valid()) return false;
+    user.text(1, uid); const int found = user.step();
+    if (found == SQLITE_DONE) { error = "user_not_found"; return false; }
+    if (found != SQLITE_ROW) return false;
+    const int64_t current = user.number(0); user.step();
+    if (current != revision) { error = "revision_conflict"; return false; }
+    Statement count(db, "SELECT count(*) FROM gateway_user_rfid_v1 WHERE uid=?");
+    if (!count.valid()) return false;
+    count.text(1, uid); if (count.step() != SQLITE_ROW) return false;
+    const int64_t total = count.number(0); count.step();
+    if (total >= MaxRfidCredentials) { error = "rfid_limit"; return false; }
+    Statement peers(db, "SELECT hash FROM gateway_user_rfid_v1");
+    if (!peers.valid()) return false;
+    int rc;
+    while ((rc = peers.step()) == SQLITE_ROW)
+        if (verify(peers.text(0), "rfid:" + canonical)) { error = "rfid_already_assigned"; return false; }
+    if (rc != SQLITE_DONE) return false;
+    Statement id(db, "SELECT lower(hex(randomblob(16)))");
+    if (id.step() != SQLITE_ROW) return false;
+    RfidCredential tag{id.text(0), name, hash("rfid:" + canonical)}; id.step();
+    if (tag.hash.empty()) return false;
+    Statement save(db, "INSERT INTO gateway_user_rfid_v1 VALUES(?,?,?,?)");
+    Statement update(db, "UPDATE gateway_users_v2 SET revision=revision+1 WHERE uid=? AND revision=?");
+    if (!save.valid() || !update.valid()) return false;
+    save.text(1, tag.id); save.text(2, uid); save.text(3, name); save.text(4, tag.hash);
+    if (save.step() != SQLITE_DONE) return false;
+    update.text(1, uid); update.number(2, revision);
+    if (update.step() != SQLITE_DONE || sqlite3_changes(db) != 1) return false;
+    credential = std::move(tag); userRevision = revision + 1; error.clear(); return true;
+}
+
+bool Store::addRfid(const std::string &uid, const std::string &name, const std::string &value,
+                    int64_t revision, RfidCredential &credential, int64_t &userRevision, std::string &error) {
+    error = "storage_error"; Transaction t(db);
+    if (!t.active || !init(0) || !addRfidRow(uid, name, value, revision, credential, userRevision, error)) return false;
+    if (!t.commit()) { error = "storage_error"; credential = {}; userRevision = 0; return false; }
+    return true;
+}
+
+bool Store::eraseRfid(const std::string &uid, const std::string &credentialId, int64_t revision,
+                      int64_t &userRevision, std::string &error) {
+    userRevision = 0; error = "invalid_rfid";
+    if (!validId(uid) || !validId(credentialId) || revision < 1) return false;
+    error = "storage_error"; Transaction t(db);
+    if (!t.active || !init(0)) return false;
+    Statement update(db, "UPDATE gateway_users_v2 SET revision=revision+1 WHERE uid=? AND revision=?");
+    if (!update.valid()) return false;
+    update.text(1, uid); update.number(2, revision);
+    if (update.step() != SQLITE_DONE) return false;
+    if (sqlite3_changes(db) != 1) { error = "revision_conflict"; return false; }
+    Statement erase(db, "DELETE FROM gateway_user_rfid_v1 WHERE uid=? AND cid=?");
+    if (!erase.valid()) return false;
+    erase.text(1, uid); erase.text(2, credentialId);
+    if (erase.step() != SQLITE_DONE) return false;
+    if (sqlite3_changes(db) != 1) { error = "credential_not_found"; return false; }
+    if (!t.commit()) return false;
+    userRevision = revision + 1; error.clear(); return true;
+}
+
+RfidCapture Store::captureRfid(int alarm, const std::string &uid, const std::string &source,
+                              int endpoint, int sequence, int mode, const std::string &name,
+                              const std::string &value, int64_t revision, int64_t now) {
+    RfidCapture result; result.error = "storage_error";
+    bool managed = false;
+    if (!managementEnabled(alarm, managed) || !managed || !validId(uid) ||
+        !validKeypad({source, endpoint}) || sequence < 0 || sequence > 255 || mode < 0 || mode > 3 || now <= DuplicateWindowMs) return result;
+    Transaction t(db); std::vector<User> users;
+    if (!t.active || !init(alarm) || !read(alarm, users)) return result;
+    Statement prior(db, "SELECT mode,created FROM alarm_rfid_learning_receipts_v1 WHERE alarm=? AND source=? AND endpoint=? AND sequence=?");
+    if (!prior.valid()) return result;
+    prior.number(1, alarm); prior.text(2, source); prior.number(3, endpoint); prior.number(4, sequence);
+    const int found = prior.step();
+    if (found == SQLITE_ROW) {
+        const int64_t age = now - prior.number(1);
+        if (age < 0) return result;
+        if (age <= DuplicateWindowMs) {
+            if (prior.number(0) != mode) return result;
+            prior.step(); result.duplicate = true; result.ok = t.commit(); result.error.clear(); return result;
+        }
+    } else if (found != SQLITE_DONE) return result;
+    prior.step();
+    const auto user = std::find_if(users.begin(), users.end(), [&](const User &u) { return u.id == uid; });
+    if (user == users.end()) result.error = "user_not_found";
+    else if (user->userRevision != revision) result.error = "revision_conflict";
+    else if (!user->enabled || !user->grantEnabled || (!user->allKeypads &&
+        std::none_of(user->keypads.begin(), user->keypads.end(), [&](const Keypad &p) { return p.source == source && p.endpoint == endpoint; })))
+        result.error = "keypad_not_allowed";
+    else {
+        std::string canonical;
+        if (!normalizeRfid(value, canonical)) result.error = "rfid_required";
+        else if (!addRfidRow(uid, name, value, revision, result.credential, result.userRevision, result.error) && result.error == "storage_error")
+            return result; // Roll back both credential and receipt on storage failure.
+    }
+    // Even a PIN entered during learning is acknowledged without normal access,
+    // and its radio retry must stay harmless if the process restarts.
+    Statement prune(db, "DELETE FROM alarm_rfid_learning_receipts_v1 WHERE created<?");
+    Statement receipt(db, "INSERT OR REPLACE INTO alarm_rfid_learning_receipts_v1 VALUES(?,?,?,?,?,?)");
+    if (!prune.valid() || !receipt.valid()) return RfidCapture{};
+    prune.number(1, now - DuplicateWindowMs); if (prune.step() != SQLITE_DONE) return RfidCapture{};
+    receipt.number(1, alarm); receipt.text(2, source); receipt.number(3, endpoint);
+    receipt.number(4, sequence); receipt.number(5, mode); receipt.number(6, now);
+    if (receipt.step() != SQLITE_DONE || !t.commit()) return RfidCapture{};
+    result.ok = true; return result;
+}
+
 RestResult Store::authorizeRest(int alarm,const std::string &pin,int64_t now,int mode) {
     RestResult result;bool managed=false;
     if(mode<0||mode>3||!managementEnabled(alarm,managed)||!managed)return result;
@@ -314,6 +475,19 @@ Result Store::authorize(int alarm,const std::string &source,int endpoint,int seq
         mode<0 || mode>3 || now<=DuplicateWindowMs) return result;
     Transaction t(db); std::vector<User> users;
     if (!t.active || !init(alarm) || !read(alarm,users)) return result;
+    Statement learned(db, "SELECT mode,created FROM alarm_rfid_learning_receipts_v1 WHERE alarm=? AND source=? AND endpoint=? AND sequence=?");
+    if (!learned.valid()) return result;
+    learned.number(1, alarm); learned.text(2, source); learned.number(3, endpoint); learned.number(4, sequence);
+    const int learnedRow = learned.step();
+    if (learnedRow == SQLITE_ROW) {
+        const int64_t age = now - learned.number(1);
+        if (age < 0) return result;
+        if (age <= DuplicateWindowMs) {
+            if (learned.number(0) != mode) return result;
+            learned.step(); result.duplicate = true; result.ok = t.commit(); return result;
+        }
+    } else if (learnedRow != SQLITE_DONE) return result;
+    learned.step();
     LockoutPolicy policy;
     if (!readPolicy(db,alarm,policy)) return result;
     LockoutState state;state.source=source;state.endpoint=endpoint;
@@ -330,7 +504,7 @@ Result Store::authorize(int alarm,const std::string &source,int endpoint,int seq
     // Match disabled/exhausted users too, so retries of the final use can be recognized.
     User matched;
     // During lockout do not evaluate the submitted credential at all.
-    if (!result.locked) for (const auto &u:users) if (verify(u.hash,pin)) { matched=u; break; }
+    if (!result.locked) for (const auto &u:users) if (matches(u,pin,verify)) { matched=u; break; }
     Statement previous(db,"SELECT mode,created,uid,response,eventid FROM alarm_user_requests_v1 "
         "WHERE alarm=? AND source=? AND endpoint=? AND sequence=?");
     if (!previous.valid()) return result;
@@ -410,4 +584,5 @@ Result Store::authorize(int alarm,const std::string &source,int endpoint,int seq
     result.ok=t.commit(); return result;
 }
 }
+
 

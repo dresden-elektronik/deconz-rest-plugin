@@ -55,6 +55,7 @@ set(PLUGIN_INCLUDE_FILES
     air_quality.h
     alarm_system.h
     alarm_user_store.h
+    alarm_user_learning.h
     alarm_system_device_table.h
     alarm_system_event_handler.h
     aps_controller_wrapper.h
@@ -383,4 +384,5 @@ endif()
 #enable_testing()
 
 #add_subdirectory (tests)
+
 

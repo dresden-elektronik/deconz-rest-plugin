@@ -15,10 +15,13 @@ installing this runtime. Never infer shared identity from equal names or PINs.
 ## Identity and grants
 
 A gateway identity has an immutable random `id`, display `name`, `enabled` flag,
-one salted PIN hash, and `user_revision`. It has no implicit access to any alarm.
+one salted PIN hash, optional separately hashed RFID credentials, and `user_revision`.
+It has no implicit access to any alarm.
 Changing its PIN, name or enabled flag affects every grant of that identity.
 PINs are 4–16 ASCII digits; leading zeros are significant. PINs and hashes are
 never returned by this API or included in access events.
+RFID values and hashes are also never returned. User projections include
+`rfid_credentials`, containing only opaque credential IDs, type and display labels.
 
 Each alarm grant has its own `revision` and these fields:
 
@@ -67,11 +70,16 @@ not an API authentication token or a separate admin role.
 | `/alarmsystems/<alarm>/users/<uid>` | GET / PUT grant projection; DELETE this alarm grant only |
 | `/alarmsystems/<alarm>/users/capabilities` | GET capability and managed-state flags |
 | `/alarmsystems/<alarm>/users/lockout` | GET / PUT policy; DELETE explicit reset |
+| `/alarmsystems/users/<uid>/credentials` | GET RFID metadata; POST an RFID credential |
+| `/alarmsystems/users/<uid>/credentials/<cid>` | DELETE one RFID credential |
+| `/alarmsystems/<alarm>/users/<uid>/learn_rfid` | POST start; GET status; DELETE cancel |
 
 Collections are objects keyed by immutable UID. No numeric user slots exist.
 The capability response includes `global_users_version:2`, `per_alarm_grants:true`,
 `max_users:256`, schedule-v1, access-event-v1, keypad-lockout-v1,
 `rest_command_events:true` and `alarm_timing_version:1`.
+RFID additions advertise `rfid_credentials_version:1`, `rfid_learning_version:1`,
+`max_rfid_credentials_per_user:8` and `max_rfid_learning_seconds:120`.
 
 Every write includes both `revision` and `user_revision`. For a new identity both
 are zero. For a new grant, `revision` is zero and `user_revision` is the existing
@@ -153,6 +161,118 @@ Alarm timing configuration remains `armed_stay_*`, `armed_night_*`, and
 Values are whole seconds 0–255. Configure while disarmed and read back values;
 this upstream configuration API is not an atomic compare-and-swap batch API.
 
+## RFID credentials and learning (experimental; hardware testing needed)
+
+This extension is inspired by Smanar's code/RFID and keypad learning work in
+[PR #5918](https://github.com/dresden-elektronik/deconz-rest-plugin/pull/5918).
+That discussion reports successful tag tests with Frient keypads. The RFID
+extension on this branch has automated coverage but has **not been tested with
+an RFID keypad or physical tags**. Existing Xfinity PIN testing does not validate
+RFID compatibility. Please keep this feature experimental until hardware testing
+confirms the payload format, acknowledgements and retry behavior.
+
+The gateway stores up to eight independently removable RFID credentials alongside
+each user's existing PIN. A tag identifies that same gateway user at any permitted
+compatible keypad, including on another alarm with a grant for that user. Learning
+at one keypad does not restrict the tag to that keypad, and does not add grants or
+change permissions. Schedules, expiry, arm/disarm permissions, per-keypad restrictions,
+usage allowances and lockout all use the existing physical access-policy path.
+The PIN and tag are alternative credentials. REST arm/disarm commands continue
+to require the numeric PIN; tag identifiers are not REST command credentials.
+
+RFID credentials accept the Frient-style `+` prefix followed by 1–32 ASCII
+hexadecimal digits. ASCII hex letters are normalized to lowercase, while leading
+zeros are retained. Keypads must send the same identifier representation for
+the same tag. The gateway does not guess conversions between decimal, hex,
+different byte orders, or vendor-specific encodings. Other RFID formats need
+verified device support. UID matching does not add cryptographic tag authentication.
+
+RFID values are salted and hashed using the gateway's existing password helper,
+with an RFID-specific domain prefix. Neither the tag value nor hash appears in
+API responses, websocket access events or credential logs. A credential has a
+random `id` and a `name` label (1–64 UTF-8 bytes, no control characters). RFID
+uniqueness is gateway-wide, including disabled users and identities without grants.
+Remove a tag from its old user before assigning it to someone else. Removing a
+tag leaves the PIN, other tags and grants intact. Disabling the user blocks all
+of their physical credentials. Adding/removing tags increments `user_revision`,
+so stale identity or grant edits fail rather than overwriting a credential change.
+The existing user/grant tables and PIN hashes stay intact; RFID tables are additive.
+
+### Add, inspect or revoke a known tag
+
+`GET /alarmsystems/users/<uid>/credentials` returns `user_id`, `user_revision`
+and a `credentials` list of RFID metadata (`id`, `type`, `name`). The PIN continues
+to use the existing identity `pin` field for writes.
+
+`POST /alarmsystems/users/<uid>/credentials` accepts exactly:
+
+```json
+{"user_revision":3,"type":"rfid","name":"Pocket tag","value":"+00a1b2c3d4"}
+```
+
+The response contains the new credential's metadata and updated `user_revision`.
+Duplicate values, invalid values, stale revisions and the eight-tag limit are
+rejected. Values in this documentation are synthetic; use request bodies for
+credentials. The ordinary API key authenticates these administrative routes.
+
+`DELETE /alarmsystems/users/<uid>/credentials/<cid>` accepts
+`{"user_revision":4}` and returns the deleted opaque ID and updated revision.
+It cannot remove another user's credential.
+
+### Learn a tag for a selected user
+
+`POST /alarmsystems/<alarm>/users/<uid>/learn_rfid` starts learning:
+
+```json
+{"user_revision":3,"source":"abc","endpoint":1,"name":"Pocket tag","timeout_seconds":60}
+```
+
+Use the keypad's actual canonical IEEE address and endpoint. It must be an
+existing IAS ACE keypad assigned to this managed alarm, and the enabled user
+must have an enabled grant permitting it. `timeout_seconds` is optional (default
+60, range 1–120). A gateway allows up to sixteen active learning sessions, with
+one per user and one per physical keypad endpoint. Conflicting starts return
+`learning_busy`. Normal commands from other keypads retain their normal behavior.
+
+Present the tag at the selected keypad and press Arm or Disarm if the device
+requires it to transmit the credential. The chosen arm mode does not operate
+the alarm during learning. Numeric PIN input is ignored while the session keeps
+waiting for a tag. Learning emits no ordinary sensor action or `access` event,
+consumes no uses and does not advance or reset lockout. Even an existing valid
+credential presented during enrollment cannot activate a garage/alarm automation.
+
+`GET` on the same route returns the session's opaque `session_id`, `user_id`,
+`source`, `endpoint`, `state`, `remaining_seconds` and `user_revision`. States are
+`waiting`, `learned`, `failed`, `expired`, `cancelled`, or `idle`. A successful
+result includes `credential_id`; failure includes a non-secret reason. Poll this
+route to show enrollment progress in an admin UI. Completed status is retained
+for up to two minutes in the bounded session cache; it can be evicted sooner
+to accommodate a new session.
+
+`DELETE` on the same route accepts `{"session_id":"<current-session-id>"}` to
+cancel a waiting session. It cannot cancel a newer session accidentally or revoke
+a completed credential. Cancel/timeout resumes normal access handling. Active
+sessions use monotonic deadlines and are cancelled by process restart. The user
+revision and keypad grant are rechecked when the tag arrives. Concurrent changes,
+duplicate credentials and storage faults produce failure without alarm operation.
+
+Credential creation and enrollment receipts commit in one SQLite transaction.
+For ten seconds, the enrollment frame's source/endpoint/sequence/mode is
+acknowledged as not-ready instead of becoming a new access request, including
+after a restart. This applies to PIN input during learning too. A fresh request
+after learning follows the normal user grant and lockout checks.
+
+### Hardware validation requested
+
+Use an RFID-capable IAS ACE keypad and report its model, firmware and exact
+credential encoding, with real identifiers and PINs removed from shared logs.
+Check learning, acknowledgement LEDs/beeps, timeout and cancel, and confirm
+enrollment never changes alarm state or triggers a garage action. Check a fresh
+tag request and PIN request identify the same user, and that tag revocation
+leaves the PIN working. Exercise permitted and denied keypads, grants on another
+alarm, schedule boundaries, disabled users, usage limits and lockout. Verify
+repeated frames and restart just after enrollment do not operate the alarm.
+
 ## Xfinity URC4450 keypad resources
 
 The URC4450BC0-X-R has a dedicated DDF in
@@ -170,3 +290,4 @@ users. Existing installations with a local custom DDF must reconcile that
 override before adopting the packaged DDF. The TKA105 and H34450BA00-00007
 definitions remain unchanged; the resource split has only been exercised
 with URC4450BC0-X-R hardware.
+

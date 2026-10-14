@@ -205,8 +205,8 @@ void IAS_IasAceClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::Z
         QString armCode;
         if (managed)
         {
-            // Managed PINs require a complete, bounded IAS ACE payload.
-            if (length > 16 || payload.size() != length + 3)
+            // Managed PIN/RFID credentials require a complete, bounded IAS ACE payload.
+            if (length > AlarmUsers::MaxKeypadCredentialBytes || payload.size() != length + 3)
             {
                 sendArmResponse(ind, zclFrame, IAS_ACE_ARM_NOTF_INVALID_ARM_DISARM_CODE, apsCtrlWrapper);
                 return;
@@ -229,6 +229,14 @@ void IAS_IasAceClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::Z
         else if (alarmSys)
         {
             const qint64 timestamp = QDateTime::currentMSecsSinceEpoch();
+            if (alarmSys->learnKeypad(armCode, ind.srcAddress().ext(), ind.srcEndpoint(),
+                zclFrame.sequenceNumber(), armMode, timestamp))
+            {
+                // Enrollment must not emit a sensor action/access event, operate the
+                // alarm, consume a use, or advance the failed-credential lockout.
+                sendArmResponse(ind, zclFrame, IAS_ACE_ARM_NOTF_NOT_READY_TO_ARM, apsCtrlWrapper);
+                return;
+            }
             const auto access = alarmSys->authorizeKeypad(armCode, ind.srcAddress().ext(),
                 ind.srcEndpoint(), zclFrame.sequenceNumber(), armMode, timestamp);
             armRsp = access.ok ? quint8(access.response) : IAS_ACE_ARM_NOTF_NOT_READY_TO_ARM;
@@ -407,3 +415,4 @@ static void sendGetPanelStatusResponse(const deCONZ::ApsDataIndication &ind, deC
         DBG_Printf(DBG_IAS, "[IAS ACE] 0x%016llX failed to send IAS ACE get panel reponse.\n", ind.srcAddress().ext());
     }
 }
+

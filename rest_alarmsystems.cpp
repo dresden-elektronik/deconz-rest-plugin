@@ -194,6 +194,12 @@ static QVariantMap userToMap(const AlarmUsers::User &u, bool global = false)
     map[QLatin1String("name")] = QString::fromStdString(u.name);
     map[QLatin1String("enabled")] = u.enabled;
     map["user_revision"] = qlonglong(u.userRevision);
+    QVariantList credentials;
+    for (const auto &tag : u.rfid) {
+        QVariantMap row; row["id"] = QString::fromStdString(tag.id);
+        row["type"] = "rfid"; row["name"] = QString::fromStdString(tag.name); credentials.append(row);
+    }
+    map["rfid_credentials"] = credentials;
     if (global) { map["revision"] = qlonglong(u.userRevision); return map; }
     map["grant_enabled"] = u.grantEnabled;
     map["owner"] = u.owner;
@@ -240,6 +246,10 @@ static int handleAlarmUsers(const ApiRequest &req, ApiResponse &rsp, AlarmSystem
         rsp.map[QLatin1String("rejected_access_events")] = true;
         rsp.map[QLatin1String("keypad_lockout_version")] = 1;
         rsp.map[QLatin1String("max_users")] = AlarmUsers::MaxUsers;
+        rsp.map["rfid_credentials_version"] = 1;
+        rsp.map["rfid_learning_version"] = 1;
+        rsp.map["max_rfid_credentials_per_user"] = AlarmUsers::MaxRfidCredentials;
+        rsp.map["max_rfid_learning_seconds"] = AlarmUsers::MaxLearningSeconds;
         rsp.httpStatus = HttpStatusOk;
         return REQ_READY_SEND;
     }
@@ -378,9 +388,153 @@ static int handleAlarmUsers(const ApiRequest &req, ApiResponse &rsp, AlarmSystem
     rsp.map=userToMap(u,global);rsp.httpStatus=HttpStatusOk;return REQ_READY_SEND;
 }
 
+static bool rfidRevision(const QVariant &v, qint64 &out)
+{
+    if (v.type() != QVariant::Double && v.type() != QVariant::Int && v.type() != QVariant::LongLong && v.type() != QVariant::UInt) return false;
+    const double number = v.toDouble();
+    if (!std::isfinite(number) || number < 1 || number > 9007199254740991.0 || std::floor(number) != number) return false;
+    out = qint64(number); return true;
+}
+
+static bool rfidId(const QString &id)
+{
+    return id.size() == 32 && std::all_of(id.begin(), id.end(), [](QChar c) { return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'); });
+}
+
+static QVariantMap rfidToMap(const AlarmUsers::RfidCredential &tag)
+{
+    return {{"id", QString::fromStdString(tag.id)}, {"type", "rfid"}, {"name", QString::fromStdString(tag.name)}};
+}
+
+// Gateway user credentials are administrative resources, never PIN-authenticated
+// routes. Responses contain opaque IDs and labels, never UID values or hashes.
+static int handleRfidCredentials(const ApiRequest &req, ApiResponse &rsp)
+{
+    const QString uid = QString(req.hdr.pathAt(4));
+    auto fail = [&](const char *reason) {
+        rsp.httpStatus = strcmp(reason, "storage_error") == 0 ? HttpStatusServiceUnavailable : HttpStatusBadRequest;
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/alarmsystems/users/credentials", QLatin1String(reason)));
+        return REQ_READY_SEND;
+    };
+    if (!rfidId(uid)) return fail("invalid_user_id");
+    const int count = req.hdr.pathComponentsCount();
+    if (count != 6 && count != 7) return REQ_NOT_HANDLED;
+    std::vector<AlarmUsers::User> users;
+    auto store = AS_UserStore();
+    if (!store.list(0, users)) return fail("storage_error");
+    const auto user = std::find_if(users.begin(), users.end(), [&](const AlarmUsers::User &u) { return QString::fromStdString(u.id) == uid; });
+    if (user == users.end()) return fail("user_not_found");
+    if (count == 6 && req.hdr.httpMethod() == HttpGet) {
+        QVariantList tags; for (const auto &tag : user->rfid) tags.append(rfidToMap(tag));
+        rsp.map["user_id"] = uid; rsp.map["user_revision"] = qlonglong(user->userRevision); rsp.map["credentials"] = tags;
+        rsp.httpStatus = HttpStatusOk; return REQ_READY_SEND;
+    }
+    const bool add = count == 6 && req.hdr.httpMethod() == HttpPost;
+    const bool erase = count == 7 && req.hdr.httpMethod() == HttpDelete;
+    if (!add && !erase) return REQ_NOT_HANDLED;
+    bool ok = false; const QVariant parsed = Json::parse(req.content, ok); const auto body = parsed.toMap();
+    if (!ok || parsed.type() != QVariant::Map) return fail("invalid_body");
+    qint64 revision = 0;
+    if (!rfidRevision(body.value("user_revision"), revision)) return fail("user_revision_required");
+    std::string error; int64_t nextRevision = 0;
+    if (add) {
+        const QStringList keys = {"user_revision", "type", "name", "value"};
+        if (body.size() != keys.size()) return fail("invalid_body");
+        for (auto i = body.cbegin(); i != body.cend(); ++i) if (!keys.contains(i.key())) return fail("unknown_field");
+        if (body.value("type").type() != QVariant::String || body.value("type").toString() != "rfid" ||
+            body.value("name").type() != QVariant::String || body.value("value").type() != QVariant::String) return fail("invalid_rfid");
+        AlarmUsers::RfidCredential tag;
+        if (!store.addRfid(uid.toStdString(), body.value("name").toString().toStdString(), body.value("value").toString().toStdString(),
+            revision, tag, nextRevision, error)) return fail(error.c_str());
+        rsp.map["credential"] = rfidToMap(tag);
+    } else {
+        const QString cid = QString(req.hdr.pathAt(6));
+        if (body.size() != 1) return fail("unknown_field");
+        if (!rfidId(cid)) return fail("invalid_credential_id");
+        if (!store.eraseRfid(uid.toStdString(), cid.toStdString(), revision, nextRevision, error)) return fail(error.c_str());
+        rsp.map["deleted"] = cid;
+    }
+    rsp.map["user_id"] = uid; rsp.map["user_revision"] = qlonglong(nextRevision); rsp.httpStatus = HttpStatusOk;
+    return REQ_READY_SEND;
+}
+
+static QVariantMap rfidLearningToMap(const AlarmUsers::LearningSession &session, int64_t now)
+{
+    QVariantMap map;
+    map["session_id"] = QString::fromStdString(session.id); map["user_id"] = QString::fromStdString(session.uid);
+    map["state"] = QString::fromStdString(session.state); map["source"] = QString::fromStdString(session.source);
+    map["endpoint"] = session.endpoint; map["user_revision"] = qlonglong(session.userRevision);
+    map["remaining_seconds"] = qlonglong(session.state == "waiting" && session.deadline > now ? (session.deadline - now + 999) / 1000 : 0);
+    if (!session.credentialId.empty()) map["credential_id"] = QString::fromStdString(session.credentialId);
+    if (!session.error.empty()) map["error"] = QString::fromStdString(session.error);
+    return map;
+}
+
+static int handleRfidLearning(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &systems)
+{
+    const int alarm = alarmSystemIdToInteger(req.hdr.pathAt(3));
+    const QString uid = QString(req.hdr.pathAt(5));
+    auto fail = [&](const char *reason) {
+        rsp.httpStatus = strcmp(reason, "storage_error") == 0 ? HttpStatusServiceUnavailable : HttpStatusBadRequest;
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/alarmsystems/%1/users/learn_rfid").arg(alarm), QLatin1String(reason)));
+        return REQ_READY_SEND;
+    };
+    AlarmSystem *sys = AS_GetAlarmSystem(alarm, systems); bool managed = false;
+    if (!sys) return fail("alarm_not_found");
+    if (!rfidId(uid)) return fail("invalid_user_id");
+    if (!sys->userManagementEnabled(managed)) return fail("storage_error");
+    if (!managed) return fail("managed_users_required");
+    std::vector<AlarmUsers::User> users;
+    if (!sys->users(users)) return fail("storage_error");
+    const auto user = std::find_if(users.begin(), users.end(), [&](const AlarmUsers::User &u) { return QString::fromStdString(u.id) == uid; });
+    if (user == users.end()) return fail("user_not_found");
+    const int64_t now = AS_LearningTime(); auto &sessions = AS_RfidLearning();
+    if (req.hdr.httpMethod() == HttpPost || req.hdr.httpMethod() == HttpDelete) {
+        bool ok = false; const QVariant parsed = Json::parse(req.content, ok); const auto body = parsed.toMap();
+        if (!ok || parsed.type() != QVariant::Map) return fail("invalid_body");
+        std::string error;
+        if (req.hdr.httpMethod() == HttpDelete) {
+            if (body.size() != 1 || body.value("session_id").type() != QVariant::String) return fail("session_id_required");
+            if (!sessions.cancel(alarm, uid.toStdString(), body.value("session_id").toString().toStdString(), now, error)) return fail(error.c_str());
+        } else {
+            const QStringList keys = {"user_revision", "source", "endpoint", "name", "timeout_seconds"};
+            for (auto i = body.cbegin(); i != body.cend(); ++i) if (!keys.contains(i.key())) return fail("unknown_field");
+            qint64 revision, endpoint, seconds = 60;
+            if (!rfidRevision(body.value("user_revision"), revision)) return fail("user_revision_required");
+            if (revision != user->userRevision) return fail("revision_conflict");
+            if (!rfidRevision(body.value("endpoint"), endpoint) || endpoint > 240 || body.value("source").type() != QVariant::String) return fail("invalid_keypad");
+            if (body.contains("timeout_seconds") && (!rfidRevision(body.value("timeout_seconds"), seconds) || seconds > AlarmUsers::MaxLearningSeconds)) return fail("invalid_timeout");
+            const QString source = body.value("source").toString();
+            bool addressOk = false; const quint64 address = source.toULongLong(&addressOk, 16);
+            if (!addressOk || address == 0 || source != QString::number(address, 16)) return fail("invalid_keypad");
+            if (!sys->keypadAssigned(address)) return fail("keypad_not_assigned");
+            deCONZ::Address device; device.setExt(address);
+            if (!plugin->getSensorNodeForAddressAndEndpoint(device, quint8(endpoint), QLatin1String("ZHAAncillaryControl"))) return fail("keypad_not_found");
+            if (!user->enabled || !user->grantEnabled || (!user->allKeypads && std::none_of(user->keypads.begin(), user->keypads.end(),
+                [&](const AlarmUsers::Keypad &p) { return p.source == source.toStdString() && p.endpoint == endpoint; }))) return fail("keypad_not_allowed");
+            if (body.value("name").type() != QVariant::String) return fail("invalid_name");
+            const std::string name = body.value("name").toString().toStdString();
+            if (name.empty() || name.size() > 64 || std::any_of(name.begin(), name.end(), [](unsigned char c) { return c < 32 || c == 127; })) return fail("invalid_name");
+            if (user->rfid.size() >= AlarmUsers::MaxRfidCredentials) return fail("rfid_limit");
+            AlarmUsers::LearningSession session; session.id = QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-').toStdString();
+            session.uid = uid.toStdString(); session.alarm = alarm; session.source = source.toStdString(); session.endpoint = int(endpoint);
+            session.name = name; session.userRevision = revision;
+            if (!sessions.begin(session, int(seconds), now, error)) return fail(error.c_str());
+        }
+    } else if (req.hdr.httpMethod() != HttpGet) return REQ_NOT_HANDLED;
+    AlarmUsers::LearningSession session;
+    if (sessions.status(alarm, uid.toStdString(), now, session)) rsp.map = rfidLearningToMap(session, now);
+    else { rsp.map["state"] = "idle"; rsp.map["user_id"] = uid; }
+    rsp.httpStatus = HttpStatusOk; return REQ_READY_SEND;
+}
+
 int AS_handleAlarmSystemsApi(const ApiRequest &req, ApiResponse &rsp, AlarmSystems &alarmSystems, EventEmitter *eventEmitter)
 {
     Q_UNUSED(eventEmitter);
+    if (req.hdr.pathComponentsCount() >= 6 && req.hdr.pathAt(3) == QLatin1String("users") && req.hdr.pathAt(5) == QLatin1String("credentials"))
+        return handleRfidCredentials(req, rsp);
+    if (req.hdr.pathComponentsCount() == 7 && req.hdr.pathAt(4) == QLatin1String("users") && req.hdr.pathAt(6) == QLatin1String("learn_rfid"))
+        return handleRfidLearning(req, rsp, alarmSystems);
     if ((req.hdr.pathComponentsCount() >= 5 && req.hdr.pathAt(4) == QLatin1String("users")) ||
         (req.hdr.pathComponentsCount() >= 4 && req.hdr.pathAt(3) == QLatin1String("users")))
         return handleAlarmUsers(req, rsp, alarmSystems);
@@ -969,6 +1123,7 @@ static int deleteAlarmSystemDevice(const ApiRequest &req, ApiResponse &rsp, Alar
 
     return REQ_READY_SEND;
 }
+
 
 
 

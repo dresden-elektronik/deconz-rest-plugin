@@ -17,6 +17,7 @@ int main()
         result.user.id = "synthetic-private-id";
         result.user.name = "synthetic-private-name";
         result.user.hash = "synthetic-private-hash";
+        result.user.rfid.push_back({"synthetic-rfid-id", "synthetic-rfid-label", "synthetic-rfid-hash"});
         result.user.remaining = 9;
         auto event = [&](bool managed = true) {
             return AlarmUsers::accessEvent(managed, result, "1", "2", 0, 1700000000000);
@@ -48,6 +49,7 @@ int main()
             CHECK(!event().isEmpty());
             CHECK(event()["result"] == "accepted");
             CHECK(event()["user_id"] == "synthetic-private-id");
+            CHECK(!QJsonDocument::fromVariant(event()).toJson().contains("synthetic-rfid"));
             CHECK(event(false).isEmpty());
         }
         result.response = 6;
@@ -91,6 +93,7 @@ int main()
         CHECK(command(true,false)["result"]=="failed");
         CHECK(command(true,true,"open").isEmpty());
         CHECK(!QJsonDocument::fromVariant(command()).toJson().contains("synthetic-private-hash"));
+        CHECK(!QJsonDocument::fromVariant(command()).toJson().contains("synthetic-rfid"));
         rest.ok=false;CHECK(command().isEmpty());
         std::cout << "PASS: " << checks << " access-event checks\n";
     } catch (const std::exception &e) {
@@ -98,4 +101,5 @@ int main()
         return 1;
     }
 }
+
 
