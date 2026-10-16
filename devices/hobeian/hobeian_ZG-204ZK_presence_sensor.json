@@ -1,0 +1,213 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": [
+    "HOBEIAN",
+    "_TZE200_ka8l86iu",
+    "_TZE200_zbfmvj13"
+  ],
+  "modelid": [
+    "ZG-204ZK",
+    "TS0601",
+    "TS0601"
+  ],
+  "vendor": "HOBEIAN",
+  "product": "24Ghz human presence sensor (ZG-204ZK)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_PRESENCE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xef00"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "awake": true,
+          "parse": {
+            "fn": "tuya",
+            "dpid": 121,
+            "eval": "Item.val = Attr.val"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/fadingtime",
+          "range": [
+            10,
+            28800
+          ],
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 102,
+            "dt": "0x2b",
+            "eval": "Item.val",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 102,
+            "eval": "Item.val = Attr.val",
+            "fn": "tuya"
+          },
+          "default": 60
+        },
+        {
+          "name": "config/ledindication",
+          "description": "Turn the onboard LED On or Off",
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 107,
+            "dt": "0x10",
+            "eval": "Item.val == 1 ? 1 : 0;",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 107,
+            "eval": "Item.val = Attr.val",
+            "fn": "tuya"
+          },
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/sensitivity",
+          "range": [
+            0,
+            10
+          ],
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 2,
+            "dt": "0x2b",
+            "eval": "Item.val",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 2,
+            "eval": "Item.val = Attr.val",
+            "fn": "tuya"
+          },
+          "default": 7
+        },
+        {
+          "name": "config/triggerdistance",
+          "description": "Far detection sensitivity",
+          "read": {
+            "fn": "none"
+          },
+          "write": {
+            "dpid": 4,
+            "dt": "0x2b",
+            "eval": "Far = ['0','1','2','3','4','5']; Attr.val = Math.max(0,Far.indexOf(Item.val)*100);",
+            "fn": "tuya"
+          },
+          "parse": {
+            "dpid": 4,
+            "eval": "Item.val = String(Attr.val/100);",
+            "fn": "tuya"
+          },
+          "values": [
+            [
+              "\"1\"",
+              "1m"
+            ],
+            [
+              "\"2\"",
+              "2m"
+            ],
+            [
+              "\"3\"",
+              "3m"
+            ],
+            [
+              "\"4\"",
+              "4m"
+            ],
+            [
+              "\"5\"",
+              "5m"
+            ],
+            [
+              "\"0\"",
+              "Off"
+            ]
+          ],
+          "default": "5"
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/presence",
+          "awake": true,
+          "read": {
+            "fn": "none"
+          },
+          "parse": {
+            "dpid": 1,
+            "eval": "Item.val = Attr.val == 0;",
+            "fn": "tuya"
+          },
+          "default": false
+        }
+      ]
+    }
+  ]
+}
