@@ -1358,7 +1358,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
     else
     {
         bool ok = false;
-        const int n = val.toInt(&ok);
+        const qint64 n = val.toLongLong(&ok);
 
         if (ok)
         {
