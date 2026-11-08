@@ -141,7 +141,7 @@ jobs:
           upload-artifact-enabled: false
 
           # DDF Store
-          upload-store-enabled: true
+          upload-store-enabled: false
           upload-store-status: 'beta'
           upload-store-url: 'https://ddf.cryonet.io'
           upload-store-token: ${{ secrets.STORE_TOKEN }}
