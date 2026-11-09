@@ -1,0 +1,13 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/watering/duration",
+  "datatype": "UInt16",
+  "access": "RW",
+  "public": true,
+  "range": [
+    0,
+    990
+  ],
+  "default": 0,
+  "description": "The watering duration (in seconds)."
+}
