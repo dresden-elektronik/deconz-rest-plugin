@@ -56,6 +56,8 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 43260,
+          "awake": true,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
@@ -88,8 +90,7 @@
           "name": "state/lowbattery"
         },
         {
-          "name": "state/test",
-          "awake": true
+          "name": "state/test"
         }
       ]
     }
@@ -103,7 +104,7 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 600,
+          "min": 7200,
           "max": 43200,
           "change": "0x00000001"
         }
