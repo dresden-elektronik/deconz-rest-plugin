@@ -1,0 +1,9 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/schedule_read_day",
+  "datatype": "UInt8",
+  "access": "R",
+  "public": false,
+  "default": 0,
+  "description": "Internal state to read the weekly schedule one day at a time: weekday to request next (0 = Sunday .. 6 = Saturday) + 7 * number of unanswered requests for that day."
+}

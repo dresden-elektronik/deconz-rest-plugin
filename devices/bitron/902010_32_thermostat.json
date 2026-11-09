@@ -1,0 +1,389 @@
+{
+  "schema": "devcap1.schema.json",
+  "uuid": "292c42bf-9821-4f3c-866b-f6edc90962d3",
+  "manufacturername": [
+    "Bitron Home",
+    "Bitron Home",
+    "Bitron",
+    "Bitron",
+    "Bitron Video",
+    "Bitron Video",
+    "SMaBiT",
+    "SMaBiT"
+  ],
+  "modelid": [
+    "902010/32",
+    "AV2010/32",
+    "902010/32",
+    "AV2010/32",
+    "902010/32",
+    "AV2010/32",
+    "902010/32",
+    "AV2010/32"
+  ],
+  "vendor": "Bitron Home",
+  "product": "Wall thermostat (902010/32)",
+  "sleeper": false,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_THERMOSTAT",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x0201"
+      ],
+      "fingerprint": {
+        "profile": "0x0104",
+        "device": "0x0301",
+        "endpoint": "0x01",
+        "in": [
+          "0x0000",
+          "0x0001",
+          "0x0003",
+          "0x0004",
+          "0x000A",
+          "0x0201"
+        ]
+      },
+      "meta": {
+        "values": {
+          "config/mode": {
+            "off": 0,
+            "cool": 3,
+            "heat": 4
+          }
+        }
+      },
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion"
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/battery",
+          "parse": {
+            "at": "0x0020",
+            "cl": "0x0001",
+            "ep": 1,
+            "eval": "const vmin = 22; const vmax = 30; let bat = Attr.val > 100 ? Attr.val / 100 : Attr.val; if (bat > vmax) { bat = vmax; } else if (bat < vmin) { bat = vmin; } bat = Math.round(((bat - vmin) / (vmax - vmin)) * 100); Item.val = bat <= 0 ? 1 : bat;",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "at": "0x0020",
+            "cl": "0x0001",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "refresh.interval": 86400,
+          "default": 100
+        },
+        {
+          "name": "config/controlsequence",
+          "parse": {
+            "at": "0x001b",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val + 1;",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "at": "0x001b",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/coolsetpoint",
+          "parse": {
+            "at": "0x0011",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "at": "0x0011",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x0011",
+            "cl": "0x0201",
+            "dt": "0x29",
+            "ep": 1,
+            "eval": "Item.val;",
+            "fn": "zcl:attr"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "config/heatsetpoint",
+          "parse": {
+            "at": "0x0012",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val;",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "at": "0x0012",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x0012",
+            "cl": "0x0201",
+            "dt": "0x29",
+            "ep": 1,
+            "eval": "Item.val;",
+            "fn": "zcl:attr"
+          },
+          "refresh.interval": 3600,
+          "default": 2100
+        },
+        {
+          "name": "config/mode",
+          "parse": {
+            "at": "0x001c",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "if (Attr.val === 4) { Item.val = 'heat'; } else if (Attr.val === 3) { Item.val = 'cool'; } else { Item.val = 'off'; }",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "at": "0x001c",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x001c",
+            "cl": "0x0201",
+            "dt": "0x30",
+            "ep": 1,
+            "eval": "const m = {'off': 0, 'cool': 3, 'heat': 4}; m[Item.val] !== undefined ? m[Item.val] : 0;",
+            "fn": "zcl:attr"
+          },
+          "refresh.interval": 86400,
+          "default": "heat"
+        },
+        {
+          "name": "config/offset",
+          "parse": {
+            "at": "0x0010",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val * 10;",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "at": "0x0010",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x0010",
+            "cl": "0x0201",
+            "dt": "0x28",
+            "ep": 1,
+            "eval": "Math.round(Item.val / 10);",
+            "fn": "zcl:attr"
+          },
+          "refresh.interval": 86400,
+          "default": 0
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "config/schedule",
+          "parse": {
+            "fn": "zcl:cmd",
+            "ep": 1,
+            "cl": "0x0201",
+            "cmd": "0x00",
+            "script": "902010_32_schedule.js"
+          },
+          "read": {
+            "fn": "zcl:cmd",
+            "ep": "0x01",
+            "cl": "0x0201",
+            "cmd": "0x02",
+            "fc": "0x01",
+            "script": "902010_32_schedule_read.js"
+          },
+          "refresh.interval": 10800
+        },
+        {
+          "name": "config/schedule_read_day"
+        },
+        {
+          "name": "config/schedule_on",
+          "parse": {
+            "at": "0x0025",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = (Attr.val & 0x01) !== 0;",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "at": "0x0025",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "write": {
+            "at": "0x0025",
+            "cl": "0x0201",
+            "dt": "0x18",
+            "ep": 1,
+            "eval": "Item.val ? 1 : 0;",
+            "fn": "zcl:attr"
+          },
+          "refresh.interval": 86400,
+          "default": false
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/on",
+          "parse": {
+            "at": "0x0029",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "Item.val = Attr.val > 0;",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "at": "0x0029",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "refresh.interval": 1800,
+          "default": false
+        },
+        {
+          "name": "state/temperature",
+          "parse": {
+            "at": "0x0000",
+            "cl": "0x0201",
+            "ep": 1,
+            "eval": "if (Attr.val != -32768) { Item.val = Attr.val; }",
+            "fn": "zcl:attr"
+          },
+          "read": {
+            "at": "0x0000",
+            "cl": "0x0201",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "refresh.interval": 3600
+        },
+        {
+          "name": "state/lastset",
+          "parse": {
+            "fn": "time"
+          },
+          "read": {
+            "at": "0x0008",
+            "cl": "0x000A",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "state/localtime",
+          "parse": {
+            "fn": "time"
+          },
+          "read": {
+            "at": "0x0007",
+            "cl": "0x000A",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "refresh.interval": 86400
+        },
+        {
+          "name": "state/utc",
+          "parse": {
+            "fn": "time"
+          },
+          "read": {
+            "at": "0x0000",
+            "cl": "0x000A",
+            "ep": 1,
+            "fn": "zcl:attr"
+          },
+          "refresh.interval": 86400
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0001",
+      "report": [
+        {
+          "at": "0x0020",
+          "dt": "0x20",
+          "min": 3600,
+          "max": 43200,
+          "change": "0x01"
+        }
+      ]
+    },
+    {
+      "bind": "unicast",
+      "src.ep": 1,
+      "cl": "0x0201",
+      "report": [
+        {
+          "at": "0x0000",
+          "dt": "0x29",
+          "min": 10,
+          "max": 1800,
+          "change": "0x000A"
+        }
+      ]
+    }
+  ]
+}
