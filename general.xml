@@ -6111,7 +6111,7 @@
 
     <!-- SONOFF -->
     <cluster id="0xfc11" name="Sonoff specific" mfcode="0x1286">
-      <description>Cluster for light sensor and thermostat</description>
+      <description>Cluster for Sonoff Specific Attributes</description>
       <server>
         <attribute id="0x0000" name="Child lock" type="bool" access="rw" required="m">
           <value name="Off" value="0x00"></value>
@@ -6125,6 +6125,11 @@
           <value name="Celsius" value="0"></value>
           <value name="Fahrenheit" value="1"></value>
         </attribute>
+        <attribute id="0x0012" name="Radio Power Turbo Mode" type="s16" access="rw" required="m"></attribute>
+        <attribute id="0x0014" name="Power-On State" type="bool" access="rw" required="m"></attribute>
+        <attribute id="0x0015" name="Power-On Time" type="u16" access="rw" required="m"></attribute>
+        <attribute id="0x0016" name="External Switch Mode" type="u8" access="rw" required="m"></attribute>
+        <attribute id="0x0017" name="Detach Relay Mode" type="bool" access="rw" required="m"></attribute>
         <attribute id="0x2001" name="Illumination status" type="enum8" access="r" required="m">
           <value name="Dark" value="0x00"></value>
           <value name="Light" value="0x01"></value>
