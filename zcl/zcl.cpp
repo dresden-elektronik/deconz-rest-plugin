@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2021-2026 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -61,7 +61,7 @@ ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint1
     req.setDstAddressMode(deCONZ::ApsExtAddress);
     req.dstAddress().setExt(extAddress);
     req.dstAddress().setNwk(nwkAddress);
-    req.setClusterId(param.clusterId);
+    req.setClusterId(param.clusterIds[0]);
     req.setProfileId(HA_PROFILE_ID);
     req.setSrcEndpoint(0x01); // todo dynamic
 
@@ -72,11 +72,11 @@ ZCL_Result ZCL_ReadAttributes(const ZCL_Param &param, quint64 extAddress, quint1
     zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
 
     DBG_Printf(DBG_ZCL, "ZCL read attr 0x%016llX, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
-               extAddress, param.endpoint, param.clusterId, param.attributes.front(), param.manufacturerCode, req.id(), zclFrame.sequenceNumber());
+               extAddress, param.endpoint, param.clusterIds[0], param.attributes.front(), param.manufacturerCode, req.id(), zclFrame.sequenceNumber());
 
     result.sequenceNumber = zclFrame.sequenceNumber();
 
-    if (param.clusterId == 0x0019) // assume device only has client OTA cluster
+    if (param.clusterIds[0] == 0x0019) // assume device only has client OTA cluster
     {
         fcDirection = deCONZ::ZclFCDirectionServerToClient;
     }
@@ -124,7 +124,7 @@ ZCL_Result ZCL_WriteAttribute(const ZCL_Param &param, quint64 extAddress, quint1
 {
     ZCL_Result result{};
 
-    DBG_Printf(DBG_INFO, "writeZclAttribute, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, type: 0x%02X, mfcode: 0x%04X\n", param.endpoint, param.clusterId, param.attributes.front(), attribute->dataType(), param.manufacturerCode);
+    DBG_Printf(DBG_INFO, "writeZclAttribute, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, type: 0x%02X, mfcode: 0x%04X\n", param.endpoint, param.clusterIds[0], param.attributes.front(), attribute->dataType(), param.manufacturerCode);
 
     deCONZ::ApsDataRequest req;
     deCONZ::ZclFrame zclFrame;
@@ -134,7 +134,7 @@ ZCL_Result ZCL_WriteAttribute(const ZCL_Param &param, quint64 extAddress, quint1
     req.setDstAddressMode(deCONZ::ApsNwkAddress);
     req.dstAddress().setExt(extAddress);
     req.dstAddress().setNwk(nwkAddress);
-    req.setClusterId(param.clusterId);
+    req.setClusterId(param.clusterIds[0]);
     req.setProfileId(HA_PROFILE_ID);
     req.setSrcEndpoint(1); // TODO
 
@@ -195,7 +195,7 @@ ZCL_Result ZCL_SendCommand(const ZCL_Param &param, quint64 extAddress, quint16 n
     req.setDstAddressMode(deCONZ::ApsExtAddress);
     req.dstAddress().setExt(extAddress);
     req.dstAddress().setNwk(nwkAddress);
-    req.setClusterId(param.clusterId);
+    req.setClusterId(param.clusterIds[0]);
     req.setProfileId(HA_PROFILE_ID);
     req.setSrcEndpoint(0x01); // todo dynamic
 
@@ -206,7 +206,7 @@ ZCL_Result ZCL_SendCommand(const ZCL_Param &param, quint64 extAddress, quint16 n
     zclFrame.setCommandId(param.commandId);
 
     DBG_Printf(DBG_ZCL, "ZCL cmd attr 0x%016llX, ep: 0x%02X, cl: 0x%04X, cmd: 0x%02X, mfcode: 0x%04X, aps.id: %u, zcl.seq: %u\n",
-               extAddress, param.endpoint, param.clusterId, param.commandId, param.manufacturerCode, req.id(), zclFrame.sequenceNumber());
+               extAddress, param.endpoint, param.clusterIds[0], param.commandId, param.manufacturerCode, req.id(), zclFrame.sequenceNumber());
 
     result.sequenceNumber = zclFrame.sequenceNumber();
 
