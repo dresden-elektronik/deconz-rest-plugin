@@ -1169,6 +1169,7 @@ public Q_SLOTS:
     Resource *getResource(const char *resource, const QString &id = QString());
     void announceUpnp();
     void upnpReadyRead();
+    void apsdeDataIndicationWebSocket(const deCONZ::ApsDataIndication &ind, Device *device);
     void apsdeDataIndicationDevice(const deCONZ::ApsDataIndication &ind, Device *device);
     void apsdeDataIndication(const deCONZ::ApsDataIndication &ind);
     void apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf);
