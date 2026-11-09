@@ -15894,6 +15894,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
                 {
                     ret = d->handleCapabilitiesApi(req, rsp);
                 }
+                else if (apiModule == QLatin1String("topology"))
+                {
+                    ret = d->handleTopologyApi(req, rsp);
+                }
                 else if (apiModule == QLatin1String("touchlink"))
                 {
                     ret = d->handleTouchlinkApi(req, rsp);

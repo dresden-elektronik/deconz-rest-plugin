@@ -1135,6 +1135,10 @@ public:
     int handleCapabilitiesApi(const ApiRequest &req, ApiResponse &rsp);
     int getCapabilities(const ApiRequest &req, ApiResponse &rsp);
 
+    // REST API topology
+    int handleTopologyApi(const ApiRequest &req, ApiResponse &rsp);
+    int getTopology(const ApiRequest &req, ApiResponse &rsp);
+
     // UPNP discovery
     void initUpnpDiscovery();
     void initDescriptionXml();
