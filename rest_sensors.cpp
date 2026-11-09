@@ -1143,6 +1143,16 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             updated = true;
                         }
                     }
+                    else if (sensor->modelId() == QLatin1String("3RSM0347Z")) // Third Reality Smart Soil Moisture Sensor Gen2
+                    {
+                        // Device handles the offset internally.
+                        if (devManaged && rsub)
+                        {
+                            change.addTargetValue(rid.suffix, data.integer * 10);
+                            rsub->addStateChange(change);
+                            updated = true;
+                        }
+                    }
                     else
                     {
                         offsetUpdated = true;   // Consider offset only for temperature, humidity, and pressure cluster
