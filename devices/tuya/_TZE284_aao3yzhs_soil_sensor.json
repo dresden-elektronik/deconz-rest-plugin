@@ -2,9 +2,21 @@
   "schema": "devcap1.schema.json",
   "uuid": "2e93cde2-7329-4c70-bf90-59af162796ff",
   "manufacturername": [
-    "_TZE284_aao3yzhs"
+    "_TZE284_aao3yzhs",
+    "_TZE284_nhgdf6qr",
+    "_TZE284_ap9owrsa",
+    "_TZE284_33bwcga2",
+    "_TZE284_wckqztdq",
+    "_TZE284_3urschql",
+    "_TZE284_tgrzpqf4"
   ],
   "modelid": [
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
+    "TS0601",
     "TS0601"
   ],
   "vendor": "Tuya",
