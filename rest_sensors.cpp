@@ -2015,17 +2015,33 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                 if (updated)
                 {
-                    if (item->setValue(val))
+                    bool isStateChange = false;
+
+                    const auto sc = std::find_if(change.items().cbegin(), change.items().cend(), [rid](const auto stateChange)
+                    {
+                        return (rid.suffix == stateChange.suffix );
+                    });
+
+                    if (sc != change.items().cend())
+                    {
+                        isStateChange = true;
+                    }
+
+                    if (isStateChange || (!isStateChange && item->setValue(val)))
                     {
                         QVariantMap rspItem;
                         QVariantMap rspItemState;
                         rspItemState[QString("/sensors/%1/config/%2").arg(id).arg(pi.key())] = val;
                         rspItem[QLatin1String("success")] = rspItemState;
                         rsp.list.append(rspItem);
-                        Event e(RSensors, rid.suffix, id, item);
-                        enqueueEvent(e);
 
-                        if (device && device->managed())
+                        if (!isStateChange)
+                        {
+                            Event e(RSensors, rid.suffix, id, item);
+                            enqueueEvent(e);
+                        }
+
+                        if (devManaged)
                         {
                             DB_StoreSubDeviceItem(sensor, item);
                         }
