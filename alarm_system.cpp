@@ -351,6 +351,8 @@ AlarmSystem::AlarmSystem(AlarmSystemId id, EventEmitter *eventEmitter, AS_Device
     addItem(DataTypeUInt8, RConfigArmedAwayTriggerDuration)->setValue(120);
 
     d->updateTargetStateValues();
+    
+    learnModeIndex = 0;
 
     connect(this, &AlarmSystem::eventNotify, eventEmitter, &EventEmitter::enqueueEvent);
 }
@@ -459,6 +461,8 @@ bool AlarmSystem::isValidCode(const QString &code, quint64 srcExtAddress)
     }
 
     DB_Secret sec;
+    
+    //check master code
     sec.uniqueId = QString(AS_ID_CODE0).arg(id()).toStdString();
 
     if (DB_LoadSecret(sec))
@@ -466,6 +470,23 @@ bool AlarmSystem::isValidCode(const QString &code, quint64 srcExtAddress)
         if (CRYPTO_ScryptVerify(sec.secret, code.toStdString()))
         {
             return true;
+        }
+    }
+    
+    //check other codes.
+    quint8 index = 1;
+    for (; index < 10; index++)
+    {
+        sec.uniqueId = QString("as_%1_code%2").arg(id()).arg(index).toStdString();
+        
+        DBG_Printf(DBG_INFO, "test %s\n",sec.uniqueId);
+
+        if (DB_LoadSecret(sec))
+        {
+            if (CRYPTO_ScryptVerify(sec.secret, code.toStdString()))
+            {
+                return true;
+            }
         }
     }
 
@@ -559,29 +580,32 @@ const AS_DeviceTable *AlarmSystem::deviceTable() const
  */
 bool AlarmSystem::setCode(int index, const QString &code)
 {
-    if (code.isEmpty())
-    {
-        return false;
-    }
-
-    const std::string code0 = code.toStdString();
-
     DB_Secret sec;
     sec.uniqueId = QString("as_%1_code%2").arg(id()).arg(index).toStdString();
-    sec.secret = CRYPTO_ScryptPassword(code0, CRYPTO_GenerateSalt());
-    sec.state = 1;
-
-    if (sec.secret.empty())
+    
+    // No code, so delete the entry
+    if (code.isEmpty())
     {
-        return false;
+    }
+    else
+    {
+        const std::string code0 = code.toStdString();
+
+        sec.secret = CRYPTO_ScryptPassword(code0, CRYPTO_GenerateSalt());
+        sec.state = 1;
     }
 
     if (DB_StoreSecret(sec))
     {
-        setValue(RConfigConfigured, true);
+        if (index == 0)
+        {
+            setValue(RConfigConfigured, true);
+        }
+        DBG_Printf(DBG_INFO, "Update code succesfull, index %u\n",index);
         return true;
     }
-
+    
+    DBG_Printf(DBG_INFO, "Update code failed, index %u\n",index);
     return false;
 }
 
