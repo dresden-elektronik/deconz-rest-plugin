@@ -1,0 +1,8 @@
+{
+  "schema": "resourceitem1.schema.json",
+  "id": "config/height",
+  "datatype": "UInt16",
+  "access": "RW",
+  "public": true,
+  "description": "The height for a ZHAGauge device."
+}
