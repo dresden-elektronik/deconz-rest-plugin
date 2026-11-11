@@ -46,7 +46,7 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
+          "refresh.interval": 43260,
           "awake": true,
           "read": {
             "fn": "zcl:attr",
@@ -119,7 +119,7 @@
         },
         {
           "name": "config/battery",
-          "refresh.interval": 86400,
+          "refresh.interval": 43260,
           "awake": true,
           "read": {
             "fn": "zcl:attr",
@@ -174,7 +174,7 @@
           "at": "0x0021",
           "dt": "0x20",
           "min": 7200,
-          "max": 14400,
+          "max": 43200,
           "change": "0x00000002"
         }
       ]
@@ -188,7 +188,7 @@
         {
           "at": "0x0000",
           "dt": "0x21",
-          "min": 5,
+          "min": 60,
           "max": 1800,
           "change": "0x00000064"
         }
@@ -202,7 +202,7 @@
         {
           "at": "0x0000",
           "dt": "0x29",
-          "min": 5,
+          "min": 60,
           "max": 1800,
           "change": "0x0000000A"
         }
