@@ -194,7 +194,14 @@
           "name": "state/lastupdated"
         },
         {
-          "name": "state/lightlevel"
+          "name": "state/lightlevel",
+          "parse": {
+            "fn": "xiaomi:special",
+            "mf": "0x115F",
+            "at": "0xFF01",
+            "idx": "0x0B",
+            "script": "xiaomi_rtcgq11lm_heartbeat_lightlevel.js"
+          }
         },
         {
           "name": "state/lux",
