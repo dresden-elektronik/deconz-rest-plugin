@@ -1,0 +1,22 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "state/ngtf_optarif",
+    "datatype": "String",
+    "access": "R",
+    "public": true,
+    "description": "ZLinky ngtf_optarif",
+    "read": {
+        "at": "0x0000",
+        "cl": "0xff66",
+        "ep": 1,
+        "fn": "zcl:attr"
+    },
+    "parse": {
+        "at": "0x0000",
+        "cl": "0xff66",
+        "ep": 1,
+        "eval": "Item.val = Attr.val",
+        "fn": "zcl:attr"
+    },
+    "refresh.interval": 730
+}

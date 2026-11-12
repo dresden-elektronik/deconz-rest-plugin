@@ -1,0 +1,22 @@
+{
+    "schema": "resourceitem1.schema.json",
+    "id": "state/ntarf",
+    "datatype": "UInt8",
+    "access": "R",
+    "public": true,
+    "description": "ZLinky ntarf",
+    "read": {
+        "at": "0x0201",
+        "cl": "0xff66",
+        "ep": 1,
+        "fn": "zcl:attr"
+    },
+    "parse": {
+        "at": "0x0201",
+        "cl": "0xff66",
+        "ep": 1,
+        "eval": "Item.val = Attr.val",
+        "fn": "zcl:attr"
+    },
+    "refresh.interval": 730
+}
