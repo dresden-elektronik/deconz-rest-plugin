@@ -54,6 +54,8 @@ endif() # NOT DECONZ_FULL_BUILD
 set(PLUGIN_INCLUDE_FILES
     air_quality.h
     alarm_system.h
+    alarm_user_store.h
+    alarm_user_learning.h
     alarm_system_device_table.h
     alarm_system_event_handler.h
     aps_controller_wrapper.h
@@ -140,6 +142,7 @@ add_library(${PROJECT_NAME} SHARED
 
     air_quality.cpp
     alarm_system.cpp
+    alarm_user_store.cpp
     alarm_system_device_table.cpp
     alarm_system_event_handler.cpp
     appliances.cpp
@@ -381,3 +384,5 @@ endif()
 #enable_testing()
 
 #add_subdirectory (tests)
+
+
