@@ -1,0 +1,60 @@
+name: Alarm users
+on:
+  push:
+    branches: [master, alarm-users-v1, alarm-users-upstream]
+  pull_request:
+    paths:
+      - 'alarm_user*'
+      - 'alarm_system*'
+      - 'rest_alarmsystems.cpp'
+      - 'ias_ace.cpp'
+      - 'database*'
+      - 'tests/alarm_users*'
+      - 'tests/alarm_system_timing*'
+      - 'tests/alarm_schedule*'
+      - 'tests/alarm_access_event*'
+      - 'CMakeLists.txt'
+      - '.github/workflows/alarm-users.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build pkg-config libsqlite3-dev libssl-dev libgpiod-dev qtbase5-dev libqt5serialport5-dev libqt5websockets5-dev qtdeclarative5-dev
+      - name: Database and access-policy tests
+        id: policy
+        run: |
+          g++ -std=c++14 -Wall -Wextra -Werror -I. alarm_user_store.cpp tests/alarm_users_test.cpp -lsqlite3 -lcrypto -pthread -o /tmp/alarm_users_test
+          result=$(/tmp/alarm_users_test)
+          echo "$result"
+          echo "result=$result" >> "$GITHUB_OUTPUT"
+      - name: 'Policy result: ${{ steps.policy.outputs.result }}'
+        run: 'true'
+      - name: Schedule and timezone tests
+        run: |
+          g++ -std=c++14 -Wall -Wextra -Werror -fPIC -I. tests/alarm_schedule_test.cpp $(pkg-config --cflags --libs Qt5Core) -o /tmp/alarm_schedule_test
+          /tmp/alarm_schedule_test
+      - name: Immutable access event tests
+        id: events
+        run: |
+          g++ -std=c++14 -Wall -Wextra -Werror -fPIC -I. tests/alarm_access_event_test.cpp $(pkg-config --cflags --libs Qt5Core) -o /tmp/alarm_access_event_test
+          result=$(/tmp/alarm_access_event_test)
+          echo "$result"
+          echo "result=$result" >> "$GITHUB_OUTPUT"
+      - name: 'Event result: ${{ steps.events.outputs.result }}'
+        run: 'true'
+      - name: Alarm timing selector regression
+        run: python3 tests/alarm_system_timing_test.py
+      - name: Build complete Qt5 plugin
+        run: |
+          cmake -S . -B build-alarm-users -G Ninja -DQT_VERSION_MAJOR=5 -DCMAKE_INSTALL_PREFIX=/usr
+          cmake --build build-alarm-users --parallel 2
+          cmake --install build-alarm-users --prefix "$PWD/stage-alarm-users"

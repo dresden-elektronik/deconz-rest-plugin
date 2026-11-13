@@ -5,7 +5,9 @@
 #include "de_web_plugin_private.h"
 
 #include "ias_ace.h"
+#include "alarm_user_event.h"
 #include "ias_zone.h"
+#include <QDateTime>
 
 //  Arm mode command
 //-------------------
@@ -149,6 +151,15 @@ static quint8 handleArmCommand(AlarmSystem *alarmSys, quint8 armMode, const QStr
     return armMode;
 }
 
+// User identity is an immutable event payload, not a mutable last-user attribute.
+static void publishAccess(bool managed, const AlarmUsers::Result &result, const AlarmSystem *alarmSys,
+                          const Sensor *sensor, int mode, qint64 timestamp)
+{
+    if (!plugin->webSocketServer) return;
+    const auto map = AlarmUsers::accessEvent(managed, result, alarmSys->idString(), sensor->id(), mode, timestamp);
+    if (!map.isEmpty()) plugin->webSocketServer->broadcastTextMessage(Json::serialize(map));
+}
+
 void IAS_IasAceClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, AlarmSystems *alarmSystems, ApsControllerWrapper &apsCtrlWrapper)
 {
     if (zclFrame.isDefaultResponse())
@@ -182,32 +193,58 @@ void IAS_IasAceClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::Z
         
         quint8 armRsp = IAS_ACE_ARM_NOTF_NOT_READY_TO_ARM;
 
-        // [1] arm/disarm code in payload (pascal string, allowed to be empty, e.g. for keyfobs)
-        QString armCode;
-        if (zclFrame.payload().size() > 2)
+        AlarmSystem *alarmSys = AS_GetAlarmSystemForDevice(ind.srcAddress().ext(), *alarmSystems);
+        bool managed = false;
+        if (alarmSys && !alarmSys->userManagementEnabled(managed))
         {
-            int length = zclFrame.payload().at(1);
-            if (length <= zclFrame.payload().size() - 2)
+            sendArmResponse(ind, zclFrame, IAS_ACE_ARM_NOTF_NOT_READY_TO_ARM, apsCtrlWrapper);
+            return; // Never bypass an unreadable access policy.
+        }
+        const auto &payload = zclFrame.payload();
+        const int length = quint8(payload.at(1));
+        QString armCode;
+        if (managed)
+        {
+            // Managed PINs require a complete, bounded IAS ACE payload.
+            if (length > 16 || payload.size() != length + 3)
             {
-                armCode = QString::fromUtf8(zclFrame.payload().constData() + 2, length);
+                sendArmResponse(ind, zclFrame, IAS_ACE_ARM_NOTF_INVALID_ARM_DISARM_CODE, apsCtrlWrapper);
+                return;
             }
+            armCode = QString::fromUtf8(payload.constData() + 2, length);
+        }
+        else if (payload.size() > 2)
+        {
+            // Preserve legacy/keyfob payload handling for alarms that never opt in.
+            if (length <= payload.size() - 2)
+                armCode = QString::fromUtf8(payload.constData() + 2, length);
             else
-            {
-                armRsp = IAS_ACE_ARM_NOTF_INVALID_ARM_DISARM_CODE;
                 armCode = QLatin1String("invalid_code");
-            }
         }
 
-        // [2] zone id (uint8, ignore, we don't do anything with it)
-        // const quint8 zoneId = static_cast<quint8>(zclFrame.payload().at(zclFrame.payload().size() - 1));
-        
-        DBG_Printf(DBG_IAS, "[IAS ACE] 0x%016llX arm command received, arm mode: 0x%02X, code length: %d\n", ind.srcAddress().ext(), armMode, (int)armCode.size());
-
-        AlarmSystem *alarmSys = AS_GetAlarmSystemForDevice(ind.srcAddress().ext(), *alarmSystems);
-
-        if (alarmSys)
+        if (alarmSys && !managed)
         {
             armRsp = handleArmCommand(alarmSys, armMode, armCode, ind.srcAddress().ext());
+        }
+        else if (alarmSys)
+        {
+            const qint64 timestamp = QDateTime::currentMSecsSinceEpoch();
+            const auto access = alarmSys->authorizeKeypad(armCode, ind.srcAddress().ext(),
+                ind.srcEndpoint(), zclFrame.sequenceNumber(), armMode, timestamp);
+            armRsp = access.ok ? quint8(access.response) : IAS_ACE_ARM_NOTF_NOT_READY_TO_ARM;
+            if (access.duplicate)
+            {
+                // Acknowledge a radio retry without another count, alarm write,
+                // sensor timestamp, legacy action, or access event.
+                sendArmResponse(ind, zclFrame, armRsp, apsCtrlWrapper);
+                return;
+            }
+            if (access.ok && (armRsp <= 3 || armRsp == IAS_ACE_ARM_NOTF_ALREADY_DISARMED))
+            {
+                alarmSys->setTargetArmMode(AS_ArmMode(armMode));
+            }
+            // Includes rejected decisions; retries returned above, errors emit no decision.
+            publishAccess(managed, access, alarmSys, sensor, armMode, timestamp);
         }
 
         {
