@@ -4,12 +4,14 @@
   "manufacturername": [
     "$MF_IKEA",
     "$MF_IKEA",
+    "$MF_IKEA",
     "$MF_IKEA"
   ],
   "modelid": [
     "TRADFRI bulb E26 WS opal 1000lm",
     "TRADFRI bulb E27 WS opal 1000lm",
-    "TRADFRIbulbE27WSglobeopal1055lm"
+    "TRADFRIbulbE27WSglobeopal1055lm",
+    "TRADFRI bulb E27 WS globe 1055lm"
   ],
   "vendor": "IKEA",
   "product": "Tradfri LED bulb E27 1000/1055 lumen, dimmable white spectrum, opal white (LED1732G11/LED2003G10)",
