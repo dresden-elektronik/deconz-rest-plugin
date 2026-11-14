@@ -3539,7 +3539,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
                     if (extAddr)
                     {
-                        Device *device = DEV_GetOrCreateDevice(d, deCONZ::ApsController::instance(), d->eventEmitter, d->m_devices, extAddr);
+                        Device *device = DEV_GetOrCreateDevice(d, deCONZ::ApsController::instance(), d->eventEmitter, d->m_devices, d->m_devicesByKey, extAddr);
 
                         if (device)
                         {
@@ -4530,7 +4530,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (!isClip && sensor.modelId() != QLatin1String("Daylight"))
                 {
                     const auto key = extAddr != 0 ? extAddr : qHash(sensor.uniqueId());
-                    auto *device = DEV_GetOrCreateDevice(d, deCONZ::ApsController::instance(), d->eventEmitter, d->m_devices, key);
+                    auto *device = DEV_GetOrCreateDevice(d, deCONZ::ApsController::instance(), d->eventEmitter, d->m_devices, d->m_devicesByKey, key);
                     device->addSubDevice(&d->sensors.back());
                 }
 

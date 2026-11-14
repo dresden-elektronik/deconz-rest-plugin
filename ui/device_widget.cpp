@@ -238,7 +238,7 @@ void DeviceWidget::nodeEvent(const deCONZ::NodeEvent &event)
     {
         d->curNode = event.node()->address();
 
-        Device *device = DEV_GetDevice(*d->devices, d->curNode.ext());
+        Device *device = DEV_GetDevice(DEV_GetDevicesByKey(), d->curNode.ext());
         if (!device)
         {
             ui->uniqueIdLabel->setText("No device");
@@ -258,7 +258,7 @@ void DeviceWidget::nodeEvent(const deCONZ::NodeEvent &event)
 
 void DeviceWidget::editDDF()
 {
-    Device *device = DEV_GetDevice(*d->devices, d->curNode.ext());
+    Device *device = DEV_GetDevice(DEV_GetDevicesByKey(), d->curNode.ext());
     if (!device)
     {
         return;

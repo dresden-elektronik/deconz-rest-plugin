@@ -139,7 +139,7 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
         return false;
     }
 
-    Device *device = DEV_GetDevice(m_devices, node->address().ext());
+    Device *device = DEV_GetDevice(m_devicesByKey, node->address().ext());
     if (device && device->managed())
     {
         return false;
@@ -423,7 +423,7 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
  */
 void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Device *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
+    Device *device = DEV_GetDevice(m_devicesByKey, ind.srcAddress().ext());
     if (device && device->managed())
     {
         return;
@@ -528,7 +528,7 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
  */
 void DeRestPluginPrivate::handleBindAndUnbindRspIndication(const deCONZ::ApsDataIndication &ind)
 {
-    Device *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
+    Device *device = DEV_GetDevice(m_devicesByKey, ind.srcAddress().ext());
     if (device && device->managed())
     {
         return;
@@ -684,7 +684,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
     }
 
     // clue code to get classic hard coded C++ bindings into DDF
-    Device *device = DEV_GetDevice(m_devices, bt.binding.srcAddress);
+    Device *device = DEV_GetDevice(m_devicesByKey, bt.binding.srcAddress);
     if (!device)
     {  }
     else if (!device->managed())
@@ -2024,7 +2024,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         return;
     }
 
-    Device *device = DEV_GetDevice(m_devices, lightNode->address().ext());
+    Device *device = DEV_GetDevice(m_devicesByKey, lightNode->address().ext());
     if (device && device->managed())
     {
         return;
@@ -2339,7 +2339,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         return false;
     }
 
-    Device *device = DEV_GetDevice(m_devices, sensor->address().ext());
+    Device *device = DEV_GetDevice(m_devicesByKey, sensor->address().ext());
     if (device && device->managed())
     {
         return false;
@@ -3030,7 +3030,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         return false;
     }
 
-    Device *device = DEV_GetDevice(m_devices, sensor->address().ext());
+    Device *device = DEV_GetDevice(m_devicesByKey, sensor->address().ext());
     if (device && device->managed())
     {
         return false;
@@ -3431,7 +3431,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         return;
     }
 
-    Device *device = DEV_GetDevice(m_devices, sensor->address().ext());
+    Device *device = DEV_GetDevice(m_devicesByKey, sensor->address().ext());
     if (device && device->managed())
     {
         return;
@@ -3973,7 +3973,7 @@ bool DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
     {
         DBG_Printf(DBG_INFO_L2, "queue binding task for 0x%016llX, cluster 0x%04X\n", bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
 
-        Device *device = DEV_GetDevice(m_devices, bindingTask.binding.srcAddress);
+        Device *device = DEV_GetDevice(m_devicesByKey, bindingTask.binding.srcAddress);
 
         if (device && !device->managed())
         {

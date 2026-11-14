@@ -1238,7 +1238,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         rStats = { };
     }
 
-    auto *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
+    auto *device = DEV_GetDevice(m_devicesByKey, ind.srcAddress().ext());
 
     apsdeDataIndicationDevice(ind, device);
 
@@ -2133,7 +2133,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
             sensor = &sensors.back();
 
-            Device *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, ind.gpdSrcId());
+            Device *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, m_devicesByKey, ind.gpdSrcId());
             if (device)
             {
                 device->addSubDevice(sensor);
@@ -2260,7 +2260,7 @@ void DeRestPluginPrivate::handleMacDataRequest(const deCONZ::NodeEvent &event)
         return;
     }
 
-    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, event.node()->address().ext());
+    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, m_devicesByKey, event.node()->address().ext());
     Q_ASSERT(device);
     enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
 
@@ -2336,7 +2336,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         return;
     }
 
-    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, node->address().ext());
+    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, m_devicesByKey, node->address().ext());
     Q_ASSERT(device);
 
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_PROFALUX)
@@ -3248,7 +3248,7 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
     bool available = !node->isZombie();
 
     {
-        auto *device = DEV_GetDevice(m_devices, node->address().ext());
+        auto *device = DEV_GetDevice(m_devicesByKey, node->address().ext());
         if (device)
         {
             ResourceItem *item = device->item(RStateReachable);
@@ -3342,7 +3342,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
         return nullptr;
     }
 
-    Device *device = DEV_GetDevice(m_devices, event.node()->address().ext());
+    Device *device = DEV_GetDevice(m_devicesByKey, event.node()->address().ext());
 
     if (device && device->managed())
     {
@@ -4150,7 +4150,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
             updated = true;
         }
 
-        auto *device = DEV_GetDevice(m_devices, sensor->address().ext());
+        auto *device = DEV_GetDevice(m_devicesByKey, sensor->address().ext());
         const bool devManaged = device && device->managed();
 
         if (!DEV_TestStrict() && !devManaged)
@@ -5416,7 +5416,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         return;
     }
 
-    Device *device = DEV_GetDevice(m_devices, node->address().ext());
+    Device *device = DEV_GetDevice(m_devicesByKey, node->address().ext());
 
     if (device && device->managed())
     {
@@ -6916,7 +6916,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         return;
     }
 
-    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, node->address().ext());
+    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, m_devicesByKey, node->address().ext());
 
     Sensor sensorNode;
     sensorNode.setMode(Sensor::ModeScenes);
@@ -11788,7 +11788,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
             }
         }
 
-        auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, event.node()->address().ext());
+        auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, m_devicesByKey, event.node()->address().ext());
         if (device)
         {
             device->setDeviceId(deviceId);
@@ -11892,7 +11892,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
 
         if (event.node())
         {
-            Device *device = DEV_GetDevice(m_devices, event.node()->address().ext());
+            Device *device = DEV_GetDevice(m_devicesByKey, event.node()->address().ext());
 
             if (device && device->managed())
             {
@@ -13960,7 +13960,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         }
     }
 
-    Device *device = DEV_GetDevice(m_devices, fastProbeAddr.ext());
+    Device *device = DEV_GetDevice(m_devicesByKey, fastProbeAddr.ext());
     if (!device)
     {
         return;
@@ -16122,7 +16122,7 @@ Resource *DeRestPluginPrivate::getResource(const char *resource, const QString &
     }
     else if (resource == RDevices)
     {
-        return DEV_GetDevice(m_devices, id.toULongLong());
+        return DEV_GetDevice(m_devicesByKey, id.toULongLong());
     }
     else if (resource == RGroups && !id.isEmpty())
     {
@@ -16159,6 +16159,16 @@ DeviceContainer* DEV_GetDevices()
         return &plugin->m_devices;
     }
     return nullptr;
+}
+
+std::unordered_map<DeviceKey, Device *> &DEV_GetDevicesByKey()
+{
+    static std::unordered_map<DeviceKey, Device *> empty;
+    if (plugin)
+    {
+        return plugin->m_devicesByKey;
+    }
+    return empty;
 }
 
 // Used by Device class when querying resources.
@@ -16761,7 +16771,7 @@ void DeRestPluginPrivate::pollNextDevice()
 
     if (restNode && restNode->isAvailable())
     {
-        Device *device = DEV_GetDevice(m_devices, restNode->address().ext());
+        Device *device = DEV_GetDevice(m_devicesByKey, restNode->address().ext());
         if (device && device->managed())
         {
             return;

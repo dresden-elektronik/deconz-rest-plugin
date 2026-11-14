@@ -12,6 +12,7 @@
 #define DEVICE_H
 
 #include <memory>
+#include <unordered_map>
 #include <QObject>
 #include "resource.h"
 
@@ -133,28 +134,38 @@ Resource *DEV_GetSubDevice(Device *device, const char *prefix, const QString &id
 
 /*! Returns a device for a given \p key.
 
-    \param devices - the container which contains the device
+    The lookup is keyed by the device MAC address and runs in O(1) using the
+    device index maintained by \c DEV_GetOrCreateDevice / \c DEV_RemoveDevice.
+
+    \param byKey - the device index mapping MAC addresses to devices
     \param key - unique identifier for a device (MAC address for physical devices)
  */
-Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key);
+Device *DEV_GetDevice(std::unordered_map<DeviceKey, Device *> &byKey, DeviceKey key);
 
 /*! Returns a device for a given \p key.
 
     If the device doesn't exist yet it will be created.
+    The device index is kept in sync with the device container.
 
     \param parent - must be DeRestPluginPrivate instance
     \param eventEmitter - emitter to enqueue events
     \param devices - the container which contains the device
+    \param byKey - the device index mapping MAC addresses to devices
     \param key - unique identifier for a device (MAC address for physical devices)
  */
-Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, EventEmitter *eventEmitter, DeviceContainer &devices, DeviceKey key);
+Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, EventEmitter *eventEmitter, DeviceContainer &devices, std::unordered_map<DeviceKey, Device *> &byKey, DeviceKey key);
 
 /*! Removes a device with \p key.
 
     \param devices - the container which contains the device
+    \param byKey - the device index mapping MAC addresses to devices
     \param key - unique identifier for a device (MAC address for physical devices)
  */
-bool DEV_RemoveDevice(DeviceContainer &devices, DeviceKey key);
+bool DEV_RemoveDevice(DeviceContainer &devices, std::unordered_map<DeviceKey, Device *> &byKey, DeviceKey key);
+
+/*! Returns the device index mapping MAC addresses to devices.
+ */
+std::unordered_map<DeviceKey, Device *> &DEV_GetDevicesByKey();
 
 /*! Returns \c Resource for a given \p identifier.
 

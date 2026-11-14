@@ -112,7 +112,7 @@ static Device *plGetDeviceForMac(uint64_t mac)
     if (!devs)
         return nullptr;
 
-    Device *device = DEV_GetDevice(*devs, mac);
+    Device *device = DEV_GetDevice(DEV_GetDevicesByKey(), mac);
 
     return device;
 }

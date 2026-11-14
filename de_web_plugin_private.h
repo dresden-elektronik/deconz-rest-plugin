@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <deque>
 #include <memory>
+#include <unordered_map>
 #include <sqlite3.h>
 #include <deconz.h>
 #include "device.h"
@@ -1976,6 +1977,7 @@ public:
     size_t sensorCheckIter;
     int sensorCheckFast;
     DeviceContainer m_devices;
+    std::unordered_map<DeviceKey, Device *> m_devicesByKey; //! index mapping MAC addresses to devices for O(1) lookup
     std::vector<Group> groups;
     std::vector<LightNode> nodes;
     std::vector<Rule> rules;

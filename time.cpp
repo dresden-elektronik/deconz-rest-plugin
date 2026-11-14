@@ -70,7 +70,7 @@ void DeRestPluginPrivate::handleTimeClusterIndication(const deCONZ::ApsDataIndic
     }
     else
     {
-        auto *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
+        auto *device = DEV_GetDevice(m_devicesByKey, ind.srcAddress().ext());
         const bool devManaged = device && device->managed();
 
         if (!devManaged)

@@ -43,7 +43,7 @@ void DeRestPluginPrivate::handleEvent(const Event &e)
 
     if (e.deviceKey() != 0)
     {
-        auto *device = DEV_GetDevice(m_devices, e.deviceKey());
+        auto *device = DEV_GetDevice(m_devicesByKey, e.deviceKey());
         if (device)
         {
             device->handleEvent(e);
