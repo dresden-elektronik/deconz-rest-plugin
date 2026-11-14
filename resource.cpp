@@ -362,6 +362,8 @@ const char *RConfigUbisysJ1WindowCoveringType = "config/ubisys_j1_windowcovering
 const char *RConfigUrl = "config/url";
 const char *RConfigUsertest = "config/usertest";
 const char *RConfigVolume = "config/volume";
+const char *RConfigWateringDuration = "config/watering/duration";
+const char *RConfigWateringInterval = "config/watering/interval";
 const char *RConfigWindowCoveringType = "config/windowcoveringtype";
 const char *RConfigWindowOpen = "config/windowopen_set";
 const char *RConfigWindowOpenDetectionEnabled = "config/windowopendetectionenabled";
@@ -676,6 +678,8 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, QVariant::String, RConfigUrl));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigUsertest));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigVolume));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, QVariant::Double, RConfigWateringDuration, 0, 990));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigWateringInterval, 0, 30));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, QVariant::Double, RConfigWindowCoveringType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigWindowOpen));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, QVariant::Bool, RConfigWindowOpenDetectionEnabled));

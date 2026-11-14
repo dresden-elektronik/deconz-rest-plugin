@@ -385,6 +385,8 @@ extern const char *RConfigUbisysJ1WindowCoveringType;
 extern const char *RConfigUrl;
 extern const char *RConfigUsertest;
 extern const char *RConfigVolume;
+extern const char *RConfigWateringDuration;
+extern const char *RConfigWateringInterval;
 extern const char *RConfigWindowCoveringType;
 extern const char *RConfigWindowOpen;
 extern const char *RConfigWindowOpenDetectionEnabled;
