@@ -176,6 +176,17 @@
           "name": "state/lastupdated"
         },
         {
+          "name": "state/heating",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 3,
+            "eval": "Item.val = Attr.val == 0;"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
           "name": "state/temperature",
           "parse": {
             "fn": "tuya",
