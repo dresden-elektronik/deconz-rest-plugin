@@ -35,6 +35,7 @@
         "device": "0x0301",
         "endpoint": "0x01",
         "in": [
+          "0x0000",
           "0x0001",
           "0x0201",
           "0x0204",
@@ -79,11 +80,12 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 43260,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
           "read": {
@@ -109,7 +111,7 @@
             "at": "0x4000",
             "cl": "0x0204",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -138,7 +140,7 @@
             "at": "0x4015",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -173,7 +175,7 @@
             "at": "0x4003",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -214,7 +216,7 @@
             "at": "0x4032",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -275,7 +277,7 @@
             "at": "0x4013",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -340,7 +342,7 @@
             "at": "0x4016",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -386,7 +388,7 @@
             "at": "0x4051",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -429,7 +431,7 @@
             "at": "0x4012",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr",
             "mf": "0x1246"
           },
@@ -462,7 +464,7 @@
             "at": "0x0000",
             "cl": "0x0201",
             "ep": 1,
-            "eval": "Item.val = Attr.val;",
+            "eval": "Item.val = Attr.val",
             "fn": "zcl:attr"
           }
         },
@@ -539,11 +541,12 @@
         },
         {
           "name": "config/battery",
+          "refresh.interval": 43260,
           "parse": {
             "at": "0x0021",
             "cl": "0x0001",
             "ep": 1,
-            "eval": "Item.val = Attr.val / 2;",
+            "eval": "Item.val = Attr.val / 2",
             "fn": "zcl:attr"
           },
           "read": {
@@ -558,18 +561,18 @@
         },
         {
           "name": "state/lastset",
-          "refresh.interval": 3700
+          "refresh.interval": 10860
         },
         {
           "name": "state/lastupdated"
         },
         {
           "name": "state/localtime",
-          "refresh.interval": 3700
+          "refresh.interval": 10860
         },
         {
           "name": "state/utc",
-          "refresh.interval": 3700
+          "refresh.interval": 10860
         }
       ]
     }
@@ -584,7 +587,7 @@
         {
           "at": "0x0021",
           "dt": "0x20",
-          "min": 3600,
+          "min": 7200,
           "max": 43200,
           "change": "0x00000002"
         }
