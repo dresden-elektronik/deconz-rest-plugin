@@ -3321,7 +3321,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         return;
     }
 
-    Device *device = DEV_GetDevice(m_devices, ind.srcAddress().ext());
+    Device *device = DEV_GetDevice(m_devicesByKey, ind.srcAddress().ext());
     if (device && device->managed())
     {
         return;

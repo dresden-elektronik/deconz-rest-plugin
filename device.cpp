@@ -2572,20 +2572,19 @@ const std::vector<DDF_Binding> &Device::bindings() const
     return d->binding.bindings;
 }
 
-Device *DEV_GetDevice(DeviceContainer &devices, DeviceKey key)
+Device *DEV_GetDevice(std::unordered_map<DeviceKey, Device *> &byKey, DeviceKey key)
 {
-    auto d = std::find_if(devices.begin(), devices.end(),
-                          [key](const std::unique_ptr<Device> &device) { return device->key() == key; });
+    auto it = byKey.find(key);
 
-    if (d != devices.end())
+    if (it != byKey.end())
     {
-        return d->get();
+        return it->second;
     }
 
     return nullptr;
 }
 
-Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, EventEmitter *eventEmitter, DeviceContainer &devices, DeviceKey key)
+Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, EventEmitter *eventEmitter, DeviceContainer &devices, std::unordered_map<DeviceKey, Device *> &byKey, DeviceKey key)
 {
     Q_ASSERT(key != 0);
     Q_ASSERT(apsCtrl);
@@ -2598,6 +2597,7 @@ Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, E
         Device *device = devices.back().get();
         QObject::connect(device, SIGNAL(eventNotify(Event)), eventEmitter, SLOT(enqueueEvent(Event)));
         device->setHandle(R_CreateResourceHandle(device, devices.size() - 1));
+        byKey.emplace(device->key(), device);
         return device;
     }
 
@@ -2606,13 +2606,14 @@ Device *DEV_GetOrCreateDevice(QObject *parent, deCONZ::ApsController *apsCtrl, E
     return d->get();
 }
 
-bool DEV_RemoveDevice(DeviceContainer &devices, DeviceKey key)
+bool DEV_RemoveDevice(DeviceContainer &devices, std::unordered_map<DeviceKey, Device *> &byKey, DeviceKey key)
 {
     const auto i = std::find_if(devices.cbegin(), devices.cend(),
                           [key](const std::unique_ptr<Device> &device) { return device->key() == key; });
     if (i != devices.cend())
     {
         devices.erase(i);
+        byKey.erase(key);
     }
 
     return false;

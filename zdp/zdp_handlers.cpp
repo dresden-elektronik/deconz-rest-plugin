@@ -36,7 +36,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         stream >> macCapabilities;
     }
 
-    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, ext);
+    auto *device = DEV_GetOrCreateDevice(this, deCONZ::ApsController::instance(), eventEmitter, m_devices, m_devicesByKey, ext);
     Q_ASSERT(device);
     enqueueEvent(Event(device->prefix(), REventDeviceAnnounce, int(macCapabilities), device->key()));
 

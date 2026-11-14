@@ -240,7 +240,7 @@ void RestDevices::handleEvent(const Event &event)
 {
     if (event.resource() == RDevices && event.what() == REventDeleted)
     {
-        DEV_RemoveDevice(plugin->m_devices, event.deviceKey());
+        DEV_RemoveDevice(plugin->m_devices, plugin->m_devicesByKey, event.deviceKey());
     }
 }
 
@@ -279,7 +279,7 @@ int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
 
     const auto deviceKey = extAddressFromUniqueId(req.hdr.pathAt(3));
 
-    Device *device = DEV_GetDevice(plugin->m_devices, deviceKey);
+    Device *device = DEV_GetDevice(plugin->m_devicesByKey, deviceKey);
 
     rsp.httpStatus = device ? HttpStatusOk : HttpStatusNotFound;
 
@@ -788,7 +788,7 @@ int RestDevices::getDeviceDDF(const ApiRequest &req, ApiResponse &rsp)
 
     bool ddfFull = req.hdr.pathAt(4) == QLatin1String("ddffull");
 
-    Device *device = DEV_GetDevice(plugin->m_devices, deviceKey);
+    Device *device = DEV_GetDevice(plugin->m_devicesByKey, deviceKey);
 
     rsp.httpStatus = device ? HttpStatusOk : HttpStatusNotFound;
 
@@ -1220,7 +1220,7 @@ int RestDevices::putDeviceReloadDDF(const ApiRequest &req, ApiResponse &rsp)
 
     if (deviceKey)
     {
-        Device *device = DEV_GetDevice(plugin->m_devices, deviceKey);
+        Device *device = DEV_GetDevice(plugin->m_devicesByKey, deviceKey);
         if (device)
         {
             DeviceDescriptions::instance()->reloadAllRawJsonAndBundles(device);
@@ -1272,7 +1272,7 @@ int RestDevices::putDeviceSetDDFPolicy(const ApiRequest &req, ApiResponse &rsp)
 
     if (deviceKey != 0)
     {
-        device = DEV_GetDevice(plugin->m_devices, deviceKey);
+        device = DEV_GetDevice(plugin->m_devicesByKey, deviceKey);
     }
 
     if (!device)
