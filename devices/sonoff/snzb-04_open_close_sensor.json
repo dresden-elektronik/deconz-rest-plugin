@@ -5,12 +5,14 @@
     "eWeLink",
     "eWeLink",
     "zbeacon",
+    "Zbeacon",
     "eWeLink",
     "eWeLink",
     "SONOFF"
   ],
   "modelid": [
     "CK-TLSR8656-SS5-01(7003)",
+    "DS01",
     "DS01",
     "DS01",
     "SNZB-04",
