@@ -1,0 +1,309 @@
+{
+  "schema": "devcap1.schema.json",
+  "manufacturername": "_TZE284_aoah6bv8",
+  "modelid": "TS0601",
+  "vendor": "Moes",
+  "product": "Smoke and carbon monoxide sensor (JKD-513COM-Z)",
+  "sleeper": true,
+  "status": "Gold",
+  "subdevices": [
+    {
+      "type": "$TYPE_WARNING_DEVICE",
+      "restapi": "/lights",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0xef00"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "state/test",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 9,
+            "eval": "Item.val = Attr.val == 0"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/alert",
+          "write": {
+            "fn": "tuya",
+            "dpid": 16,
+            "dt": "0x01",
+            "eval": "Item.val == 'none' ? 1 : 0;"
+          },
+          "parse": {
+            "fn": "tuya",
+            "dpid": 16,
+            "eval": "Item.val = (Attr.val == 1 ? 'none' : 'lselect');"
+          },
+          "read": {
+            "fn": "tuya"
+          },
+		  "refresh.interval": 86400,
+          "default": "lselect"
+        },
+        {
+          "name": "state/reachable"
+        },
+        {
+          "name": "state/lowbattery",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 14,
+            "eval": "Item.val = Attr.val == 0"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": false
+        },
+		{
+          "name": "state/errorcode",
+          "parse": {
+            "fn": "tuya",
+			"dpid": 11,
+			"eval": "var v = Number(Attr.val) || 0; var labels = ['fault', 'serious_fault', 'sensor_fault', 'probe_fault', 'power_fault']; var out = []; for (var i = 0; i < labels.length; i++) { if ((v & (1 << i)) !== 0) { out.push(labels[i]); } } Item.val = out.length ? out.join(',') : 'none';"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": "none"
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_FIRE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x040B"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/test",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 9,
+            "eval": "Item.val = Attr.val == 0"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/fire",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 1,
+            "eval": "Item.val = Attr.val == 0"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": false
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 14,
+            "eval": "Item.val = Attr.val == 0"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "$TYPE_CARBONMONOXIDE_SENSOR",
+      "restapi": "/sensors",
+      "uuid": [
+        "$address.ext",
+        "0x01",
+        "0x040C"
+      ],
+      "items": [
+        {
+          "name": "attr/id"
+        },
+        {
+          "name": "attr/lastannounced"
+        },
+        {
+          "name": "attr/lastseen"
+        },
+        {
+          "name": "attr/manufacturername"
+        },
+        {
+          "name": "attr/modelid"
+        },
+        {
+          "name": "attr/name"
+        },
+        {
+          "name": "attr/swversion",
+          "parse": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001",
+            "script": "../tuya/tuya_swversion.js"
+          },
+          "read": {
+            "fn": "zcl:attr",
+            "ep": 1,
+            "cl": "0x0000",
+            "at": "0x0001"
+          }
+        },
+        {
+          "name": "attr/type"
+        },
+        {
+          "name": "attr/uniqueid"
+        },
+        {
+          "name": "config/on"
+        },
+        {
+          "name": "config/reachable"
+        },
+        {
+          "name": "state/test",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 9,
+            "eval": "Item.val = Attr.val == 0"
+          },
+          "read": {
+            "fn": "none"
+          }
+        },
+        {
+          "name": "state/carbonmonoxide",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 18,
+            "eval": "Item.val = Attr.val == 0"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": false
+        },
+        {
+          "name": "state/lastupdated"
+        },
+        {
+          "name": "state/lowbattery",
+          "parse": {
+            "fn": "tuya",
+            "dpid": 14,
+            "eval": "Item.val = Attr.val == 0"
+          },
+          "read": {
+            "fn": "none"
+          },
+          "default": false
+        }
+      ]
+    }
+  ]
+}
